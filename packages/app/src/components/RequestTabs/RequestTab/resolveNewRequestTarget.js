@@ -24,6 +24,6 @@ export const resolveNewRequestTarget = ({ tab, item, collection, folder }) => {
     return { collectionUid: collection.uid, item: folder };
   }
 
-  // collection-settings, overview, runner, variables, etc. → collection root
+  // collection-settings, overview, variables, etc. → collection root
   return { collectionUid: collection.uid, item: null };
 };

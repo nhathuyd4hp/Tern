@@ -24,7 +24,7 @@ paths:
 ## Slice organization
 
 Slices live in `src/providers/ReduxStore/slices/`, one domain each; `collections/` is by far the
-largest (collection tree, requests, environments, runner, drafts — ~200 reducer action creators in
+largest (collection tree, requests, environments, drafts — ~200 reducer action creators in
 `collections/index.js`, plus ~150 thunks in `collections/actions.js`, and more spread in from
 `collections/exampleReducers.js`). Read the specific slice for its real state and actions.
 

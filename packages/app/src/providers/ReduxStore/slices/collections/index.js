@@ -3355,14 +3355,6 @@ export const collectionsSlice = createSlice({
         collection.name = newName;
       }
     },
-    resetRunResults: (state, action) => {
-      const { collectionUid } = action.payload;
-      const collection = findCollectionByUid(state.collections, collectionUid);
-
-      if (collection) {
-        collection.runnerResult = null;
-      }
-    },
     initRunRequestEvent: (state, action) => {
       const { requestUid, itemUid, collectionUid } = action.payload;
       const collection = findCollectionByUid(state.collections, collectionUid);
@@ -3512,185 +3504,6 @@ export const collectionsSlice = createSlice({
 
       item.unresolvedVariables = null;
     },
-    runFolderEvent: (state, action) => {
-      const { collectionUid, folderUid, itemUid, type, isRecursive, error, cancelTokenUid } = action.payload;
-      const collection = findCollectionByUid(state.collections, collectionUid);
-
-      if (collection) {
-        const folder = findItemInCollection(collection, folderUid);
-        const request = findItemInCollection(collection, itemUid);
-
-        collection.runnerResult = collection.runnerResult || { info: {}, items: [] };
-
-        // todo
-        // get startedAt and endedAt from the runner and display it in the UI
-        if (type === 'testrun-started') {
-          delete collection._scriptEnvBaseline;
-          delete collection._scriptCollVarBaseline;
-
-          const info = collection.runnerResult.info;
-          info.collectionUid = collectionUid;
-          info.folderUid = folderUid;
-          info.isRecursive = isRecursive;
-          info.cancelTokenUid = cancelTokenUid;
-          info.status = 'started';
-        }
-
-        if (type === 'testrun-ended') {
-          const info = collection.runnerResult.info;
-          info.status = 'ended';
-          if (action.payload.runCompletionTime) {
-            info.runCompletionTime = action.payload.runCompletionTime;
-          }
-          if (action.payload.statusText) {
-            info.statusText = action.payload.statusText;
-          }
-        }
-
-        if (type === 'request-queued') {
-          // Folder runs reuse the same collection across N requests; clear baselines
-          // per request so request N's script-update doesn't diff against request N-1's
-          // pre-flush snapshot.
-          delete collection._scriptEnvBaseline;
-          delete collection._scriptCollVarBaseline;
-
-          collection.runnerResult.items.push({
-            uid: request.uid,
-            requestUid: action.payload.requestUid,
-            status: 'queued'
-          });
-        }
-
-        if (type === 'request-sent') {
-          const item = collection.runnerResult.items.findLast((i) => i.uid === request.uid);
-          item.status = 'running';
-          item.requestSent = action.payload.requestSent;
-        }
-
-        if (type === 'response-received') {
-          const item = collection.runnerResult.items.findLast((i) => i.uid === request.uid);
-          item.status = 'completed';
-          item.responseReceived = action.payload.responseReceived;
-        }
-
-        if (type === 'test-results') {
-          const item = collection.runnerResult.items.findLast((i) => i.uid === request.uid);
-          item.testResults = action.payload.testResults;
-        }
-
-        if (type === 'test-results-pre-request') {
-          const item = collection.runnerResult.items.findLast((i) => i.uid === request.uid);
-          item.preRequestTestResults = action.payload.preRequestTestResults;
-        }
-
-        if (type === 'test-results-post-response') {
-          const item = collection.runnerResult.items.findLast((i) => i.uid === request.uid);
-          item.postResponseTestResults = action.payload.postResponseTestResults;
-        }
-
-        if (type === 'assertion-results') {
-          const item = collection.runnerResult.items.findLast((i) => i.uid === request.uid);
-          item.assertionResults = action.payload.assertionResults;
-        }
-
-        if (type === 'error') {
-          const item = collection.runnerResult.items.findLast((i) => i.uid === request.uid);
-          item.error = action.payload.error;
-          item.responseReceived = action.payload.responseReceived;
-          item.status = 'error';
-        }
-
-        if (type === 'runner-request-skipped') {
-          const item = collection.runnerResult.items.findLast((i) => i.uid === request.uid);
-          if (item) {
-            item.status = 'skipped';
-            item.responseReceived = action.payload.responseReceived;
-          }
-        }
-
-        if (type === 'post-response-script-execution') {
-          const item = collection.runnerResult.items.findLast((i) => i.uid === request.uid);
-          item.postResponseScriptErrorMessage = action.payload.errorMessage;
-          item.postResponseScriptErrorContext = action.payload.errorContext || null;
-        }
-
-        if (type === 'test-script-execution') {
-          const item = collection.runnerResult.items.findLast((i) => i.uid === request.uid);
-          item.testScriptErrorMessage = action.payload.errorMessage;
-          item.testScriptErrorContext = action.payload.errorContext || null;
-        }
-
-        if (type === 'pre-request-script-execution') {
-          const item = collection.runnerResult.items.findLast((i) => i.uid === request.uid);
-          item.preRequestScriptErrorMessage = action.payload.errorMessage;
-          item.preRequestScriptErrorContext = action.payload.errorContext || null;
-        }
-
-        if (type === 'scripted-request') {
-          const { phase, source, scope, timestamp, data } = action.payload;
-          const runnerItem = collection.runnerResult.items.findLast((i) => i.uid === request.uid);
-          if (runnerItem) {
-            if (!runnerItem.scriptedRequestEntries) runnerItem.scriptedRequestEntries = [];
-            runnerItem.scriptedRequestEntries.push({
-              phase,
-              source,
-              scope: scope || null,
-              timestamp,
-              data
-            });
-          }
-        }
-
-        if (type === 'oauth2-debug') {
-          const { url, credentialsId, debugInfo } = action.payload;
-          const runnerItem = collection.runnerResult.items.findLast((i) => i.uid === request.uid);
-          if (runnerItem) {
-            if (!runnerItem.oauth2DebugEntries) runnerItem.oauth2DebugEntries = [];
-            runnerItem.oauth2DebugEntries.push({
-              url,
-              credentialsId,
-              debugInfo: debugInfo?.data || debugInfo,
-              timestamp: Date.now()
-            });
-          }
-        }
-      }
-    },
-    resetCollectionRunner: (state, action) => {
-      const { collectionUid } = action.payload;
-      const collection = findCollectionByUid(state.collections, collectionUid);
-
-      if (collection) {
-        collection.runnerResult = null;
-        collection.runnerTags = { include: [], exclude: [] };
-        collection.runnerTagsEnabled = false;
-        collection.runnerConfiguration = null;
-      }
-    },
-    updateRunnerTagsDetails: (state, action) => {
-      const { collectionUid, tags, tagsEnabled } = action.payload;
-      const collection = findCollectionByUid(state.collections, collectionUid);
-      if (collection) {
-        if (tags) {
-          collection.runnerTags = tags;
-        }
-        if (typeof tagsEnabled === 'boolean') {
-          collection.runnerTagsEnabled = tagsEnabled;
-        }
-      }
-    },
-    updateRunnerConfiguration: (state, action) => {
-      const { collectionUid, selectedRequestItems, requestItemsOrder, delay } = action.payload;
-      const collection = findCollectionByUid(state.collections, collectionUid);
-      if (collection) {
-        collection.runnerConfiguration = {
-          ...collection.runnerConfiguration,
-          selectedRequestItems: selectedRequestItems || [],
-          requestItemsOrder: requestItemsOrder || [],
-          ...(delay !== undefined && { delay })
-        };
-      }
-    },
     updateRequestDocs: (state, action) => {
       const collection = findCollectionByUid(state.collections, action.payload.collectionUid);
 
@@ -3772,7 +3585,7 @@ export const collectionsSlice = createSlice({
       }
     },
     collectionAddOauth2CredentialsByUrl: (state, action) => {
-      const { collectionUid, folderUid, itemUid, url, credentials, credentialsId, debugInfo, executionMode } = action.payload;
+      const { collectionUid, folderUid, itemUid, url, credentials, credentialsId, debugInfo } = action.payload;
       const collection = findCollectionByUid(state.collections, collectionUid);
       if (!collection) return;
 
@@ -3801,10 +3614,6 @@ export const collectionsSlice = createSlice({
       });
 
       collection.oauth2Credentials = filteredOauth2Credentials;
-
-      // Runner runs snapshot oauth onto the runner item via 'oauth2-debug';
-      // skip the shared timeline push so it doesn't leak into the standalone view.
-      if (executionMode === 'runner') return;
 
       if (!collection.timeline) {
         collection.timeline = [];
@@ -4368,13 +4177,8 @@ export const {
   collectionUnlinkDirectoryEvent,
   collectionAddEnvFileEvent,
   collectionRenamedEvent,
-  resetRunResults,
   initRunRequestEvent,
   runRequestEvent,
-  runFolderEvent,
-  resetCollectionRunner,
-  updateRunnerTagsDetails,
-  updateRunnerConfiguration,
   updateRequestDocs,
   updateFolderDocs,
   toggleCollectionFileMode,

@@ -58,14 +58,6 @@ module.exports = [
     esmOutput: packageJson.module,
     dtsOutput: packageJson.types
   }),
-  // reports/html
-  ...createBuildConfig({
-    inputDir: 'src/runner/**/*',
-    input: 'src/runner/index.ts',
-    cjsOutput: 'dist/runner/cjs/index.js',
-    esmOutput: 'dist/runner/esm/index.js',
-    dtsOutput: 'dist/runner/index.d.ts'
-  }),
   ...createBuildConfig({
     inputDir: 'src/utils/**/*',
     input: 'src/utils/index.ts',

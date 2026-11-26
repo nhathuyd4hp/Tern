@@ -84,7 +84,6 @@ export const tabsSlice = createSlice({
 
       const nonReplaceableTabTypes = [
         'variables',
-        'collection-runner',
         'environment-settings',
         'global-environment-settings',
         'preferences',

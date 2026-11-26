@@ -20,7 +20,6 @@ import {
   processEnvUpdateEvent,
   workspaceEnvUpdateEvent,
   requestCancelled,
-  runFolderEvent,
   runRequestEvent,
   scriptEnvironmentUpdateEvent,
   runtimeVariablesUpdateEvent,
@@ -38,7 +37,7 @@ import { workspaceDotEnvUpdateEvent, setWorkspaceDotEnvVariables } from 'provide
 import toast from 'react-hot-toast';
 import { useDispatch, useStore } from 'react-redux';
 import { isElectron } from 'utils/common/platform';
-import { globalEnvironmentsUpdateEvent, updateGlobalEnvironments, _clearScriptGlobalEnvBaseline } from 'providers/ReduxStore/slices/global-environments';
+import { globalEnvironmentsUpdateEvent, updateGlobalEnvironments } from 'providers/ReduxStore/slices/global-environments';
 import { collectionAddOauth2CredentialsByUrl, collectionClearOauth2CredentialsByCredentialsId, updateCollectionLoadingState } from 'providers/ReduxStore/slices/collections/index';
 import { migrationProgressEvent } from 'providers/ReduxStore/slices/collection-migration';
 import { apiSpecAddFileEvent, apiSpecChangeFileEvent } from 'providers/ReduxStore/slices/apiSpec';
@@ -239,16 +238,6 @@ const useIpcEvents = () => {
       dispatch(collectionRenamedEvent(val));
     });
 
-    const removeRunFolderEventListener = ipcRenderer.on('main:run-folder-event', (val) => {
-      // Folder runs reuse the workspace baseline across N requests; clear it
-      // per request so request N's global-env update doesn't diff against
-      // request N-1's pre-flush snapshot.
-      if (val.type === 'testrun-started' || val.type === 'request-queued') {
-        dispatch(_clearScriptGlobalEnvBaseline());
-      }
-      dispatch(runFolderEvent(val));
-    });
-
     const removeRunRequestEventListener = ipcRenderer.on('main:run-request-event', (val) => {
       dispatch(runRequestEvent(val));
     });
@@ -375,7 +364,6 @@ const useIpcEvents = () => {
       removeScriptEnvUpdateListener();
       removeGlobalEnvironmentVariablesUpdateListener();
       removeCollectionRenamedListener();
-      removeRunFolderEventListener();
       removeRunRequestEventListener();
       removeProcessEnvUpdatesListener();
       removeWorkspaceDotEnvUpdatesListener();

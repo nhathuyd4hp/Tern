@@ -7,7 +7,6 @@ const isObject = (value) => value && typeof value === 'object' && !Array.isArray
 const REQUEST_TAB_TYPES = new Set(['http-request', 'graphql-request', 'grpc-request', 'ws-request']);
 const SINGLETON_TAB_TYPES = new Set([
   'variables',
-  'collection-runner',
   'collection-settings',
   'collection-overview',
   'environment-settings',
@@ -20,14 +19,14 @@ const SINGLETON_TAB_TYPES = new Set([
 ]);
 
 const NON_REPLACEABLE_SINGLETON_TAB_TYPES = new Set([
-  'collection-runner',
   'variables',
   'openapi-sync',
   'openapi-spec'
 ]);
 
-// mock-* types are tabs of the removed Mock Server feature, still present in older snapshots
+// mock-* types are tabs of the removed Mock Server feature; collection-runner of the removed Runner; both may still be in older snapshots
 const IGNORED_TAB_TYPES = new Set([
+  'collection-runner',
   'v4-migration',
   'changelog',
   'mock-server',

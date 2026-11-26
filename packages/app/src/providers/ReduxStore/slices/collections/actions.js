@@ -49,7 +49,6 @@ import {
   brunoConfigUpdateEvent as _brunoConfigUpdateEvent,
   workspaceEnvUpdateEvent,
   requestCancelled,
-  resetRunResults,
   responseReceived,
   updateLastAction,
   setCollectionSecurityConfig,
@@ -57,7 +56,6 @@ import {
   collectionAddOauth2CredentialsByUrl,
   collectionClearOauth2CredentialsByUrlAndCredentialsId,
   initRunRequestEvent,
-  updateRunnerConfiguration as _updateRunnerConfiguration,
   updateActiveConnections,
   saveRequest as _saveRequest,
   saveEnvironment as _saveEnvironment,
@@ -731,69 +729,6 @@ export const cancelRequest = (cancelTokenUid, item, collection) => (dispatch) =>
     })
     .catch((err) => console.log(err));
 };
-
-export const cancelRunnerExecution = (cancelTokenUid) => (dispatch) => {
-  cancelNetworkRequest(cancelTokenUid).catch((err) => console.log(err));
-};
-
-export const runCollectionFolder
-  = (collectionUid, folderUid, recursive, delay, tags, selectedRequestUids) => (dispatch, getState) => {
-    const state = getState();
-    const { globalEnvironments, activeGlobalEnvironmentUid } = state.globalEnvironments;
-    const collection = findCollectionByUid(state.collections.collections, collectionUid);
-
-    return new Promise((resolve, reject) => {
-      if (!collection) {
-        return reject(new Error('Collection not found'));
-      }
-
-      const collectionCopy = cloneDeep(collection);
-
-      // add selected global env variables to the collection object
-      const globalEnvironmentVariables = getGlobalEnvironmentVariables({
-        globalEnvironments,
-        activeGlobalEnvironmentUid
-      });
-      collectionCopy.globalEnvironmentVariables = globalEnvironmentVariables;
-      collectionCopy.globalEnvironmentName = getGlobalEnvironmentName({ globalEnvironments, activeGlobalEnvironmentUid });
-
-      const folder = findItemInCollection(collectionCopy, folderUid);
-
-      if (folderUid && !folder) {
-        return reject(new Error('Folder not found'));
-      }
-
-      const environment = resolveEnvironmentInheritance({
-        environments: collectionCopy.environments,
-        targetEnvironment: findEnvironmentInCollection(collectionCopy, collectionCopy.activeEnvironmentUid)
-      });
-
-      dispatch(
-        resetRunResults({
-          collectionUid: collection.uid
-        })
-      );
-
-      const { ipcRenderer } = window;
-      ipcRenderer
-        .invoke(
-          'renderer:run-collection-folder',
-          folder,
-          collectionCopy,
-          environment,
-          collectionCopy.runtimeVariables,
-          recursive,
-          delay,
-          tags,
-          selectedRequestUids
-        )
-        .then(resolve)
-        .catch((err) => {
-          toast.error(get(err, 'error.message') || 'Something went wrong!');
-          reject(err);
-        });
-    });
-  };
 
 export const newFolder = (folderName, directoryName, collectionUid, itemUid) => (dispatch, getState) => {
   const state = getState();
@@ -3567,18 +3502,6 @@ export const showInFolder = (collectionPath) => () => {
     ipcRenderer.invoke('renderer:show-in-folder', collectionPath).then(resolve).catch(reject);
   });
 };
-
-export const updateRunnerConfiguration
-  = (collectionUid, selectedRequestItems, requestItemsOrder, delay) => (dispatch) => {
-    dispatch(
-      _updateRunnerConfiguration({
-        collectionUid,
-        selectedRequestItems,
-        requestItemsOrder,
-        delay
-      })
-    );
-  };
 
 export const updateActiveConnectionsInStore = (activeConnectionIds) => (dispatch, getState) => {
   dispatch(updateActiveConnections(activeConnectionIds));

@@ -11,7 +11,6 @@ import {
   IconFolderPlus,
   IconCopy,
   IconClipboard,
-  IconPlayerPlay,
   IconEdit,
   IconFoldDown,
   IconX,
@@ -100,16 +99,6 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
         uid: uuid(),
         collectionUid: collection.uid,
         type: 'openapi-sync'
-      })
-    );
-  };
-
-  const handleRun = () => {
-    dispatch(
-      addTab({
-        uid: uuid(),
-        collectionUid: collection.uid,
-        type: 'collection-runner'
       })
     );
   };
@@ -396,15 +385,6 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
       onClick: () => {
         ensureCollectionIsMounted();
         setShowNewAppModal(true);
-      }
-    },
-    {
-      id: 'run',
-      leftSection: IconPlayerPlay,
-      label: 'Run',
-      onClick: () => {
-        ensureCollectionIsMounted();
-        handleRun();
       }
     },
     {

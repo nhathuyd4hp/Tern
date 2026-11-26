@@ -34,7 +34,6 @@ import NewApp from 'components/Sidebar/NewApp';
 import RenameCollectionItem from '../RenameCollectionItem';
 import DeleteCollectionItems from '../DeleteCollectionItems';
 import IgnoreCollectionItem from '../IgnoreCollectionItem';
-import RunCollectionItem from '../RunCollectionItem';
 import GenerateCodeItem from '../GenerateCodeItem';
 import { isItemARequest, isItemAFolder } from 'utils/tabs';
 import { doesRequestMatchSearchText, doesFolderHaveItemsMatchSearchText } from 'utils/collections/search';
@@ -123,7 +122,6 @@ const CollectionItemRow = ({
   const [newRequestModalOpen, setNewRequestModalOpen] = useState(false);
   const [newFolderModalOpen, setNewFolderModalOpen] = useState(false);
   const [newAppModalOpen, setNewAppModalOpen] = useState(false);
-  const [runCollectionModalOpen, setRunCollectionModalOpen] = useState(false);
   const [itemInfoModalOpen, setItemInfoModalOpen] = useState(false);
   const examplesExpanded = !isCollectionItemCollapsed(item);
   const [isKeyboardFocused, setIsKeyboardFocused] = useState(false);
@@ -433,12 +431,6 @@ const CollectionItemRow = ({
           leftSection: IconAppWindow,
           label: 'New App',
           onClick: () => setNewAppModalOpen(true)
-        },
-        {
-          id: 'run',
-          leftSection: IconPlayerPlay,
-          label: 'Run',
-          onClick: () => setRunCollectionModalOpen(true)
         }
       );
     }
@@ -724,9 +716,6 @@ const CollectionItemRow = ({
       )}
       {newAppModalOpen && (
         <NewApp item={item} collectionUid={collectionUid} onClose={() => setNewAppModalOpen(false)} />
-      )}
-      {runCollectionModalOpen && (
-        <RunCollectionItem collectionUid={collectionUid} item={item} onClose={() => setRunCollectionModalOpen(false)} />
       )}
       {generateCodeItemModalOpen && (
         <GenerateCodeItem collectionUid={collectionUid} item={item} onClose={() => setGenerateCodeItemModalOpen(false)} />

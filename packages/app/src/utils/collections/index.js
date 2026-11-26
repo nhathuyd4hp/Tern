@@ -4,11 +4,7 @@ import { sortByNameThenSequence } from 'utils/common/index';
 import path, { normalizePath } from 'utils/common/path';
 import { isWindowsOS } from 'utils/common/platform';
 import {
-  isRequestTagsIncluded,
-  getEffectiveTags,
   getFolderTags,
-  getOwnTags,
-  getInheritedTagsFromTreePath,
   getInheritedTagSourcesFromTreePath,
   mockDataFunctions
 } from '@usebruno/common';
@@ -1729,69 +1725,6 @@ export const getUniqueTagsFromItems = (items = [], { includeDrafts = true } = {}
 export const getInheritedTagSourcesForItem = (collection, item) =>
   getInheritedTagSourcesFromTreePath(getTreePathFromCollectionToItem(collection, item));
 
-export const getInheritedTagsForItem = (collection, item) =>
-  getInheritedTagsFromTreePath(getTreePathFromCollectionToItem(collection, item));
-
-/** The tag set an item is filtered and reported by: its own tags plus its parent folders'. */
-export const getEffectiveTagsForItem = (collection, item) =>
-  getEffectiveTags(getOwnTags(item), getInheritedTagsForItem(collection, item));
-
-/**
- * Pairs every request with the tags it inherits from the folders it sits in.
- * `inheritedTags` is the effective tags of the folder the run starts at.
- */
-const collectRequestsWithInheritedTags = ({ recursive, items, inheritedTags }) => {
-  const collected = [];
-
-  each(items, (item) => {
-    if (!isItemAFolder(item)) {
-      collected.push({ item, inheritedTags });
-      return;
-    }
-    if (recursive) {
-      collected.push(
-        ...collectRequestsWithInheritedTags({
-          recursive,
-          items: item.items,
-          inheritedTags: getEffectiveTags(getFolderTags(item), inheritedTags)
-        })
-      );
-    }
-  });
-
-  return collected;
-};
-
-/**
- * Effective tags for every request in the tree, keyed by uid, resolved in a single walk — for
- * callers that need them for a whole list at once rather than one item at a time.
- */
-export const getEffectiveTagsByItemUid = (items = [], inheritedTags = []) =>
-  Object.fromEntries(
-    collectRequestsWithInheritedTags({ recursive: true, items, inheritedTags }).map(({ item, inheritedTags: inherited }) => [
-      item.uid,
-      getEffectiveTags(getOwnTags(item), inherited)
-    ])
-  );
-
-export const getRequestItemsForCollectionRun = ({ recursive, items = [], tags, inheritedTags = [] }) => {
-  let requestItems = collectRequestsWithInheritedTags({ recursive, items, inheritedTags });
-
-  const requestTypes = ['http-request', 'graphql-request'];
-  requestItems = requestItems.filter(({ item }) => requestTypes.includes(item.type) && !item.isTransient);
-
-  if (tags && tags.include && tags.exclude) {
-    const includeTags = tags.include ? tags.include : [];
-    const excludeTags = tags.exclude ? tags.exclude : [];
-    requestItems = requestItems.filter(({ item, inheritedTags: inherited }) => {
-      const effectiveTags = getEffectiveTags(getOwnTags(item), inherited);
-      return isRequestTagsIncluded(effectiveTags, includeTags, excludeTags);
-    });
-  }
-
-  return requestItems.map(({ item }) => item);
-};
-
 export const getPropertyFromDraftOrRequest = (item, propertyKey, defaultValue = null) => {
   return item.draft ? get(item, `draft.${propertyKey}`, defaultValue) : get(item, propertyKey, defaultValue);
 };
@@ -2534,7 +2467,7 @@ export const isPutObjectPresignedUrl = (url) => {
 
 /**
  * Recursively filter out transient items from a collection's items array.
- * Used for collection runner, exports, and other operations that shouldn't include transient requests.
+ * Used for exports and other operations that shouldn't include transient requests.
  * @param {Array} items - The items array to filter
  * @returns {Array} A new array with transient items removed
  */

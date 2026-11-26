@@ -4,7 +4,6 @@ import {
   IconCategory,
   IconBox,
   IconChevronDown,
-  IconRun,
   IconEye,
   IconSettings,
   IconDots,
@@ -249,16 +248,6 @@ const CollectionHeader = ({ collection, isScratchCollection }) => {
   };
 
   // Collection action handlers
-  const handleRun = () => {
-    dispatch(
-      addTab({
-        uid: uuid(),
-        collectionUid: collection.uid,
-        type: 'collection-runner'
-      })
-    );
-  };
-
   const viewVariables = () => {
     dispatch(
       addTab({
@@ -741,12 +730,6 @@ const CollectionHeader = ({ collection, isScratchCollection }) => {
                   </ActionIcon>
                 </ToolHint>
               )}
-              {/* Runner - always visible */}
-              <ToolHint text="Runner" toolhintId="RunnerToolhintId" place="bottom">
-                <ActionIcon onClick={handleRun} aria-label="Runner" size="sm" data-testid="runner">
-                  <IconRun size={16} strokeWidth={1.5} />
-                </ActionIcon>
-              </ToolHint>
               {/* JS Sandbox Mode - always visible */}
               <JsSandboxMode collection={collection} />
               {/* Overflow menu */}

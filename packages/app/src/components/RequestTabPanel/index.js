@@ -14,7 +14,6 @@ import RequestNotFound from './RequestNotFound';
 import QueryUrl from 'components/RequestPane/QueryUrl/index';
 import GrpcQueryUrl from 'components/RequestPane/GrpcQueryUrl/index';
 import NetworkError from 'components/ResponsePane/NetworkError';
-import RunnerResults from 'components/RunnerResults';
 import VariablesEditor from 'components/VariablesEditor';
 import CollectionSettings from 'components/CollectionSettings';
 import { DocExplorer } from '@usebruno/graphql-docs';
@@ -409,14 +408,6 @@ const RequestTabPanel = () => {
   }
   const isGrpcRequest = item?.type === 'grpc-request';
   const isWsRequest = item?.type === 'ws-request';
-
-  if (focusedTab.type === 'collection-runner') {
-    return (
-      <ScopedPersistenceProvider scope={focusedTab.uid}>
-        <RunnerResults collection={collection} />
-      </ScopedPersistenceProvider>
-    );
-  }
 
   if (focusedTab.type === 'variables') {
     return (

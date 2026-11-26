@@ -8,7 +8,7 @@ const { preferencesUtil } = require('../store/preferences');
 const path = require('path');
 const { DEFAULT_COLLECTION_FORMAT } = require('@usebruno/filestore');
 const { parseValueByDataType } = require('@usebruno/common/utils');
-const { GRPC_SCRIPT_KEYS, getEffectiveTags, getFolderTags, getOwnTags, normalizeLineEndings } = require('@usebruno/common');
+const { GRPC_SCRIPT_KEYS, normalizeLineEndings } = require('@usebruno/common');
 
 /**
  * Returns the variable's runtime value with datatype-driven coercion applied.
@@ -784,43 +784,6 @@ const sortCollection = (collection) => {
   });
 };
 
-const sortFolder = (folder = {}) => {
-  const items = folder.items || [];
-  let folderItems = filter(items, (item) => item.type === 'folder');
-  let requestItems = filter(items, (item) => item.type !== 'folder');
-
-  folderItems = sortByNameThenSequence(folderItems);
-  requestItems = requestItems.sort((a, b) => a.seq - b.seq);
-
-  folder.items = folderItems.concat(requestItems);
-
-  each(folderItems, (item) => {
-    sortFolder(item);
-  });
-
-  return folder;
-};
-
-const getAllRequestsInFolderRecursively = (folder = {}) => {
-  let requests = [];
-
-  if (folder.items && folder.items.length) {
-    folder.items.forEach((item) => {
-      // Skip transient requests
-      if (item.isTransient) {
-        return;
-      }
-      if (item.type !== 'folder') {
-        requests.push(item);
-      } else {
-        requests = requests.concat(getAllRequestsInFolderRecursively(item));
-      }
-    });
-  }
-
-  return requests;
-};
-
 const getEnvVars = (environment = {}) => {
   const variables = [...(environment?.inheritedVariables || []), ...(environment?.variables || [])];
   if (!variables.length) {
@@ -852,31 +815,6 @@ const getFormattedCollectionOauth2Credentials = ({ oauth2Credentials = [] }) => 
     }
   });
   return credentialsVariables;
-};
-
-/**
- * Effective tags (own + inherited) for every item in the collection, keyed by uid.
- * Resolves the whole tree in a single walk - resolving each item on its own instead would
- * re-flatten the collection once per ancestor level.
- */
-const getEffectiveTagsByUid = (collection) => {
-  const tagsByUid = new Map();
-
-  const walk = (items, inheritedTags) => {
-    each(items, (item) => {
-      if (item.type === 'folder') {
-        const folderTags = getEffectiveTags(getFolderTags(item), inheritedTags);
-        tagsByUid.set(item.uid, folderTags);
-        walk(item.items, folderTags);
-        return;
-      }
-      tagsByUid.set(item.uid, getEffectiveTags(getOwnTags(item), inheritedTags));
-    });
-  };
-
-  walk(collection.items, []);
-
-  return tagsByUid;
 };
 
 const mergeAuth = (collection, request, requestTreePath) => {
@@ -1013,7 +951,6 @@ module.exports = {
   mergeAuth,
   wrapAndJoinScripts,
   getTreePathFromCollectionToItem,
-  getEffectiveTagsByUid,
   flattenItems,
   findItem,
   findItemInCollection,
@@ -1026,8 +963,6 @@ module.exports = {
   hydrateRequestWithUuid,
   transformRequestToSaveToFilesystem,
   sortCollection,
-  sortFolder,
-  getAllRequestsInFolderRecursively,
   getEnvVars,
   getFormattedCollectionOauth2Credentials,
   sortByNameThenSequence,
