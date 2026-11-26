@@ -24,7 +24,6 @@ jobs:
         with:
           skip-build: 'true'
 
-      # Warnings are allowed; any ESLint error fails the build and blocks the release.
       - name: Lint
         run: npm run lint
 
@@ -48,7 +47,6 @@ jobs:
         shell: pwsh
         run: npm run build:web
 
-      # build-electron.js logs errors instead of failing, so a missing installer is caught by the upload step.
       - name: Build installer
         shell: pwsh
         run: node scripts/build-electron.js
@@ -80,15 +78,14 @@ jobs:
       - name: Build web app
         run: npm run build:web
 
-      # Prepares the web bundle and builds the AppImage; deb and rpm reuse that bundle.
       - name: Build AppImage
         run: node scripts/build-electron.js
 
       - name: Build deb
-        run: npm run dist:deb --workspace=packages/bruno-electron
+        run: npm run dist:deb --workspace=packages/bruno-electron -- --publish never
 
       - name: Build rpm
-        run: npm run dist:rpm --workspace=packages/bruno-electron
+        run: npm run dist:rpm --workspace=packages/bruno-electron -- --publish never
 
       - name: Upload installers
         uses: actions/upload-artifact@v4
@@ -107,7 +104,6 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 60
     env:
-      # No Apple certificate here: skip code signing so the build does not look for one.
       CSC_IDENTITY_AUTO_DISCOVERY: 'false'
     steps:
       - uses: actions/checkout@v6
@@ -133,7 +129,6 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-  # Keeps a single rolling "latest" pre-release: the previous one (and its tag) is replaced on every build.
   release:
     name: Publish release
     needs: [windows, linux, macos]
