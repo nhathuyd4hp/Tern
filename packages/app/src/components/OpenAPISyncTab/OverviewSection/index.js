@@ -114,7 +114,9 @@ const OverviewSection = ({ collection, storedSpec, collectionDrift, specDrift, r
             </Help>
           )}
         >
-          {autoCheckEnabled ? `Auto-check every ${formatCheckInterval(autoCheckInterval)}` : 'Auto-check off'}
+          {autoCheckEnabled
+            ? `Auto-check every ${formatCheckInterval(autoCheckInterval)}${openApiSyncConfig?.autoApply ? ' · Auto reload' : ''}`
+            : 'Auto-check off'}
         </StatusBadge>
       )
     },

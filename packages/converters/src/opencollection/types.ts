@@ -225,6 +225,7 @@ export interface BrunoConfig {
     specHash?: string;
     autoCheck?: boolean;
     autoCheckInterval?: number;
+    autoApply?: boolean;
   }>;
 }
 

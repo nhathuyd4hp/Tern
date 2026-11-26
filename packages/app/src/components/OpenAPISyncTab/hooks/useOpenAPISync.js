@@ -352,7 +352,7 @@ const useOpenAPISync = (collection) => {
   };
 
   // Save connection settings from the modal
-  const handleSaveSettings = async ({ sourceUrl: newUrl, autoCheck, autoCheckInterval }) => {
+  const handleSaveSettings = async ({ sourceUrl: newUrl, autoCheck, autoCheckInterval, autoApply }) => {
     const sourceUrlChanged = newUrl !== openApiSyncConfig?.sourceUrl;
 
     // Validate the spec before saving if source URL changed (URL only; files are validated at picker)
@@ -379,7 +379,8 @@ const useOpenAPISync = (collection) => {
         config: {
           sourceUrl: newUrl,
           autoCheck,
-          autoCheckInterval
+          autoCheckInterval,
+          autoApply
         }
       });
       setSourceUrl(newUrl);

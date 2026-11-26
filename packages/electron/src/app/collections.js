@@ -36,7 +36,8 @@ const configSchema = Yup.object({
       specHash: Yup.string().notRequired(),
       groupBy: Yup.string().oneOf(['tags', 'path']).notRequired(),
       autoCheck: Yup.boolean().notRequired(),
-      autoCheckInterval: Yup.number().notRequired()
+      autoCheckInterval: Yup.number().notRequired(),
+      autoApply: Yup.boolean().notRequired()
     })
   ).notRequired()
 });

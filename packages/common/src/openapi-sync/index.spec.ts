@@ -37,6 +37,18 @@ describe('normalizeOpenApiSyncConfigs', () => {
     ]);
   });
 
+  it('keeps autoApply only when it is on', () => {
+    const [on, off, unset] = normalizeOpenApiSyncConfigs([
+      { sourceUrl: 'a.json', autoApply: true },
+      { sourceUrl: 'b.json', autoApply: false },
+      { sourceUrl: 'c.json' }
+    ]);
+
+    expect(on.autoApply).toBe(true);
+    expect(off).not.toHaveProperty('autoApply');
+    expect(unset).not.toHaveProperty('autoApply');
+  });
+
   it('drops malformed entries and keeps the usable ones', () => {
     expect(normalizeOpenApiSyncConfigs([
       null,

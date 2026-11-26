@@ -72,7 +72,8 @@ describe('ConnectionSettingsModal', () => {
     await waitFor(() => expect(onSave).toHaveBeenCalledWith({
       sourceUrl: 'https://api.example.com/openapi.json',
       autoCheck: true,
-      autoCheckInterval: 15
+      autoCheckInterval: 15,
+      autoApply: false
     }));
   });
 

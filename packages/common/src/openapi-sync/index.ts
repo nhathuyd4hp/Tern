@@ -19,6 +19,7 @@ interface OpenApiSyncConfig {
   specHash?: string;
   autoCheck: boolean;
   autoCheckInterval: number;
+  autoApply?: boolean;
 }
 
 const SUPPORTED_GROUP_BY = ['tags', 'path'];
@@ -42,6 +43,8 @@ export const normalizeOpenApiSyncConfigs = (entries: unknown): OpenApiSyncConfig
     ...(entry.lastSyncDate && { lastSyncDate: entry.lastSyncDate }),
     ...(entry.specHash && { specHash: entry.specHash }),
     autoCheck: entry.autoCheck !== false,
-    autoCheckInterval: entry.autoCheckInterval || 5
+    autoCheckInterval: entry.autoCheckInterval || 5,
+    // Opt-in: only written when on, so existing files stay byte-identical.
+    ...(entry.autoApply === true && { autoApply: true })
   }));
 };

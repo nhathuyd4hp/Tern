@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
+import toast from 'react-hot-toast';
 import { getWorkspaceCollections } from 'utils/collections';
 import { getSyncEntry, listSyncEntries, syncKeyOf } from 'utils/openapi-sync-scope';
 
@@ -161,6 +162,58 @@ export const {
   clearOpenApiSyncTabState
 } = openapiSyncSlice.actions;
 
+const autoApplyingKeys = new Set();
+
+// Applies a changed spec without review: new and changed endpoints are written; removed endpoints,
+// local-only requests and locally edited requests are left alone, since nobody is there to confirm them.
+const autoApplySpecChanges = (collection, folder, syncConfig) => async (dispatch) => {
+  const collectionUid = syncKeyOf(collection.uid, folder);
+  if (autoApplyingKeys.has(collectionUid)) return;
+  autoApplyingKeys.add(collectionUid);
+
+  try {
+    const { ipcRenderer } = window;
+    const specDrift = await ipcRenderer.invoke('renderer:compare-openapi-specs', {
+      collectionUid: collection.uid,
+      collectionPath: collection.pathname,
+      folder,
+      sourceUrl: syncConfig.sourceUrl,
+      environmentContext: {
+        activeEnvironmentUid: collection.activeEnvironmentUid,
+        environments: collection.environments,
+        runtimeVariables: collection.runtimeVariables,
+        globalEnvironmentVariables: collection.globalEnvironmentVariables
+      }
+    });
+    if (specDrift.error || specDrift.isValid === false) {
+      throw new Error(specDrift.error || 'The spec is not a valid OpenAPI document');
+    }
+
+    await ipcRenderer.invoke('renderer:apply-openapi-sync', {
+      collectionUid: collection.uid,
+      collectionPath: collection.pathname,
+      folder,
+      addNewRequests: true,
+      removeDeletedRequests: false,
+      diff: { ...specDrift, removed: [] },
+      localOnlyToRemove: [],
+      driftedToReset: [],
+      mode: 'sync',
+      endpointDecisions: {},
+      preserveValues: true
+    });
+
+    dispatch(clearCollectionUpdate({ collectionUid }));
+    dispatch(clearDrift({ collectionUid }));
+    toast.success('OpenAPI spec changes applied automatically');
+  } catch (error) {
+    console.error('[OpenAPI Sync] Auto reload failed:', error);
+    dispatch(setCollectionUpdate({ collectionUid, hasUpdates: true, error: error.message }));
+  } finally {
+    autoApplyingKeys.delete(collectionUid);
+  }
+};
+
 // Lightweight thunk for polling — only checks hash, no deep comparison. `folder` picks the sync entry
 // of one collection of the application; without it the application-wide entry is checked.
 export const checkCollectionForUpdates = (collection, folder = '') => async (dispatch) => {
@@ -190,6 +243,10 @@ export const checkCollectionForUpdates = (collection, folder = '') => async (dis
       hasUpdates: result.hasUpdates || false,
       error: result.error || null
     }));
+
+    if (result.hasUpdates && syncConfig.autoApply === true && syncConfig.autoCheck !== false) {
+      await dispatch(autoApplySpecChanges(collection, folder, syncConfig));
+    }
 
     return result;
   } catch (error) {
