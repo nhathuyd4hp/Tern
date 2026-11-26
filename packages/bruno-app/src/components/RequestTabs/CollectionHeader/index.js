@@ -13,20 +13,17 @@ import {
   IconCheck,
   IconFolder,
   IconUpload,
-  IconServer2,
   IconFileCode,
   IconFileOff,
   IconCode,
   IconAppWindow,
   IconTransform
 } from '@tabler/icons';
-import IconSparkles from 'components/Icons/IconSparkles';
 import OpenAPISyncIcon from 'components/Icons/OpenAPISync';
 import { switchWorkspace, renameWorkspaceAction, exportWorkspaceAction, confirmWorkspaceCreation, cancelWorkspaceCreation } from 'providers/ReduxStore/slices/workspaces/actions';
 import { updateWorkspace } from 'providers/ReduxStore/slices/workspaces';
 import { showInFolder } from 'providers/ReduxStore/slices/collections/actions';
 import { toggleCollectionFileMode } from 'providers/ReduxStore/slices/collections';
-import { toggleAiSidebar } from 'providers/ReduxStore/slices/chat';
 import { showMigrateToYmlModal } from 'providers/ReduxStore/slices/collection-migration';
 import { findItemInCollection, findItemInCollectionByPathname, getWorkspaceCollections } from 'utils/collections';
 import get from 'lodash/get';
@@ -48,9 +45,6 @@ import { getRevealInFolderLabel } from 'utils/common/platform';
 import classNames from 'classnames';
 import StyledWrapper from './StyledWrapper';
 import { useTheme } from 'providers/Theme';
-import { useIsMockServerEnabled } from 'utils/mock-server/is-enabled';
-import CreateMockServerModal from 'components/MockServer/CreateMockServerModal';
-import { getMockServerInstances, openMockServerDashboard } from 'utils/mock-server/mock-server-instances';
 
 const readDismissedCollections = () => {
   try {
@@ -65,12 +59,8 @@ const readDismissedCollections = () => {
 
 const CollectionHeader = ({ collection, isScratchCollection }) => {
   const dispatch = useDispatch();
-  const activeWorkspaceUid = useSelector((state) => state.workspaces.activeWorkspaceUid);
   const activeTabUid = useSelector(selectActiveTabUid);
   const focusedTab = useSelector(selectActiveTab);
-  const preferences = useSelector((state) => state.app.preferences);
-  const isAiEnabled = get(preferences, 'ai.enabled', false);
-  const isAiSidebarOpen = useSelector((state) => state.chat.isOpen);
 
   // Get the current active workspace
   const currentWorkspace = useSelector(selectActiveWorkspace);
@@ -88,9 +78,6 @@ const CollectionHeader = ({ collection, isScratchCollection }) => {
   // when switching to that collection).
   const tabCountsByCollection = useSelector(selectTabCountsByCollection);
   const firstTabUidByCollection = useSelector(selectFirstTabUidByCollection);
-
-  const isMockServerEnabled = useIsMockServerEnabled();
-  const mockServerInstances = useSelector((state) => getMockServerInstances(state, activeWorkspaceUid));
 
   // Active request (used by the Request / App / File view-mode toggle)
   const activeItem = focusedTab && collection
@@ -116,7 +103,6 @@ const CollectionHeader = ({ collection, isScratchCollection }) => {
   const [workspaceNameError, setWorkspaceNameError] = useState('');
   const [closeWorkspaceModalOpen, setCloseWorkspaceModalOpen] = useState(false);
   const [createWorkspaceModalOpen, setCreateWorkspaceModalOpen] = useState(false);
-  const [showCreateMockServerModal, setShowCreateMockServerModal] = useState(false);
 
   const [migratePillDismissed, setMigratePillDismissed] = useState(true);
   useEffect(() => {
@@ -301,19 +287,6 @@ const CollectionHeader = ({ collection, isScratchCollection }) => {
     }));
   };
 
-  const viewMockServer = () => {
-    const existingInstance = mockServerInstances.find((instance) => (
-      instance.sourceType === 'collection' && instance.collectionUid === collection.uid
-    ));
-
-    if (existingInstance) {
-      dispatch(openMockServerDashboard(existingInstance));
-      return;
-    }
-
-    setShowCreateMockServerModal(true);
-  };
-
   const handleFileModeClick = () => {
     dispatch(
       toggleCollectionFileMode({
@@ -332,9 +305,6 @@ const CollectionHeader = ({ collection, isScratchCollection }) => {
       : []),
     ...(!hasOpenApiSyncConfigured
       ? [{ id: 'openapi-sync', label: 'OpenAPI', leftSection: OpenAPISyncIcon, onClick: viewOpenApiSync }]
-      : []),
-    ...(isMockServerEnabled
-      ? [{ id: 'mock-server', label: 'Mock Server', leftSection: IconServer2, onClick: viewMockServer }]
       : []),
     { id: 'collection-settings', label: 'Collection Settings', leftSection: IconSettings, onClick: viewCollectionSettings }
   ];
@@ -524,13 +494,6 @@ const CollectionHeader = ({ collection, isScratchCollection }) => {
 
       {createWorkspaceModalOpen && (
         <CreateWorkspace onClose={handleAdvancedCreateClose} />
-      )}
-
-      {showCreateMockServerModal && (
-        <CreateMockServerModal
-          defaultCollectionUid={collection.uid}
-          onClose={() => setShowCreateMockServerModal(false)}
-        />
       )}
 
       <div className="flex items-center justify-between gap-2 py-2 px-4">
@@ -737,19 +700,6 @@ const CollectionHeader = ({ collection, isScratchCollection }) => {
                     </button>
                   </ToolHint>
                 </div>
-              )}
-              {isAiEnabled && (
-                <ToolHint text="AI Assistant" toolhintId="AiAssistantToolhintId" place="bottom">
-                  <ActionIcon
-                    onClick={() => dispatch(toggleAiSidebar())}
-                    aria-label="AI Assistant"
-                    size="sm"
-                    data-testid="ai-assistant"
-                    className={isAiSidebarOpen ? 'active' : ''}
-                  >
-                    <IconSparkles size={16} strokeWidth={1.5} />
-                  </ActionIcon>
-                </ToolHint>
               )}
               {collection.format === 'bru' && !migratePillDismissed && (
                 <div

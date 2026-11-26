@@ -60,7 +60,6 @@ const ScriptEditorPane = ({ item, collection, scriptType, value, onEdit, onRun, 
           onRun={onRun}
           onSave={onSave}
           showHintsFor={showHintsFor}
-          scriptType={scriptType}
           initialScroll={scroll}
           onScroll={setScroll}
         />

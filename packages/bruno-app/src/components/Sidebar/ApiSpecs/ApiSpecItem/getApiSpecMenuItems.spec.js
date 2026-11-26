@@ -1,4 +1,4 @@
-import { IconBox, IconServer, IconCopy, IconEdit, IconFolder, IconX, IconTrash } from '@tabler/icons';
+import { IconBox, IconCopy, IconEdit, IconFolder, IconX, IconTrash } from '@tabler/icons';
 import { getApiSpecMenuItems } from './getApiSpecMenuItems';
 
 jest.mock('utils/common/platform', () => ({ getRevealInFolderLabel: () => 'Reveal in Finder' }));
@@ -9,7 +9,6 @@ const itemById = (items, id) => items.find((item) => item.id === id);
 describe('getApiSpecMenuItems', () => {
   const makeHandlers = () => ({
     'generate-collection': jest.fn(),
-    'create-mock-server': jest.fn(),
     'clone': jest.fn(),
     'rename': jest.fn(),
     'reveal': jest.fn(),
@@ -17,12 +16,11 @@ describe('getApiSpecMenuItems', () => {
     'delete': jest.fn()
   });
 
-  const menu = (isMockServerEnabled, handlers = makeHandlers()) => getApiSpecMenuItems({ handlers, isMockServerEnabled });
+  const menu = (handlers = makeHandlers()) => getApiSpecMenuItems({ handlers });
 
   it('lists every action in design order with the divider before Remove', () => {
-    expect(ids(menu(true))).toEqual([
+    expect(ids(menu())).toEqual([
       'generate-collection',
-      'create-mock-server',
       'clone',
       'rename',
       'reveal',
@@ -33,9 +31,8 @@ describe('getApiSpecMenuItems', () => {
   });
 
   it('labels each action', () => {
-    expect(menu(true).filter((item) => item.type !== 'divider').map((item) => item.label)).toEqual([
+    expect(menu().filter((item) => item.type !== 'divider').map((item) => item.label)).toEqual([
       'Generate Collection',
-      'Create Mock Server',
       'Clone',
       'Rename',
       'Reveal in Finder',
@@ -45,20 +42,19 @@ describe('getApiSpecMenuItems', () => {
   });
 
   it('gives the divider no click handler', () => {
-    expect(itemById(menu(true), 'divider-1')).toEqual({ id: 'divider-1', type: 'divider' });
+    expect(itemById(menu(), 'divider-1')).toEqual({ id: 'divider-1', type: 'divider' });
   });
 
   it('uses the platform-aware reveal label', () => {
-    expect(itemById(menu(false), 'reveal').label).toBe('Reveal in Finder');
+    expect(itemById(menu(), 'reveal').label).toBe('Reveal in Finder');
   });
 
   it('marks Delete as a danger item', () => {
-    expect(itemById(menu(false), 'delete').className).toBe('delete-item');
+    expect(itemById(menu(), 'delete').className).toBe('delete-item');
   });
 
   it.each([
     ['generate-collection', IconBox],
-    ['create-mock-server', IconServer],
     ['clone', IconCopy],
     ['rename', IconEdit],
     ['reveal', IconFolder],
@@ -66,7 +62,7 @@ describe('getApiSpecMenuItems', () => {
     ['delete', IconTrash]
   ])('%s shows its icon and calls only its own handler', (id, icon) => {
     const handlers = makeHandlers();
-    const item = itemById(menu(true, handlers), id);
+    const item = itemById(menu(handlers), id);
 
     item.onClick();
 

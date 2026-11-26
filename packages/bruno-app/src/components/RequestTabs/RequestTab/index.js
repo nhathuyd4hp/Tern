@@ -29,7 +29,6 @@ import { closeWsConnection } from 'utils/network/index';
 import { getInvalidVariableNames, invalidVariableNamesError } from 'utils/common/variables';
 import { isEnvironmentValidationError } from 'utils/environments';
 import ExampleTab from '../ExampleTab';
-import MockResponseTab from 'components/MockServer/RequestTabs/MockResponseTab';
 import ConfirmApiSpecClose from './ConfirmApiSpecClose';
 import { findApiSpecByPathname, hasUnsavedApiSpecChanges } from 'utils/api-specs';
 import { clearApiSpecDraft, saveApiSpecTabDraft } from 'providers/ReduxStore/slices/apiSpec';
@@ -217,7 +216,6 @@ const RequestTab = ({ tab, collection, tabIndex, collectionRequestTabs, folderUi
     'workspaceEnvironments',
     'openapi-sync',
     'openapi-spec',
-    'mock-server',
     'changelog',
     'api-spec'
   ];
@@ -579,8 +577,6 @@ const RequestTab = ({ tab, collection, tabIndex, collectionRequestTabs, folderUi
           <SpecialTab handleCloseClick={null} type={tab.type} />
         ) : tab.type === 'workspaceEnvironments' ? (
           <SpecialTab handleCloseClick={null} type={tab.type} hasDraft={hasGlobalEnvironmentDraft} />
-        ) : tab.type === 'mock-server' ? (
-          <SpecialTab handleCloseClick={handleCloseClick} handleDoubleClick={() => dispatch(makeTabPermanent({ uid: tab.uid }))} type={tab.type} tabName={tab.tabName} />
         ) : tab.type === 'api-spec' ? (
           <SpecialTab handleCloseClick={handleCloseApiSpec} handleDoubleClick={() => dispatch(makeTabPermanent({ uid: tab.uid }))} type={tab.type} tabName={apiSpecTabName} hasDraft={hasApiSpecDraft} />
         ) : (
@@ -600,12 +596,6 @@ const RequestTab = ({ tab, collection, tabIndex, collectionRequestTabs, folderUi
         collectionRequestTabs={collectionRequestTabs}
         folderUid={folderUid}
       />
-    );
-  }
-
-  if (tab.type === 'mock-response') {
-    return (
-      <MockResponseTab tab={tab} />
     );
   }
 

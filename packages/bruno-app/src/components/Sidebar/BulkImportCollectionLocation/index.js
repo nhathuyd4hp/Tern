@@ -12,7 +12,6 @@ import { IconX, IconLoader2, IconCheck } from '@tabler/icons';
 import InfoTip from 'components/InfoTip/index';
 import Help from 'components/Help';
 import { addGlobalEnvironment } from 'providers/ReduxStore/slices/global-environments';
-import { addLog } from 'providers/ReduxStore/slices/logs';
 import SelectionList from 'components/SelectionList';
 import FolderArrangementOption from 'components/Sidebar/ImportSettings/FolderArrangementOption';
 import CheckForSpecUpdatesOption from 'components/Sidebar/ImportSettings/CheckForSpecUpdatesOption';
@@ -170,7 +169,7 @@ export const BulkImportCollectionLocation = ({
   const [openApiSettings, setOpenApiSettings] = useState(DEFAULT_OPENAPI_SETTINGS);
   const [collectionFormat, setCollectionFormat] = useState(DEFAULT_COLLECTION_FORMAT);
   const [showFileFormat, setShowFileFormat] = useState(false);
-  const [enableCheckForSpecUpdates, setEnableCheckForSpecUpdates] = useState(false);
+  const [enableCheckForSpecUpdates, setEnableCheckForSpecUpdates] = useState(true);
   const [renamedCollectionNames, setRenamedCollectionNames] = useState({});
   const [renamedEnvironmentNames, setRenamedEnvironmentNames] = useState({});
   const [importIssues, setImportIssues] = useState({});
@@ -279,7 +278,7 @@ export const BulkImportCollectionLocation = ({
     const nextFiles = filesOf(nextSelected);
     setSelectedCollections(nextSelected);
     if (!nextFiles.some(canSyncSpec)) {
-      setEnableCheckForSpecUpdates(false);
+      setEnableCheckForSpecUpdates(true);
     }
     if (!nextFiles.some(isOpenApiFile)) {
       setOpenApiSettings(DEFAULT_OPENAPI_SETTINGS);
@@ -352,26 +351,10 @@ export const BulkImportCollectionLocation = ({
           setImportIssues(collectedIssues);
 
           const allIssues = [];
-          const timestamp = new Date().toISOString();
           Object.entries(collectedIssues).forEach(([uid, issues]) => {
-            const item = selectedItems.find((s) => s.uid === uid);
-            const name = item?.name || uid;
-            const skipped = issues.filter((i) => i.severity === 'error').length;
-            const warnings = issues.filter((i) => i.severity === 'warning').length;
-            const parts = [];
-            if (skipped > 0) parts.push(`skipped ${skipped} item(s)`);
-            if (warnings > 0) parts.push(`${warnings} warning(s)`);
-
-            // Per-collection summary header
-            dispatch(addLog({ type: 'warn', args: [`Import: ${name} — ${parts.join(', ')}`], timestamp }));
-
-            // Individual issues for this collection
+            const name = selectedItems.find((s) => s.uid === uid)?.name || uid;
             issues.forEach((issue) => {
               allIssues.push({ ...issue, path: `${name} > ${issue.path}` });
-              const logType = issue.severity === 'error' ? 'error' : 'warn';
-              const logArgs = [`[${issue.path}] ${issue.message}`];
-              if (issue.sourceItem) logArgs.push(issue.sourceItem);
-              dispatch(addLog({ type: logType, args: logArgs, timestamp }));
             });
           });
 
@@ -939,7 +922,7 @@ export const BulkImportCollectionLocation = ({
                       />
                       <div>
                         <CheckForSpecUpdatesOption
-                          checked={enableCheckForSpecUpdates}
+                          checked={enableCheckForSpecUpdates && hasSyncableSpec}
                           onChange={setEnableCheckForSpecUpdates}
                           disabled={!hasSyncableSpec}
                           showSwagger2Note={showSwagger2SyncReason}

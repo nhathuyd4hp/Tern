@@ -22,7 +22,7 @@ import { DocExplorer } from '@usebruno/graphql-docs';
 import FileEditor from 'components/FileEditor';
 import StyledWrapper from './StyledWrapper';
 import FolderSettings from 'components/FolderSettings';
-import { makeSelectCollectionWithGlobals, selectCollectionByUid, selectActiveWorkspace } from 'src/selectors/collections';
+import { makeSelectCollectionWithGlobals, selectActiveWorkspace } from 'src/selectors/collections';
 import { selectActiveTab, selectActiveTabUid } from 'src/selectors/tab';
 import CollectionOverview from 'components/CollectionSettings/Overview';
 import RequestNotLoaded from './RequestNotLoaded';
@@ -44,10 +44,7 @@ import GlobalEnvironmentSettings from 'components/Environments/GlobalEnvironment
 import OpenAPISyncTab from 'components/OpenAPISyncTab';
 import OpenAPISpecTab from 'components/OpenAPISpecTab';
 import ApiSpecTab from 'components/ApiSpecTab';
-import MockServerDashboard from 'components/MockServer/MockServerDashboard';
-import MockResponse from 'components/MockServer/MockResponse';
 import ChangelogTab from 'components/ChangelogTab';
-import { resolveMockServerInstance } from 'utils/mock-server/mock-server-instances';
 import CollapsedPanelIndicator from './CollapsedPanelIndicator';
 import { clampRequestHeightForResponse } from './paneSize';
 import { IconLoader2 } from '@tabler/icons';
@@ -61,28 +58,13 @@ const EXPAND_EDGE_THRESHOLD = 100;
 // Minimum response pane height to show placeholder content on click-expand
 const RESPONSE_EXPAND_MIN_HEIGHT = 300;
 
-// Tabs whose response pane we auto-collapsed when the AI sidebar docked.
-// Module-level because the panel remounts per tab (key={activeTabUid}) — a
-// tab is restored here only once the sidebar is gone AND the user didn't
-// expand it manually in the meantime.
-const aiAutoCollapsedTabs = new Set();
-
 const RequestTabPanel = () => {
   const dispatch = useDispatch();
   const activeTabUid = useSelector(selectActiveTabUid);
   const focusedTab = useSelector(selectActiveTab);
   const preferences = useSelector((state) => state.app.preferences);
   const activeWorkspace = useSelector(selectActiveWorkspace);
-  const resolvedMockServerInstance = useSelector((state) => {
-    if (!focusedTab || (focusedTab.type !== 'mock-server' && focusedTab.type !== 'mock-response')) {
-      return null;
-    }
-
-    return resolveMockServerInstance(state, focusedTab);
-  });
   const isVerticalLayout = preferences?.layout?.responsePaneOrientation === 'vertical';
-  const isConsoleOpen = useSelector((state) => state.logs.isConsoleOpen);
-  const isAiSidebarDocked = useSelector((state) => state.chat.isOpen && !state.chat.isPoppedOut);
 
   const isRequestTab = focusedTab && ['request', 'http-request', 'grpc-request', 'ws-request', 'graphql-request'].includes(focusedTab.type);
   useKeybinding('sendRequest', (e) => {
@@ -100,17 +82,6 @@ const RequestTabPanel = () => {
 
   const selectCollectionWithGlobals = useMemo(makeSelectCollectionWithGlobals, []);
   const collection = useSelector((state) => selectCollectionWithGlobals(state, focusedTab?.collectionUid));
-
-  // Mock-server tabs may point at a collection other than the focused one.
-  const mockInstanceCollectionUid = resolvedMockServerInstance
-    ? (resolvedMockServerInstance.sourceType === 'collection'
-        ? resolvedMockServerInstance.collectionUid
-        : focusedTab?.collectionUid)
-    : undefined;
-  const mockInstanceCollectionRaw = useSelector((state) => selectCollectionByUid(state, mockInstanceCollectionUid));
-  const mockInstanceCollection = mockInstanceCollectionUid && mockInstanceCollectionUid === focusedTab?.collectionUid
-    ? collection
-    : mockInstanceCollectionRaw ?? null;
 
   const isItemsLoading = useMemo(() => {
     return collection?.mountStatus === 'mounting' || areItemsLoading(collection);
@@ -132,7 +103,6 @@ const RequestTabPanel = () => {
     collapseResponse,
     expandResponse
   } = useTabPaneBoundaries(activeTabUid);
-  const previousTopPaneHeight = useRef(null); // Store height before devtools opens
 
   // Not a recommended pattern here to have the child component
   // make a callback to set state, but treating this as an exception
@@ -313,10 +283,9 @@ const RequestTabPanel = () => {
     };
   }, [handleMouseUp, handleMouseMove]);
 
-  // Clamp leftPaneWidth when the main section shrinks (AI sidebar opens, or
-  // the window narrows). Without this the stored pixel width can exceed the
-  // available container, the section scrolls horizontally, and the response
-  // pane is pushed off-screen.
+  // Clamp leftPaneWidth when the main section shrinks (e.g. the window narrows).
+  // Without this the stored pixel width can exceed the available container, the
+  // section scrolls horizontally, and the response pane is pushed off-screen.
   //
   // Important: we ONLY react to genuine shrinks vs the last stable width. The
   // initial observation and any growth are ignored. During mount Windows can
@@ -365,43 +334,6 @@ const RequestTabPanel = () => {
     };
   }, [setLeftPaneWidth, isVerticalLayout]);
 
-  useEffect(() => {
-    if (isVerticalLayout) return;
-    if (isAiSidebarDocked) {
-      if (responsePaneCollapsedRef.current) return;
-      aiAutoCollapsedTabs.add(activeTabUid);
-      collapseResponseRef.current();
-    } else if (aiAutoCollapsedTabs.has(activeTabUid)) {
-      aiAutoCollapsedTabs.delete(activeTabUid);
-      if (responsePaneCollapsedRef.current) {
-        expandResponseRef.current();
-      }
-    }
-  }, [isAiSidebarDocked, isVerticalLayout, activeTabUid]);
-
-  useEffect(() => {
-    if (!isVerticalLayout) return;
-    if (responsePaneCollapsed) return;
-
-    if (isConsoleOpen) {
-      // Store current height before reducing
-      if (previousTopPaneHeight.current === null) {
-        previousTopPaneHeight.current = topPaneHeight;
-      }
-      // Reduce request pane height to make room for response pane when devtools is open
-      const maxHeight = 200;
-      if (topPaneHeight > maxHeight) {
-        setTopPaneHeight(maxHeight);
-      }
-    } else {
-      // Restore previous height when devtools closes
-      if (previousTopPaneHeight.current !== null) {
-        setTopPaneHeight(previousTopPaneHeight.current);
-        previousTopPaneHeight.current = null;
-      }
-    }
-  }, [isConsoleOpen, isVerticalLayout, responsePaneCollapsed]);
-
   if (typeof window === 'undefined') {
     return <div></div>;
   }
@@ -433,41 +365,6 @@ const RequestTabPanel = () => {
 
   if (focusedTab.type === 'workspaceEnvironments') {
     return <GlobalEnvironmentSettings />;
-  }
-
-  if (focusedTab.type === 'mock-server') {
-    const instance = resolvedMockServerInstance;
-    if (!instance) {
-      return (
-        <div className="pb-4 px-4">
-          <div className="font-medium">Mock server not found</div>
-          <div className="text-sm mt-2 opacity-70">
-            This mock server may have been removed. Create a new one from the Mock Servers sidebar.
-          </div>
-        </div>
-      );
-    }
-
-    return <MockServerDashboard instance={instance} collection={mockInstanceCollection} />;
-  }
-
-  if (focusedTab.type === 'mock-response') {
-    const instance = resolvedMockServerInstance;
-    if (!instance) {
-      return (
-        <div className="pb-4 px-4">
-          <div className="font-medium">Mock server not found</div>
-        </div>
-      );
-    }
-
-    return (
-      <MockResponse
-        instance={instance}
-        collection={mockInstanceCollection}
-        responseUid={focusedTab.uid}
-      />
-    );
   }
 
   if (!focusedTab.uid || !focusedTab.collectionUid) {

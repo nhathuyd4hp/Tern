@@ -17,10 +17,8 @@ import {
   IconFoldDown,
   IconX,
   IconSettings,
-  IconTerminal2,
   IconFolder,
   IconBook,
-  IconServer,
   IconFileArrowRight,
   IconAppWindow
 } from '@tabler/icons';
@@ -49,19 +47,15 @@ import InvalidFilesBadge from '../InvalidFilesBadge';
 import ShareCollection from 'components/ShareCollection/index';
 import GenerateDocumentation from '../GenerateDocumentation';
 import { getRevealInFolderLabel } from 'utils/common/platform';
-import { openDevtoolsAndSwitchToTerminal } from 'utils/terminal';
 import ActionIcon from 'ui/ActionIcon';
 import MenuDropdown from 'ui/MenuDropdown';
 import { useSidebarAccordion } from 'components/Sidebar/SidebarAccordionContext';
 import useKeybinding from 'hooks/useKeybinding';
 import useKeybindingDisplayText from 'hooks/useKeybindingDisplayText';
-import { useIsMockServerEnabled } from 'utils/mock-server/is-enabled';
-import CreateMockServerModal from 'components/MockServer/CreateMockServerModal';
 import useSidebarSelectionClick from 'hooks/useSidebarSelectionClick';
 import { startBlockedDragTracking } from 'utils/dragBlockedCursor';
 
 const CollectionRow = ({ collection, searchText, openBulkMenu, children, isCollectionMultiDragDisabled, multiDragCollections }) => {
-  const isMockServerEnabled = useIsMockServerEnabled();
   const { dropdownContainerRef } = useSidebarAccordion();
   const [showNewFolderModal, setShowNewFolderModal] = useState(false);
   const [showNewRequestModal, setShowNewRequestModal] = useState(false);
@@ -72,7 +66,6 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
   const [showGenerateDocumentationModal, setShowGenerateDocumentationModal] = useState(false);
   const [showRemoveCollectionModal, setShowRemoveCollectionModal] = useState(false);
   const [showMoveToWorkspaceModal, setShowMoveToWorkspaceModal] = useState(false);
-  const [showCreateMockServerModal, setShowCreateMockServerModal] = useState(false);
   const [dropType, setDropType] = useState(null);
   const [isKeyboardFocused, setIsKeyboardFocused] = useState(false);
   const dispatch = useDispatch();
@@ -112,11 +105,6 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
         type: 'openapi-sync'
       })
     );
-  };
-
-  const openMockServerDashboard = () => {
-    ensureCollectionIsMounted();
-    setShowCreateMockServerModal(true);
   };
 
   const handleRun = () => {
@@ -167,12 +155,12 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
     }
 
     if (!isChevronClick) {
+      // A collection connected to an OpenAPI spec opens its sync tab; the others keep opening settings.
+      const hasOpenApiSyncConfigured = !!collection.brunoConfig?.openapi?.[0]?.sourceUrl;
       dispatch(
-        addTab({
-          uid: collection.uid,
-          collectionUid: collection.uid,
-          type: 'collection-settings'
-        })
+        addTab(hasOpenApiSyncConfigured
+          ? { uid: uuid(), collectionUid: collection.uid, type: 'openapi-sync' }
+          : { uid: collection.uid, collectionUid: collection.uid, type: 'collection-settings' })
       );
     }
   };
@@ -488,12 +476,6 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
       label: getRevealInFolderLabel(),
       onClick: handleShowInFolder
     },
-    ...(isMockServerEnabled ? [{
-      id: 'create-mock-server',
-      leftSection: IconServer,
-      label: 'Create Mock server',
-      onClick: openMockServerDashboard
-    }] : []),
     {
       id: 'divider-1',
       type: 'divider'
@@ -503,16 +485,6 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
       leftSection: IconSettings,
       label: 'Settings',
       onClick: viewCollectionSettings
-    },
-    {
-      id: 'terminal',
-      leftSection: IconTerminal2,
-      label: 'Open in Terminal',
-      shortcut: getKeybindingDisplayText('openTerminal'),
-      onClick: async () => {
-        const collectionCwd = collection.pathname;
-        await openDevtoolsAndSwitchToTerminal(dispatch, collectionCwd);
-      }
     },
     ...(isMoveToWorkspaceVisible
       ? [
@@ -565,12 +537,6 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
       )}
       {showCloneCollectionModalOpen && (
         <CloneCollection collectionUid={collection.uid} onClose={() => setShowCloneCollectionModalOpen(false)} />
-      )}
-      {showCreateMockServerModal && (
-        <CreateMockServerModal
-          defaultCollectionUid={collection.uid}
-          onClose={() => setShowCreateMockServerModal(false)}
-        />
       )}
       <div
         className={collectionRowClassName}

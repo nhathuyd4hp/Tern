@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectActiveTab } from 'src/selectors/tab';
-import { IconSettings, IconCookie, IconTool, IconSearch, IconPalette, IconBrandGithub } from '@tabler/icons';
+import { IconSettings, IconCookie, IconSearch, IconPalette } from '@tabler/icons';
 import Mousetrap from 'mousetrap';
 import { getKeyBindingsForActionAllOS } from 'providers/Hotkeys/keyMappings';
 import ToolHint from 'components/ToolHint';
@@ -9,7 +9,6 @@ import Cookies from 'components/Cookies';
 import Notifications from 'components/Notifications';
 import Portal from 'components/Portal';
 import ThemeDropdown from './ThemeDropdown';
-import { openConsole } from 'providers/ReduxStore/slices/logs';
 import { addTab } from 'providers/ReduxStore/slices/tabs';
 import { useApp } from 'providers/App';
 import StyledWrapper from './StyledWrapper';
@@ -19,17 +18,10 @@ const StatusBar = () => {
   const activeWorkspaceUid = useSelector((state) => state.workspaces.activeWorkspaceUid);
   const workspaces = useSelector((state) => state.workspaces.workspaces);
   const activeTab = useSelector(selectActiveTab);
-  const logs = useSelector((state) => state.logs.logs);
   const [cookiesOpen, setCookiesOpen] = useState(false);
   const { version } = useApp();
 
   const activeWorkspace = workspaces.find((w) => w.uid === activeWorkspaceUid);
-
-  const errorCount = logs.filter((log) => log.type === 'error').length;
-
-  const handleConsoleClick = () => {
-    dispatch(openConsole());
-  };
 
   const handlePreferencesClick = () => {
     const collectionUid = activeTab?.collectionUid || activeWorkspace?.scratchCollectionUid;
@@ -98,19 +90,6 @@ const StatusBar = () => {
                 <Notifications />
               </div>
             </ToolHint>
-
-            <ToolHint text="GitHub Repository" toolhintId="GitHub" place="top" offset={10}>
-              <button
-                className="status-bar-button"
-                onClick={() => {
-                  window?.ipcRenderer?.openExternal('https://github.com/usebruno/bruno');
-                }}
-                tabIndex={0}
-                aria-label="Open GitHub Repository"
-              >
-                <IconBrandGithub size={16} strokeWidth={1.5} aria-hidden="true" />
-              </button>
-            </ToolHint>
           </div>
         </div>
 
@@ -139,22 +118,6 @@ const StatusBar = () => {
               <div className="console-button-content">
                 <IconCookie size={16} strokeWidth={1.5} aria-hidden="true" />
                 <span className="console-label">Cookies</span>
-              </div>
-            </button>
-
-            <button
-              className={`status-bar-button ${errorCount > 0 ? 'has-errors' : ''}`}
-              data-trigger="dev-tools"
-              onClick={handleConsoleClick}
-              tabIndex={0}
-              aria-label={`Open Dev Tools${errorCount > 0 ? ` (${errorCount} errors)` : ''}`}
-            >
-              <div className="console-button-content">
-                <IconTool size={16} strokeWidth={1.5} aria-hidden="true" />
-                <span className="console-label">Dev Tools</span>
-                {errorCount > 0 && (
-                  <span className="error-count-inline">{errorCount}</span>
-                )}
               </div>
             </button>
 

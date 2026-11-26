@@ -13,7 +13,6 @@ import { processBrunoCollection } from 'utils/importers/bruno-collection';
 import { processOpenCollection } from 'utils/importers/opencollection';
 import { convertWsdlToBruno } from 'utils/importers/wsdl-collection';
 import { toastError } from 'utils/common/error';
-import { addLog } from 'providers/ReduxStore/slices/logs';
 import Portal from 'components/Portal';
 import Modal from 'components/Modal';
 import Help from 'components/Help';
@@ -111,7 +110,7 @@ const ImportCollectionLocation = ({ onClose, handleSubmit, rawData, format, sour
   const [groupingType, setGroupingType] = useState('tags');
   const [collectionFormat, setCollectionFormat] = useState(DEFAULT_COLLECTION_FORMAT);
   const [showFileFormat, setShowFileFormat] = useState(false);
-  const [enableCheckForSpecUpdates, setEnableCheckForSpecUpdates] = useState(false);
+  const [enableCheckForSpecUpdates, setEnableCheckForSpecUpdates] = useState(true);
   const [authPlacement, setAuthPlacement] = useState(DEFAULT_AUTH_PLACEMENT);
   const [requestNameSource, setRequestNameSource] = useState(DEFAULT_REQUEST_NAME_SOURCE);
   const [preserveScripts, setPreserveScripts] = useState(false);
@@ -149,7 +148,7 @@ const ImportCollectionLocation = ({ onClose, handleSubmit, rawData, format, sour
       const { collection: convertedCollection, issues } = await convertCollection(format, rawData, { groupingType, collectionFormat, authPlacement, requestNameSource, preserveScripts, filePath });
       const options = { format: collectionFormat };
 
-      if (showCheckForSpecUpdatesOption && enableCheckForSpecUpdates) {
+      if (showCheckForSpecUpdatesOption && !isSwagger2 && enableCheckForSpecUpdates) {
         const syncSourceUrl = sourceUrl || filePath; // URL or absolute path (backend converts to relative)
         convertedCollection.brunoConfig = buildOpenApiSyncBrunoConfig(convertedCollection, { sourceUrl: syncSourceUrl, groupBy: groupingType, authPlacement, requestNameSource });
         options.rawOpenAPISpecs = { [convertedCollection.uid]: rawContent || rawData };
@@ -160,21 +159,6 @@ const ImportCollectionLocation = ({ onClose, handleSubmit, rawData, format, sour
       if (issues && issues.length > 0) {
         // Show toast with copy/report actions
         showImportIssuesToast(issues);
-
-        // Log each issue to Bruno's internal console
-        const skipped = issues.filter((i) => i.severity === 'error').length;
-        const warnings = issues.filter((i) => i.severity === 'warning').length;
-        const parts = [];
-        if (skipped > 0) parts.push(`skipped ${skipped} item(s)`);
-        if (warnings > 0) parts.push(`${warnings} warning(s)`);
-        const timestamp = new Date().toISOString();
-        dispatch(addLog({ type: 'warn', args: [`Import: ${collectionName} — ${parts.join(', ')}`], timestamp }));
-        issues.forEach((issue) => {
-          const logType = issue.severity === 'error' ? 'error' : 'warn';
-          const logArgs = [`[${issue.path}] ${issue.message}`];
-          if (issue.sourceItem) logArgs.push(issue.sourceItem);
-          dispatch(addLog({ type: logType, args: logArgs, timestamp }));
-        });
       }
     }
   });

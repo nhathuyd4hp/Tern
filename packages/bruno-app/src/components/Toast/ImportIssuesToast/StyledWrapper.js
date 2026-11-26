@@ -64,58 +64,6 @@ const StyledWrapper = styled.div`
     margin-bottom: 8px;
   }
 
-  .toast-checkbox {
-    display: flex;
-    align-items: flex-start;
-    gap: 6px;
-    cursor: pointer;
-    margin-bottom: 10px;
-
-    input[type='checkbox'] {
-      accent-color: ${(props) => props.theme.primary.solid};
-      cursor: pointer;
-      margin: 0;
-      margin-top: 2px;
-      flex-shrink: 0;
-    }
-
-    .toast-checkbox-text {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .toast-checkbox-label {
-      font-size: 12px;
-      color: ${(props) => props.theme.text};
-    }
-
-    .toast-checkbox-desc {
-      font-size: 11px;
-      color: ${(props) => props.theme.colors.text.subtext2};
-      line-height: 1.4;
-    }
-  }
-
-  .toast-warning {
-    display: flex;
-    align-items: flex-start;
-    gap: 6px;
-    font-size: 11px;
-    color: ${(props) => props.theme.status.warning.text};
-    background: ${(props) => props.theme.status.warning.background};
-    border: 1px solid ${(props) => props.theme.status.warning.border};
-    border-radius: ${(props) => props.theme.border.radius.sm};
-    padding: 6px 8px;
-    margin-bottom: 8px;
-    line-height: 1.4;
-
-    .toast-warning-icon {
-      flex-shrink: 0;
-      margin-top: 1px;
-    }
-  }
-
   .toast-actions {
     display: flex;
     gap: 8px;

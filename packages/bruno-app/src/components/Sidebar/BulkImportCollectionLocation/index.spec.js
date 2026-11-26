@@ -151,12 +151,12 @@ describe('BulkImportCollectionLocation check for spec updates', () => {
     expect(screen.queryByTestId('bulk-import-check-for-spec-updates')).not.toBeInTheDocument();
   });
 
-  it('is offered and off by default when a file is an OpenAPI spec', () => {
+  it('is offered and on by default when a file is an OpenAPI spec', () => {
     renderBulkImport([ordersSpec, postmanFile]);
     openConfiguration();
 
     expect(specUpdatesCheckbox()).toBeEnabled();
-    expect(specUpdatesCheckbox()).not.toBeChecked();
+    expect(specUpdatesCheckbox()).toBeChecked();
     expect(specUpdatesDescription()).toHaveTextContent('Stay notified of spec changes and sync your collection with the spec.');
   });
 
@@ -180,15 +180,13 @@ describe('BulkImportCollectionLocation check for spec updates', () => {
     expect(specUpdatesCheckbox()).toBeEnabled();
   });
 
-  it('stays on screen, disabled and unticked, while only other files are selected', () => {
+  it('stays on screen and disabled while only other files are selected', () => {
     renderBulkImport([ordersSpec, postmanFile]);
     openConfiguration();
-    fireEvent.click(specUpdatesCheckbox());
 
     toggleFileSelection('Orders API orders.yaml');
 
     expect(specUpdatesCheckbox()).toBeDisabled();
-    expect(specUpdatesCheckbox()).not.toBeChecked();
     expect(specUpdatesDescription()).toHaveTextContent('Stay notified of spec changes and sync your collection with the spec.');
   });
 
@@ -205,48 +203,49 @@ describe('BulkImportCollectionLocation check for spec updates', () => {
     expect(specUpdatesDescription()).toHaveTextContent('OpenAPI Sync is not supported for Swagger 2.0 specs.');
   });
 
-  it('unticks when every file is deselected and stays unticked when a spec is selected again', async () => {
+  it('is disabled when every file is deselected and syncs again when a spec is selected again', async () => {
     renderBulkImport([ordersSpec, swagger2Spec, postmanFile]);
     openConfiguration();
-    fireEvent.click(specUpdatesCheckbox());
     expect(specUpdatesCheckbox()).toBeChecked();
 
     toggleAllFiles();
     expect(specUpdatesCheckbox()).toBeDisabled();
-    expect(specUpdatesCheckbox()).not.toBeChecked();
     expect(swagger2Note()).not.toBeInTheDocument();
 
     toggleFileSelection('Orders API orders.yaml');
     expect(specUpdatesCheckbox()).toBeEnabled();
-    expect(specUpdatesCheckbox()).not.toBeChecked();
+    expect(specUpdatesCheckbox()).toBeChecked();
+
+    const [collections, , options] = await submitImport();
+    expect(collections[0].brunoConfig.openapi).toEqual(syncEntry('/specs/orders.yaml'));
+    expect(options.rawOpenAPISpecs).toEqual({ [collections[0].uid]: specText('Orders API') });
+  });
+
+  it('does not sync when only Swagger 2.0 specs stay selected', async () => {
+    renderBulkImport([ordersSpec, swagger2Spec]);
+    openConfiguration();
+
+    toggleFileSelection('Orders API orders.yaml');
+
+    expect(specUpdatesCheckbox()).toBeDisabled();
+    expect(specUpdatesDescription()).toHaveTextContent('OpenAPI Sync is not supported for Swagger 2.0 specs.');
 
     const [collections, , options] = await submitImport();
     expect(collections[0].brunoConfig).toBeUndefined();
     expect(options.rawOpenAPISpecs).toEqual({});
   });
 
-  it('unticks when only Swagger 2.0 specs stay selected', () => {
+  it('notes that Swagger 2.0 specs are not synced while one is selected and sync is on', () => {
     renderBulkImport([ordersSpec, swagger2Spec]);
     openConfiguration();
-    fireEvent.click(specUpdatesCheckbox());
-    expect(swagger2Note()).toBeInTheDocument();
-
-    toggleFileSelection('Orders API orders.yaml');
-
-    expect(specUpdatesCheckbox()).toBeDisabled();
-    expect(specUpdatesCheckbox()).not.toBeChecked();
-    expect(specUpdatesDescription()).toHaveTextContent('OpenAPI Sync is not supported for Swagger 2.0 specs.');
-    expect(swagger2Note()).not.toBeInTheDocument();
-  });
-
-  it('notes that Swagger 2.0 specs are not synced while one is selected', () => {
-    renderBulkImport([ordersSpec, swagger2Spec]);
-    openConfiguration();
-    expect(swagger2Note()).not.toBeInTheDocument();
-
-    fireEvent.click(specUpdatesCheckbox());
     expect(swagger2Note()).toHaveTextContent('Swagger 2.0 specs are not supported in OpenAPI sync.');
     expect(screen.getByRole('status')).toContainElement(swagger2Note());
+
+    fireEvent.click(specUpdatesCheckbox());
+    expect(swagger2Note()).not.toBeInTheDocument();
+
+    fireEvent.click(specUpdatesCheckbox());
+    expect(swagger2Note()).toBeInTheDocument();
 
     toggleFileSelection('Legacy API legacy.json');
     expect(swagger2Note()).not.toBeInTheDocument();
@@ -255,7 +254,6 @@ describe('BulkImportCollectionLocation check for spec updates', () => {
   it('syncs each selected OpenAPI 3.x spec with its own file', async () => {
     renderBulkImport([ordersSpec, usersSpec, swagger2Spec, postmanFile]);
     openConfiguration();
-    fireEvent.click(specUpdatesCheckbox());
 
     const [collections, collectionLocation, options] = await submitImport();
 
@@ -283,7 +281,6 @@ describe('BulkImportCollectionLocation check for spec updates', () => {
     renderBulkImport([ordersSpec]);
     openConfiguration();
     await chooseGrouping('path');
-    fireEvent.click(specUpdatesCheckbox());
 
     const [collections] = await submitImport();
 
@@ -293,7 +290,6 @@ describe('BulkImportCollectionLocation check for spec updates', () => {
   it('leaves out specs that were deselected', async () => {
     renderBulkImport([ordersSpec, usersSpec]);
     openConfiguration();
-    fireEvent.click(specUpdatesCheckbox());
     toggleFileSelection('Users API users.yaml');
 
     const [collections, , options] = await submitImport();
@@ -305,7 +301,6 @@ describe('BulkImportCollectionLocation check for spec updates', () => {
   it('keeps each spec with its own collection when the first file is deselected', async () => {
     renderBulkImport([ordersSpec, usersSpec]);
     openConfiguration();
-    fireEvent.click(specUpdatesCheckbox());
     toggleFileSelection('Orders API orders.yaml');
 
     const [collections, , options] = await submitImport();
@@ -318,7 +313,6 @@ describe('BulkImportCollectionLocation check for spec updates', () => {
   it('does not sync a spec that has no file path', async () => {
     renderBulkImport([ordersSpec, { ...usersSpec, filePath: '' }]);
     openConfiguration();
-    fireEvent.click(specUpdatesCheckbox());
 
     const [collections, , options] = await submitImport();
 
@@ -334,8 +328,11 @@ describe('BulkImportCollectionLocation check for spec updates', () => {
     expect(specUpdatesDescription()).toHaveTextContent('Stay notified of spec changes and sync your collection with the spec.');
   });
 
-  it('imports OpenAPI specs without sync when left off', async () => {
+  it('imports OpenAPI specs without sync when switched off', async () => {
     renderBulkImport([ordersSpec]);
+    openConfiguration();
+    fireEvent.click(specUpdatesCheckbox());
+    expect(specUpdatesCheckbox()).not.toBeChecked();
 
     const [collections, , options] = await submitImport();
 
@@ -345,8 +342,6 @@ describe('BulkImportCollectionLocation check for spec updates', () => {
 
   it('names the sync config after the renamed duplicate', async () => {
     renderBulkImport([ordersSpec], { collections: [{ uid: 'existing', name: 'Orders API' }] });
-    openConfiguration();
-    fireEvent.click(specUpdatesCheckbox());
 
     const [collections] = await submitImport();
 
@@ -393,7 +388,6 @@ describe('BulkImportCollectionLocation collection auth placement', () => {
   it('saves the choice in the sync config of each synced spec', async () => {
     renderBulkImport([ordersSpec, usersSpec]);
     openConfiguration();
-    fireEvent.click(specUpdatesCheckbox());
     fireEvent.click(authPlacementCheckbox());
 
     const [collections] = await submitImport();
@@ -435,7 +429,6 @@ describe('BulkImportCollectionLocation naming requests', () => {
   it('saves the choice in the sync config of each synced spec', async () => {
     renderBulkImport([ordersSpec, usersSpec]);
     openConfiguration();
-    fireEvent.click(specUpdatesCheckbox());
     await chooseNaming('path');
 
     const [collections] = await submitImport();
@@ -483,7 +476,6 @@ describe('BulkImportCollectionLocation settings layout', () => {
 describe('BulkImportCollectionLocation OpenAPI Import configuration', () => {
   const changeEverySetting = async () => {
     await chooseGrouping('path');
-    fireEvent.click(specUpdatesCheckbox());
     await chooseNaming('description');
     fireEvent.click(authPlacementCheckbox());
   };
@@ -493,7 +485,12 @@ describe('BulkImportCollectionLocation OpenAPI Import configuration', () => {
     expect(groupingDropdown())[state]();
     expect(groupingDropdown()).toHaveTextContent('Tags');
     expect(specUpdatesCheckbox())[state]();
-    expect(specUpdatesCheckbox()).not.toBeChecked();
+    // A disabled switch shows unticked: nothing selected can be synced, so it would otherwise read as on.
+    if (disabled) {
+      expect(specUpdatesCheckbox()).not.toBeChecked();
+    } else {
+      expect(specUpdatesCheckbox()).toBeChecked();
+    }
     expect(namingDropdown())[state]();
     expect(namingDropdown()).toHaveTextContent('Summary');
     expect(authPlacementCheckbox())[state]();
@@ -539,7 +536,7 @@ describe('BulkImportCollectionLocation OpenAPI Import configuration', () => {
 
     const [collections] = await submitImport();
     expect(convertOpenapiToBruno).toHaveBeenCalledWith(ordersSpec.data, { groupBy: 'tags', authPlacement: 'request', requestNameSource: 'summary' });
-    expect(collections.every((collection) => collection.brunoConfig === undefined)).toBe(true);
+    expect(collections.map((collection) => collection.brunoConfig?.openapi)).toEqual([syncEntry('/specs/orders.yaml'), undefined]);
   });
 
   it('applies the settings only to OpenAPI specs', async () => {

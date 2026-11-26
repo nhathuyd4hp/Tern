@@ -131,7 +131,6 @@ const Script = ({ item, collection }) => {
               onRun={onRun}
               onSave={onSave}
               showHintsFor={['req', 'bru']}
-              scriptType="pre-request"
               initialScroll={preReqScroll}
               onScroll={setPreReqScroll}
             />
@@ -154,7 +153,6 @@ const Script = ({ item, collection }) => {
               onRun={onRun}
               onSave={onSave}
               showHintsFor={['req', 'res', 'bru']}
-              scriptType="post-response"
               initialScroll={postResScroll}
               onScroll={setPostResScroll}
             />

@@ -48,9 +48,6 @@ jest.mock('components/Sidebar/ApiSpecs/CloneApiSpec', () => ({ apiSpec }) => <di
 jest.mock('components/Sidebar/ApiSpecs/RemoveApiSpec', () => () => <div data-testid="remove-dialog" />);
 jest.mock('components/Sidebar/ApiSpecs/DeleteApiSpec', () => () => <div data-testid="delete-dialog" />);
 jest.mock('components/Sidebar/ApiSpecs/GenerateCollectionFromSpec', () => () => <div data-testid="generate-collection-step" />);
-jest.mock('components/MockServer/CreateMockServerModal', () => ({ defaultSourceType, defaultApiSpecUid }) => (
-  <div data-testid="mock-server-modal">{`${defaultSourceType}:${defaultApiSpecUid}`}</div>
-));
 
 const OPENAPI_SPEC = {
   uid: 'spec-1',
@@ -68,7 +65,6 @@ const NOT_AN_API = {
 
 const renderRow = (apiSpec) => {
   const state = {
-    app: { preferences: { beta: { 'mock-server': true } } },
     tabs: { tabs: [], activeTabUid: null }
   };
   useSelector.mockImplementation((selector) => selector(state));
@@ -130,14 +126,6 @@ describe('ApiSpecItem', () => {
 
     expect(toast.error).toHaveBeenCalledWith('This file is not a valid OpenAPI document');
     expect(screen.queryByTestId('generate-collection-step')).not.toBeInTheDocument();
-  });
-
-  it('opens the mock server modal on the spec source with this spec', () => {
-    renderRow(OPENAPI_SPEC);
-
-    fireEvent.click(screen.getByText('create-mock-server'));
-
-    expect(screen.getByTestId('mock-server-modal')).toHaveTextContent('spec:spec-1');
   });
 
   it.each([

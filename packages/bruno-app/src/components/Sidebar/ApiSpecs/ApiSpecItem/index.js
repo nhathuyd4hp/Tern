@@ -3,7 +3,6 @@ import { showInFolder } from 'providers/ReduxStore/slices/collections/actions';
 import MenuDropdown from 'ui/MenuDropdown';
 import ActionIcon from 'ui/ActionIcon';
 import { useSidebarAccordion } from 'components/Sidebar/SidebarAccordionContext';
-import { useIsMockServerEnabled } from 'utils/mock-server/is-enabled';
 import { isApiSpecTabForPathname } from 'utils/api-specs';
 import { isOpenApiSpec } from 'utils/importers/openapi-collection';
 import brunoPath from 'utils/common/path';
@@ -11,7 +10,6 @@ import { IconDots } from '@tabler/icons';
 import { useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
-import CreateMockServerModal from 'components/MockServer/CreateMockServerModal';
 import RenameApiSpec from 'components/Sidebar/ApiSpecs/RenameApiSpec';
 import CloneApiSpec from 'components/Sidebar/ApiSpecs/CloneApiSpec';
 import RemoveApiSpec from 'components/Sidebar/ApiSpecs/RemoveApiSpec';
@@ -22,7 +20,6 @@ import { getApiSpecMenuItems } from './getApiSpecMenuItems';
 const ApiSpecItem = ({ apiSpec }) => {
   const dispatch = useDispatch();
   const { dropdownContainerRef } = useSidebarAccordion();
-  const isMockServerEnabled = useIsMockServerEnabled();
   const menuDropdownRef = useRef(null);
 
   const isActive = useSelector((state) => {
@@ -34,7 +31,6 @@ const ApiSpecItem = ({ apiSpec }) => {
   const [cloneApiSpecModal, setCloneApiSpecModal] = useState(false);
   const [removeApiSpecModal, setRemoveApiSpecModal] = useState(false);
   const [generateCollectionModal, setGenerateCollectionModal] = useState(false);
-  const [mockServerModal, setMockServerModal] = useState(false);
   const [deleteApiSpecModal, setDeleteApiSpecModal] = useState(false);
   const [isKeyboardFocused, setIsKeyboardFocused] = useState(false);
 
@@ -71,10 +67,8 @@ const ApiSpecItem = ({ apiSpec }) => {
   };
 
   const menuItems = getApiSpecMenuItems({
-    isMockServerEnabled,
     handlers: {
       'generate-collection': handleGenerateCollection,
-      'create-mock-server': () => setMockServerModal(true),
       'clone': () => setCloneApiSpecModal(true),
       'rename': () => setRenameApiSpecModal(true),
       'reveal': handleReveal,
@@ -91,13 +85,6 @@ const ApiSpecItem = ({ apiSpec }) => {
       {deleteApiSpecModal && <DeleteApiSpec apiSpec={apiSpec} onClose={() => setDeleteApiSpecModal(false)} />}
       {generateCollectionModal && (
         <GenerateCollectionFromSpec apiSpec={apiSpec} onClose={() => setGenerateCollectionModal(false)} />
-      )}
-      {mockServerModal && isMockServerEnabled && (
-        <CreateMockServerModal
-          defaultSourceType="spec"
-          defaultApiSpecUid={apiSpec.uid}
-          onClose={() => setMockServerModal(false)}
-        />
       )}
       <div
         className={`flex flex-grow api-spec-item items-center overflow-hidden w-full justify-between ${

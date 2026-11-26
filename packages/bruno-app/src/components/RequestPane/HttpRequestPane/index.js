@@ -19,7 +19,6 @@ import DocsAction from 'components/Documentation/DocsAction';
 import StatusDot from 'components/StatusDot';
 import ResponsiveTabs from 'ui/ResponsiveTabs';
 import HeightBoundContainer from 'ui/HeightBoundContainer';
-import TabBarAiAssist from '../TabBarAiAssist';
 import { hasEffectiveAuth } from 'utils/auth';
 
 const TAB_CONFIG = [
@@ -148,16 +147,6 @@ const HttpRequestPane = ({ item, collection }) => {
       rightContent = (
         <div ref={rightContentRef} className="flex items-center gap-2">
           <DocsAction />
-          <TabBarAiAssist item={item} collection={collection} activeTab={effectiveTab} />
-        </div>
-      );
-      break;
-    case 'app':
-    case 'script':
-    case 'tests':
-      rightContent = (
-        <div ref={rightContentRef} className="flex items-center">
-          <TabBarAiAssist item={item} collection={collection} activeTab={effectiveTab} />
         </div>
       );
       break;

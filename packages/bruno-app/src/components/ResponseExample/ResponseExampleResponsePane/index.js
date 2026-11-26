@@ -9,7 +9,6 @@ import StatusCode from 'components/ResponsePane/StatusCode';
 import ResponseExampleResponseContent from './ResponseExampleResponseContent';
 import ResponseExampleResponseHeaders from './ResponseExampleResponseHeaders';
 import ResponseExampleStatusInput from './ResponseExampleStatusInput';
-import MockResponseTryResult from 'components/MockServer/MockResponse/MockResponseTryResult';
 import StyledWrapper from './StyledWrapper';
 import HeightBoundContainer from 'ui/HeightBoundContainer';
 
@@ -18,9 +17,7 @@ const ResponseExampleResponsePane = ({
   collection,
   editMode,
   exampleUid,
-  onSave,
-  expectedResponseLabel = 'Response',
-  tryResult = null
+  onSave
 }) => {
   const dispatch = useDispatch();
   const tabs = useSelector((state) => state.tabs.tabs);
@@ -65,15 +62,6 @@ const ResponseExampleResponsePane = ({
           />
         );
       }
-      case 'try-result': {
-        return (
-          <MockResponseTryResult
-            collection={collection}
-            item={item}
-            tryResult={tryResult}
-          />
-        );
-      }
       default: {
         return <div>404 | Not found</div>;
       }
@@ -83,17 +71,13 @@ const ResponseExampleResponsePane = ({
   const tabConfig = [
     {
       name: 'response',
-      label: expectedResponseLabel
+      label: 'Response'
     },
     {
       name: 'headers',
       label: 'Headers',
       count: (exampleData?.response?.headers || []).length
-    },
-    ...(tryResult ? [{
-      name: 'try-result',
-      label: 'Try Result'
-    }] : [])
+    }
   ];
 
   return (
@@ -120,8 +104,6 @@ const ResponseExampleResponsePane = ({
               status={exampleData?.response?.status}
               statusText={exampleData?.response?.statusText}
             />
-          ) : activeTab === 'try-result' && tryResult ? (
-            <StatusCode status={tryResult.status} statusText={tryResult.statusText} />
           ) : (
             exampleData?.response?.status && (
               <StatusCode status={exampleData.response.status} statusText={exampleData.response.statusText} />

@@ -12,8 +12,7 @@ import {
   IconSortAscendingLetters,
   IconSortDescendingLetters,
   IconSquareX,
-  IconBox,
-  IconTerminal2
+  IconBox
 } from '@tabler/icons';
 
 import { importCollection, importCollectionFromZip, newHttpRequest } from 'providers/ReduxStore/slices/collections/actions';
@@ -37,7 +36,6 @@ import usePostmanPackagePrompt from 'hooks/usePostmanPackagePrompt';
 import WelcomeModal from 'components/WelcomeModal';
 import Collections from 'components/Sidebar/Collections';
 import SidebarSection from 'components/Sidebar/SidebarSection';
-import { openDevtoolsAndSwitchToTerminal } from 'utils/terminal';
 import useKeybinding from 'hooks/useKeybinding';
 import useKeybindingDisplayText from 'hooks/useKeybindingDisplayText';
 
@@ -279,14 +277,6 @@ const CollectionsSection = () => {
       label: 'Close all',
       onClick: () => {
         selectAllCollectionsToClose();
-      }
-    },
-    {
-      id: 'open-in-terminal',
-      leftSection: IconTerminal2,
-      label: 'Open in Terminal',
-      onClick: () => {
-        openDevtoolsAndSwitchToTerminal(dispatch, activeWorkspace?.pathname);
       }
     }
   ];

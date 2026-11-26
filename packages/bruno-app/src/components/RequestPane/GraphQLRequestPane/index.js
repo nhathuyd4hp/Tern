@@ -30,7 +30,6 @@ import { findEnvironmentInCollection } from 'utils/collections';
 import { hasEffectiveAuth } from 'utils/auth';
 import HeightBoundContainer from 'ui/HeightBoundContainer';
 import ResponsiveTabs from 'ui/ResponsiveTabs';
-import TabBarAiAssist from '../TabBarAiAssist';
 import StatusDot from 'components/StatusDot';
 import useKeybinding from 'hooks/useKeybinding';
 import { REQUEST_BODY_EDITOR_CLASS } from 'utils/common/constants';
@@ -354,15 +353,6 @@ const GraphQLRequestPane = ({ item, collection, onSchemaLoad, toggleDocs, handle
       rightContent = (
         <div ref={schemaActionsRef} className="flex items-center gap-2">
           <DocsAction />
-          <TabBarAiAssist item={item} collection={collection} activeTab={requestPaneTab} />
-        </div>
-      );
-      break;
-    case 'script':
-    case 'tests':
-      rightContent = (
-        <div ref={schemaActionsRef} className="flex items-center gap-2">
-          <TabBarAiAssist item={item} collection={collection} activeTab={requestPaneTab} />
         </div>
       );
       break;

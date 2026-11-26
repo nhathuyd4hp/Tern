@@ -1,14 +1,8 @@
-import { IconBox, IconServer, IconCopy, IconEdit, IconFolder, IconX, IconTrash } from '@tabler/icons';
+import { IconBox, IconCopy, IconEdit, IconFolder, IconX, IconTrash } from '@tabler/icons';
 import { getRevealInFolderLabel } from 'utils/common/platform';
 
 const API_SPEC_MENU = [
   { id: 'generate-collection', leftSection: IconBox, label: 'Generate Collection' },
-  {
-    id: 'create-mock-server',
-    leftSection: IconServer,
-    label: 'Create Mock Server',
-    requires: 'mockServer'
-  },
   { id: 'clone', leftSection: IconCopy, label: 'Clone' },
   { id: 'rename', leftSection: IconEdit, label: 'Rename' },
   { id: 'reveal', leftSection: IconFolder, label: getRevealInFolderLabel() },
@@ -17,7 +11,5 @@ const API_SPEC_MENU = [
   { id: 'delete', leftSection: IconTrash, label: 'Delete', className: 'delete-item' }
 ];
 
-export const getApiSpecMenuItems = ({ handlers, isMockServerEnabled }) =>
-  API_SPEC_MENU
-    .filter((item) => item.requires !== 'mockServer' || isMockServerEnabled)
-    .map(({ requires, ...item }) => (item.type === 'divider' ? item : { ...item, onClick: handlers[item.id] }));
+export const getApiSpecMenuItems = ({ handlers }) =>
+  API_SPEC_MENU.map((item) => (item.type === 'divider' ? item : { ...item, onClick: handlers[item.id] }));

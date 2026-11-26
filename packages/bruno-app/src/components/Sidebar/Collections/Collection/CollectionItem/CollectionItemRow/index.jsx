@@ -17,7 +17,6 @@ import {
   IconTrash,
   IconSettings,
   IconInfoCircle,
-  IconTerminal2,
   IconAppWindow,
   IconEyeOff
 } from '@tabler/icons';
@@ -63,7 +62,6 @@ import {
 } from 'utils/collections/index';
 import { getRevealInFolderLabel } from 'utils/common/platform';
 import CreateExampleModal from 'components/ResponseExample/CreateExampleModal';
-import { openDevtoolsAndSwitchToTerminal } from 'utils/terminal';
 import ActionIcon from 'ui/ActionIcon';
 import MenuDropdown from 'ui/MenuDropdown';
 import { useSidebarAccordion } from 'components/Sidebar/SidebarAccordionContext';
@@ -545,16 +543,6 @@ const CollectionItemRow = ({
           leftSection: IconSettings,
           label: 'Settings',
           onClick: viewFolderSettings
-        },
-        {
-          id: 'open-terminal',
-          leftSection: IconTerminal2,
-          label: 'Open in Terminal',
-          shortcut: getKeybindingDisplayText('openTerminal'),
-          onClick: async () => {
-            const folderCwd = item.pathname || collectionPathname;
-            await openDevtoolsAndSwitchToTerminal(dispatch, folderCwd);
-          }
         }
       );
     }

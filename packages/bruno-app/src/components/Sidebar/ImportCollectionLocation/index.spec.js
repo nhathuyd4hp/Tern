@@ -111,7 +111,6 @@ describe('ImportCollectionLocation collection auth placement', () => {
 
   it('converts with the chosen setting and saves it in the sync config', async () => {
     const handleSubmit = renderImport();
-    fireEvent.click(screen.getByTestId('check-for-spec-updates-toggle'));
     fireEvent.click(advancedToggle());
     fireEvent.click(authPlacementCheckbox());
 
@@ -125,7 +124,6 @@ describe('ImportCollectionLocation collection auth placement', () => {
 
   it('saves request in the sync config when the switch is left off', async () => {
     const handleSubmit = renderImport();
-    fireEvent.click(screen.getByTestId('check-for-spec-updates-toggle'));
 
     const [collection] = await submitImport(handleSubmit);
 
@@ -186,7 +184,6 @@ describe('ImportCollectionLocation naming requests', () => {
 
   it('converts with the chosen naming and saves it in the sync config', async () => {
     const handleSubmit = renderImport();
-    fireEvent.click(screen.getByTestId('check-for-spec-updates-toggle'));
     fireEvent.click(advancedToggle());
     await chooseNaming('operationId');
     expect(namingDropdown()).toHaveTextContent('operationId');
@@ -201,7 +198,6 @@ describe('ImportCollectionLocation naming requests', () => {
 
   it('saves Summary in the sync config when the setting is left alone', async () => {
     const handleSubmit = renderImport();
-    fireEvent.click(screen.getByTestId('check-for-spec-updates-toggle'));
 
     const [collection] = await submitImport(handleSubmit);
 
@@ -275,7 +271,6 @@ describe('ImportCollectionLocation settings layout', () => {
 
   it('converts with the chosen folder arrangement and saves it in the sync config', async () => {
     const handleSubmit = renderImport();
-    fireEvent.click(screen.getByTestId('check-for-spec-updates-toggle'));
     fireEvent.click(screen.getByTestId('grouping-dropdown'));
     fireEvent.click(await screen.findByTestId('grouping-option-path'));
     expect(screen.getByTestId('grouping-dropdown')).toHaveTextContent('Paths');
