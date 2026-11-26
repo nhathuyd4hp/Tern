@@ -271,7 +271,7 @@ const StyledWrapper = styled.div`
       flex-shrink: 0;
     }
 
-    input:not(.field-checkbox), select {
+    input:not(.field-checkbox) {
       padding: 3px 8px;
       border: 1px solid ${(props) => props.theme.input.border};
       border-radius: 4px;
@@ -293,10 +293,10 @@ const StyledWrapper = styled.div`
       }
     }
 
-    select {
-      cursor: pointer;
+    .arg-select {
+      flex: 1;
+      min-width: 0;
     }
-
   }
 
   .list-complex-unsupported {

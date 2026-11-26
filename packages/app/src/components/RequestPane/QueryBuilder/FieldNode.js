@@ -1,6 +1,7 @@
 import React, { useCallback, useState, useMemo, useRef } from 'react';
 import { IconChevronRight, IconChevronDown, IconTrash, IconInfoCircle } from '@tabler/icons';
 import { nanoid } from 'nanoid';
+import Select from 'ui/Select';
 import { getInputObjectFields } from 'utils/graphql/queryBuilder';
 
 const ListArgValueInput = ({ values, onChange, field, indent }) => {
@@ -67,24 +68,21 @@ const ListArgValueInput = ({ values, onChange, field, indent }) => {
   );
 };
 
+const BOOLEAN_OPTIONS = ['true', 'false'];
+
 const ArgValueInput = ({ value, onChange, field }) => {
   if (field.isEnum && field.enumValues) {
     return (
-      <select value={value} onChange={(e) => onChange(e.target.value)} onClick={(e) => e.stopPropagation()}>
-        <option value="">Select option</option>
-        {field.enumValues.map((v) => (
-          <option key={v} value={v}>{v}</option>
-        ))}
-      </select>
+      <span className="arg-select" onClick={(e) => e.stopPropagation()}>
+        <Select size="sm" data={field.enumValues} value={value} onChange={(v) => onChange(v ?? '')} placeholder="Select option" />
+      </span>
     );
   }
   if (field.isBoolean) {
     return (
-      <select value={value} onChange={(e) => onChange(e.target.value)} onClick={(e) => e.stopPropagation()}>
-        <option value="">Select option</option>
-        <option value="true">true</option>
-        <option value="false">false</option>
-      </select>
+      <span className="arg-select" onClick={(e) => e.stopPropagation()}>
+        <Select size="sm" data={BOOLEAN_OPTIONS} value={value} onChange={(v) => onChange(v ?? '')} placeholder="Select option" />
+      </span>
     );
   }
   return (

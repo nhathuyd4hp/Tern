@@ -1,4 +1,5 @@
 import React from 'react';
+import Select from 'ui/Select';
 
 /**
  * Assertion operators
@@ -66,10 +67,6 @@ const AssertionOperator = ({ operator, onChange, disabled = false, extraOperator
     ...extraOperators
   ];
 
-  const handleChange = (e) => {
-    onChange(e.target.value);
-  };
-
   const getLabel = (operator) => {
     switch (operator) {
       case 'eq':
@@ -81,14 +78,20 @@ const AssertionOperator = ({ operator, onChange, disabled = false, extraOperator
     }
   };
 
+  const data = operators.map((op) => ({ value: op, label: getLabel(op) }));
+
   return (
-    <select value={operator} onChange={handleChange} className="mousetrap" data-testid="assertion-operator-select" disabled={disabled} aria-label={ariaLabel}>
-      {operators.map((operator) => (
-        <option key={operator} value={operator}>
-          {getLabel(operator)}
-        </option>
-      ))}
-    </select>
+    <Select
+      size="sm"
+      className="mousetrap"
+      data-testid="assertion-operator-select"
+      data={data}
+      value={operator}
+      onChange={onChange}
+      allowDeselect={false}
+      disabled={disabled}
+      aria-label={ariaLabel}
+    />
   );
 };
 

@@ -1,8 +1,8 @@
-import { IconChevronDown } from '@tabler/icons';
 import { useSelector, useDispatch } from 'react-redux';
 import { useMemo } from 'react';
 import { getLanguages } from 'utils/codegenerator/targets';
 import { updateGenerateCode } from 'providers/ReduxStore/slices/app';
+import Select from 'ui/Select';
 import StyledWrapper from './StyledWrapper';
 
 const CodeViewToolbar = () => {
@@ -32,8 +32,7 @@ const CodeViewToolbar = () => {
   }, [generateCodePrefs.mainLanguage, languageGroups]);
 
   // Event handlers
-  const handleMainLanguageChange = (e) => {
-    const newMainLang = e.target.value;
+  const handleMainLanguageChange = (newMainLang) => {
     const defaultLibrary = languageGroups[newMainLang][0].libraryName;
 
     dispatch(updateGenerateCode({
@@ -59,18 +58,13 @@ const CodeViewToolbar = () => {
       <div className="toolbar">
         <div className="left-controls">
           <div className="select-wrapper">
-            <select
-              className="native-select"
+            <Select
+              size="sm"
+              data={mainLanguages}
               value={generateCodePrefs.mainLanguage}
               onChange={handleMainLanguageChange}
-            >
-              {mainLanguages.map((lang) => (
-                <option key={lang} value={lang}>
-                  {lang}
-                </option>
-              ))}
-            </select>
-            <IconChevronDown size={16} className="select-arrow" />
+              allowDeselect={false}
+            />
           </div>
 
           {availableLibraries.length > 1 && (

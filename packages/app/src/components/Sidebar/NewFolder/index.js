@@ -5,12 +5,12 @@ import * as Yup from 'yup';
 import Portal from 'components/Portal';
 import Modal from 'components/Modal';
 import { useDispatch, useSelector } from 'react-redux';
-import { newFolder, browseFiles, updateBrunoConfig } from 'providers/ReduxStore/slices/collections/actions';
+import { newFolder, updateBrunoConfig } from 'providers/ReduxStore/slices/collections/actions';
 import { selectCollectionByUid } from 'src/selectors/collections';
 import SpecSourcePicker from 'components/OpenAPISyncTab/SpecSourcePicker';
-import { isSpecSourceReady } from 'components/OpenAPISyncTab/SpecSourcePicker/utils';
-import { loadGrpcMethodsFromProtoFile } from 'utils/network/index';
-import { buildOpenApiFolderImport, buildProtoFolderImport, parseSpecContent, getProtoName } from 'utils/importers/folder-source';
+import { isSpecSourceReady, PROTO_SOURCE_PICKER_PROPS } from 'components/OpenAPISyncTab/SpecSourcePicker/utils';
+import { buildOpenApiFolderImport, buildProtoFolderImport, parseSpecContent } from 'utils/importers/folder-source';
+import { loadProtoSource, materializeProtoSource } from 'utils/importers/proto-source';
 import { formatIpcError } from 'utils/common/error';
 import { IconArrowBackUp, IconEdit } from '@tabler/icons';
 import { sanitizeName, validateName, validateNameError } from 'utils/common/regex';
@@ -80,7 +80,7 @@ const NewFolder = ({ collectionUid, item, onClose }) => {
         return;
       }
       if (source === 'proto' && !protoData) {
-        setSourceError('Choose a .proto file first');
+        setSourceError('Select a .proto file or URL first');
         return;
       }
 
@@ -108,9 +108,9 @@ const NewFolder = ({ collectionUid, item, onClose }) => {
     }
   });
 
-  const buildImport = () => (source === 'openapi'
+  const buildImport = async () => (source === 'openapi'
     ? buildOpenApiFolderImport(specData)
-    : buildProtoFolderImport(protoData, { collectionPathname: collection.pathname, protobuf: collection.brunoConfig?.protobuf }));
+    : buildProtoFolderImport(await materializeProtoSource(protoData, collection.pathname), { collectionPathname: collection.pathname, protobuf: collection.brunoConfig?.protobuf }));
 
   // A name the user typed is never replaced by the one taken from the source.
   const prefillName = (name) => {
@@ -121,6 +121,9 @@ const NewFolder = ({ collectionUid, item, onClose }) => {
 
   const switchSource = (nextSource) => {
     setSource(nextSource);
+    setSpecValue('');
+    setSpecData(null);
+    setProtoData(null);
     setSourceError(null);
   };
 
@@ -172,26 +175,38 @@ const NewFolder = ({ collectionUid, item, onClose }) => {
     if (message) setSpecValue('');
   };
 
-  const chooseProtoFile = async () => {
+  const loadProto = async (mode, value) => {
+    setProtoData(null);
     setSourceError(null);
-    try {
-      const [filePath] = (await dispatch(browseFiles([{ name: 'Proto Files', extensions: ['proto'] }], [''])) || []);
-      if (!filePath) return;
-
-      setIsSourceLoading(true);
-      const { success, methods, error } = await loadGrpcMethodsFromProtoFile(filePath);
-      if (!success) {
-        setProtoData(null);
-        setSourceError(`Could not read the proto file: ${error}`);
-        return;
+    setIsSourceLoading(true);
+    const { protoData: loaded, name, error } = await loadProtoSource(mode, value, {
+      collectionUid,
+      collectionPath: collection.pathname,
+      environmentContext: {
+        activeEnvironmentUid: collection.activeEnvironmentUid,
+        environments: collection.environments,
+        runtimeVariables: collection.runtimeVariables,
+        globalEnvironmentVariables: collection.globalEnvironmentVariables
       }
-      setProtoData({ filePath, methods });
-      prefillName(getProtoName(filePath));
-    } catch (err) {
-      setSourceError('Could not read the proto file.');
-    } finally {
-      setIsSourceLoading(false);
+    });
+    setIsSourceLoading(false);
+    if (error) {
+      setSourceError(error);
+      return;
     }
+    setProtoData(loaded);
+    prefillName(name);
+  };
+
+  const handleProtoValueChange = (value) => {
+    setSpecValue(value);
+    setProtoData(null);
+    if (specMode === 'file' && value) loadProto('file', value);
+  };
+
+  const handleProtoModeChange = (mode) => {
+    handleSpecModeChange(mode);
+    setProtoData(null);
   };
 
   useEffect(() => {
@@ -285,11 +300,28 @@ const NewFolder = ({ collectionUid, item, onClose }) => {
                 </div>
               )}
               {source === 'proto' && (
-                <div className="mt-3 flex items-center gap-3">
-                  <Button type="button" variant="filled" color="primary" size="sm" loading={isSourceLoading} onClick={chooseProtoFile} data-testid="new-folder-choose-proto">
-                    Choose .proto file
-                  </Button>
-                  <span className="text-muted truncate">{protoData ? protoData.filePath : 'Service → collection, method → request.'}</span>
+                <div className="mt-3">
+                  <SpecSourcePicker
+                    {...PROTO_SOURCE_PICKER_PROPS}
+                    mode={specMode}
+                    onModeChange={handleProtoModeChange}
+                    value={specValue}
+                    onChange={handleProtoValueChange}
+                    onError={handleSpecError}
+                    action={specMode === 'url' ? (
+                      <Button
+                        type="button"
+                        size="sm"
+                        loading={isSourceLoading}
+                        disabled={!isSpecSourceReady(specMode, specValue)}
+                        onClick={() => loadProto('url', specValue)}
+                        data-testid="new-folder-load-proto"
+                      >
+                        Load
+                      </Button>
+                    ) : null}
+                  />
+                  <div className="text-muted mt-2">{protoData ? 'Proto file loaded' : 'Service → collection, method → request.'}</div>
                 </div>
               )}
               {sourceError && <div className="text-red-500 mt-2" data-testid="new-folder-source-error">{sourceError}</div>}

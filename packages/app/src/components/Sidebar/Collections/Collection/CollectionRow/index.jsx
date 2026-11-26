@@ -4,6 +4,7 @@ import { uuid } from 'utils/common';
 import { useDrop, useDrag } from 'react-dnd';
 import { getEmptyImage } from 'react-dnd-html5-backend';
 import {
+  IconBox,
   IconChevronRight,
   IconDots,
   IconLoader2,
@@ -13,11 +14,9 @@ import {
   IconEdit,
   IconFoldDown,
   IconX,
-  IconSettings,
   IconFolder,
-  IconFileArrowRight
+  IconExternalLink
 } from '@tabler/icons';
-import OpenAPISyncIcon from 'components/Icons/OpenAPISync';
 import { toggleCollection, collapseFullCollection, clearSidebarSelection } from 'providers/ReduxStore/slices/collections';
 import { mountCollection, moveCollectionAndPersist, handleMultipleCollectionItemsDrop, pasteItem, showInFolder, saveCollectionSecurityConfig } from 'providers/ReduxStore/slices/collections/actions';
 import { useDispatch, useSelector, useStore } from 'react-redux';
@@ -27,8 +26,6 @@ import toast from 'react-hot-toast';
 import NewRequest from 'components/Sidebar/NewRequest';
 import NewFolder from 'components/Sidebar/NewFolder';
 import RemoveCollections from '../RemoveCollections';
-import MoveToWorkspace from '../MoveToWorkspace';
-import { isPathExternalToBasePath } from 'utils/common/path';
 import { doesCollectionHaveItemsMatchingSearchText } from 'utils/collections/search';
 import { getSortedDraggedItems } from 'utils/collections';
 import { isTabForItemActive } from 'src/selectors/tab';
@@ -52,7 +49,6 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
   const [showNewRequestModal, setShowNewRequestModal] = useState(false);
   const [showRenameCollectionModal, setShowRenameCollectionModal] = useState(false);
   const [showRemoveCollectionModal, setShowRemoveCollectionModal] = useState(false);
-  const [showMoveToWorkspaceModal, setShowMoveToWorkspaceModal] = useState(false);
   const [dropType, setDropType] = useState(null);
   const [isKeyboardFocused, setIsKeyboardFocused] = useState(false);
   const dispatch = useDispatch();
@@ -70,29 +66,15 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
   const handleSelectionClick = useSidebarSelectionClick({ uid: collection.uid, searchText });
   const menuDropdownRef = useRef(null);
 
-  // 'Move into App Storage' is available for collections opened from outside the current workspace.
   const activeWorkspace = useSelector((state) =>
     state.workspaces.workspaces.find((w) => w.uid === state.workspaces.activeWorkspaceUid)
   );
   const workspaces = useSelector((state) => state.workspaces.workspaces);
   const collectionSortOrder = useSelector((state) => state.collections.collectionSortOrder);
   const store = useStore();
-  const isMoveToWorkspaceVisible = isPathExternalToBasePath(activeWorkspace?.pathname, collection.pathname);
 
   const isDragDisabled = isMultiSelected && isCollectionMultiDragDisabled;
   const multiDragItems = isMultiSelected ? multiDragCollections : null;
-
-  // Open the OpenAPI Sync tab
-  const openOpenAPISyncTab = () => {
-    ensureCollectionIsMounted();
-    dispatch(
-      addTab({
-        uid: uuid(),
-        collectionUid: collection.uid,
-        type: 'openapi-sync'
-      })
-    );
-  };
 
   const ensureCollectionIsMounted = () => {
     if (collection.mountStatus === 'mounted' || collection.mountStatus === 'mounting') {
@@ -177,16 +159,6 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
 
   const handleCollapseFullCollection = () => {
     dispatch(collapseFullCollection({ collectionUid: collection.uid }));
-  };
-
-  const viewCollectionSettings = () => {
-    dispatch(
-      addTab({
-        uid: collection.uid,
-        collectionUid: collection.uid,
-        type: 'collection-settings'
-      })
-    );
   };
 
   const handleShowInFolder = () => {
@@ -344,6 +316,18 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
     }
   );
 
+  const legacyOpenApiEntry = collection.brunoConfig?.openapi?.find((entry) => !entry.folder && entry.sourceUrl);
+
+  const openSpecInBrowser = async () => {
+    try {
+      const { error } = await window.ipcRenderer.invoke('renderer:open-openapi-spec-in-browser', { collectionPath: collection.pathname });
+      if (error) toast.error(error);
+    } catch (err) {
+      toast.error('Failed to open the spec in the browser');
+    }
+  };
+
+  // Grouped by function: create, edit, view/navigate, remove.
   const menuItems = [
     {
       id: 'new-request',
@@ -364,12 +348,6 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
         setShowNewFolderModal(true);
       }
     },
-    {
-      id: 'sync-openapi',
-      leftSection: OpenAPISyncIcon,
-      label: 'OpenAPI',
-      onClick: openOpenAPISyncTab
-    },
     ...(hasCopiedItems
       ? [
           {
@@ -381,6 +359,7 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
           }
         ]
       : []),
+    { id: 'divider-edit', type: 'divider' },
     {
       id: 'rename',
       leftSection: IconEdit,
@@ -390,41 +369,30 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
         setShowRenameCollectionModal(true);
       }
     },
+    { id: 'divider-view', type: 'divider' },
     {
       id: 'collapse',
       leftSection: IconFoldDown,
       label: 'Collapse',
       onClick: handleCollapseFullCollection
     },
+    ...(legacyOpenApiEntry
+      ? [
+          {
+            id: 'open-spec-in-browser',
+            leftSection: IconExternalLink,
+            label: 'Open in browser',
+            onClick: openSpecInBrowser
+          }
+        ]
+      : []),
     {
       id: 'show-in-folder',
       leftSection: IconFolder,
       label: getRevealInFolderLabel(),
       onClick: handleShowInFolder
     },
-    {
-      id: 'divider-1',
-      type: 'divider'
-    },
-    {
-      id: 'settings',
-      leftSection: IconSettings,
-      label: 'Settings',
-      onClick: viewCollectionSettings
-    },
-    ...(isMoveToWorkspaceVisible
-      ? [
-          {
-            id: 'move-to-workspace',
-            leftSection: IconFileArrowRight,
-            label: 'Move into App Storage',
-            testId: 'move-collection-to-workspace',
-            onClick: () => {
-              setShowMoveToWorkspaceModal(true);
-            }
-          }
-        ]
-      : []),
+    { id: 'divider-remove', type: 'divider' },
     {
       id: 'remove',
       leftSection: IconX,
@@ -450,9 +418,6 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
       )}
       {showRemoveCollectionModal && (
         <RemoveCollections collectionUid={collection.uid} onClose={() => setShowRemoveCollectionModal(false)} />
-      )}
-      {showMoveToWorkspaceModal && (
-        <MoveToWorkspace collectionUid={collection.uid} onClose={() => setShowMoveToWorkspaceModal(false)} />
       )}
       <div
         className={collectionRowClassName}
@@ -481,6 +446,7 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
               onDoubleClick={handleCollectionDoubleClick}
             />
           </ActionIcon>
+          <IconBox size={16} strokeWidth={2} className="ml-1 flex-shrink-0" style={{ color: '#3b82f6' }} />
           <div className="ml-1 min-w-0" id="sidebar-collection-name" title={collection.name}>
             {collection.name}
           </div>

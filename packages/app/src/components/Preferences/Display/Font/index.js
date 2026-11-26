@@ -5,6 +5,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { savePreferences } from 'providers/ReduxStore/slices/app';
 import StyledWrapper from './StyledWrapper';
 import toast from 'react-hot-toast';
+import Select from 'ui/Select';
 import { getInstalledCodeFonts } from './utils';
 
 const Font = () => {
@@ -21,9 +22,10 @@ const Font = () => {
     return codeFont === 'default' || installedFonts.includes(codeFont) ? installedFonts : [codeFont, ...installedFonts];
   }, []);
 
-  const handleCodeFontChange = (event) => {
-    setCodeFont(event.target.value);
-  };
+  const codeFontData = useMemo(
+    () => [{ value: 'default', label: 'Default' }, ...fontOptions.map((fontName) => ({ value: fontName, label: fontName }))],
+    [fontOptions]
+  );
 
   const handleCodeFontSizeChange = (event) => {
     // Restrict to min/max value
@@ -71,19 +73,15 @@ const Font = () => {
       <div className="flex flex-row gap-2 w-full">
         <div className="w-4/5">
           <label className="block">Code Editor Font</label>
-          <select
-            className="block textbox mt-2 w-full"
+          <Select
+            className="mt-2"
             data-testid="code-font-select"
-            onChange={handleCodeFontChange}
+            data={codeFontData}
             value={codeFont}
-          >
-            <option value="default">Default</option>
-            {fontOptions.map((fontName) => (
-              <option key={fontName} value={fontName} style={{ fontFamily: `"${fontName}"` }}>
-                {fontName}
-              </option>
-            ))}
-          </select>
+            onChange={setCodeFont}
+            allowDeselect={false}
+            renderOption={({ option }) => <span style={{ fontFamily: option.value === 'default' ? undefined : `"${option.value}"` }}>{option.label}</span>}
+          />
         </div>
         <div className="w-1/5">
           <label className="block">Font Size</label>

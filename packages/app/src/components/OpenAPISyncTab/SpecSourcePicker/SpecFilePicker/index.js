@@ -3,7 +3,9 @@ import { parseFileAsJsonOrYaml } from 'utils/importers/file-reader';
 import { getOpenApiSpecError } from 'components/OpenAPISyncTab/SpecSourcePicker/utils';
 import StyledWrapper from './StyledWrapper';
 
-const SpecFilePicker = ({ value, onChange, onError }) => {
+const validateOpenApiFile = async (file) => getOpenApiSpecError(await parseFileAsJsonOrYaml(file));
+
+const SpecFilePicker = ({ value, onChange, onError, accept = '.json,.yaml,.yml', validateFile = validateOpenApiFile }) => {
   const fileInputRef = useRef(null);
   const latestPickRef = useRef(0);
 
@@ -18,9 +20,8 @@ const SpecFilePicker = ({ value, onChange, onError }) => {
 
     onError(null);
     try {
-      const data = await parseFileAsJsonOrYaml(file);
+      const error = await validateFile(file);
       if (!isLatestPick()) return;
-      const error = getOpenApiSpecError(data);
       if (error) {
         onError(error);
         return;
@@ -37,7 +38,7 @@ const SpecFilePicker = ({ value, onChange, onError }) => {
       <input
         ref={fileInputRef}
         type="file"
-        accept=".json,.yaml,.yml"
+        accept={accept}
         className="file-input"
         onChange={handleFileChange}
         data-testid="spec-source-file-input"

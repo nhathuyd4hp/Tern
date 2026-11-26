@@ -6,6 +6,7 @@ import path from 'utils/common/path';
 import { browseDirectory, createCollection, mountCollection, newFolder, updateBrunoConfig } from 'providers/ReduxStore/slices/collections/actions';
 import { selectCollectionByUid } from 'src/selectors/collections';
 import { buildOpenApiFolderImport, buildProtoFolderImport } from 'utils/importers/folder-source';
+import { materializeProtoSource } from 'utils/importers/proto-source';
 import toast from 'react-hot-toast';
 import Portal from 'components/Portal';
 import Modal from 'components/Modal';
@@ -20,6 +21,7 @@ import { DEFAULT_COLLECTION_FORMAT } from 'utils/common/constants';
 import StyledWrapper from './StyledWrapper';
 import get from 'lodash/get';
 import Button from 'ui/Button';
+import Select from 'ui/Select';
 import SourceRow, { createSource } from './SourceRow';
 
 const waitFor = async (predicate, timeoutMs = 10000) => {
@@ -77,7 +79,7 @@ const CreateCollection = ({ onClose, defaultLocation: propDefaultLocation, initi
     onSubmit: async (values) => {
       const unready = sources.find((source) => (source.type === 'openapi' ? !source.specData : !source.protoData));
       if (unready) {
-        updateSource(unready.id, { error: unready.type === 'openapi' ? 'Load an OpenAPI spec first' : 'Choose a .proto file first' });
+        updateSource(unready.id, { error: unready.type === 'openapi' ? 'Load an OpenAPI spec first' : 'Select a .proto file or URL first' });
         return;
       }
       const invalid = sources.find((source) => !source.name.trim() || !validateName(sanitizeName(source.name)));
@@ -128,7 +130,7 @@ const CreateCollection = ({ onClose, defaultLocation: propDefaultLocation, initi
         const collection = getCollection();
         const imported = source.type === 'openapi'
           ? buildOpenApiFolderImport(source.specData)
-          : await buildProtoFolderImport(source.protoData, { collectionPathname: collection.pathname, protobuf: collection.brunoConfig?.protobuf });
+          : await buildProtoFolderImport(await materializeProtoSource(source.protoData, collection.pathname), { collectionPathname: collection.pathname, protobuf: collection.brunoConfig?.protobuf });
         await window.ipcRenderer.invoke('renderer:import-items-into-folder', {
           collectionPath: collection.pathname,
           folderPath,
@@ -230,40 +232,37 @@ const CreateCollection = ({ onClose, defaultLocation: propDefaultLocation, initi
                   </p>
                 </Help>
               </label>
-              <input
-                id="collection-location"
-                type="text"
-                name="collectionLocation"
-                className="block textbox mt-2 w-full cursor-pointer"
-                autoComplete="off"
-                autoCorrect="off"
-                autoCapitalize="off"
-                spellCheck="false"
-                readOnly={true}
-                value={formik.values.collectionLocation || ''}
-                onClick={browse}
-                onChange={(e) => {
-                  formik.setFieldValue('collectionLocation', e.target.value);
-                }}
-              />
+              <div className="flex items-stretch gap-2 mt-2">
+                <input
+                  id="collection-location"
+                  type="text"
+                  name="collectionLocation"
+                  className="block textbox flex-1 min-w-0 cursor-pointer"
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck="false"
+                  readOnly={true}
+                  value={formik.values.collectionLocation || ''}
+                  onClick={browse}
+                  onChange={(e) => {
+                    formik.setFieldValue('collectionLocation', e.target.value);
+                  }}
+                />
+                <Button type="button" color="secondary" variant="outline" className="location-browse" onClick={browse}>
+                  Browse
+                </Button>
+              </div>
               {formik.touched.collectionLocation && formik.errors.collectionLocation ? (
                 <div className="text-red-500">{formik.errors.collectionLocation}</div>
               ) : null}
-              <div className="mt-1">
-                <span
-                  className="text-link cursor-pointer hover:underline"
-                  onClick={browse}
-                >
-                  Browse
-                </span>
-              </div>
               <div className="mt-4">
                 <div className="flex items-center justify-between">
                   <label className="flex items-center font-medium">
-                    Sources
+                    Collections
                     <Help width="300">
                       <p>
-                        Each source becomes one collection inside the application. OpenAPI sources stay in sync with their spec.
+                        Each collection is created from an OpenAPI spec or a .proto file. OpenAPI collections stay in sync with their spec.
                       </p>
                       <p className="mt-2">
                         You can also create an empty application and add collections later.
@@ -271,7 +270,7 @@ const CreateCollection = ({ onClose, defaultLocation: propDefaultLocation, initi
                     </Help>
                   </label>
                   <Button type="button" size="sm" variant="ghost" onClick={() => setSources((current) => [...current, createSource('openapi')])} data-testid="create-add-source">
-                    + Add source
+                    + Add collection
                   </Button>
                 </div>
                 {sources.map((source) => (
@@ -356,16 +355,17 @@ const CreateCollection = ({ onClose, defaultLocation: propDefaultLocation, initi
                       </p>
                     </Help>
                   </label>
-                  <select
-                    id="format"
-                    name="format"
-                    className="block textbox mt-2 w-full"
+                  <Select
+                    className="mt-2"
+                    data={[
+                      { value: 'yml', label: 'OpenCollection (YAML)' },
+                      { value: 'bru', label: 'BRU Format (.bru)' }
+                    ]}
                     value={formik.values.format}
-                    onChange={formik.handleChange}
-                  >
-                    <option value="yml">OpenCollection (YAML)</option>
-                    <option value="bru">BRU Format (.bru)</option>
-                  </select>
+                    allowDeselect={false}
+                    onChange={(value) => formik.setFieldValue('format', value)}
+                    data-testid="create-format"
+                  />
                   {formik.touched.format && formik.errors.format ? (
                     <div className="text-red-500">{formik.errors.format}</div>
                   ) : null}

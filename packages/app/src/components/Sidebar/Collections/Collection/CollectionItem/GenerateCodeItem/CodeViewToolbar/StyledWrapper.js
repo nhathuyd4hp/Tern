@@ -17,50 +17,7 @@ const StyledWrapper = styled.div`
   }
 
   .select-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-  }
-
-  .select-arrow {
-    position: absolute;
-    right: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    pointer-events: none;
-    color: ${(props) => props.theme.colors.text.muted};
-  }
-
-  .native-select {
-    background: ${(props) => props.theme.requestTabPanel.url.bg};
-    border: 1px solid ${(props) => props.theme.input.border};
-    border-radius: 3px;
-    color: ${(props) => props.theme.text};
-    font-size: ${(props) => props.theme.font.size.sm};
-    padding: 6px 28px 6px 10px;
     min-width: 140px;
-    height: 32px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    appearance: none;
-    outline: none;
-    box-shadow: none;
-
-    &:hover {
-      border-color: ${(props) => props.theme.input.focusBorder};
-    }
-
-    &:focus {
-      outline: none;
-      border-color: ${(props) => props.theme.input.focusBorder};
-      box-shadow: 0 0 0 2px ${(props) => props.theme.input.focusBoxShadow};
-    }
-
-    option {
-      background: ${(props) => props.theme.bg};
-      color: ${(props) => props.theme.text};
-      padding: 8px 12px;
-    }
   }
 
   .library-options {

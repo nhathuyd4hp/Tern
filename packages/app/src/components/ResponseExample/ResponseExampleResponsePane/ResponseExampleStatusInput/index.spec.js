@@ -26,6 +26,7 @@ jest.mock('./StyledWrapper', () => {
   };
 });
 
+import themes from 'themes/index';
 import ResponseExampleStatusInput from './index';
 
 const item = { uid: 'item-1' };
@@ -40,7 +41,7 @@ const renderStatusInput = (props = {}) => {
 
   return render(
     <Provider store={store}>
-      <ThemeProvider theme={{}}>
+      <ThemeProvider theme={themes.dark}>
         <ResponseExampleStatusInput
           item={item}
           collection={collection}
@@ -54,29 +55,32 @@ const renderStatusInput = (props = {}) => {
   );
 };
 
+const openSelect = () => fireEvent.click(screen.getByTestId('response-status-input'));
+
 describe('ResponseExampleStatusInput', () => {
+  beforeAll(() => {
+    window.HTMLElement.prototype.scrollIntoView = jest.fn();
+  });
+
   beforeEach(() => {
     mockDispatch.mockClear();
   });
 
-  it('renders a native select with the current status selected', () => {
+  it('renders the themed select showing the current status', () => {
     renderStatusInput({ status: 404, statusText: 'Not Found' });
 
-    const select = screen.getByTestId('response-status-input');
-    expect(select.tagName).toBe('SELECT');
-    expect(select).toHaveValue('404');
+    expect(screen.getByTestId('response-status-input')).toHaveTextContent('404 Not Found');
   });
 
   it('shows a placeholder when status is empty instead of inventing 200', () => {
     renderStatusInput({ status: '', statusText: '' });
 
-    const select = screen.getByTestId('response-status-input');
-    expect(select).toHaveValue('');
-    expect(screen.getByRole('option', { name: 'Select status' })).toBeInTheDocument();
+    expect(screen.getByTestId('response-status-input')).toHaveTextContent('Select status');
   });
 
   it('keeps a custom statusText label for a known status code', () => {
     renderStatusInput({ status: 200, statusText: 'All Good' });
+    openSelect();
 
     expect(screen.getByRole('option', { name: '200 All Good' })).toBeInTheDocument();
   });
@@ -84,15 +88,14 @@ describe('ResponseExampleStatusInput', () => {
   it('includes a custom status option when the current code is unknown', () => {
     renderStatusInput({ status: 999, statusText: 'Custom Error' });
 
-    const select = screen.getByTestId('response-status-input');
-    expect(select).toHaveValue('999');
-    expect(screen.getByRole('option', { name: '999 Custom Error' })).toBeInTheDocument();
+    expect(screen.getByTestId('response-status-input')).toHaveTextContent('999 Custom Error');
   });
 
   it('dispatches status code and text when a known option is selected', () => {
     renderStatusInput({ status: 200, statusText: 'OK' });
+    openSelect();
 
-    fireEvent.change(screen.getByTestId('response-status-input'), { target: { value: '404' } });
+    fireEvent.click(screen.getByRole('option', { name: '404 Not Found' }));
 
     expect(mockDispatch).toHaveBeenCalledWith({
       type: 'updateResponseExampleStatusCode',

@@ -58,21 +58,6 @@ const StyledWrapper = styled.div`
     }
   }
 
-  .additional-parameter-sends-in-selector {
-    select {
-      height: 32px;
-      width: 100%;
-      border: 1px solid ${(props) => props.theme.input.border};
-      border-radius: 4px;
-      padding: 0 8px;
-
-      &:focus {
-        outline: none;
-        border-color: ${(props) => props.theme.primary.solid};
-      }
-    }
-  }
-
   .add-additional-param-actions {
     &:hover {
       color: ${(props) => props.theme.primary.solid};

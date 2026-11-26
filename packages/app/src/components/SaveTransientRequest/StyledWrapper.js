@@ -495,28 +495,6 @@ const StyledWrapper = styled.div`
     gap: 8px;
   }
 
-  .new-collection-select {
-    width: 100%;
-    padding: 8px 10px;
-    padding-right: 28px;
-    border-radius: ${(props) => props.theme.border.radius.sm};
-    background-color: ${(props) => props.theme.input.bg};
-    border: 1px solid ${(props) => props.theme.input.border};
-    color: ${(props) => props.theme.text};
-    font-size: 14px;
-    cursor: pointer;
-    transition: border-color ease-in-out 0.1s;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 10px center;
-
-    &:focus {
-      border: solid 1px ${(props) => props.theme.input.focusBorder} !important;
-      outline: none !important;
-    }
-  }
-
   .new-collection-actions-footer {
     display: flex;
     justify-content: flex-end;

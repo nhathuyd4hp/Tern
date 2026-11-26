@@ -1,12 +1,11 @@
-import { useDispatch } from 'react-redux';
 import { IconTrash } from '@tabler/icons';
 import SpecSourcePicker from 'components/OpenAPISyncTab/SpecSourcePicker';
-import { isSpecSourceReady } from 'components/OpenAPISyncTab/SpecSourcePicker/utils';
-import { browseFiles } from 'providers/ReduxStore/slices/collections/actions';
-import { loadGrpcMethodsFromProtoFile } from 'utils/network/index';
-import { parseSpecContent, getProtoName } from 'utils/importers/folder-source';
+import { isSpecSourceReady, PROTO_SOURCE_PICKER_PROPS } from 'components/OpenAPISyncTab/SpecSourcePicker/utils';
+import { parseSpecContent } from 'utils/importers/folder-source';
+import { loadProtoSource } from 'utils/importers/proto-source';
 import { formatIpcError } from 'utils/common/error';
 import Button from 'ui/Button';
+import Select from 'ui/Select';
 
 export const createSource = (type) => ({
   id: `${Date.now()}-${Math.random()}`,
@@ -23,7 +22,6 @@ export const createSource = (type) => ({
 
 // One source of the new application: it becomes one collection, named after the spec title / proto file unless edited.
 const SourceRow = ({ source, onChange, onRemove }) => {
-  const dispatch = useDispatch();
   const { id, type, specMode, specValue, specData, protoData, error, loading } = source;
   const update = (patch) => onChange(id, patch);
 
@@ -44,37 +42,27 @@ const SourceRow = ({ source, onChange, onRemove }) => {
     }
   };
 
-  const chooseProtoFile = async () => {
-    update({ error: null });
-    try {
-      const [filePath] = (await dispatch(browseFiles([{ name: 'Proto Files', extensions: ['proto'] }], [''])) || []);
-      if (!filePath) return;
-
-      update({ loading: true });
-      const { success, methods, error: protoError } = await loadGrpcMethodsFromProtoFile(filePath);
-      if (!success) {
-        update({ protoData: null, error: `Could not read the proto file: ${protoError}`, loading: false });
-        return;
-      }
-      update({ protoData: { filePath, methods }, loading: false, ...prefillName(getProtoName(filePath)) });
-    } catch (err) {
-      update({ error: 'Could not read the proto file.', loading: false });
-    }
+  const loadProto = async (mode, value) => {
+    update({ protoData: null, error: null, loading: true });
+    const { protoData: loaded, name, error: protoError } = await loadProtoSource(mode, value);
+    update(protoError ? { error: protoError, loading: false } : { protoData: loaded, loading: false, ...prefillName(name) });
   };
 
   return (
-    <div className="border rounded-md p-3 mt-2" data-testid="create-source-row">
+    <div className="source-row" data-testid="create-source-row">
       <div className="flex items-center gap-2">
-        <select
-          className="textbox"
-          value={type}
-          onChange={(e) => onChange(id, { ...createSource(e.target.value), id, name: source.name, isNameEdited: source.isNameEdited })}
-          aria-label="Source type"
-          data-testid="create-source-type"
-        >
-          <option value="openapi">OpenAPI</option>
-          <option value="proto">Proto file</option>
-        </select>
+        <div style={{ width: 150, flexShrink: 0 }}>
+          <Select
+            data={[
+              { value: 'openapi', label: 'OpenAPI' },
+              { value: 'proto', label: 'Proto file' }
+            ]}
+            value={type}
+            allowDeselect={false}
+            onChange={(next) => onChange(id, { ...createSource(next), id, name: source.name, isNameEdited: source.isNameEdited })}
+            data-testid="create-source-type"
+          />
+        </div>
         <input
           type="text"
           className="textbox flex-1"
@@ -86,7 +74,7 @@ const SourceRow = ({ source, onChange, onRemove }) => {
           onChange={(e) => update({ name: e.target.value, isNameEdited: true })}
           data-testid="create-source-name"
         />
-        <button type="button" className="opacity-60 hover:opacity-100" onClick={() => onRemove(id)} aria-label="Remove source" data-testid="create-source-remove">
+        <button type="button" className="opacity-60 hover:opacity-100" onClick={() => onRemove(id)} aria-label="Remove collection" data-testid="create-source-remove">
           <IconTrash size={16} strokeWidth={1.5} />
         </button>
       </div>
@@ -118,11 +106,33 @@ const SourceRow = ({ source, onChange, onRemove }) => {
         </div>
       )}
       {type === 'proto' && (
-        <div className="mt-3 flex items-center gap-3">
-          <Button type="button" variant="filled" color="primary" size="sm" loading={loading} onClick={chooseProtoFile} data-testid="create-source-choose-proto">
-            Choose .proto file
-          </Button>
-          <span className="text-muted truncate">{protoData ? protoData.filePath : 'Service → collection, method → request.'}</span>
+        <div className="mt-3">
+          <SpecSourcePicker
+            {...PROTO_SOURCE_PICKER_PROPS}
+            mode={specMode}
+            onModeChange={(mode) => update({ specMode: mode, specValue: '', protoData: null, error: null })}
+            value={specValue}
+            onChange={(value) => {
+              update({ specValue: value, protoData: null });
+              if (specMode === 'file' && value) loadProto('file', value);
+            }}
+            onError={(message) => update({ error: message, ...(message ? { specValue: '' } : {}) })}
+            action={specMode === 'url' ? (
+              <Button
+                type="button"
+                size="sm"
+                loading={loading}
+                disabled={!isSpecSourceReady(specMode, specValue)}
+                onClick={() => loadProto('url', specValue)}
+                data-testid="create-source-load-proto"
+              >
+                Load
+              </Button>
+            ) : null}
+          />
+          <div className="text-muted mt-2">
+            {protoData ? 'Proto file loaded' : 'Service → collection, method → request.'}
+          </div>
         </div>
       )}
       {error && <div className="text-red-500 mt-2" data-testid="create-source-error">{error}</div>}

@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { useDispatch } from 'react-redux';
 import { updateResponseExampleStatusCode, updateResponseExampleStatusText } from 'providers/ReduxStore/slices/collections';
 import statusCodePhraseMap from 'components/ResponsePane/StatusCode/get-status-code-phrase';
+import Select from 'ui/Select';
 import StyledWrapper from './StyledWrapper';
 
 const ResponseExampleStatusInput = ({ item, collection, exampleUid, status, statusText }) => {
@@ -30,6 +31,8 @@ const ResponseExampleStatusInput = ({ item, collection, exampleUid, status, stat
     return entries;
   }, [currentCode, statusText]);
 
+  const selectData = useMemo(() => options.map((option) => ({ value: option.code, label: option.display })), [options]);
+
   const getStatusClass = (code) => {
     const numStatus = parseInt(code, 10);
     if (!isNaN(numStatus)) {
@@ -40,8 +43,7 @@ const ResponseExampleStatusInput = ({ item, collection, exampleUid, status, stat
     return 'text-ok';
   };
 
-  const handleChange = (event) => {
-    const code = event.target.value;
+  const handleChange = (code) => {
     if (!code) {
       return;
     }
@@ -68,21 +70,16 @@ const ResponseExampleStatusInput = ({ item, collection, exampleUid, status, stat
 
   return (
     <StyledWrapper>
-      <select
-        value={currentCode}
-        onChange={handleChange}
+      <Select
+        size="sm"
         className={`response-status-input ${getStatusClass(currentCode)}`}
         data-testid="response-status-input"
-      >
-        {!currentCode ? (
-          <option value="">Select status</option>
-        ) : null}
-        {options.map((option) => (
-          <option key={option.code} value={option.code}>
-            {option.display}
-          </option>
-        ))}
-      </select>
+        data={selectData}
+        value={currentCode}
+        onChange={handleChange}
+        allowDeselect={false}
+        placeholder="Select status"
+      />
     </StyledWrapper>
   );
 };

@@ -43,24 +43,6 @@ const StyledWrapper = styled.div`
       gap: 6px;
       flex: 1;
       min-width: 0;
-      cursor: pointer;
-
-
-      &:hover {
-        .section-toggle {
-          display: flex;
-        }
-
-        .section-toggle {
-          background: ${(props) => props.theme.dropdown.hoverBg};
-          color: ${(props) => props.theme.text} !important;
-        }
-
-        .section-icon {
-            display: none;
-          }
-        }
-      }
     }
 
     .section-icon-wrapper {
@@ -70,10 +52,6 @@ const StyledWrapper = styled.div`
       display: flex;
       align-items: center;
       justify-content: center;
-    }
-
-    .section-toggle {
-      display: none;
     }
 
     .section-icon {

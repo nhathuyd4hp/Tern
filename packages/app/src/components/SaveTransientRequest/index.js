@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import Modal from 'components/Modal';
 import SearchInput from 'components/SearchInput';
 import Button from 'ui/Button';
+import Select from 'ui/Select';
 import { IconFolder, IconChevronRight, IconCheck, IconX, IconEye, IconEyeOff, IconEdit, IconArrowBackUp } from '@tabler/icons';
 import PathDisplay from 'components/PathDisplay/index';
 import Help from 'components/Help';
@@ -24,6 +25,11 @@ import { itemSchema } from '@usebruno/schema';
 import { uuid } from 'utils/common';
 import { formatIpcError } from 'utils/common/error';
 import get from 'lodash/get';
+
+const COLLECTION_FORMAT_OPTIONS = [
+  { value: 'yml', label: 'OpenCollection (YAML)' },
+  { value: 'bru', label: 'BRU Format (.bru)' }
+];
 
 const SaveTransientRequest = ({ item: itemProp, collection: collectionProp, isOpen = false, onClose, closeAfterSave = false }) => {
   const dispatch = useDispatch();
@@ -543,14 +549,12 @@ const SaveTransientRequest = ({ item: itemProp, collection: collectionProp, isOp
                               </p>
                             </Help>
                           </label>
-                          <select
-                            className="new-collection-select"
+                          <Select
+                            data={COLLECTION_FORMAT_OPTIONS}
                             value={newCollection.format}
-                            onChange={(e) => setNewCollection((prev) => ({ ...prev, format: e.target.value }))}
-                          >
-                            <option value="yml">OpenCollection (YAML)</option>
-                            <option value="bru">BRU Format (.bru)</option>
-                          </select>
+                            onChange={(format) => setNewCollection((prev) => ({ ...prev, format }))}
+                            allowDeselect={false}
+                          />
                         </div>
 
                         <div className="new-collection-actions-footer">

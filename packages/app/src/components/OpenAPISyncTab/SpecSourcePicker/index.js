@@ -8,7 +8,19 @@ const SOURCE_TABS = [
   { key: 'file', label: 'File' }
 ];
 
-const SpecSourcePicker = ({ variant, mode, onModeChange, value, onChange, onError, action }) => {
+const SpecSourcePicker = ({
+  variant,
+  mode,
+  onModeChange,
+  value,
+  onChange,
+  onError,
+  action,
+  urlPlaceholder = 'https://api.example.com/openapi.json',
+  urlLabel = 'OpenAPI spec URL',
+  fileAccept,
+  validateFile
+}) => {
   const idPrefix = useId();
   const panelId = `${idPrefix}-panel`;
   const tabId = (key) => `${idPrefix}-tab-${key}`;
@@ -35,13 +47,13 @@ const SpecSourcePicker = ({ variant, mode, onModeChange, value, onChange, onErro
             className="source-input"
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            placeholder="https://api.example.com/openapi.json"
-            aria-label="OpenAPI spec URL"
+            placeholder={urlPlaceholder}
+            aria-label={urlLabel}
             data-testid="spec-source-url-input"
           />
         )}
         {mode === 'file' && (
-          <SpecFilePicker value={value} onChange={onChange} onError={onError} />
+          <SpecFilePicker value={value} onChange={onChange} onError={onError} accept={fileAccept} validateFile={validateFile} />
         )}
         {action}
       </div>

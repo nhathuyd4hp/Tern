@@ -1,6 +1,8 @@
 import styled from 'styled-components';
 import { rgba } from 'polished';
 
+const MODAL_RADIUS = '12px';
+
 const Wrapper = styled.div`
   color: ${(props) => props.theme.text};
 
@@ -23,24 +25,25 @@ const Wrapper = styled.div`
     justify-content: center;
     overflow-y: auto;
     z-index: 20;
-    background-color: rgba(0, 0, 0, 0.5);
+    box-sizing: border-box;
+    padding: 40px 16px;
+    background-color: rgba(0, 0, 0, 0.45);
   }
 
   .bruno-modal-card {
     animation-duration: 0.85s;
     animation-delay: 0.1s;
     background: ${(props) => props.theme.modal.body.bg};
-    border-radius: ${(props) => props.theme.border.radius.base};
+    border-radius: ${MODAL_RADIUS};
     position: relative;
     z-index: 11;
     max-width: calc(100% - var(--spacing-base-unit));
-    box-shadow: var(--box-shadow-base);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35), 0 4px 12px rgba(0, 0, 0, 0.2);
     display: flex;
     flex-direction: column;
     will-change: opacity, transform;
     flex-grow: 0;
-    margin: 3vh 10vw;
-    margin-top: 50px;
+    margin: auto;
     border: 1px solid ${(props) => props.theme.border.border0};
     -webkit-app-region: no-drag;
 
@@ -69,6 +72,7 @@ const Wrapper = styled.div`
 
   .bruno-modal-header.bruno-modal-header--plain {
     background-color: transparent;
+    border-bottom: none;
     padding: 1rem 1.25rem;
   }
 
@@ -79,9 +83,10 @@ const Wrapper = styled.div`
     color: ${(props) => props.theme.modal.title.color};
     background-color: ${(props) => props.theme.modal.title.bg};
     font-size: ${(props) => props.theme.font.size.md};
-    padding: 0.5rem 1rem;
-    border-top-left-radius: ${(props) => props.theme.border.radius.base};
-    border-top-right-radius: ${(props) => props.theme.border.radius.base};
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid ${(props) => props.theme.border.border0};
+    border-top-left-radius: ${MODAL_RADIUS};
+    border-top-right-radius: ${MODAL_RADIUS};
 
     .bruno-modal-header-title {
       display: flex;
@@ -173,14 +178,15 @@ const Wrapper = styled.div`
 
   .bruno-modal-footer {
     background-color: ${(props) => props.theme.modal.body.bg};
-    border-bottom-left-radius: ${(props) => props.theme.border.radius.base};
-    border-bottom-right-radius: ${(props) => props.theme.border.radius.base};
+    border-top: 1px solid ${(props) => props.theme.border.border0};
+    border-bottom-left-radius: ${MODAL_RADIUS};
+    border-bottom-right-radius: ${MODAL_RADIUS};
   }
 
   &.modal-footer-none {
     .bruno-modal-content {
-      border-bottom-left-radius: ${(props) => props.theme.border.radius.base};
-      border-bottom-right-radius: ${(props) => props.theme.border.radius.base};
+      border-bottom-left-radius: ${MODAL_RADIUS};
+      border-bottom-right-radius: ${MODAL_RADIUS};
     }
   }
 

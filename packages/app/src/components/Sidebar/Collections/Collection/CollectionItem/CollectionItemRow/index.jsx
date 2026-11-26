@@ -802,6 +802,7 @@ const CollectionItemRow = ({
             ) : null}
 
             <div className="ml-1 flex w-full h-full items-center overflow-hidden">
+              {isFolder ? <IconFolder size={16} strokeWidth={2} className="mr-1.5 flex-shrink-0" style={{ color: '#f59e0b' }} /> : null}
               <CollectionItemIcon item={item} />
               <span className="item-name" title={item.name}>
                 {item.name}

@@ -1,6 +1,24 @@
 import styled from 'styled-components';
 
 const StyledWrapper = styled.div`
+  .location-browse {
+    display: flex;
+    flex-shrink: 0;
+
+    button {
+      height: 100%;
+      padding: 0 1rem;
+    }
+  }
+
+  .source-row {
+    margin-top: 0.5rem;
+    padding: 0.75rem;
+    border: 1px solid ${(props) => props.theme.border.border1};
+    border-radius: ${(props) => props.theme.border.radius.md};
+    background: ${(props) => props.theme.background.surface0};
+  }
+
   .advanced-options {
     .caret {
       color: ${(props) => props.theme.textLink};

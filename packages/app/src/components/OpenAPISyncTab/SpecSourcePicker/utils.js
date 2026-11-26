@@ -15,6 +15,14 @@ export const getOpenApiSpecError = (spec) => {
   return spec.openapi.startsWith('3.') && isPlainObject(spec.paths) ? null : INVALID_SPEC_ERROR;
 };
 
+// A .proto is plain text, so any picked file is accepted here; parsing it reports the real errors.
+export const PROTO_SOURCE_PICKER_PROPS = {
+  urlPlaceholder: 'https://example.com/service.proto',
+  urlLabel: 'Proto file URL',
+  fileAccept: '.proto',
+  validateFile: async () => null
+};
+
 export const isSpecSourceReady = (mode, value) => {
   const source = (value || '').trim();
   if (mode === 'url') {

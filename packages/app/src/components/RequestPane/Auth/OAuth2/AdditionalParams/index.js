@@ -8,6 +8,7 @@ import SingleLineEditor from 'components/SingleLineEditor/index';
 import MultiLineEditor from 'components/MultiLineEditor/index';
 import StyledWrapper from './StyledWrapper';
 import Table from 'components/Table/index';
+import Select from 'ui/Select';
 
 const AdditionalParams = ({ item = {}, request, updateAuth, collection, handleSave, readOnly }) => {
   const dispatch = useDispatch();
@@ -226,25 +227,22 @@ const AdditionalParams = ({ item = {}, request, updateAuth, collection, handleSa
               </td>
               <td>
                 <div className="w-full additional-parameter-sends-in-selector">
-                  <select
+                  <Select
+                    size="sm"
+                    className="mousetrap"
+                    data={sendInOptionsMap[grantType || 'authorization_code'][activeTab]}
                     value={param?.sendIn || 'headers'}
-                    onChange={(e) => {
+                    onChange={(value) => {
                       handleUpdateAdditionalParam({
                         paramType: activeTab,
                         key: 'sendIn',
                         paramIndex: index,
-                        value: e.target.value
+                        value
                       });
                     }}
-                    className="mousetrap bg-transparent disabled:cursor-not-allowed"
+                    allowDeselect={false}
                     disabled={readOnly}
-                  >
-                    {sendInOptionsMap[grantType || 'authorization_code'][activeTab].map((optionValue) => (
-                      <option key={optionValue} value={optionValue}>
-                        {optionValue}
-                      </option>
-                    ))}
-                  </select>
+                  />
                 </div>
               </td>
               <td>
