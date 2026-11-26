@@ -12,4 +12,5 @@ export { default as MenuDropdown } from './MenuDropdown';
 export { default as MethodBadge } from './MethodBadge';
 export { default as ResponsiveTabs } from './ResponsiveTabs';
 export { default as SegmentedControl } from './SegmentedControl';
+export { default as Select } from './Select';
 export { default as StatusBadge } from './StatusBadge';

@@ -111,6 +111,29 @@ const StyledWrapper = styled.div`
     }
   }
 
+  .select-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    min-width: 0;
+  }
+
+  .select-chip {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 0 0.375rem;
+    border-radius: ${(props) => props.theme.border.radius.sm};
+    background: ${(props) => props.theme.background.surface0};
+    font-size: ${(props) => props.theme.font.size.xs};
+  }
+
+  .select-option-check {
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
   .select-nothing-found {
     padding: 0.5rem 0.625rem;
     font-size: ${(props) => props.theme.font.size.sm};

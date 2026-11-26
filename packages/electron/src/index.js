@@ -54,6 +54,7 @@ const registerWorkspaceIpc = require('./ipc/workspace');
 const registerSpecFetchIpc = require('./ipc/spec-fetch');
 const registerGitIpc = require('./ipc/git');
 const registerOpenAPISyncIpc = require('./ipc/openapi-sync');
+const registerProtoSourceIpc = require('./ipc/proto-source');
 const sqliteService = require('./services/sqlite');
 const { transientManager } = require('./services/transient');
 const { registerWsdlIpc } = require('./ipc/wsdl');
@@ -470,6 +471,7 @@ app.on('ready', async () => {
   registerFilesystemIpc(mainWindow);
   registerGitIpc(mainWindow);
   registerOpenAPISyncIpc(mainWindow);
+  registerProtoSourceIpc();
   sqliteService.openDatabase();
   registerWsdlIpc();
   registerCollectionSearchIpc();

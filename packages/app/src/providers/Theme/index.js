@@ -6,7 +6,7 @@ import themes from 'themes/index';
 import themeSchema from 'themes/schema';
 import useLocalStorage from 'hooks/useLocalStorage/index';
 
-import { createContext, useContext, useEffect, useState, useMemo } from 'react';
+import { createContext, useContext, useEffect, useState, useMemo, useCallback, startTransition } from 'react';
 import { ThemeProvider as SCThemeProvider } from 'styled-components';
 
 const validator = new Validator();
@@ -28,28 +28,25 @@ const applyThemeToRoot = (theme) => {
 
 export const ThemeContext = createContext();
 export const ThemeProvider = (props) => {
-  const [storedTheme, setStoredTheme] = useLocalStorage('bruno.theme', 'system');
-  const [displayedTheme, setDisplayedTheme] = useState(() => getEffectiveTheme(storedTheme));
+  const [storedTheme, setStoredThemeNow] = useLocalStorage('bruno.theme', 'system');
+  // Re-theming re-renders every styled component; as a transition it never blocks the click that triggered it.
+  const setStoredTheme = useCallback((next) => startTransition(() => setStoredThemeNow(next)), []);
+  const [systemTheme, setSystemTheme] = useState(() => getEffectiveTheme('system'));
+  const displayedTheme = storedTheme === 'system' ? systemTheme : storedTheme;
   const [themeVariantLight, setThemeVariantLight] = useLocalStorage('bruno.themeVariantLight', 'light');
   const [themeVariantDark, setThemeVariantDark] = useLocalStorage('bruno.themeVariantDark', 'dark');
 
-  // Listen for system theme changes (only affects 'system' mode)
+  // Track the OS theme; it only affects what is displayed in 'system' mode
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: light)');
-    const handleChange = (e) => {
-      if (storedTheme !== 'system') return;
-      const newTheme = e.matches ? 'light' : 'dark';
-      setDisplayedTheme(newTheme);
-      applyThemeToRoot(newTheme);
-    };
+    const handleChange = (e) => setSystemTheme(e.matches ? 'light' : 'dark');
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
-  }, [storedTheme]);
+  }, []);
 
-  // Apply theme when storedTheme changes
+  // Apply theme to the root element and the native window
   useEffect(() => {
-    const effectiveTheme = getEffectiveTheme(storedTheme);
-    setDisplayedTheme(effectiveTheme);
+    const effectiveTheme = displayedTheme;
     applyThemeToRoot(effectiveTheme);
 
     if (window.ipcRenderer) {
@@ -61,14 +58,13 @@ export const ThemeProvider = (props) => {
       const themeBg = `#${[red, green, blue].map((c) => c.toString(16).padStart(2, '0')).join('')}`;
       window.ipcRenderer.send('renderer:theme-change', storedTheme, themeBg);
     }
-  }, [storedTheme, themeVariantLight, themeVariantDark]);
+  }, [displayedTheme, storedTheme, themeVariantLight, themeVariantDark]);
 
   // storedTheme can have 3 values: 'light', 'dark', 'system'
   // displayedTheme can have 2 values: 'light', 'dark'
 
-  // Compute theme object directly from storedTheme to avoid race conditions
   const theme = useMemo(() => {
-    const isLightMode = getEffectiveTheme(storedTheme) === 'light';
+    const isLightMode = displayedTheme === 'light';
     const variantName = isLightMode ? themeVariantLight : themeVariantDark;
     const fallbackTheme = isLightMode ? themes.light : themes.dark;
     const fallbackName = isLightMode ? 'light' : 'dark';
@@ -99,9 +95,9 @@ export const ThemeProvider = (props) => {
     }
 
     return selectedTheme;
-  }, [storedTheme, themeVariantLight, themeVariantDark]);
+  }, [displayedTheme, themeVariantLight, themeVariantDark]);
 
-  const value = {
+  const value = useMemo(() => ({
     theme,
     storedTheme,
     displayedTheme,
@@ -110,7 +106,7 @@ export const ThemeProvider = (props) => {
     setThemeVariantLight,
     themeVariantDark,
     setThemeVariantDark
-  };
+  }), [theme, storedTheme, displayedTheme, setStoredTheme, themeVariantLight, setThemeVariantLight, themeVariantDark, setThemeVariantDark]);
 
   return (
     <ThemeContext.Provider value={value}>

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect, useMemo, useId } from 'react';
 import Dropdown from 'components/Dropdown';
-import { IconCaretDown, IconX, IconLoader2 } from '@tabler/icons';
+import { IconCaretDown, IconX, IconLoader2, IconCheck } from '@tabler/icons';
 import InputWrapper from 'ui/InputWrapper';
 import StyledWrapper from './StyledWrapper';
 
@@ -42,8 +42,9 @@ const sameWidthModifier = {
  * Select - A reusable select/dropdown component for forms
  *
  * @param {Array} props.data - Array of strings or { value, label, disabled? } objects
- * @param {string} props.value - Controlled selected value
- * @param {function} props.onChange - Called with the selected value string
+ * @param {string|string[]} props.value - Controlled selected value (an array when `multiple`)
+ * @param {function} props.onChange - Called with the selected value string (an array when `multiple`)
+ * @param {boolean} props.multiple - Allows picking several options; the list stays open while picking
  * @param {string} props.placeholder - Placeholder text when no value selected
  * @param {boolean} props.disabled - Disables interaction
  * @param {string} props.error - Error message displayed below the select
@@ -73,6 +74,7 @@ const Select = ({
   nothingFoundMessage = 'No options found',
   clearable = false,
   allowDeselect = true,
+  multiple = false,
   maxDropdownHeight = 250,
   renderOption,
   loading = false,
@@ -81,7 +83,8 @@ const Select = ({
   required = false,
   size = 'md',
   className,
-  'data-testid': testId
+  'data-testid': testId,
+  'aria-label': ariaLabel
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
@@ -103,18 +106,22 @@ const Select = ({
     return options.filter((opt) => opt.label.toLowerCase().includes(query));
   }, [options, searchable, searchValue]);
 
+  const selectedValues = useMemo(() => (multiple ? (Array.isArray(value) ? value : []) : []), [multiple, value]);
+
   const selectedOption = useMemo(
-    () => options.find((opt) => opt.value === value),
-    [options, value]
+    () => (multiple ? undefined : options.find((opt) => opt.value === value)),
+    [multiple, options, value]
   );
+
+  const hasValue = multiple ? selectedValues.length > 0 : value != null && value !== '';
 
   const handleOpen = useCallback(() => {
     if (disabled) return;
     setIsOpen(true);
     setSearchValue('');
-    const idx = options.findIndex((opt) => opt.value === value);
+    const idx = multiple ? -1 : options.findIndex((opt) => opt.value === value);
     setFocusedIndex(idx >= 0 ? idx : 0);
-  }, [disabled, options, value]);
+  }, [disabled, multiple, options, value]);
 
   const handleClose = useCallback(() => {
     setIsOpen(false);
@@ -133,6 +140,13 @@ const Select = ({
   const handleSelect = useCallback(
     (option) => {
       if (option.disabled) return;
+      if (multiple) {
+        const next = selectedValues.includes(option.value)
+          ? selectedValues.filter((item) => item !== option.value)
+          : [...selectedValues, option.value];
+        onChange?.(next);
+        return;
+      }
       if (allowDeselect && option.value === value) {
         onChange?.(null);
       } else {
@@ -140,15 +154,15 @@ const Select = ({
       }
       handleClose();
     },
-    [onChange, handleClose, allowDeselect, value]
+    [onChange, handleClose, allowDeselect, multiple, selectedValues, value]
   );
 
   const handleClear = useCallback(
     (e) => {
       e.stopPropagation();
-      onChange?.(null);
+      onChange?.(multiple ? [] : null);
     },
-    [onChange]
+    [onChange, multiple]
   );
 
   const handleClickOutside = useCallback(() => {
@@ -241,7 +255,7 @@ const Select = ({
         </span>
       );
     }
-    if (clearable && value != null && value !== '') {
+    if (clearable && hasValue) {
       return (
         <button
           type="button"
@@ -279,6 +293,15 @@ const Select = ({
         />
       );
     }
+    if (multiple && selectedValues.length > 0) {
+      return (
+        <span className="select-chips">
+          {selectedValues.map((selected) => (
+            <span key={selected} className="select-chip">{options.find((opt) => opt.value === selected)?.label ?? selected}</span>
+          ))}
+        </span>
+      );
+    }
     if (selectedOption) {
       return <span className="select-trigger-label">{selectedOption.label}</span>;
     }
@@ -309,6 +332,7 @@ const Select = ({
       aria-expanded={isOpen}
       aria-haspopup="listbox"
       aria-labelledby={labelId}
+      aria-label={ariaLabel}
       aria-describedby={describedBy}
       aria-required={required || undefined}
       data-testid={testId}
@@ -327,7 +351,7 @@ const Select = ({
       return <div className="select-nothing-found">{nothingFoundMessage}</div>;
     }
     return filteredOptions.map((option, index) => {
-      const isSelected = option.value === value;
+      const isSelected = multiple ? selectedValues.includes(option.value) : option.value === value;
       const isFocused = index === focusedIndex;
       const classNames = [
         'dropdown-item',
@@ -350,6 +374,7 @@ const Select = ({
           {renderOption
             ? renderOption({ option, isSelected, isFocused })
             : <span className="dropdown-label">{option.label}</span>}
+          {multiple && isSelected ? <IconCheck className="select-option-check" size={14} strokeWidth={2} /> : null}
         </div>
       );
     });
@@ -370,6 +395,7 @@ const Select = ({
           <div
             ref={menuRef}
             role="listbox"
+            aria-multiselectable={multiple || undefined}
             tabIndex={searchable ? undefined : -1}
             onKeyDown={searchable ? undefined : handleKeyDown}
             style={{ maxHeight: maxDropdownHeight, overflowY: 'auto', outline: 'none' }}

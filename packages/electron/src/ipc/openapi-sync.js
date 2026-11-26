@@ -200,8 +200,6 @@ const isValidOpenApiSpec = (spec) => {
  * Returns { content, spec } on success, or { error, errorCode? } on failure.
  */
 const fetchSpecFromSource = async ({ collectionUid, collectionPath, sourceUrl, environmentContext = {} }) => {
-  const { activeEnvironmentUid, environments = [], runtimeVariables = {}, globalEnvironmentVariables = {} } = environmentContext;
-
   if (!isValidHttpUrl(sourceUrl) && !isLocalFilePath(sourceUrl)) {
     return { error: 'Invalid source: only http/https URLs and local file paths are allowed' };
   }
@@ -215,49 +213,61 @@ const fetchSpecFromSource = async ({ collectionUid, collectionPath, sourceUrl, e
     }
     content = fs.readFileSync(resolvedPath, 'utf8');
   } else {
-    const cacheBustUrl = sourceUrl.includes('?')
-      ? `${sourceUrl}&_=${Date.now()}`
-      : `${sourceUrl}?_=${Date.now()}`;
-
-    const environment = resolveEnvironmentInheritance({
-      environments,
-      targetEnvironment: _.find(environments, (e) => e.uid === activeEnvironmentUid)
-    });
-    const envVars = getEnvVars(environment);
-    const processEnvVars = getProcessEnvVars(collectionUid);
-    const { proxyMode, proxyConfig, httpsAgentRequestFields, interpolationOptions } = await getCertsAndProxyConfig({
-      collectionUid,
-      collection: { promptVariables: {} },
-      request: {},
-      envVars,
-      runtimeVariables,
-      processEnvVars,
-      collectionPath,
-      globalEnvironmentVariables
-    });
-    const axiosInstance = makeAxiosInstance({ proxyMode, proxyConfig, httpsAgentRequestFields, interpolationOptions });
-
-    try {
-      const response = await axiosInstance.get(cacheBustUrl, {
-        headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache'
-        },
-        timeout: 30000,
-        transformResponse: [(data) => data]
-      });
-      content = response.data;
-    } catch (fetchErr) {
-      if (fetchErr.response) {
-        return { error: `Failed to fetch spec: ${fetchErr.response.status} ${fetchErr.response.statusText}` };
-      }
-      const reason = fetchErr.code || fetchErr.cause?.code || fetchErr.name || 'unknown';
-      return { error: `Could not reach ${sourceUrl} (${reason})` };
-    }
+    const remote = await fetchRemoteText({ collectionUid, collectionPath, sourceUrl, environmentContext }, 'spec');
+    if (remote.error) return remote;
+    content = remote.content;
   }
 
   const spec = parseSpec(content);
   return { content, spec };
+};
+
+/**
+ * Download a text document over http(s), through the proxy/cert settings of the collection.
+ * Returns { content } or { error }.
+ */
+const fetchRemoteText = async ({ collectionUid, collectionPath, sourceUrl, environmentContext = {} }, what, { maxContentLength } = {}) => {
+  const { activeEnvironmentUid, environments = [], runtimeVariables = {}, globalEnvironmentVariables = {} } = environmentContext;
+  const cacheBustUrl = sourceUrl.includes('?')
+    ? `${sourceUrl}&_=${Date.now()}`
+    : `${sourceUrl}?_=${Date.now()}`;
+
+  const environment = resolveEnvironmentInheritance({
+    environments,
+    targetEnvironment: _.find(environments, (e) => e.uid === activeEnvironmentUid)
+  });
+  const envVars = getEnvVars(environment);
+  const processEnvVars = getProcessEnvVars(collectionUid);
+  const { proxyMode, proxyConfig, httpsAgentRequestFields, interpolationOptions } = await getCertsAndProxyConfig({
+    collectionUid,
+    collection: { promptVariables: {} },
+    request: {},
+    envVars,
+    runtimeVariables,
+    processEnvVars,
+    collectionPath,
+    globalEnvironmentVariables
+  });
+  const axiosInstance = makeAxiosInstance({ proxyMode, proxyConfig, httpsAgentRequestFields, interpolationOptions });
+
+  try {
+    const response = await axiosInstance.get(cacheBustUrl, {
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache'
+      },
+      timeout: 30000,
+      ...(maxContentLength && { maxContentLength }),
+      transformResponse: [(data) => data]
+    });
+    return { content: response.data };
+  } catch (fetchErr) {
+    if (fetchErr.response) {
+      return { error: `Failed to fetch ${what}: ${fetchErr.response.status} ${fetchErr.response.statusText}` };
+    }
+    const reason = fetchErr.code || fetchErr.cause?.code || fetchErr.name || 'unknown';
+    return { error: `Could not reach ${sourceUrl} (${reason})` };
+  }
 };
 
 /**
@@ -2213,6 +2223,7 @@ module.exports = registerOpenAPISyncIpc;
 module.exports.saveSpecAndUpdateMetadata = saveSpecAndUpdateMetadata;
 module.exports.cleanupSpecFilesForCollection = cleanupSpecFilesForCollection;
 module.exports.addFolderSyncEntry = addFolderSyncEntry;
+module.exports.fetchRemoteText = fetchRemoteText;
 
 /* istanbul ignore next */
 if (process.env.NODE_ENV === 'test') {
