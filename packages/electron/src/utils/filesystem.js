@@ -368,7 +368,7 @@ const getCollectionFormat = (collectionPath) => {
     return 'bru';
   }
 
-  throw new Error(`No collection configuration found at: ${collectionPath}`);
+  throw new Error(`No application configuration found at: ${collectionPath}`);
 };
 
 const safeToRename = (oldPath, newPath) => {

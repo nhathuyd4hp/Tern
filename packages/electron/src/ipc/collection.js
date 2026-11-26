@@ -171,7 +171,7 @@ const validatePathIsInsideCollection = (filePath) => {
   const collectionPath = findCollectionPathByItemPath(filePath);
 
   if (!collectionPath) {
-    throw new Error(`Path: ${filePath} should be inside a collection`);
+    throw new Error(`Path: ${filePath} should be inside an application`);
   }
 };
 
@@ -269,7 +269,7 @@ const registerRendererEventHandlers = (mainWindow, watcher) => {
       validateWorkspacePath(workspacePath);
 
       if (!collectionPath || !isDirectory(collectionPath)) {
-        throw new Error(`Collection: ${collectionPath} does not exist`);
+        throw new Error(`Application: ${collectionPath} does not exist`);
       }
 
       // resolve a collision-free target folder inside `<workspace>/collections`
@@ -286,7 +286,7 @@ const registerRendererEventHandlers = (mainWindow, watcher) => {
       const newPath = path.join(collectionsDir, folderName);
 
       if (path.normalize(collectionPath) === path.normalize(newPath)) {
-        throw new Error('Collection is already inside the workspace');
+        throw new Error('Application is already inside the workspace');
       }
 
       // tear down the old watcher before moving the collection directory
@@ -468,7 +468,7 @@ const registerRendererEventHandlers = (mainWindow, watcher) => {
     try {
       const collectionPath = findCollectionPathByItemPath(pathname);
       if (!collectionPath) {
-        throw new Error('Collection not found for the given pathname');
+        throw new Error('Application not found for the given pathname');
       }
       const format = getCollectionFormat(collectionPath);
 
@@ -527,7 +527,7 @@ const registerRendererEventHandlers = (mainWindow, watcher) => {
 
       const collectionPath = findCollectionPathByItemPath(targetDirname);
       if (!collectionPath) {
-        throw new Error('Could not determine collection for target directory');
+        throw new Error('Could not determine application for target directory');
       }
       const targetFormat = getCollectionFormat(collectionPath);
 
@@ -1247,7 +1247,7 @@ const registerRendererEventHandlers = (mainWindow, watcher) => {
         // Safety check: only delete files within the collection's temp directory
         const normalizedPath = path.normalize(filePath);
         if (!normalizedPath.startsWith(normalizedTempDir + path.sep) && normalizedPath !== normalizedTempDir) {
-          results.skipped.push({ path: filePath, reason: 'Not in collection temp directory' });
+          results.skipped.push({ path: filePath, reason: 'Not in application temp directory' });
           continue;
         }
 
@@ -1501,7 +1501,7 @@ const registerRendererEventHandlers = (mainWindow, watcher) => {
     // Send final status when all collections have been processed (either succeeded or failed)
     if ((completedImports + failedImports) === collections.length) {
       mainWindow.webContents.send('main:all-collections-import-ended', {
-        message: `Import completed. ${completedImports} collections imported successfully, ${failedImports} failed.`,
+        message: `Import completed. ${completedImports} applications imported successfully, ${failedImports} failed.`,
         status: {
           total: collections.length,
           succeeded: completedImports,
@@ -1547,7 +1547,7 @@ const registerRendererEventHandlers = (mainWindow, watcher) => {
             const folderName = path.basename(item.filename);
 
             if (!validateName(folderName)) {
-              throw new Error(`${folderName} is not a valid folder name`);
+              throw new Error(`${folderName} is not a valid collection name`);
             }
 
             const folderPath = path.join(currentPath, folderName);
@@ -1717,7 +1717,7 @@ const registerRendererEventHandlers = (mainWindow, watcher) => {
           throw new Error('The item you are moving no longer exists.');
         }
         if (!fs.existsSync(targetDirname)) {
-          throw new Error('The destination folder no longer exists.');
+          throw new Error('The destination collection no longer exists.');
         }
 
         const sourceBasename = path.basename(sourcePathname);
@@ -1758,11 +1758,11 @@ const registerRendererEventHandlers = (mainWindow, watcher) => {
       const newFolderPath = path.join(destinationPath, folderName);
 
       if (!fs.existsSync(folderPath)) {
-        throw new Error(`folder: ${folderPath} does not exist`);
+        throw new Error(`collection: ${folderPath} does not exist`);
       }
 
       if (fs.existsSync(newFolderPath)) {
-        throw new Error(`folder: ${newFolderPath} already exists`);
+        throw new Error(`collection: ${newFolderPath} already exists`);
       }
 
       const requestFilesAtSource = await searchForRequestFiles(folderPath);
@@ -1801,7 +1801,7 @@ const registerRendererEventHandlers = (mainWindow, watcher) => {
       const content = await stringifyCollection(rootToWrite, transformedBrunoConfig, { format });
       await writeFile(path.join(collectionPath, 'opencollection.yml'), content);
     } else {
-      throw new Error(`Invalid collection format: ${format}`);
+      throw new Error(`Invalid application format: ${format}`);
     }
   };
 
@@ -2396,7 +2396,7 @@ const registerRendererEventHandlers = (mainWindow, watcher) => {
 
       const collectionPath = findCollectionPathByItemPath(targetDirname);
       if (!collectionPath) {
-        throw new Error('Could not determine collection for target directory');
+        throw new Error('Could not determine application for target directory');
       }
       const format = getCollectionFormat(collectionPath);
 
@@ -2456,7 +2456,7 @@ const registerRendererEventHandlers = (mainWindow, watcher) => {
       throw new Error('packages must be a non-empty array');
     }
     if (!fs.existsSync(collectionPathname) || !fs.statSync(collectionPathname).isDirectory()) {
-      throw new Error(`Collection path does not exist: ${collectionPathname}`);
+      throw new Error(`Application path does not exist: ${collectionPathname}`);
     }
 
     const invalid = packages.filter((p) => !isValidNpmPackageName(p));
@@ -2471,12 +2471,12 @@ const registerRendererEventHandlers = (mainWindow, watcher) => {
   ipcMain.handle('renderer:export-collection-zip', async (event, collectionPath, collectionName) => {
     try {
       if (!collectionPath || !fs.existsSync(collectionPath)) {
-        throw new Error('Collection path does not exist');
+        throw new Error('Application path does not exist');
       }
 
       const defaultFileName = `${sanitizeName(collectionName)}.zip`;
       const { filePath, canceled } = await dialog.showSaveDialog(mainWindow, {
-        title: 'Export Collection as ZIP',
+        title: 'Export Application as ZIP',
         defaultPath: defaultFileName,
         filters: [{ name: 'Zip Files', extensions: ['zip'] }]
       });
@@ -2552,7 +2552,7 @@ const registerRendererEventHandlers = (mainWindow, watcher) => {
       }
 
       if (!collectionLocation || !fs.existsSync(collectionLocation)) {
-        throw new Error('Collection location does not exist');
+        throw new Error('Application location does not exist');
       }
 
       const tempDir = path.join(os.tmpdir(), `bruno_zip_import_${Date.now()}`);
@@ -2600,7 +2600,7 @@ const registerRendererEventHandlers = (mainWindow, watcher) => {
         const openCollectionYmlPath = path.join(collectionDir, 'opencollection.yml');
 
         if (!fs.existsSync(brunoJsonPath) && !fs.existsSync(openCollectionYmlPath)) {
-          throw new Error('Invalid collection: Neither bruno.json nor opencollection.yml found in the ZIP file');
+          throw new Error('Invalid application: Neither bruno.json nor opencollection.yml found in the ZIP file');
         }
 
         // Ensure config files are not symlinks
@@ -2611,7 +2611,7 @@ const registerRendererEventHandlers = (mainWindow, watcher) => {
           throw new Error('Security error: opencollection.yml cannot be a symbolic link');
         }
 
-        let collectionName = 'Imported Collection';
+        let collectionName = 'Imported Application';
         let brunoConfig = { name: collectionName, version: '1', type: 'collection', ignore: ['node_modules', '.git'] };
         if (fs.existsSync(openCollectionYmlPath)) {
           try {

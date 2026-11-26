@@ -119,7 +119,7 @@ describe('activateWorkspace', () => {
   });
 });
 
-describe('collections that fail to open on workspace activation', () => {
+describe('applications that fail to open on workspace activation', () => {
   let activateWorkspace;
   let toast;
   let openMultipleCollections;
@@ -170,7 +170,7 @@ describe('collections that fail to open on workspace activation', () => {
     return store;
   };
 
-  it('does not notify when every collection opens', async () => {
+  it('does not notify when every application opens', async () => {
     await switchToWorkspaceB();
 
     expect(toast.error).not.toHaveBeenCalled();
@@ -194,7 +194,7 @@ describe('collections that fail to open on workspace activation', () => {
     await switchToWorkspaceB();
 
     expect(toast.error).toHaveBeenCalledTimes(1);
-    expect(toast.error).toHaveBeenCalledWith('Failed to open 2 collections');
+    expect(toast.error).toHaveBeenCalledWith('Failed to open 2 applications');
   });
 
   it('uses the singular form for a single failure', async () => {
@@ -202,19 +202,19 @@ describe('collections that fail to open on workspace activation', () => {
 
     await switchToWorkspaceB();
 
-    expect(toast.error).toHaveBeenCalledWith('Failed to open 1 collection');
+    expect(toast.error).toHaveBeenCalledWith('Failed to open 1 application');
   });
 
-  it('notifies when a resolvable collection fails to open at runtime', async () => {
+  it('notifies when a resolvable application fails to open at runtime', async () => {
     workspaceCollections = [{ name: 'Broken', path: BROKEN_COLL }];
     openResult = { opened: [], failed: [{ path: BROKEN_COLL, error: 'boom' }], invalid: [] };
 
     await switchToWorkspaceB();
 
-    expect(toast.error).toHaveBeenCalledWith('Failed to open 1 collection');
+    expect(toast.error).toHaveBeenCalledWith('Failed to open 1 application');
   });
 
-  it('counts a collection once when both the config and the open attempt report it', async () => {
+  it('counts an application once when both the config and the open attempt report it', async () => {
     workspaceCollections = [{ name: 'Broken', path: BROKEN_COLL }];
     unopenableCollections = [{ name: 'Broken', path: BROKEN_COLL }];
     openResult = { opened: [], failed: [{ path: BROKEN_COLL, error: 'boom' }], invalid: [] };
@@ -222,10 +222,10 @@ describe('collections that fail to open on workspace activation', () => {
     await switchToWorkspaceB();
 
     expect(toast.error).toHaveBeenCalledTimes(1);
-    expect(toast.error).toHaveBeenCalledWith('Failed to open 1 collection');
+    expect(toast.error).toHaveBeenCalledWith('Failed to open 1 application');
   });
 
-  it('notifies when every collection in the workspace is unresolvable', async () => {
+  it('notifies when every application in the workspace is unresolvable', async () => {
     workspaceCollections = [];
     unopenableCollections = [
       { name: 'Missing', path: MISSING_COLL },
@@ -235,6 +235,6 @@ describe('collections that fail to open on workspace activation', () => {
     await switchToWorkspaceB();
 
     expect(openMultipleCollections).not.toHaveBeenCalled();
-    expect(toast.error).toHaveBeenCalledWith('Failed to open 2 collections');
+    expect(toast.error).toHaveBeenCalledWith('Failed to open 2 applications');
   });
 });

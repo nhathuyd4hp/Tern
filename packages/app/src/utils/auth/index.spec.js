@@ -32,7 +32,7 @@ const buildCollection = () => {
       {
         uid: 'f1',
         type: 'folder',
-        name: 'Folder',
+        name: 'Collection',
         root: {
           request: {
             auth: { mode: 'basic', basic: { username: 'user', password: 'pass' } }
@@ -56,7 +56,7 @@ const buildCollection = () => {
 };
 
 describe('auth-utils.resolveInheritedAuth', () => {
-  it('should resolve to nearest folder auth when request mode is inherit', () => {
+  it('should resolve to nearest collection auth when request mode is inherit', () => {
     const collection = buildCollection();
     const item = collection.items[0].items[0]; // r1
 
@@ -65,7 +65,7 @@ describe('auth-utils.resolveInheritedAuth', () => {
     expect(resolved.auth.basic.username).toBe('user');
   });
 
-  it('should resolve to collection auth if no folder auth', () => {
+  it('should resolve to application auth if no collection auth', () => {
     const collection = buildCollection();
     collection.items[0].root.request.auth = { mode: 'inherit' };
     const item = collection.items[0].items[0];
@@ -111,20 +111,20 @@ describe('auth-utils.getEffectiveAuthSource', () => {
     expect(getEffectiveAuthSource(collection, item)).toBeNull();
   });
 
-  it('returns the nearest configured folder when request inherits and folder has auth', () => {
+  it('returns the nearest configured collection when request inherits and collection has auth', () => {
     const collection = buildCollection();
     const item = collection.items[0].items[0]; // r1, mode 'inherit'
 
     const source = getEffectiveAuthSource(collection, item);
     expect(source).toEqual({
       type: 'folder',
-      name: 'Folder',
+      name: 'Collection',
       uid: 'f1',
       auth: { mode: 'basic', basic: { username: 'user', password: 'pass' } }
     });
   });
 
-  it('falls back to the collection when no ancestor folder has configured auth', () => {
+  it('falls back to the application when no ancestor collection has configured auth', () => {
     const collection = buildCollection();
     // make the folder also inherit so the walk falls through to the collection
     collection.items[0].root.request.auth = { mode: 'inherit' };
@@ -133,13 +133,13 @@ describe('auth-utils.getEffectiveAuthSource', () => {
     const source = getEffectiveAuthSource(collection, item);
     expect(source).toEqual({
       type: 'collection',
-      name: 'Collection',
+      name: 'Application',
       uid: 'c1',
       auth: { mode: 'bearer', bearer: { token: 'COLLECTION_LEVEL_TOKEN' } }
     });
   });
 
-  it('skips the item itself when the item is a folder in inherit mode', () => {
+  it('skips the item itself when the item is a collection in inherit mode', () => {
     // Build a parent → child folder chain; child is the item under test.
     const collection = {
       uid: 'c1',
@@ -182,13 +182,13 @@ describe('auth-utils.getEffectiveAuthSource', () => {
     const source = getEffectiveAuthSource(collection, item);
     expect(source).toEqual({
       type: 'folder',
-      name: 'Folder',
+      name: 'Collection',
       uid: 'f1',
       auth: { mode: 'basic', basic: { username: 'user', password: 'pass' } }
     });
   });
 
-  it('resolves correctly when both draft and saved auth are inherit on a folder whose parent is also a folder', () => {
+  it('resolves correctly when both draft and saved auth are inherit on a collection whose parent is also a collection', () => {
     const collection = {
       uid: 'c1',
       root: { request: { auth: { mode: 'bearer', bearer: { token: 'COLLECTION_LEVEL_TOKEN' } } } },
@@ -222,7 +222,7 @@ describe('auth-utils.getEffectiveAuthSource', () => {
     });
   });
 
-  it('handles a folder item without draft using its root.request.auth.mode', () => {
+  it('handles a collection item without draft using its root.request.auth.mode', () => {
     // The folder's mode is read from root.request.auth.mode when no draft exists.
     const collection = {
       uid: 'c1',
@@ -242,13 +242,13 @@ describe('auth-utils.getEffectiveAuthSource', () => {
     const source = getEffectiveAuthSource(collection, folder);
     expect(source).toEqual({
       type: 'collection',
-      name: 'Collection',
+      name: 'Application',
       uid: 'c1',
       auth: { mode: 'bearer', bearer: { token: 'COLLECTION_LEVEL_TOKEN' } }
     });
   });
 
-  it('handles a folder item with draft by reading its draft.request.auth.mode (not the saved root mode)', () => {
+  it('handles a collection item with draft by reading its draft.request.auth.mode (not the saved root mode)', () => {
     // Saved mode is 'basic' (would return null since not inherit), but draft is 'inherit'
     // so the walk should run and resolve to the collection.
     const collection = {
@@ -270,13 +270,13 @@ describe('auth-utils.getEffectiveAuthSource', () => {
     const source = getEffectiveAuthSource(collection, folder);
     expect(source).toEqual({
       type: 'collection',
-      name: 'Collection',
+      name: 'Application',
       uid: 'c1',
       auth: { mode: 'bearer', bearer: { token: 'COLLECTION_LEVEL_TOKEN' } }
     });
   });
 
-  it('skips ancestor folders whose auth.mode is itself "inherit"', () => {
+  it('skips ancestor collections whose auth.mode is itself "inherit"', () => {
     // Parent folder also inherits — walk should continue past it to collection.
     const collection = {
       uid: 'c1',
@@ -303,7 +303,7 @@ describe('auth-utils.getEffectiveAuthSource', () => {
     const source = getEffectiveAuthSource(collection, item);
     expect(source).toEqual({
       type: 'collection',
-      name: 'Collection',
+      name: 'Application',
       uid: 'c1',
       auth: { mode: 'bearer', bearer: { token: 'COLLECTION_LEVEL_TOKEN' } }
     });

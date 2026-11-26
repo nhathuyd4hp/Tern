@@ -1,8 +1,8 @@
 import { pluralizeWord } from 'utils/common';
 import { getFolderName, toPathKey } from './collection-paths';
 
-const COLLECTION_FOLDER_HINT = 'A collection folder has a bruno.json or opencollection.yml at its top level.';
-const STOPPED_EARLY_TEXT = 'Kevin stopped searching after too many folders, so some collections may be missing.';
+const COLLECTION_FOLDER_HINT = 'An application folder has a bruno.json or opencollection.yml at its top level.';
+const STOPPED_EARLY_TEXT = 'Kevin stopped searching after too many folders, so some applications may be missing.';
 const UNREADABLE_STATUSES = ['not-found', 'no-access', 'unreadable'];
 
 const FOLDER_PROBLEMS = {
@@ -40,7 +40,7 @@ const describeSkippedFolders = (folders) => {
   const unreadable = namesOf((folder) => UNREADABLE_STATUSES.includes(folder.status));
   return {
     notCollectionsText: notCollections.length > 0
-      && `${notCollections.join(', ')} ${notCollections.length === 1 ? 'isn’t a collection, so it was' : 'aren’t collections, so they were'} skipped.`,
+      && `${notCollections.join(', ')} ${notCollections.length === 1 ? 'isn’t an application, so it was' : 'aren’t applications, so they were'} skipped.`,
     unreadableText: unreadable.length > 0 && `Kevin couldn’t read ${unreadable.join(', ')}.`
   };
 };
@@ -48,7 +48,7 @@ const describeSkippedFolders = (folders) => {
 const describeBrokenCollections = (count) => {
   const isOne = count === 1;
   return count > 0
-    && `${countOf(count, 'collection')} ${isOne ? 'was' : 'were'} skipped because ${isOne ? 'its' : 'their'} config can’t be read.`;
+    && `${countOf(count, 'application')} ${isOne ? 'was' : 'were'} skipped because ${isOne ? 'its' : 'their'} config can’t be read.`;
 };
 
 const describeDroppedFiles = (count) => {
@@ -86,17 +86,17 @@ const decideOutcome = (searchResult, openPathKeys) => {
     if (folder.collectionPaths.length === 0) {
       const missingText = describeMissing('it');
       if (brokenText) {
-        return showMessage('warning', sentences(`${name} has no collections Kevin can open.`, brokenText, missingText));
+        return showMessage('warning', sentences(`${name} has no applications Kevin can open.`, brokenText, missingText));
       }
       const tone = missingText ? 'warning' : 'info';
       if (folder.importableFiles.length > 0) {
         const [file] = folder.importableFiles;
         return showMessage(tone, sentences(
-          `${name} isn’t a collection, but it has ${IMPORTABLE_FILE_LABELS[file.format]} in it (${file.name}). That needs importing, not opening.`,
+          `${name} isn’t an application, but it has ${IMPORTABLE_FILE_LABELS[file.format]} in it (${file.name}). That needs importing, not opening.`,
           missingText
         ), file);
       }
-      return showMessage(tone, sentences(`${name} isn’t a Kevin collection.`, COLLECTION_FOLDER_HINT, missingText));
+      return showMessage(tone, sentences(`${name} isn’t a Kevin application.`, COLLECTION_FOLDER_HINT, missingText));
     }
 
     return showList({
@@ -105,7 +105,7 @@ const decideOutcome = (searchResult, openPathKeys) => {
       preselect: [],
       tone: searchTone,
       text: sentences(
-        `${name} isn’t a collection itself, but it has ${countOf(folder.collectionPaths.length, 'collection')} inside. Pick the ones to open.`,
+        `${name} isn’t an application itself, but it has ${countOf(folder.collectionPaths.length, 'application')} inside. Pick the ones to open.`,
         brokenText,
         describeMissing('it')
       )
@@ -122,8 +122,8 @@ const decideOutcome = (searchResult, openPathKeys) => {
   if (allPaths.length === 0) {
     const missingText = describeMissing('them');
     const nothingText = brokenText
-      ? sentences('None of those folders has a collection Kevin can open.', brokenText)
-      : sentences('None of those folders is a Kevin collection.', COLLECTION_FOLDER_HINT);
+      ? sentences('None of those folders has an application Kevin can open.', brokenText)
+      : sentences('None of those folders is a Kevin application.', COLLECTION_FOLDER_HINT);
     return showMessage(
       brokenText || unreadableText || missingText ? 'warning' : 'info',
       sentences(nothingText, unreadableText, missingText)
@@ -149,7 +149,7 @@ const decideOutcome = (searchResult, openPathKeys) => {
     preselect: directPaths,
     tone: searchTone,
     text: sentences(
-      `Found ${countOf(allPaths.length, 'collection')} in the folders you picked. Pick the ones to open.`,
+      `Found ${countOf(allPaths.length, 'application')} in the folders you picked. Pick the ones to open.`,
       notCollectionsText,
       brokenText,
       unreadableText,

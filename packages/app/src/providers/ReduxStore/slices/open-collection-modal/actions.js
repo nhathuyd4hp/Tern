@@ -63,7 +63,7 @@ export const switchToCollection = (collectionPath) => (dispatch, getState) => {
 
 const describeOpenFailures = (failures) => {
   if (failures.length > 1) {
-    return `Failed to open ${countOf(failures.length, 'collection')}`;
+    return `Failed to open ${countOf(failures.length, 'application')}`;
   }
   const [{ path: collectionPath, error }] = failures;
   return `Failed to open ${getFolderName(collectionPath)}. ${error.split('\n')[0]}`;
@@ -81,16 +81,16 @@ export const openCollectionsFromModal = (collectionPaths) => async (dispatch, ge
     result = await dispatch(openMultipleCollections(collectionPaths, { silent: true, dontSendDisplayErrors: true }));
   } catch (error) {
     dispatch(collectionsOpeningEnded(openingId));
-    toast.error('An error occurred while opening the collections');
+    toast.error('An error occurred while opening the applications');
     return;
   }
 
   const failures = [
     ...result.failed,
-    ...result.invalid.map((collectionPath) => ({ path: collectionPath, error: 'The folder doesn’t exist anymore.' }))
+    ...result.invalid.map((collectionPath) => ({ path: collectionPath, error: 'The application doesn’t exist anymore.' }))
   ];
   if (result.opened.length > 0) {
-    toast.success(result.opened.length === 1 ? 'Collection added to workspace' : 'Collections added to workspace');
+    toast.success(result.opened.length === 1 ? 'Application added to workspace' : 'Applications added to workspace');
   }
   if (failures.length > 0) {
     toast.error(describeOpenFailures(failures));
@@ -143,7 +143,7 @@ export const findCollectionsInFolders = (folderPaths, droppedFileCount = 0) => a
     toast.success(`${outcome.name} is already open`);
     dispatch(switchToCollection(outcome.path));
   } else {
-    toast.success('Those collections are already open');
+    toast.success('Those applications are already open');
     dispatch(closeOpenCollectionModal());
   }
 };
@@ -170,7 +170,7 @@ const loadImportData = (read) => async (dispatch, getState) => {
   } catch (error) {
     if (isCurrentLoad()) {
       dispatch(importLoadEnded());
-      toast.error(formatIpcError(error) || 'Import collection failed');
+      toast.error(formatIpcError(error) || 'Import application failed');
     }
   }
   return null;
@@ -180,7 +180,7 @@ export const loadImportFiles = (files) => async (dispatch) => {
   const importData = await dispatch(loadImportData(() => readImportFiles(files)));
   const skippedFileNames = importData?.skippedFileNames ?? [];
   if (skippedFileNames.length > 0) {
-    toast(`${skippedFileNames.join(', ')} ${skippedFileNames.length === 1 ? 'isn’t a valid collection, so it was' : 'aren’t valid collections, so they were'} skipped.`);
+    toast(`${skippedFileNames.join(', ')} ${skippedFileNames.length === 1 ? 'isn’t a valid application, so it was' : 'aren’t valid applications, so they were'} skipped.`);
   }
   return importData;
 };
@@ -199,7 +199,7 @@ export const openDroppedItems = ({ folderPaths, hasFolders, files }) => async (d
     dispatch(showOpenCollectionPage(CHOOSE_FOLDER_PAGE));
     await dispatch(findCollectionsInFolders(folderPaths, files.length));
   } else if (files.length > 0) {
-    toast.error('Importing a collection from a file is not supported');
+    toast.error('Importing an application from a file is not supported');
   }
 };
 

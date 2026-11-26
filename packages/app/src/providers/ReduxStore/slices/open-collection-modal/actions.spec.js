@@ -193,7 +193,7 @@ describe('open collection modal actions', () => {
 
     it('starts Choose folder afresh instead of showing an earlier message', async () => {
       pickerReturns(Promise.resolve([]));
-      const messageResult = { id: 'search-0', type: 'message', note: { tone: 'info', text: 'notes isn’t a Kevin collection.' } };
+      const messageResult = { id: 'search-0', type: 'message', note: { tone: 'info', text: 'notes isn’t a Kevin application.' } };
       const { store } = createStore({ modal: openOn('recents', { ...closedModal.chooseFolder, result: messageResult }) });
 
       store.dispatch(openCollectionModal('choose-folder'));
@@ -289,14 +289,14 @@ describe('open collection modal actions', () => {
       await store.dispatch(findCollectionsInFolders(['/work/api']));
 
       expect(openMultipleCollections).toHaveBeenCalledWith(['/work/api'], { silent: true, dontSendDisplayErrors: true });
-      expect(toast.success).toHaveBeenCalledWith('Collection added to workspace');
+      expect(toast.success).toHaveBeenCalledWith('Application added to workspace');
       expect(modalState(store).isOpen).toBe(false);
     });
 
     it('does not leave the last search’s note on screen when the next pick opens straight away and fails', async () => {
       searchReturns(Promise.resolve(pickedCollection));
       openingReturns(Promise.resolve({ opened: [], failed: [{ path: '/work/api', error: 'Unable to parse bruno.json' }], invalid: [] }));
-      const lastResult = { id: 'search-0', type: 'message', note: { tone: 'info', text: 'docs isn’t a Kevin collection.' } };
+      const lastResult = { id: 'search-0', type: 'message', note: { tone: 'info', text: 'docs isn’t a Kevin application.' } };
       const { store } = createStore({ modal: openOn('choose-folder', { ...closedModal.chooseFolder, result: lastResult }) });
 
       await store.dispatch(findCollectionsInFolders(['/work/api']));
@@ -328,7 +328,7 @@ describe('open collection modal actions', () => {
 
       await store.dispatch(findCollectionsInFolders(['/work/api', '/work/docs']));
 
-      expect(toast).toHaveBeenCalledWith('docs isn’t a collection, so it was skipped.');
+      expect(toast).toHaveBeenCalledWith('docs isn’t an application, so it was skipped.');
       expect(openMultipleCollections).toHaveBeenCalledWith(['/work/api'], expect.anything());
     });
 
@@ -361,7 +361,7 @@ describe('open collection modal actions', () => {
       await store.dispatch(findCollectionsInFolders(['/work/open', '/work/open-too']));
 
       expect(openMultipleCollections).not.toHaveBeenCalled();
-      expect(toast.success).toHaveBeenCalledWith('Those collections are already open');
+      expect(toast.success).toHaveBeenCalledWith('Those applications are already open');
       expect(modalState(store).isOpen).toBe(false);
     });
 
@@ -483,7 +483,7 @@ describe('open collection modal actions', () => {
 
       await expect(store.dispatch(loadImportFiles([droppedFile]))).resolves.toEqual(severalFiles);
 
-      expect(toast).toHaveBeenCalledWith('notes.json, broken.json aren’t valid collections, so they were skipped.');
+      expect(toast).toHaveBeenCalledWith('notes.json, broken.json aren’t valid applications, so they were skipped.');
     });
 
     it('stays quiet when every picked file can be loaded', async () => {
@@ -584,7 +584,7 @@ describe('open collection modal actions', () => {
 
       await store.dispatch(openDroppedItems({ folderPaths: [], hasFolders: false, files: [droppedFile] }));
 
-      expect(toast.error).toHaveBeenCalledWith('Importing a collection from a file is not supported');
+      expect(toast.error).toHaveBeenCalledWith('Importing an application from a file is not supported');
       expect(readImportFiles).not.toHaveBeenCalled();
       expect(modalState(store).page).toBe('choose-folder');
       expect(callIpc).not.toHaveBeenCalledWith(FIND_IN_FOLDERS, expect.anything());
@@ -640,8 +640,8 @@ describe('open collection modal actions', () => {
 
       await store.dispatch(openCollectionsFromModal(['/work/api', '/work/gone']));
 
-      expect(toast.success).toHaveBeenCalledWith('Collection added to workspace');
-      expect(toast.error).toHaveBeenCalledWith('Failed to open gone. The folder doesn’t exist anymore.');
+      expect(toast.success).toHaveBeenCalledWith('Application added to workspace');
+      expect(toast.error).toHaveBeenCalledWith('Failed to open gone. The application doesn’t exist anymore.');
       expect(modalState(store).isOpen).toBe(false);
     });
 
@@ -652,7 +652,7 @@ describe('open collection modal actions', () => {
       await store.dispatch(openCollectionsFromModal(['/work/api', '/work/gone']));
 
       expect(toast.error).toHaveBeenCalledTimes(1);
-      expect(toast.error).toHaveBeenCalledWith('Failed to open 2 collections');
+      expect(toast.error).toHaveBeenCalledWith('Failed to open 2 applications');
     });
 
     it('opens the collections once even when asked twice', () => {
@@ -690,7 +690,7 @@ describe('open collection modal actions', () => {
 
       await store.dispatch(openCollectionsFromModal(['/work/api']));
 
-      expect(toast.error).toHaveBeenCalledWith('An error occurred while opening the collections');
+      expect(toast.error).toHaveBeenCalledWith('An error occurred while opening the applications');
       expect(modalState(store)).toMatchObject({ isOpen: true, openingId: null });
     });
   });

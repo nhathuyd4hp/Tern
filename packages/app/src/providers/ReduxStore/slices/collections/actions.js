@@ -131,7 +131,7 @@ export const renameCollection = (newName, collectionUid) => (dispatch, getState)
 
   return new Promise((resolve, reject) => {
     if (!collection) {
-      return reject(new Error('Collection not found'));
+      return reject(new Error('Application not found'));
     }
     const { ipcRenderer } = window;
     ipcRenderer.invoke('renderer:rename-collection', newName, collection.pathname).then(resolve).catch(reject);
@@ -144,7 +144,7 @@ export const saveRequest = (itemUid, collectionUid, silent = false) => (dispatch
   const tempDirectory = state.collections.tempDirectories?.[collectionUid];
   return new Promise((resolve, reject) => {
     if (!collection) {
-      return reject(new Error('Collection not found'));
+      return reject(new Error('Application not found'));
     }
 
     const collectionCopy = cloneDeep(collection);
@@ -190,7 +190,7 @@ export const saveFile = (content, itemUid, collectionUid, silent = false) => asy
   const tempDirectory = state.collections.tempDirectories?.[collectionUid];
 
   if (!collection) {
-    throw new Error('Collection not found');
+    throw new Error('Application not found');
   }
 
   const collectionCopy = cloneDeep(collection);
@@ -281,7 +281,7 @@ export const saveCollectionVersion = (collectionUid, version) => (dispatch, getS
 
   return new Promise((resolve, reject) => {
     if (!collection) {
-      return reject(new Error('Collection not found'));
+      return reject(new Error('Application not found'));
     }
 
     const updatedVersion = typeof version === 'string' ? version.trim() : '';
@@ -299,11 +299,11 @@ export const saveCollectionVersion = (collectionUid, version) => (dispatch, getS
       .invoke('renderer:update-bruno-config', brunoConfigToSave, collection.pathname, collection.root)
       .then(() => {
         dispatch(_updateCollectionVersion({ collectionUid, version: updatedVersion }));
-        toast.success('Collection version updated');
+        toast.success('Application version updated');
       })
       .then(resolve)
       .catch((err) => {
-        toast.error('Failed to update collection version');
+        toast.error('Failed to update application version');
         reject(err);
       });
   });
@@ -316,11 +316,11 @@ export const saveFolderRoot = (collectionUid, folderUid, silent = false) => (dis
 
   return new Promise((resolve, reject) => {
     if (!collection) {
-      return reject(new Error('Collection not found'));
+      return reject(new Error('Application not found'));
     }
 
     if (!folder) {
-      return reject(new Error('Folder not found'));
+      return reject(new Error('Collection not found'));
     }
 
     const { ipcRenderer } = window;
@@ -339,7 +339,7 @@ export const saveFolderRoot = (collectionUid, folderUid, silent = false) => (dis
       .invoke('renderer:save-folder-root', folderData)
       .then(() => {
         if (!silent) {
-          toast.success('Folder Settings saved successfully');
+          toast.success('Collection Settings saved successfully');
         }
         // If there was a draft, save it to root and clear the draft
         if (folder.draft) {
@@ -348,7 +348,7 @@ export const saveFolderRoot = (collectionUid, folderUid, silent = false) => (dis
       })
       .then(resolve)
       .catch((err) => {
-        toast.error('Failed to save folder settings!');
+        toast.error('Failed to save collection settings!');
         reject(err);
       });
   });
@@ -389,7 +389,7 @@ export const saveMultipleCollections = (collectionDrafts) => async (dispatch, ge
       })
     );
   } catch (err) {
-    toast.error('Failed to save collection settings!');
+    toast.error('Failed to save application settings!');
     throw err;
   }
 };
@@ -430,7 +430,7 @@ export const saveMultipleFolders = (folderDrafts) => (dispatch, getState) => {
     Promise.all(savePromises)
       .then(resolve)
       .catch((err) => {
-        toast.error('Failed to save folder settings!');
+        toast.error('Failed to save collection settings!');
         reject(err);
       });
   });
@@ -443,7 +443,7 @@ export const sendCollectionOauth2Request = (collectionUid, itemUid) => (dispatch
 
   return new Promise((resolve, reject) => {
     if (!collection) {
-      return reject(new Error('Collection not found'));
+      return reject(new Error('Application not found'));
     }
 
     const collectionCopy = cloneDeep(collection);
@@ -484,7 +484,7 @@ export const wsConnectOnly = (item, collectionUid) => (dispatch, getState) => {
 
   return new Promise(async (resolve, reject) => {
     if (!collection) {
-      return reject(new Error('Collection not found'));
+      return reject(new Error('Application not found'));
     }
 
     const collectionCopy = cloneDeep(collection);
@@ -595,7 +595,7 @@ export const sendRequest = (item, collectionUid) => (dispatch, getState) => {
 
   return new Promise(async (resolve, reject) => {
     if (!collection) {
-      return reject(new Error('Collection not found'));
+      return reject(new Error('Application not found'));
     }
 
     if (item.response?.stream?.running && item.cancelTokenUid) {
@@ -738,7 +738,7 @@ export const newFolder = (folderName, directoryName, collectionUid, itemUid) => 
 
   return new Promise((resolve, reject) => {
     if (!collection) {
-      return reject(new Error('Collection not found'));
+      return reject(new Error('Application not found'));
     }
 
     // Resolve the parent directory: the collection root, or an existing folder.
@@ -746,7 +746,7 @@ export const newFolder = (folderName, directoryName, collectionUid, itemUid) => 
     if (itemUid) {
       const currentItem = findItemInCollection(collection, itemUid);
       if (!currentItem) {
-        return reject(new Error('unable to find parent folder'));
+        return reject(new Error('unable to find parent collection'));
       }
       parentPathname = currentItem.pathname;
     } else {
@@ -771,7 +771,7 @@ export const newFolder = (folderName, directoryName, collectionUid, itemUid) => 
       .invoke('renderer:new-folder', { pathname: fullName, folderData, format: collection.format })
       .then(resolve)
       .catch((error) => {
-        toast.error('Failed to create a new folder!');
+        toast.error('Failed to create a new collection!');
         reject(error);
       });
   });
@@ -785,7 +785,7 @@ export const renameItem
 
       return new Promise((resolve, reject) => {
         if (!collection) {
-          return reject(new Error('Collection not found'));
+          return reject(new Error('Application not found'));
         }
 
         const collectionCopy = cloneDeep(collection);
@@ -845,7 +845,7 @@ export const cloneItem = (newName, newFilename, itemUid, collectionUid) => (disp
 
   return new Promise((resolve, reject) => {
     if (!collection) {
-      throw new Error('Collection not found');
+      throw new Error('Application not found');
     }
     const collectionCopy = cloneDeep(collection);
     const item = findItemInCollection(collectionCopy, itemUid);
@@ -935,7 +935,7 @@ export const pasteItem = (targetCollectionUid, targetItemUid = null) => (dispatc
   const targetCollection = findCollectionByUid(state.collections.collections, targetCollectionUid);
 
   if (!targetCollection) {
-    return Promise.reject(new Error('Target collection not found'));
+    return Promise.reject(new Error('Target application not found'));
   }
 
   return new Promise(async (resolve, reject) => {
@@ -951,10 +951,10 @@ export const pasteItem = (targetCollectionUid, targetItemUid = null) => (dispatc
         if (targetItemUid) {
           targetItem = findItemInCollection(targetCollectionCopy, targetItemUid);
           if (!targetItem) {
-            return reject(new Error('Target folder not found'));
+            return reject(new Error('Target collection not found'));
           }
           if (!isItemAFolder(targetItem)) {
-            return reject(new Error('Target must be a folder or collection'));
+            return reject(new Error('Target must be a collection or application'));
           }
           targetParentPathname = targetItem.pathname;
         }
@@ -1018,7 +1018,7 @@ export const deleteItem = (itemUid, collectionUid) => (dispatch, getState) => {
 
   return new Promise((resolve, reject) => {
     if (!collection) {
-      return reject(new Error('Collection not found'));
+      return reject(new Error('Application not found'));
     }
 
     const item = findItemInCollection(collection, itemUid);
@@ -1232,7 +1232,7 @@ export const handleMultipleCollectionItemsDrop
             if (!newPathname) continue;
             if (isPathOrDescendant(targetItemPathname, draggedItemPathname)) continue;
             if (isCrossFormatMove && isItemAFolder(draggedItem)) {
-              toast.error('Moving folders between collections with different formats is not supported');
+              toast.error('Moving collections between applications with different formats is not supported');
               continue;
             }
 
@@ -1301,7 +1301,7 @@ export const updateItemsSequences
         const collection = findCollectionByUid(state.collections.collections, collectionUid);
 
         if (!collection) {
-          return reject(new Error('Collection not found'));
+          return reject(new Error('Application not found'));
         }
 
         const { ipcRenderer } = window;
@@ -1350,7 +1350,7 @@ export const newHttpRequest = (options) => (dispatch, getState) => {
     const state = getState();
     const collection = findCollectionByUid(state.collections.collections, collectionUid);
     if (!collection) {
-      return reject(new Error('Collection not found'));
+      return reject(new Error('Application not found'));
     }
 
     // Get temp directory if isTransient is true
@@ -1483,7 +1483,7 @@ export const newGrpcRequest = (params) => (dispatch, getState) => {
     const state = getState();
     const collection = findCollectionByUid(state.collections.collections, collectionUid);
     if (!collection) {
-      return reject(new Error('Collection not found'));
+      return reject(new Error('Application not found'));
     }
 
     // Get temp directory if isTransient is true
@@ -1592,7 +1592,7 @@ export const newWsRequest = (params) => (dispatch, getState) => {
     const state = getState();
     const collection = findCollectionByUid(state.collections.collections, collectionUid);
     if (!collection) {
-      return reject(new Error('Collection not found'));
+      return reject(new Error('Application not found'));
     }
 
     // Get temp directory if isTransient is true
@@ -1701,7 +1701,7 @@ export const tryResponseExample = ({ itemUid, collectionUid, exampleUid }) => (d
   const state = getState();
   const collection = findCollectionByUid(state.collections.collections, collectionUid);
   if (!collection) {
-    return Promise.reject(new Error('Collection not found'));
+    return Promise.reject(new Error('Application not found'));
   }
 
   const item = findItemInCollection(collection, itemUid);
@@ -1753,7 +1753,7 @@ export const openLinkedRequest = ({ url, collectionUid, requestType }) => (dispa
   const state = getState();
   const collection = findCollectionByUid(state.collections.collections, collectionUid);
   if (!collection || !url) {
-    return Promise.reject(new Error('Collection not found'));
+    return Promise.reject(new Error('Application not found'));
   }
 
   const requestName = generateTransientRequestName(collection);
@@ -1807,7 +1807,7 @@ export const loadGrpcMethodsFromReflection = (item, collectionUid, url) => async
 
   return new Promise(async (resolve, reject) => {
     if (!collection) {
-      return reject(new Error('Collection not found'));
+      return reject(new Error('Application not found'));
     }
 
     const itemCopy = cloneDeep(item);
@@ -1858,7 +1858,7 @@ export const generateGrpcurlCommand = (item, collectionUid) => async (dispatch, 
 
   return new Promise((resolve, reject) => {
     if (!collection) {
-      return reject(new Error('Collection not found'));
+      return reject(new Error('Application not found'));
     }
 
     const itemCopy = cloneDeep(item);
@@ -1889,7 +1889,7 @@ export const addEnvironment = (name, collectionUid) => (dispatch, getState) => {
     const state = getState();
     const collection = findCollectionByUid(state.collections.collections, collectionUid);
     if (!collection) {
-      return reject(new Error('Collection not found'));
+      return reject(new Error('Application not found'));
     }
 
     const { ipcRenderer } = window;
@@ -1916,7 +1916,7 @@ export const importEnvironment = ({ name, variables, color, extends: inheritedEn
     const state = getState();
     const collection = findCollectionByUid(state.collections.collections, collectionUid);
     if (!collection) {
-      return reject(new Error('Collection not found'));
+      return reject(new Error('Application not found'));
     }
 
     const sanitizedName = sanitizeName(name);
@@ -1945,7 +1945,7 @@ export const copyEnvironment = (name, baseEnvUid, collectionUid) => (dispatch, g
     const state = getState();
     const collection = findCollectionByUid(state.collections.collections, collectionUid);
     if (!collection) {
-      return reject(new Error('Collection not found'));
+      return reject(new Error('Application not found'));
     }
 
     const baseEnv = findEnvironmentInCollection(collection, baseEnvUid);
@@ -1982,7 +1982,7 @@ export const renameEnvironment = (newName, environmentUid, collectionUid) => (di
     const state = getState();
     const collection = findCollectionByUid(state.collections.collections, collectionUid);
     if (!collection) {
-      return reject(new Error('Collection not found'));
+      return reject(new Error('Application not found'));
     }
 
     const collectionCopy = cloneDeep(collection);
@@ -2009,7 +2009,7 @@ export const deleteEnvironment = (environmentUid, collectionUid) => (dispatch, g
     const state = getState();
     const collection = findCollectionByUid(state.collections.collections, collectionUid);
     if (!collection) {
-      return reject(new Error('Collection not found'));
+      return reject(new Error('Application not found'));
     }
 
     const collectionCopy = cloneDeep(collection);
@@ -2032,7 +2032,7 @@ export const saveEnvironment = (variables, environmentUid, collectionUid) => (di
     const state = getState();
     const collection = findCollectionByUid(state.collections.collections, collectionUid);
     if (!collection) {
-      return reject(new Error('Collection not found'));
+      return reject(new Error('Application not found'));
     }
 
     const collectionCopy = cloneDeep(collection);
@@ -2072,7 +2072,7 @@ export const updateEnvironmentColor = (environmentUid, color, collectionUid) => 
     const state = getState();
     const collection = findCollectionByUid(state.collections.collections, collectionUid);
     if (!collection) {
-      return reject(new Error('Collection not found'));
+      return reject(new Error('Application not found'));
     }
 
     const collectionCopy = cloneDeep(collection);
@@ -2097,7 +2097,7 @@ export const saveEnvironmentExtends = ({ environmentUid, inheritedEnvironmentNam
     const state = getState();
     const collection = findCollectionByUid(state.collections.collections, collectionUid);
     if (!collection) {
-      return reject(new Error('Collection not found'));
+      return reject(new Error('Application not found'));
     }
 
     const environment = findEnvironmentInCollection(collection, environmentUid);
@@ -2131,7 +2131,7 @@ const updateVariableInFile = (pathname, variable, scopeType, collectionUid, item
     const state = getState();
     const collection = findCollectionByUid(state.collections.collections, collectionUid);
     if (!collection) {
-      return reject(new Error('Collection not found'));
+      return reject(new Error('Application not found'));
     }
 
     const collectionCopy = cloneDeep(collection);
@@ -2335,7 +2335,7 @@ export const updateVariableInScope = (variableName, newValue, scopeInfo, collect
 
       // Validate collection for non-global scopes
       if (type !== 'global' && !collection) {
-        return reject(new Error('Collection not found'));
+        return reject(new Error('Application not found'));
       }
 
       switch (type) {
@@ -2583,7 +2583,7 @@ export const selectEnvironment = (environmentUid, collectionUid) => (dispatch, g
     const collection = findCollectionByUid(state.collections.collections, collectionUid);
     const activeWorkspace = state.workspaces.workspaces.find((w) => w.uid === state.workspaces.activeWorkspaceUid);
     if (!collection) {
-      return reject(new Error('Collection not found'));
+      return reject(new Error('Application not found'));
     }
 
     const collectionCopy = cloneDeep(collection);
@@ -2636,7 +2636,7 @@ export const removeCollection = (collectionUid) => (dispatch, getState) => {
     const state = getState();
     const collection = findCollectionByUid(state.collections.collections, collectionUid);
     if (!collection) {
-      return reject(new Error('Collection not found'));
+      return reject(new Error('Application not found'));
     }
     const { ipcRenderer } = window;
 
@@ -2684,7 +2684,7 @@ export const moveCollectionToWorkspace = (collectionUid) => (dispatch, getState)
     const state = getState();
     const collection = findCollectionByUid(state.collections.collections, collectionUid);
     if (!collection) {
-      return reject(new Error('Collection not found'));
+      return reject(new Error('Application not found'));
     }
 
     const { workspaces } = state;
@@ -2695,7 +2695,7 @@ export const moveCollectionToWorkspace = (collectionUid) => (dispatch, getState)
     }
 
     if (!isPathExternalToBasePath(activeWorkspace.pathname, collection.pathname)) {
-      return reject(new Error('Collection is already inside the workspace'));
+      return reject(new Error('Application is already inside the workspace'));
     }
 
     const { ipcRenderer } = window;
@@ -2722,7 +2722,7 @@ export const moveCollectionToWorkspace = (collectionUid) => (dispatch, getState)
             (openedPath) => normalizePath(openedPath) === normalizePath(result.newPath)
           );
           if (!reopened) {
-            throw new Error('Collection was moved into the workspace but could not be re-opened. Reload the workspace to access it.');
+            throw new Error('Application was moved into the workspace but could not be re-opened. Reload the workspace to access it.');
           }
         }
         dispatch(ensureActiveTabInCurrentWorkspace());
@@ -2759,7 +2759,7 @@ export const browseFiles = (filters, properties) => (_dispatch, _getState) => {
 export const saveCollectionSettings = (collectionUid, brunoConfig = null, silent = false) => async (dispatch, getState) => {
   const collection = findCollectionByUid(getState().collections.collections, collectionUid);
   if (!collection) {
-    throw new Error('Collection not found');
+    throw new Error('Application not found');
   }
 
   const { ipcRenderer } = window;
@@ -2786,11 +2786,11 @@ export const saveCollectionSettings = (collectionUid, brunoConfig = null, silent
     }
 
     if (!silent) {
-      toast.success('Collection Settings saved successfully');
+      toast.success('Application Settings saved successfully');
     }
     dispatch(saveCollectionDraft({ collectionUid }));
   } catch (err) {
-    toast.error('Failed to save collection settings!');
+    toast.error('Failed to save application settings!');
     throw err;
   }
 };
@@ -2802,7 +2802,7 @@ export const updateBrunoConfig = (brunoConfig, collectionUid) => (dispatch, getS
 
   return new Promise((resolve, reject) => {
     if (!collection) {
-      return reject(new Error('Collection not found'));
+      return reject(new Error('Application not found'));
     }
 
     const { ipcRenderer } = window;
@@ -2819,7 +2819,7 @@ export const ignoreFolder = (itemUid, collectionUid) => (dispatch, getState) => 
 
   return new Promise((resolve, reject) => {
     if (!collection) {
-      return reject(new Error('Collection not found'));
+      return reject(new Error('Application not found'));
     }
 
     const item = findItemInCollection(collection, itemUid);
@@ -2904,7 +2904,7 @@ export const openCollectionEvent = (uid, pathname, brunoConfig, options = {}) =>
 
     if (existingCollection && isAlreadyInWorkspace) {
       if (!options.silent) {
-        toast.success('Collection is already opened');
+        toast.success('Application is already opened');
       }
       resolve();
       return;
@@ -2921,12 +2921,12 @@ export const openCollectionEvent = (uid, pathname, brunoConfig, options = {}) =>
           .invoke('renderer:add-collection-to-workspace', activeWorkspace.pathname, workspaceCollection)
           .then(() => {
             if (!options.silent) {
-              toast.success('Collection added to workspace');
+              toast.success('Application added to workspace');
             }
           })
           .catch((err) => {
             console.error('Failed to add collection to workspace', err);
-            toast.error('Failed to add collection to workspace');
+            toast.error('Failed to add application to workspace');
           });
       }
 
@@ -2988,7 +2988,7 @@ export const openCollectionEvent = (uid, pathname, brunoConfig, options = {}) =>
                 .invoke('renderer:add-collection-to-workspace', currentWorkspace.pathname, workspaceCollection)
                 .catch((err) => {
                   console.error('Failed to add collection to workspace', err);
-                  toast.error('Failed to add collection to workspace');
+                  toast.error('Failed to add application to workspace');
                 });
             }
           }
@@ -3043,7 +3043,7 @@ export const collectionAddEnvFileEvent = (payload) => (dispatch, getState) => {
     const shouldPersistSelectionFromLastAction = collection?.lastAction?.type === 'ADD_ENVIRONMENT'
       && collection?.lastAction?.payload === environment?.name;
     if (!collection) {
-      return reject(new Error('Collection not found'));
+      return reject(new Error('Application not found'));
     }
 
     environmentSchema
@@ -3404,7 +3404,7 @@ export const openCollectionSettings
 
       return new Promise((resolve, reject) => {
         if (!collection) {
-          return reject(new Error('Collection not found'));
+          return reject(new Error('Application not found'));
         }
 
         dispatch(updateSettingsSelectedTab({
@@ -3429,7 +3429,7 @@ export const saveDotEnvVariables = (collectionUid, variables, filename = '.env')
     const collection = findCollectionByUid(state.collections.collections, collectionUid);
 
     if (!collection) {
-      return reject(new Error('Collection not found'));
+      return reject(new Error('Application not found'));
     }
 
     ipcRenderer
@@ -3446,7 +3446,7 @@ export const saveDotEnvRaw = (collectionUid, content, filename = '.env') => (dis
     const collection = findCollectionByUid(state.collections.collections, collectionUid);
 
     if (!collection) {
-      return reject(new Error('Collection not found'));
+      return reject(new Error('Application not found'));
     }
 
     ipcRenderer
@@ -3463,7 +3463,7 @@ export const createDotEnvFile = (collectionUid, filename = '.env') => (dispatch,
     const collection = findCollectionByUid(state.collections.collections, collectionUid);
 
     if (!collection) {
-      return reject(new Error('Collection not found'));
+      return reject(new Error('Application not found'));
     }
 
     ipcRenderer
@@ -3480,7 +3480,7 @@ export const deleteDotEnvFile = (collectionUid, filename = '.env') => (dispatch,
     const collection = findCollectionByUid(state.collections.collections, collectionUid);
 
     if (!collection) {
-      return reject(new Error('Collection not found'));
+      return reject(new Error('Application not found'));
     }
 
     ipcRenderer
@@ -3671,7 +3671,7 @@ const waitForCollectionInStore = (getState, collectionUid, { timeoutMs = 15000, 
         return resolve(collection);
       }
       if (Date.now() - startedAt >= timeoutMs) {
-        return reject(new Error('Collection did not reopen after migration'));
+        return reject(new Error('Application did not reopen after migration'));
       }
       setTimeout(check, intervalMs);
     };
@@ -3689,7 +3689,7 @@ export const migrateCollectionToYml = (collectionUid) => async (dispatch, getSta
 
   const collection = findCollectionByUid(state.collections.collections, collectionUid);
   if (!collection) {
-    throw new Error('Collection not found');
+    throw new Error('Application not found');
   }
   const collectionPathname = collection.pathname;
   const { workspaces } = state;
@@ -3738,7 +3738,7 @@ export const migrateCollectionToYml = (collectionUid) => async (dispatch, getSta
       collectionUid,
       type: 'collection-settings'
     }));
-    toast.success('Collection migrated to YML format successfully');
+    toast.success('Application migrated to YML format successfully');
   } catch (err) {
     const wasCancelled = getState().collectionMigration.status === 'cancelling'
       || /migration cancelled/i.test(err?.message || '');
@@ -3750,7 +3750,7 @@ export const migrateCollectionToYml = (collectionUid) => async (dispatch, getSta
     // Main restored the disk and re-opened the original collection; hold the locked
     // modal open until it is back in the store so the sidebar never sits empty.
     await remountReopenedCollection().catch(() => {
-      toast.error('Collection could not be reopened automatically. Please reopen it manually.');
+      toast.error('Application could not be reopened automatically. Please reopen it manually.');
     });
     throw err;
   } finally {

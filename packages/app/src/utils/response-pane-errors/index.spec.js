@@ -146,42 +146,42 @@ describe('getResponsePaneErrors', () => {
     });
   });
 
-  it('detects a collection-level source for collection.bru and opencollection.yml', () => {
-    expect(sourceOf('collection.bru')).toEqual({ sourceType: 'collection', label: 'Collection' });
-    expect(sourceOf('opencollection.yml')).toEqual({ sourceType: 'collection', label: 'Collection' });
+  it('detects an collection-level source for collection.bru and opencollection.yml', () => {
+    expect(sourceOf('collection.bru')).toEqual({ sourceType: 'collection', label: 'Application' });
+    expect(sourceOf('opencollection.yml')).toEqual({ sourceType: 'collection', label: 'Application' });
   });
 
-  it('detects a folder-level source for folder.bru and folder.yml and resolves the folder uid and name from its path', () => {
-    expect(sourceOf('users/folder.bru')).toEqual({ sourceType: 'folder', label: 'Folder: users', sourceUid: 'folder-1' });
-    expect(sourceOf('users/folder.yml')).toEqual({ sourceType: 'folder', label: 'Folder: users', sourceUid: 'folder-1' });
+  it('detects a folder-level source for folder.bru and folder.yml and resolves the collection uid and name from its path', () => {
+    expect(sourceOf('users/folder.bru')).toEqual({ sourceType: 'folder', label: 'Collection: users', sourceUid: 'folder-1' });
+    expect(sourceOf('users/folder.yml')).toEqual({ sourceType: 'folder', label: 'Collection: users', sourceUid: 'folder-1' });
   });
 
-  it('resolves a nested folder to itself rather than its parent', () => {
-    expect(sourceOf('users/admin/folder.yml')).toEqual({ sourceType: 'folder', label: 'Folder: admin', sourceUid: 'folder-2' });
+  it('resolves a nested collection to itself rather than its parent', () => {
+    expect(sourceOf('users/admin/folder.yml')).toEqual({ sourceType: 'folder', label: 'Collection: admin', sourceUid: 'folder-2' });
   });
 
-  it('tells apart folders with the same name by their path', () => {
-    expect(sourceOf('users/folder.yml')).toEqual({ sourceType: 'folder', label: 'Folder: users', sourceUid: 'folder-1' });
-    expect(sourceOf('orders/users/folder.yml')).toEqual({ sourceType: 'folder', label: 'Folder: users', sourceUid: 'folder-4' });
+  it('tells apart collections with the same name by their path', () => {
+    expect(sourceOf('users/folder.yml')).toEqual({ sourceType: 'folder', label: 'Collection: users', sourceUid: 'folder-1' });
+    expect(sourceOf('orders/users/folder.yml')).toEqual({ sourceType: 'folder', label: 'Collection: users', sourceUid: 'folder-4' });
   });
 
-  it('resolves a Windows backslash path to the folder it names', () => {
-    expect(sourceOf('users\\admin\\folder.yml')).toEqual({ sourceType: 'folder', label: 'Folder: admin', sourceUid: 'folder-2' });
+  it('resolves a Windows backslash path to the collection it names', () => {
+    expect(sourceOf('users\\admin\\folder.yml')).toEqual({ sourceType: 'folder', label: 'Collection: admin', sourceUid: 'folder-2' });
   });
 
-  it('falls back to a plain Folder label when the folder is not in the collection', () => {
-    expect(sourceOf('subfolder/folder.yml')).toEqual({ sourceType: 'folder', label: 'Folder' });
+  it('falls back to a plain Collection label when the collection is not in the application', () => {
+    expect(sourceOf('subfolder/folder.yml')).toEqual({ sourceType: 'folder', label: 'Collection' });
   });
 
-  it('falls back to a plain Folder label for a folder file at the collection root', () => {
-    expect(sourceOf('folder.yml')).toEqual({ sourceType: 'folder', label: 'Folder' });
+  it('falls back to a plain Collection label for a collection file at the application root', () => {
+    expect(sourceOf('folder.yml')).toEqual({ sourceType: 'folder', label: 'Collection' });
   });
 
   it('detects a request-level source from a request file path', () => {
     expect(sourceOf('my-request.yml')).toEqual({ sourceType: 'request', label: 'Request' });
   });
 
-  it('treats a request whose name ends in folder as request-level', () => {
+  it('treats a request whose name ends in collection as request-level', () => {
     expect(sourceOf('users/myfolder.yml')).toEqual({ sourceType: 'request', label: 'Request' });
   });
 
@@ -225,11 +225,11 @@ describe('getResponsePaneErrors clipboard text', () => {
 describe('getErrorSourceTabUid', () => {
   const item = { uid: 'req-1' };
 
-  it('opens the collection settings for a collection-level script', () => {
+  it('opens the application settings for an collection-level script', () => {
     expect(getErrorSourceTabUid({ sourceType: 'collection' }, item, collection)).toBe(collection.uid);
   });
 
-  it('opens the folder settings for a folder-level script it can resolve', () => {
+  it('opens the collection settings for a folder-level script it can resolve', () => {
     expect(getErrorSourceTabUid({ sourceType: 'folder', sourceUid: 'folder-1' }, item, collection)).toBe('folder-1');
   });
 
@@ -237,7 +237,7 @@ describe('getErrorSourceTabUid', () => {
     expect(getErrorSourceTabUid({ sourceType: 'request' }, item, collection)).toBe('req-1');
   });
 
-  it('has nowhere to open without a source, a resolved folder or a collection', () => {
+  it('has nowhere to open without a source, a resolved collection or an application', () => {
     expect(getErrorSourceTabUid(null, item, collection)).toBeNull();
     expect(getErrorSourceTabUid({ sourceType: 'folder' }, item, collection)).toBeNull();
     expect(getErrorSourceTabUid({ sourceType: 'request' }, item, null)).toBeNull();

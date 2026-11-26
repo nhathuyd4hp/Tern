@@ -154,7 +154,7 @@ const unavailableFiles = {
     throw unavailable(`a removal of file ${id}`);
   },
   async collect() {
-    throw unavailable('a file collection');
+    throw unavailable('a file application');
   }
 };
 

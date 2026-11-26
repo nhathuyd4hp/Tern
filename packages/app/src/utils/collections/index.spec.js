@@ -400,7 +400,7 @@ describe('getVariableScope — realActiveEnvironmentUid overrides activeEnvironm
 });
 
 describe('getAvailableAddToScopes — Environment scope labels name the target environment', () => {
-  it('names the active environment in the Collection Environment label, so the user can see which file a new variable would land in', () => {
+  it('names the active environment in the Application Environment label, so the user can see which file a new variable would land in', () => {
     const scopes = getAvailableAddToScopes({
       activeEnvironmentUid: 'env-1',
       activeEnvironmentName: 'Staging',
@@ -408,14 +408,14 @@ describe('getAvailableAddToScopes — Environment scope labels name the target e
     });
 
     const environmentScope = scopes.find((s) => s.type === 'environment');
-    expect(environmentScope.label).toBe('Collection Environment (Staging)');
+    expect(environmentScope.label).toBe('Application Environment (Staging)');
   });
 
-  it('falls back to the plain "Collection Environment" label when no active environment name is known', () => {
+  it('falls back to the plain "Application Environment" label when no active environment name is known', () => {
     const scopes = getAvailableAddToScopes({ hasCollection: true });
 
     const environmentScope = scopes.find((s) => s.type === 'environment');
-    expect(environmentScope.label).toBe('Collection Environment');
+    expect(environmentScope.label).toBe('Application Environment');
   });
 
   it('names the active global environment in the Global Environment label', () => {
@@ -445,7 +445,7 @@ describe('getAvailableAddToScopes — Folder scope label', () => {
     });
 
     const folderScope = scopes.find((s) => s.type === 'folder');
-    expect(folderScope.label).toBe('Parent Folder (Auth)');
+    expect(folderScope.label).toBe('Parent Collection (Auth)');
   });
 
   it('labels the Folder scope plainly "Folder" when it is the folder currently being edited', () => {
@@ -457,7 +457,7 @@ describe('getAvailableAddToScopes — Folder scope label', () => {
     });
 
     const folderScope = scopes.find((s) => s.type === 'folder');
-    expect(folderScope.label).toBe('Folder');
+    expect(folderScope.label).toBe('Collection');
   });
 });
 

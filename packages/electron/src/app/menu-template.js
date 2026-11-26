@@ -3,10 +3,10 @@ const os = require('os');
 
 const template = [
   {
-    label: 'Collection',
+    label: 'Application',
     submenu: [
       {
-        label: 'Open Collection',
+        label: 'Open Application',
         click() {
           ipcMain.emit('menu:open-collection');
         }

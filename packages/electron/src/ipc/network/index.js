@@ -476,7 +476,7 @@ const registerNetworkIpc = (mainWindow) => {
     basePayload, // request-level identifiers
     scriptType, // 'pre-request' | 'post-response' | 'test'
     error, // optional Error
-    collectionPath, // optional path to the collection root
+    collectionPath, // optional path to the application root
     scriptMetadata // optional metadata for line mapping
   }) => {
     const errorContext = error ? formatErrorWithContextV2(error, scriptType, scriptMetadata, collectionPath) : null;

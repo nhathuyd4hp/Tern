@@ -253,7 +253,7 @@ const validateWorkspaceConfig = (config) => {
 
 const addCollectionToWorkspace = async (workspacePath, collection) => {
   if (!isValidCollectionEntry(collection)) {
-    throw new Error('Invalid collection: name and path are required');
+    throw new Error('Invalid application: name and path are required');
   }
 
   return withLock(getWorkspaceLockKey(workspacePath), async () => {

@@ -566,12 +566,12 @@ describe('renderVarInfo', () => {
   });
 
   describe('new variable — Add to switcher', () => {
-    it('shows the Add-to switcher with the guessed scope pre-selected, excluding Folder', () => {
+    it('shows the Add-to switcher with the guessed scope pre-selected, excluding Collection', () => {
       getVariableScope.mockReturnValue(null);
       getAvailableAddToScopes.mockReturnValue([
         { type: 'request', label: 'Request Variable', enabled: true, supportsSecret: false },
-        { type: 'collection', label: 'Collection Variable', enabled: true, supportsSecret: false },
-        { type: 'environment', label: 'Collection Environment', enabled: true, supportsSecret: true },
+        { type: 'collection', label: 'Application Variable', enabled: true, supportsSecret: false },
+        { type: 'environment', label: 'Application Environment', enabled: true, supportsSecret: true },
         { type: 'global', label: 'Global Environment', enabled: true, supportsSecret: true }
       ]);
 
@@ -634,13 +634,13 @@ describe('renderVarInfo', () => {
       );
     });
 
-    it('targets the folder itself (not its parent) when opened from that folder\'s own settings, and pre-selects it', () => {
+    it('targets the collection itself (not its parent) when opened from that collection\'s own settings, and pre-selects it', () => {
       getVariableScope.mockReturnValue(null);
       const folderItem = { uid: 'folder-1', type: 'folder', name: 'Auth' };
       getAvailableAddToScopes.mockReturnValue([
-        { type: 'collection', label: 'Collection Variable', enabled: true, supportsSecret: false },
-        { type: 'environment', label: 'Collection Environment', enabled: true, supportsSecret: true },
-        { type: 'folder', label: 'Folder', enabled: true, supportsSecret: false }
+        { type: 'collection', label: 'Application Variable', enabled: true, supportsSecret: false },
+        { type: 'environment', label: 'Application Environment', enabled: true, supportsSecret: true },
+        { type: 'folder', label: 'Collection', enabled: true, supportsSecret: false }
       ]);
 
       const result = renderVarInfo(
@@ -668,7 +668,7 @@ describe('renderVarInfo', () => {
       getVariableScope.mockReturnValue(null);
       getAvailableAddToScopes.mockReturnValue([
         { type: 'request', label: 'Request Variable', enabled: true, supportsSecret: false },
-        { type: 'collection', label: 'Collection Variable', enabled: true, supportsSecret: false }
+        { type: 'collection', label: 'Application Variable', enabled: true, supportsSecret: false }
       ]);
 
       const result = renderVarInfo(
@@ -688,7 +688,7 @@ describe('renderVarInfo', () => {
       switcher.querySelector('.var-add-to-toggle').click();
       within(switcher).getByTestId('var-info-add-to-option-collection').click();
 
-      expect(scopeBadgeLabel()).toBe('Collection');
+      expect(scopeBadgeLabel()).toBe('Application');
       // Picking an existing scope only repoints where the next blur-save writes to.
       expect(updateVariableInScope).not.toHaveBeenCalled();
     });
@@ -697,12 +697,12 @@ describe('renderVarInfo', () => {
       getVariableScope.mockReturnValue(null);
       getAvailableAddToScopes
         .mockReturnValueOnce([
-          { type: 'collection', label: 'Collection Variable', enabled: true, supportsSecret: false },
-          { type: 'environment', label: 'Collection Environment', enabled: false, supportsSecret: true }
+          { type: 'collection', label: 'Application Variable', enabled: true, supportsSecret: false },
+          { type: 'environment', label: 'Application Environment', enabled: false, supportsSecret: true }
         ])
         .mockReturnValue([
-          { type: 'collection', label: 'Collection Variable', enabled: true, supportsSecret: false },
-          { type: 'environment', label: 'Collection Environment (Dev)', enabled: true, supportsSecret: true }
+          { type: 'collection', label: 'Application Variable', enabled: true, supportsSecret: false },
+          { type: 'environment', label: 'Application Environment (Dev)', enabled: true, supportsSecret: true }
         ]);
 
       const collectionBeforeCreate = { uid: 'col-1', activeEnvironmentUid: null, environments: [] };
@@ -764,7 +764,7 @@ describe('renderVarInfo', () => {
       // stale pre-creation "no environment" label.
       const environmentRow = within(switcher).queryByTestId('var-info-add-to-option-environment');
       expect(environmentRow).not.toBeNull();
-      expect(environmentRow.querySelector('.var-add-to-option-label').textContent).toBe('Collection Environment (Dev)');
+      expect(environmentRow.querySelector('.var-add-to-option-label').textContent).toBe('Application Environment (Dev)');
 
       valueContainer._cmEditor.getValue = () => 'a-new-value';
       await valueContainer._persistNewVariable();
@@ -780,8 +780,8 @@ describe('renderVarInfo', () => {
     it('adds variable as a secret if secret is selected when creating the environment, instead of always saving as a plain variable', async () => {
       getVariableScope.mockReturnValue(null);
       getAvailableAddToScopes.mockReturnValue([
-        { type: 'collection', label: 'Collection Variable', enabled: true, supportsSecret: false },
-        { type: 'environment', label: 'Collection Environment', enabled: false, supportsSecret: true }
+        { type: 'collection', label: 'Application Variable', enabled: true, supportsSecret: false },
+        { type: 'environment', label: 'Application Environment', enabled: false, supportsSecret: true }
       ]);
 
       const collectionBeforeCreate = { uid: 'col-1', activeEnvironmentUid: null, environments: [] };
@@ -851,8 +851,8 @@ describe('renderVarInfo', () => {
       // never find a match and time out, falsely reporting a failure.
       getVariableScope.mockReturnValue(null);
       getAvailableAddToScopes.mockReturnValue([
-        { type: 'collection', label: 'Collection Variable', enabled: true, supportsSecret: false },
-        { type: 'environment', label: 'Collection Environment', enabled: false, supportsSecret: true }
+        { type: 'collection', label: 'Application Variable', enabled: true, supportsSecret: false },
+        { type: 'environment', label: 'Application Environment', enabled: false, supportsSecret: true }
       ]);
 
       findCollectionByUid.mockReturnValue({ uid: 'col-1', activeEnvironmentUid: null, environments: [] });
@@ -893,8 +893,8 @@ describe('renderVarInfo', () => {
       // filesystem that write silently overwrites the existing "dev" environment's file.
       getVariableScope.mockReturnValue(null);
       getAvailableAddToScopes.mockReturnValue([
-        { type: 'collection', label: 'Collection Variable', enabled: true, supportsSecret: false },
-        { type: 'environment', label: 'Collection Environment', enabled: false, supportsSecret: true }
+        { type: 'collection', label: 'Application Variable', enabled: true, supportsSecret: false },
+        { type: 'environment', label: 'Application Environment', enabled: false, supportsSecret: true }
       ]);
 
       const collectionWithDev = {
@@ -972,7 +972,7 @@ describe('renderVarInfo', () => {
       });
       isVariableSecret.mockImplementation((scopeInfo) => !!scopeInfo?.data?.variable?.secret);
       getAvailableAddToScopes.mockReturnValue([
-        { type: 'environment', label: 'Collection Environment', enabled: true, supportsSecret: true }
+        { type: 'environment', label: 'Application Environment', enabled: true, supportsSecret: true }
       ]);
       interpolate.mockImplementation((value) => value);
 

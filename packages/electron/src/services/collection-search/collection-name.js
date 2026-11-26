@@ -18,7 +18,7 @@ const findConfigFile = async (collectionPath) => {
       return { ...configFile, filePath, stats };
     }
   }
-  throw new Error(`No collection config in ${collectionPath}`);
+  throw new Error(`No application config in ${collectionPath}`);
 };
 
 const readCollectionConfig = async (collectionPath) => {

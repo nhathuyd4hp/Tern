@@ -19,7 +19,7 @@ export const processBrunoCollection = async (jsonData) => {
     return collection;
   } catch (err) {
     console.error('Error processing Kevin collection:', err);
-    throw new BrunoError('Import collection failed');
+    throw new BrunoError('Import application failed');
   }
 };
 

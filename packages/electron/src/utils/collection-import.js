@@ -31,7 +31,7 @@ async function importCollection(collection, collectionLocation, mainWindow, uniq
   let collectionPath = path.join(collectionLocation, folderName);
 
   if (fs.existsSync(collectionPath)) {
-    throw new Error(`collection: ${collectionPath} already exists`);
+    throw new Error(`application: ${collectionPath} already exists`);
   }
 
   // Recursive function to parse the collection items and create files/folders

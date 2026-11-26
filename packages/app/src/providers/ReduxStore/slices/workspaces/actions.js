@@ -189,7 +189,7 @@ const loadWorkspaceCollectionsForSwitch = async (dispatch, workspace) => {
 
     if (unopenedCollectionPaths.size > 0) {
       const unopenedCount = unopenedCollectionPaths.size;
-      toast.error(`Failed to open ${unopenedCount} collection${unopenedCount === 1 ? '' : 's'}`);
+      toast.error(`Failed to open ${unopenedCount} application${unopenedCount === 1 ? '' : 's'}`);
     }
 
     return {

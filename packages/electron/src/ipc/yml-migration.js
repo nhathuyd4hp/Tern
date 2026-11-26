@@ -562,7 +562,7 @@ const migrateCollectionToYml = async ({ mainWindow, watcher, collectionPathname,
   let brunoConfig;
   try {
     if (getCollectionFormat(collectionPathname) === 'yml') {
-      throw new Error('Collection is already in YML format');
+      throw new Error('Application is already in YML format');
     }
     brunoConfig = JSON.parse(fs.readFileSync(brunoJsonPath, 'utf8'));
   } catch (error) {
@@ -605,7 +605,7 @@ const migrateCollectionToYml = async ({ mainWindow, watcher, collectionPathname,
       throw reopenError;
     }
     if (result?.opened === false) {
-      const message = result.error || 'Failed to reopen collection after migration';
+      const message = result.error || 'Failed to reopen application after migration';
       console.error('Failed to reopen collection after migration:', message);
       throw new Error(message);
     }

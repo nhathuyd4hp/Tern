@@ -79,7 +79,7 @@ const makeCollection = (uid, pathname, name) => ({
   environments: []
 });
 
-const createStore = (collections = [makeCollection(COLLECTION_1_UID, COLLECTION_1_PATH, 'Collection 1')]) => configureStore({
+const createStore = (collections = [makeCollection(COLLECTION_1_UID, COLLECTION_1_PATH, 'Application 1')]) => configureStore({
   reducer: { collections: collectionsReducer },
   preloadedState: { collections: { collections } }
 });
@@ -150,10 +150,10 @@ describe('saveMultipleCollections', () => {
     expect(getCollection(store).draft).toBeNull();
   });
 
-  it('writes each collection\'s own draft to its own path', async () => {
+  it('writes each application\'s own draft to its own path', async () => {
     const store = createStore([
-      makeCollection(COLLECTION_1_UID, COLLECTION_1_PATH, 'Collection 1'),
-      makeCollection(COLLECTION_2_UID, COLLECTION_2_PATH, 'Collection 2')
+      makeCollection(COLLECTION_1_UID, COLLECTION_1_PATH, 'Application 1'),
+      makeCollection(COLLECTION_2_UID, COLLECTION_2_PATH, 'Application 2')
     ]);
     store.dispatch(updateCollectionRequestScript({ collectionUid: COLLECTION_1_UID, script: SCRIPT }));
     store.dispatch(updateCollectionProxy({ collectionUid: COLLECTION_2_UID, proxy: PROXY }));
@@ -168,7 +168,7 @@ describe('saveMultipleCollections', () => {
     expect(getCollection(store, COLLECTION_2_UID).draft).toBeNull();
   });
 
-  it('skips unknown collection uids and still saves the known ones', async () => {
+  it('skips unknown application uids and still saves the known ones', async () => {
     const store = createStore();
     store.dispatch(updateCollectionProxy({ collectionUid: COLLECTION_1_UID, proxy: PROXY }));
 
@@ -179,10 +179,10 @@ describe('saveMultipleCollections', () => {
     expect(getCollection(store).draft).toBeNull();
   });
 
-  it('rejects when one collection fails to save but keeps the others saved', async () => {
+  it('rejects when one application fails to save but keeps the others saved', async () => {
     const store = createStore([
-      makeCollection(COLLECTION_1_UID, COLLECTION_1_PATH, 'Collection 1'),
-      makeCollection(COLLECTION_2_UID, COLLECTION_2_PATH, 'Collection 2')
+      makeCollection(COLLECTION_1_UID, COLLECTION_1_PATH, 'Application 1'),
+      makeCollection(COLLECTION_2_UID, COLLECTION_2_PATH, 'Application 2')
     ]);
     store.dispatch(updateCollectionProxy({ collectionUid: COLLECTION_1_UID, proxy: PROXY }));
     store.dispatch(updateCollectionProxy({ collectionUid: COLLECTION_2_UID, proxy: PROXY }));
@@ -192,7 +192,7 @@ describe('saveMultipleCollections', () => {
       store.dispatch(saveMultipleCollections([{ collectionUid: COLLECTION_1_UID }, { collectionUid: COLLECTION_2_UID }]))
     ).rejects.toThrow('disk full');
 
-    expect(toast.error).toHaveBeenCalledWith('Failed to save collection settings!');
+    expect(toast.error).toHaveBeenCalledWith('Failed to save application settings!');
     expect(disks[COLLECTION_1_PATH].brunoConfig.proxy).toEqual(PROXY);
     expect(disks[COLLECTION_2_PATH]).toBeUndefined();
     expect(getCollection(store, COLLECTION_1_UID).draft).toBeNull();

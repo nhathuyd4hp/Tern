@@ -20,7 +20,7 @@ export const validateSchema = async (collections = []) => {
     return await Promise.all(collections.map((collection) => collectionSchema.validate(collection)));
   } catch (err) {
     console.log(err);
-    throw new BrunoError('The Collection file is corrupted');
+    throw new BrunoError('The Application file is corrupted');
   }
 };
 

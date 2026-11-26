@@ -915,7 +915,7 @@ export const isItemAFolder = (item) => {
 
 export const getItemTypeLabel = (item) => {
   if (isItemAFolder(item)) {
-    return 'Folder';
+    return 'Collection';
   }
   return 'Request';
 };
@@ -2491,7 +2491,7 @@ const SCOPE_CONFIG = [
   {
     type: VARIABLE_ADD_SCOPES.ENVIRONMENT,
     label: ({ activeEnvironmentName }) => (
-      activeEnvironmentName ? `Collection Environment (${activeEnvironmentName})` : 'Collection Environment'
+      activeEnvironmentName ? `Application Environment (${activeEnvironmentName})` : 'Application Environment'
     ),
     supportsSecret: true,
     isAvailable: ({ hasCollection }) => hasCollection,
@@ -2499,7 +2499,7 @@ const SCOPE_CONFIG = [
   },
   {
     type: VARIABLE_ADD_SCOPES.COLLECTION,
-    label: 'Collection Variable',
+    label: 'Application Variable',
     supportsSecret: false,
     isAvailable: ({ hasCollection }) => hasCollection,
     enabled: () => true
@@ -2513,7 +2513,7 @@ const SCOPE_CONFIG = [
   },
   {
     type: VARIABLE_ADD_SCOPES.FOLDER,
-    label: ({ parentFolder, isSelfFolder }) => (isSelfFolder ? 'Folder' : `Parent Folder (${parentFolder?.name || ''})`),
+    label: ({ parentFolder, isSelfFolder }) => (isSelfFolder ? 'Collection' : `Parent Collection (${parentFolder?.name || ''})`),
     supportsSecret: false,
     // Only the request/folder's direct containing folder is added. unless we're already in
     // that folder's own settings, in which case the folder itself is the target.

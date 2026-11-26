@@ -196,7 +196,7 @@ const createViewerServer = (readSpec, getDefaultServerUrl) => {
  */
 const openSpecInBrowser = async (collectionPath, readSpec, getDefaultServerUrl = () => null) => {
   if (readSpec() == null) {
-    return { error: 'Spec file not found. Sync your collection first.' };
+    return { error: 'Spec file not found. Sync your application first.' };
   }
 
   let viewer = viewers.get(collectionPath);

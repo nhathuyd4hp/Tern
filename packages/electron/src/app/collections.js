@@ -77,7 +77,7 @@ const getCollectionConfigFile = async (pathname) => {
   // Fall back to bruno.json
   const configFilePath = path.join(pathname, 'bruno.json');
   if (!fs.existsSync(configFilePath)) {
-    throw new Error(`The collection is not valid (neither bruno.json nor opencollection.yml found)`);
+    throw new Error(`The application is not valid (neither bruno.json nor opencollection.yml found)`);
   }
 
   const config = await readConfigFile(configFilePath);
@@ -107,13 +107,13 @@ const openCollection = async (win, watcher, collectionPath, options = {}) => {
     } catch (err) {
       if (!options.dontSendDisplayErrors) {
         win.webContents.send('main:display-error', {
-          message: err.message || 'An error occurred while opening the local collection'
+          message: err.message || 'An error occurred while opening the local application'
         });
       }
       return {
         path: collectionPath,
         opened: false,
-        error: err.message || 'An error occurred while opening the local collection'
+        error: err.message || 'An error occurred while opening the local application'
       };
     }
   }
@@ -144,13 +144,13 @@ const openCollection = async (win, watcher, collectionPath, options = {}) => {
   } catch (err) {
     if (!options.dontSendDisplayErrors) {
       win.webContents.send('main:display-error', {
-        message: err.message || 'An error occurred while opening the local collection'
+        message: err.message || 'An error occurred while opening the local application'
       });
     }
     return {
       path: collectionPath,
       opened: false,
-      error: err.message || 'An error occurred while opening the local collection'
+      error: err.message || 'An error occurred while opening the local application'
     };
   }
 };
@@ -181,7 +181,7 @@ const openCollectionsByPathname = async (win, watcher, collectionPaths, options 
       } else {
         result.failed.push({
           path: resolvedPath,
-          error: openResult?.error || 'Failed to open collection'
+          error: openResult?.error || 'Failed to open application'
         });
       }
     } else {

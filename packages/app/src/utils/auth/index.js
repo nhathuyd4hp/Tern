@@ -68,7 +68,7 @@ export const getEffectiveAuthSource = (collection, item) => {
   const collectionAuth = get(collectionRoot, 'request.auth');
   let effectiveSource = {
     type: 'collection',
-    name: 'Collection',
+    name: 'Application',
     uid: collection?.uid,
     auth: collectionAuth
   };

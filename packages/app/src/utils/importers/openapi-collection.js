@@ -6,7 +6,7 @@ export const convertOpenapiToBruno = (data, options = {}) => {
     return openApiToBruno(data, options);
   } catch (err) {
     console.error('Error converting OpenAPI to Kevin:', err);
-    throw new BrunoError('Import collection failed: ' + err.message);
+    throw new BrunoError('Import application failed: ' + err.message);
   }
 };
 
@@ -34,7 +34,7 @@ export const isSwagger2Spec = (spec) => Boolean(spec?.swagger) && String(spec.sw
 
 export const buildOpenApiSyncBrunoConfig = (collection, { sourceUrl, groupBy, authPlacement, requestNameSource }) => ({
   version: collection.version || '1',
-  name: collection.name || 'Untitled Collection',
+  name: collection.name || 'Untitled Application',
   type: 'collection',
   ignore: ['node_modules', '.git'],
   ...collection.brunoConfig,

@@ -1,7 +1,7 @@
 # Kevin
 
 Ứng dụng API client cho máy tính, dùng cá nhân, được fork từ [Bruno](https://github.com/usebruno/bruno) (giấy phép MIT).
-Collection được lưu dưới dạng file thuần (`.bru` hoặc `.yml`) trên đĩa, nên có thể đưa vào Git cùng với mã nguồn.
+Application được lưu dưới dạng file thuần (`.bru` hoặc `.yml`) trên đĩa, nên có thể đưa vào Git cùng với mã nguồn.
 
 ## Cài đặt
 

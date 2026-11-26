@@ -9,7 +9,7 @@ import { isOpenApiSpec, isSwagger2Spec } from './openapi-collection';
 import { isPostmanCollection } from './postman-collection';
 import { isWSDLCollection } from './wsdl-collection';
 
-const UNSUPPORTED_FORMAT = 'Unsupported collection format';
+const UNSUPPORTED_FORMAT = 'Unsupported application format';
 const ZIP_FILE = /\.zip$/i;
 export const HTTP_URL = /^https?:\/\//i;
 
@@ -28,7 +28,7 @@ const detectImportFormat = (data) => IMPORT_FORMATS.find(([, matches]) => matche
 
 const readBrunoZip = async (zipFilePath, fileName) => {
   if (!(await callIpc('renderer:is-bruno-collection-zip', zipFilePath))) {
-    throw new Error('The ZIP file is not a valid Kevin collection');
+    throw new Error('The ZIP file is not a valid Kevin application');
   }
   return { rawData: { zipFilePath, collectionName: fileName.replace(ZIP_FILE, '') }, type: 'bruno-zip' };
 };
@@ -66,7 +66,7 @@ const readSeveralFiles = async (files) => {
   const results = await Promise.all(files.map(readFileForBulkImport));
   const filesData = results.filter(Boolean);
   if (filesData.length === 0) {
-    throw new Error('No valid collections found in the selected files');
+    throw new Error('No valid applications found in the selected files');
   }
   const skippedFileNames = files.filter((file, index) => !results[index]).map((file) => file.name);
   return { filesData, type: 'multiple', skippedFileNames };
@@ -75,7 +75,7 @@ const readSeveralFiles = async (files) => {
 export const readImportFiles = async (files) => {
   const zipFiles = files.filter((file) => ZIP_FILE.test(file.name));
   if (zipFiles.length > 0 && zipFiles.length < files.length) {
-    throw new Error('Cannot mix ZIP files with other file types. Please select either a single ZIP file OR collection files (JSON/YAML)');
+    throw new Error('Cannot mix ZIP files with other file types. Please select either a single ZIP file OR application files (JSON/YAML)');
   }
   if (zipFiles.length > 1) {
     throw new Error('Multiple ZIP files selected. Please select only one ZIP file at a time for import.');

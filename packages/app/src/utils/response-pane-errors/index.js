@@ -22,7 +22,7 @@ const getErrorSourceInfo = (filePath, collection) => {
   if (!filePath) return null;
 
   if (collectionFileNames.includes(filePath)) {
-    return { sourceType: 'collection', label: 'Collection' };
+    return { sourceType: 'collection', label: 'Application' };
   }
 
   if (!folderYmlOrBruPattern.test(filePath)) {
@@ -33,10 +33,10 @@ const getErrorSourceInfo = (filePath, collection) => {
   const folder = findItemInCollectionByPathname(collection, path.dirname(path.join(collection.pathname, filePath)));
 
   if (!folder) {
-    return { sourceType: 'folder', label: 'Folder' };
+    return { sourceType: 'folder', label: 'Collection' };
   }
 
-  return { sourceType: 'folder', label: `Folder: ${folder.name}`, sourceUid: folder.uid };
+  return { sourceType: 'folder', label: `Collection: ${folder.name}`, sourceUid: folder.uid };
 };
 
 const SCRIPT_ERROR_LABELS = {

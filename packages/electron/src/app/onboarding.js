@@ -28,13 +28,13 @@ async function importSampleCollection(collectionLocation, mainWindow) {
     : path.join(app.getAppPath(), 'resources', 'data', 'sample-collection.json');
 
   if (!fs.existsSync(sampleCollectionPath)) {
-    throw new Error(`Sample collection file not found at: ${sampleCollectionPath}`);
+    throw new Error(`Sample application file not found at: ${sampleCollectionPath}`);
   }
 
   const sampleCollectionData = fs.readFileSync(sampleCollectionPath, 'utf8');
   const sampleCollection = JSON.parse(sampleCollectionData);
 
-  const collectionName = await findUniqueFolderName('Sample API Collection', collectionLocation);
+  const collectionName = await findUniqueFolderName('Sample API Application', collectionLocation);
 
   const collectionToImport = {
     ...sampleCollection,

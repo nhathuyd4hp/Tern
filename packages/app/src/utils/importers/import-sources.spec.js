@@ -57,7 +57,7 @@ describe('import sources', () => {
     });
 
     it('says when a file is in no format it knows', async () => {
-      await expect(readImportFiles([file('notes.json', { hello: 'world' })])).rejects.toThrow('Unsupported collection format');
+      await expect(readImportFiles([file('notes.json', { hello: 'world' })])).rejects.toThrow('Unsupported application format');
     });
 
     it('recognises an OpenCollection export marked as bundled', async () => {
@@ -67,11 +67,11 @@ describe('import sources', () => {
     });
 
     it('treats a collection\'s own opencollection.yml like its bruno.json, as a file it cannot import', async () => {
-      await expect(readImportFiles([file('opencollection.yml', { ...openCollection, bundled: false })])).rejects.toThrow('Unsupported collection format');
-      await expect(readImportFiles([file('bruno.json', { version: '1', name: 'Orders', type: 'collection' })])).rejects.toThrow('Unsupported collection format');
+      await expect(readImportFiles([file('opencollection.yml', { ...openCollection, bundled: false })])).rejects.toThrow('Unsupported application format');
+      await expect(readImportFiles([file('bruno.json', { version: '1', name: 'Orders', type: 'collection' })])).rejects.toThrow('Unsupported application format');
     });
 
-    it('skips a collection\'s own opencollection.yml when several files are picked', async () => {
+    it('skips an application\'s own opencollection.yml when several files are picked', async () => {
       const result = await readImportFiles([file('orders.json', postman), file('opencollection.yml', { ...openCollection, bundled: false })]);
 
       expect(result).toMatchObject({ type: 'multiple', skippedFileNames: ['opencollection.yml'] });
@@ -95,10 +95,10 @@ describe('import sources', () => {
       expect(callIpc).toHaveBeenCalledWith('renderer:is-bruno-collection-zip', '/files/Orders.ZIP');
     });
 
-    it('refuses a ZIP that is not a Kevin collection', async () => {
+    it('refuses a ZIP that is not a Kevin application', async () => {
       callIpc.mockResolvedValue(false);
 
-      await expect(readImportFiles([file('other.zip')])).rejects.toThrow('The ZIP file is not a valid Kevin collection');
+      await expect(readImportFiles([file('other.zip')])).rejects.toThrow('The ZIP file is not a valid Kevin application');
     });
 
     it('refuses a ZIP mixed with other files', async () => {
@@ -132,7 +132,7 @@ describe('import sources', () => {
     });
 
     it('says when none of several files can be used', async () => {
-      await expect(readImportFiles([file('a.json', {}), file('b.json', {})])).rejects.toThrow('No valid collections found');
+      await expect(readImportFiles([file('a.json', {}), file('b.json', {})])).rejects.toThrow('No valid applications found');
     });
   });
 
@@ -167,19 +167,19 @@ describe('import sources', () => {
     it('says when a fetched document is in no format it knows', async () => {
       fetchAndValidateApiSpecFromUrl.mockResolvedValue({ data: { hello: 'world' }, specType: 'unknown', rawContent: 'raw' });
 
-      await expect(readImportUrl(url)).rejects.toThrow('Unsupported collection format');
+      await expect(readImportUrl(url)).rejects.toThrow('Unsupported application format');
     });
 
     it('does not mistake a fetched web page for WSDL', async () => {
       fetchAndValidateApiSpecFromUrl.mockResolvedValue({ data: '<html>definitions</html>', specType: 'unknown', rawContent: 'raw' });
 
-      await expect(readImportUrl(url)).rejects.toThrow('Unsupported collection format');
+      await expect(readImportUrl(url)).rejects.toThrow('Unsupported application format');
     });
 
     it('says when a fetched document is empty', async () => {
       fetchAndValidateApiSpecFromUrl.mockResolvedValue({ data: null, specType: 'unknown', rawContent: '~' });
 
-      await expect(readImportUrl(url)).rejects.toThrow('Unsupported collection format');
+      await expect(readImportUrl(url)).rejects.toThrow('Unsupported application format');
     });
 
     it('recognises a fetched OpenCollection document', async () => {

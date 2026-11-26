@@ -6,7 +6,7 @@ export const convertInsomniaToBruno = (data) => {
     return insomniaToBruno(data);
   } catch (err) {
     console.error('Error converting Insomnia to Kevin:', err);
-    throw new BrunoError('Import collection failed: ' + err.message);
+    throw new BrunoError('Import application failed: ' + err.message);
   }
 };
 

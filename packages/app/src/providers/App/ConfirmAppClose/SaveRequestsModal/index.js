@@ -290,15 +290,15 @@ const SaveRequestsModal = ({ onClose, forceCloseTabs = false, tabUidsToClose = [
             let icon;
             switch (item.type) {
               case 'collection':
-                prefix = 'Collection: ';
+                prefix = 'Application: ';
                 icon = <IconSettings {...iconProps} />;
                 break;
               case 'folder':
-                prefix = 'Folder: ';
+                prefix = 'Collection: ';
                 icon = <IconFolder {...iconProps} />;
                 break;
               case 'collection-environment':
-                prefix = 'Collection Environment: ';
+                prefix = 'Application Environment: ';
                 icon = <IconDatabase {...iconProps} />;
                 break;
               case 'global-environment':

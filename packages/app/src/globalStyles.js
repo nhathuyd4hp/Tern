@@ -198,9 +198,7 @@ const GlobalStyle = createGlobalStyle`
   }
 
   .collection-header-dropdown-label {
-    max-width: 124px;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   // scrollbar styling
