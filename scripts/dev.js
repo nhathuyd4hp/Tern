@@ -47,7 +47,8 @@ webProcess.stdout.on('data', (data) => {
 
   // Try to detect the port from rsbuild output
   if (!detectedPort) {
-    const match = output.match(portRegex);
+    // rsbuild colors the URL line even when piped, which would break the regex.
+    const match = output.replace(/\u001b\[[0-9;]*m/g, '').match(portRegex);
     if (match) {
       detectedPort = match[1];
       log.success(`Detected dev server on port ${colors.bright}${detectedPort}${colors.reset}`);
