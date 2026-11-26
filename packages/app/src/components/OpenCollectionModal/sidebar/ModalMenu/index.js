@@ -44,7 +44,7 @@ const ModalMenu = ({ titleId, activePageId }) => {
 
   return (
     <StyledWrapper aria-labelledby={titleId} onKeyDown={moveFocus} data-testid="open-collection-menu">
-      <h2 id={titleId}>Open collection</h2>
+      <h2 id={titleId}>Open application</h2>
       {topPages.map(renderItem)}
       <div className="menu-section" role="group" aria-labelledby={SOURCES_LABEL_ID}>
         <span id={SOURCES_LABEL_ID} className="menu-section-label">

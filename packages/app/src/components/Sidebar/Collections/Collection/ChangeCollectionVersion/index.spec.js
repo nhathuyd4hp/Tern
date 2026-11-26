@@ -66,7 +66,7 @@ beforeEach(() => {
 });
 
 describe('ChangeCollectionVersion', () => {
-  it('opens with an empty new-version input, even when the collection already has a version', () => {
+  it('opens with an empty new-version input, even when the application already has a version', () => {
     renderModal(buildCollection());
     expect(screen.getByTestId('change-version-input')).toHaveValue('');
     expect(screen.getByTestId('change-version-submit-btn')).toBeDisabled();
@@ -105,7 +105,7 @@ describe('ChangeCollectionVersion', () => {
     await waitFor(() => expect(onClose).toHaveBeenCalled());
   });
 
-  it('for a bru collection, the preview mentions bruno.json and collectionVersion', () => {
+  it('for a bru application, the preview mentions bruno.json and collectionVersion', () => {
     renderModal(buildCollection({ brunoConfig: { version: '1', name: 'Legacy', type: 'collection' } }));
     fireEvent.change(screen.getByTestId('change-version-input'), { target: { value: '2' } });
 
@@ -115,18 +115,18 @@ describe('ChangeCollectionVersion', () => {
     expect(preview).not.toHaveTextContent('info.version');
   });
 
-  it('shows "Not Set" for a yml collection that has no version yet', () => {
+  it('shows "Not Set" for a yml application that has no version yet', () => {
     renderModal(buildCollection({ brunoConfig: { opencollection: '1.0.0', name: 'Kevin-Testbench' } }));
 
     expect(screen.getByTestId('change-version-current')).toHaveTextContent('Not Set');
     expect(screen.getByTestId('change-version-input')).toHaveValue('');
   });
 
-  it('shows a "Collection not found" message when the collection is missing', () => {
+  it('shows an "Application not found" message when the application is missing', () => {
     renderModal(null);
 
-    expect(screen.getByTestId('modal-title')).toHaveTextContent('Change Collection Version');
-    expect(screen.getByText(/Collection not found/i)).toBeInTheDocument();
+    expect(screen.getByTestId('modal-title')).toHaveTextContent('Change Application Version');
+    expect(screen.getByText(/Application not found/i)).toBeInTheDocument();
     expect(screen.queryByTestId('change-version-input')).not.toBeInTheDocument();
   });
 });

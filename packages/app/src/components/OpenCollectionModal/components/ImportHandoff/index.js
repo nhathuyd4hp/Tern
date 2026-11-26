@@ -13,7 +13,7 @@ import { ImportHandoffContext } from './context';
 
 const reportFailedImport = async (collectionLocation) => {
   const isFolder = await isDirectory(collectionLocation);
-  toast.error(isFolder ? 'Failed to import the collection' : `Failed to import the collection: ${collectionLocation} is not an existing folder`);
+  toast.error(isFolder ? 'Failed to import the application' : `Failed to import the application: ${collectionLocation} is not an existing folder`);
 };
 
 const ImportHandoff = ({ children }) => {
@@ -56,7 +56,7 @@ const ImportHandoff = ({ children }) => {
         closeImport();
         handleImportResolved(convertedCollection, importedItem);
       })
-      .catch((error) => toast.error(formatIpcError(error) || 'Failed to import the collection'))
+      .catch((error) => toast.error(formatIpcError(error) || 'Failed to import the application'))
       .finally(() => {
         isImportingRef.current = false;
       });

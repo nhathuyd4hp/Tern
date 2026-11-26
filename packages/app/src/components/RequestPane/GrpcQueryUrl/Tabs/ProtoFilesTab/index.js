@@ -17,7 +17,7 @@ const ProtoFilesTab = ({
       {collectionProtoFiles && collectionProtoFiles.length > 0 && (
         <div className="content-wrapper">
           <div className="header-wrapper">
-            <div className="header-text">From Collection Settings</div>
+            <div className="header-text">From Application Settings</div>
             <button
               onClick={onOpenCollectionProtobufSettings}
               className="settings-button"
@@ -85,7 +85,7 @@ const ProtoFilesTab = ({
       {(!collectionProtoFiles || collectionProtoFiles.length === 0) && (
         <div className="empty-wrapper">
           <div className="empty-text">
-            No proto files configured in collection settings
+            No proto files configured in application settings
           </div>
         </div>
       )}

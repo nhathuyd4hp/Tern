@@ -303,7 +303,7 @@ const SaveTransientRequest = ({ item: itemProp, collection: collectionProp, isOp
     const trimmedFolderName = newFolderName.trim();
 
     if (!trimmedFolderName) {
-      toast.error('Folder name is required');
+      toast.error('Collection name is required');
       return;
     }
 
@@ -318,12 +318,12 @@ const SaveTransientRequest = ({ item: itemProp, collection: collectionProp, isOp
 
     try {
       await dispatch(newFolder(trimmedFolderName, directoryName, targetCollectionUid, parentFolder?.uid));
-      toast.success('New folder created!');
+      toast.success('New collection created!');
 
       setPendingFolderNavigation(directoryName);
       handleCancelNewFolder();
     } catch (err) {
-      const errorMessage = err?.message || 'An error occurred while adding the folder';
+      const errorMessage = err?.message || 'An error occurred while adding the collection';
       toast.error(errorMessage);
     }
   };
@@ -350,7 +350,7 @@ const SaveTransientRequest = ({ item: itemProp, collection: collectionProp, isOp
   const handleCreateNewCollection = async () => {
     const trimmedName = newCollection.name.trim();
     if (!trimmedName) {
-      toast.error('Collection name is required');
+      toast.error('Application name is required');
       return;
     }
     if (!validateName(trimmedName)) {
@@ -363,10 +363,10 @@ const SaveTransientRequest = ({ item: itemProp, collection: collectionProp, isOp
     }
     try {
       await dispatch(createCollection(trimmedName, sanitizeName(trimmedName), newCollection.location, { format: newCollection.format, source: 'save-transient-request', entryPoint: 'save-transient-request' }));
-      toast.success('Collection created!');
+      toast.success('Application created!');
       handleCancelNewCollection();
     } catch (err) {
-      toast.error(err?.message || 'An error occurred while creating the collection');
+      toast.error(err?.message || 'An error occurred while creating the application');
     }
   };
 
@@ -390,7 +390,7 @@ const SaveTransientRequest = ({ item: itemProp, collection: collectionProp, isOp
     <StyledWrapper>
       <Modal
         size="sm"
-        title={isSelectingCollection ? 'Select Collection' : 'Save Request'}
+        title={isSelectingCollection ? 'Select Application' : 'Save Request'}
         handleCancel={handleCancel}
         handleConfirm={handleConfirm}
         confirmText="Save"
@@ -421,7 +421,7 @@ const SaveTransientRequest = ({ item: itemProp, collection: collectionProp, isOp
 
           <div className="collections-section">
             <div className="collections-label">
-              {isSelectingCollection ? 'Select a collection to save to' : 'Save to Collections'}
+              {isSelectingCollection ? 'Select an application to save to' : 'Save to Applications'}
             </div>
 
             {isScratchCollection && (
@@ -434,7 +434,7 @@ const SaveTransientRequest = ({ item: itemProp, collection: collectionProp, isOp
                     reset();
                   } : undefined}
                 >
-                  Collections
+                  Applications
                 </span>
                 {!isSelectingCollection && (
                   <>
@@ -472,13 +472,13 @@ const SaveTransientRequest = ({ item: itemProp, collection: collectionProp, isOp
                       <li className="new-collection-item">
                         <div className="new-collection-field">
                           <label className="new-collection-label">
-                            Collection name
+                            Application name
                           </label>
                           <input
                             ref={(node) => node?.focus()}
                             type="text"
                             className="new-collection-input"
-                            placeholder="Enter collection name"
+                            placeholder="Enter application name"
                             value={newCollection.name}
                             onChange={(e) => setNewCollection((prev) => ({ ...prev, name: e.target.value }))}
                             onKeyDown={(e) => {
@@ -499,10 +499,10 @@ const SaveTransientRequest = ({ item: itemProp, collection: collectionProp, isOp
                             Location
                             <Help width={250} placement="top">
                               <p>
-                                Kevin stores your collections on your computer's filesystem.
+                                Kevin stores your applications on your computer's filesystem.
                               </p>
                               <p className="mt-2">
-                                Choose the location where you want to store this collection.
+                                Choose the location where you want to store this application.
                               </p>
                             </Help>
                           </label>
@@ -533,7 +533,7 @@ const SaveTransientRequest = ({ item: itemProp, collection: collectionProp, isOp
                             File Format
                             <Help width={300} placement="top">
                               <p>
-                                Choose the file format for storing requests in this collection.
+                                Choose the file format for storing requests in this application.
                               </p>
                               <p className="mt-2">
                                 <strong>OpenCollection (YAML):</strong> Industry-standard YAML format (.yml files)
@@ -577,8 +577,8 @@ const SaveTransientRequest = ({ item: itemProp, collection: collectionProp, isOp
                   </ul>
                 ) : (
                   <div className="collection-empty-state">
-                    <p>No Collections Yet</p>
-                    <p className="collection-empty-state-subtitle">Collections help you organize your requests. Create your first one to save this request.</p>
+                    <p>No Applications Yet</p>
+                    <p className="collection-empty-state-subtitle">Applications help you organize your requests. Create your first one to save this request.</p>
                     <Button
                       type="button"
                       color="primary"
@@ -587,7 +587,7 @@ const SaveTransientRequest = ({ item: itemProp, collection: collectionProp, isOp
                       onClick={handleShowNewCollection}
                       className="mt-4"
                     >
-                      New collection
+                      New application
                     </Button>
                   </div>
                 )}
@@ -610,7 +610,7 @@ const SaveTransientRequest = ({ item: itemProp, collection: collectionProp, isOp
                   <SearchInput
                     searchText={searchText}
                     setSearchText={setSearchText}
-                    placeholder="Search for folder"
+                    placeholder="Search for collection"
                     autoFocus={false}
                   />
                 </div>
@@ -636,7 +636,7 @@ const SaveTransientRequest = ({ item: itemProp, collection: collectionProp, isOp
                           <div className="new-folder-header">
                             <IconFolder size={16} strokeWidth={1.5} />
                             <label className="new-folder-header-label">
-                              {showFilesystemName ? 'New Folder name (in bruno)' : 'New Folder name'}
+                              {showFilesystemName ? 'New Collection name (in bruno)' : 'New Collection name'}
                             </label>
                           </div>
                           <div className="new-folder-input-row">
@@ -644,7 +644,7 @@ const SaveTransientRequest = ({ item: itemProp, collection: collectionProp, isOp
                               ref={(node) => node?.focus()}
                               type="text"
                               className="new-folder-input"
-                              placeholder="Untitled new folder"
+                              placeholder="Untitled new collection"
                               value={newFolderName}
                               onChange={(e) => handleNewFolderNameChange(e.target.value)}
                               onKeyDown={(e) => {
@@ -671,7 +671,7 @@ const SaveTransientRequest = ({ item: itemProp, collection: collectionProp, isOp
                                 type="button"
                                 className="new-folder-action-btn"
                                 onClick={handleCreateNewFolder}
-                                title="Create folder"
+                                title="Create collection"
                               >
                                 <IconCheck size={16} strokeWidth={1.5} />
                               </button>
@@ -682,10 +682,10 @@ const SaveTransientRequest = ({ item: itemProp, collection: collectionProp, isOp
                             <div className="new-folder-filesystem-wrapper">
                               <div className="flex items-center justify-between">
                                 <label className="new-folder-filesystem-label flex items-center font-medium">
-                                  Folder Name <small className="font-normal text-muted ml-1">(on filesystem)</small>
+                                  Collection Name <small className="font-normal text-muted ml-1">(on filesystem)</small>
                                   <Help width={300} placement="top">
                                     <p>
-                                      You can choose to save the folder as a different name on your file system versus what is displayed in the app.
+                                      You can choose to save the collection as a different name on your file system versus what is displayed in the app.
                                     </p>
                                   </Help>
                                 </label>
@@ -710,7 +710,7 @@ const SaveTransientRequest = ({ item: itemProp, collection: collectionProp, isOp
                                   <input
                                     type="text"
                                     className="block textbox mt-2 w-full"
-                                    placeholder="Folder Name"
+                                    placeholder="Collection Name"
                                     value={newFolderDirectoryName}
                                     autoComplete="off"
                                     autoCorrect="off"
@@ -768,7 +768,7 @@ const SaveTransientRequest = ({ item: itemProp, collection: collectionProp, isOp
                     <div className="folder-empty-state">
                       <div className="flex flex-col items-center">
                         <span>
-                          {searchText.trim() ? 'No folders found' : 'No folders available' }
+                          {searchText.trim() ? 'No collections found' : 'No collections available' }
                         </span>
                         <Button
                           type="button"
@@ -777,7 +777,7 @@ const SaveTransientRequest = ({ item: itemProp, collection: collectionProp, isOp
                           icon={<IconFolder size={16} strokeWidth={1.5} />}
                           onClick={handleShowNewFolder}
                         >
-                          New Folder
+                          New Collection
                         </Button>
                       </div>
                     </div>
@@ -798,7 +798,7 @@ const SaveTransientRequest = ({ item: itemProp, collection: collectionProp, isOp
                 icon={<IconFolder size={16} strokeWidth={1.5} />}
                 onClick={handleShowNewFolder}
               >
-                New Folder
+                New Collection
               </Button>
             )}
             {isSelectingCollection && !newCollection.show && availableCollections.length > 0 && (
@@ -809,7 +809,7 @@ const SaveTransientRequest = ({ item: itemProp, collection: collectionProp, isOp
                 icon={<IconFolder size={16} strokeWidth={1.5} />}
                 onClick={handleShowNewCollection}
               >
-                New collection
+                New application
               </Button>
             )}
           </div>

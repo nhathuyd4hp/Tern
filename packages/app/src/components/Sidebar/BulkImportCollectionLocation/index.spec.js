@@ -88,7 +88,7 @@ const swagger2Spec = {
   data: { swagger: '2.0', info: { title: 'Legacy API' } },
   filePath: '/specs/legacy.json'
 };
-const postmanFile = { file: { name: 'postman.json' }, type: 'postman', data: { info: { name: 'Postman Collection' } } };
+const postmanFile = { file: { name: 'postman.json' }, type: 'postman', data: { info: { name: 'Postman Application' } } };
 const openCollectionFile = { file: { name: 'orders.yml' }, type: 'opencollection', data: { opencollection: '1.0.0', info: { name: 'Orders' } } };
 
 const syncEntry = (sourceUrl, settings = {}) => [{ sourceUrl, groupBy: 'tags', authPlacement: 'request', requestNameSource: 'summary', ...settings, autoCheck: true, autoCheckInterval: 5 }];
@@ -121,7 +121,7 @@ const renderBulkImport = (filesData, { collections = [] } = {}) => {
 const specUpdatesCheckbox = () => screen.getByRole('checkbox', { name: /Check for Spec Updates/ });
 const configurationToggle = () => screen.queryByRole('button', { name: 'OpenAPI Import configuration' });
 const openConfiguration = () => fireEvent.click(configurationToggle());
-const authPlacementCheckbox = () => screen.getByRole('checkbox', { name: /Inherit authentication from collection folder/ });
+const authPlacementCheckbox = () => screen.getByRole('checkbox', { name: /Inherit authentication from application/ });
 const groupingDropdown = () => screen.getByTestId('grouping-dropdown');
 const namingDropdown = () => screen.getByTestId('request-name-source-dropdown');
 const chooseGrouping = async (value) => {
@@ -157,7 +157,7 @@ describe('BulkImportCollectionLocation check for spec updates', () => {
 
     expect(specUpdatesCheckbox()).toBeEnabled();
     expect(specUpdatesCheckbox()).toBeChecked();
-    expect(specUpdatesDescription()).toHaveTextContent('Stay notified of spec changes and sync your collection with the spec.');
+    expect(specUpdatesDescription()).toHaveTextContent('Stay notified of spec changes and sync your application with the spec.');
   });
 
   it('is disabled when every OpenAPI spec is Swagger 2.0', () => {
@@ -187,7 +187,7 @@ describe('BulkImportCollectionLocation check for spec updates', () => {
     toggleFileSelection('Orders API orders.yaml');
 
     expect(specUpdatesCheckbox()).toBeDisabled();
-    expect(specUpdatesDescription()).toHaveTextContent('Stay notified of spec changes and sync your collection with the spec.');
+    expect(specUpdatesDescription()).toHaveTextContent('Stay notified of spec changes and sync your application with the spec.');
   });
 
   it.each([
@@ -277,7 +277,7 @@ describe('BulkImportCollectionLocation check for spec updates', () => {
     });
   });
 
-  it('syncs with the chosen folder arrangement', async () => {
+  it('syncs with the chosen collection arrangement', async () => {
     renderBulkImport([ordersSpec]);
     openConfiguration();
     await chooseGrouping('path');
@@ -298,7 +298,7 @@ describe('BulkImportCollectionLocation check for spec updates', () => {
     expect(options.rawOpenAPISpecs).toEqual({ 'file-0': specText('Orders API') });
   });
 
-  it('keeps each spec with its own collection when the first file is deselected', async () => {
+  it('keeps each spec with its own application when the first file is deselected', async () => {
     renderBulkImport([ordersSpec, usersSpec]);
     openConfiguration();
     toggleFileSelection('Orders API orders.yaml');
@@ -325,7 +325,7 @@ describe('BulkImportCollectionLocation check for spec updates', () => {
     openConfiguration();
 
     expect(specUpdatesCheckbox()).toBeDisabled();
-    expect(specUpdatesDescription()).toHaveTextContent('Stay notified of spec changes and sync your collection with the spec.');
+    expect(specUpdatesDescription()).toHaveTextContent('Stay notified of spec changes and sync your application with the spec.');
   });
 
   it('imports OpenAPI specs without sync when switched off', async () => {
@@ -350,18 +350,18 @@ describe('BulkImportCollectionLocation check for spec updates', () => {
   });
 });
 
-describe('BulkImportCollectionLocation collection auth placement', () => {
+describe('BulkImportCollectionLocation application auth placement', () => {
   it.each([
     ['an OpenAPI 3.x spec', ordersSpec],
     ['a Swagger 2.0 spec', swagger2Spec]
   ])('is offered off by default under the collapsed OpenAPI Import configuration when the selection includes %s', (_, spec) => {
     renderBulkImport([spec, postmanFile]);
-    expect(screen.getByText('Inherit authentication from collection folder')).not.toBeVisible();
+    expect(screen.getByText('Inherit authentication from application')).not.toBeVisible();
 
     openConfiguration();
 
     expect(authPlacementCheckbox()).not.toBeChecked();
-    expect(screen.getByText('Requests inherit auth from collection instead of getting their own copy.')).toBeInTheDocument();
+    expect(screen.getByText('Requests inherit auth from application instead of getting their own copy.')).toBeInTheDocument();
   });
 
   it('applies the choice to every OpenAPI spec in the batch, Swagger 2.0 included', async () => {
@@ -409,7 +409,7 @@ describe('BulkImportCollectionLocation naming requests', () => {
 
     openConfiguration();
 
-    expect(screen.getByText('How requests in the generated collection are named.')).toBeInTheDocument();
+    expect(screen.getByText('How requests in the generated application are named.')).toBeInTheDocument();
     expect(namingDropdown()).toHaveTextContent('Summary');
   });
 
@@ -462,7 +462,7 @@ describe('BulkImportCollectionLocation settings layout', () => {
     expect(formatSelect()).not.toBeInTheDocument();
   });
 
-  it('imports every collection in the chosen file format', async () => {
+  it('imports every application in the chosen file format', async () => {
     renderBulkImport([ordersSpec, postmanFile]);
     fireEvent.click(await openOptionsMenu());
 
@@ -500,11 +500,11 @@ describe('BulkImportCollectionLocation OpenAPI Import configuration', () => {
   it('is collapsed by default and holds the four settings in order', () => {
     renderBulkImport([ordersSpec, postmanFile]);
     expect(configurationToggle()).toHaveAttribute('aria-expanded', 'false');
-    expect(screen.getByText('Folder arrangement')).not.toBeVisible();
+    expect(screen.getByText('Collection arrangement')).not.toBeVisible();
 
     openConfiguration();
 
-    const rows = ['Folder arrangement', 'Check for Spec Updates', 'Naming requests', 'Inherit authentication from collection folder'].map((label) => screen.getByText(label));
+    const rows = ['Collection arrangement', 'Check for Spec Updates', 'Naming requests', 'Inherit authentication from application'].map((label) => screen.getByText(label));
     rows.slice(1).forEach((row, index) => {
       expect(rows[index].compareDocumentPosition(row) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     });
@@ -551,7 +551,7 @@ describe('BulkImportCollectionLocation OpenAPI Import configuration', () => {
     ]);
     expect(collections.map((collection) => [collection.name, collection.brunoConfig?.openapi])).toEqual([
       ['Orders API', syncEntry('/specs/orders.yaml', { groupBy: 'path', authPlacement: 'collection', requestNameSource: 'description' })],
-      ['Postman Collection', undefined]
+      ['Postman Application', undefined]
     ]);
   });
 });
@@ -563,6 +563,6 @@ describe('BulkImportCollectionLocation OpenCollection files', () => {
     expect(screen.getByRole('checkbox', { name: 'Orders orders.yml' })).toBeChecked();
     const [collections] = await submitImport();
 
-    expect(collections.map((collection) => collection.name)).toEqual(['Postman Collection', 'Orders']);
+    expect(collections.map((collection) => collection.name)).toEqual(['Postman Application', 'Orders']);
   });
 });

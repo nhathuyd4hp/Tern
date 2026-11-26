@@ -27,7 +27,7 @@ const ConfirmFolderClose = ({ folder, onCancel, onCloseWithoutSave, onSaveAndClo
           <h1 className="ml-2 text-lg font-medium">Hold on..</h1>
         </div>
         <div className="font-normal mt-4">
-          You have unsaved changes in <span className="font-medium">{folder.name}</span> folder settings.
+          You have unsaved changes in <span className="font-medium">{folder.name}</span> collection settings.
         </div>
 
         <div className="flex justify-between mt-6">

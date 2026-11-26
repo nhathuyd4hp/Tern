@@ -20,7 +20,7 @@ const SANDBOX_OPTIONS = [
     label: 'Developer Mode',
     description: 'JavaScript code has access to the filesystem, can execute system commands and access sensitive information.',
     icon: IconCode,
-    warning: 'Use only if you trust the authors of the collection',
+    warning: 'Use only if you trust the authors of the application',
     recommended: false
   }
 ];

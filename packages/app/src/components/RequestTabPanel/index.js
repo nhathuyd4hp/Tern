@@ -369,7 +369,7 @@ const RequestTabPanel = () => {
   }
 
   if (!collection || !collection.uid) {
-    return <div className="pb-4 px-4">Collection not found!</div>;
+    return <div className="pb-4 px-4">Application not found!</div>;
   }
 
   if (focusedTab.type === 'response-example') {

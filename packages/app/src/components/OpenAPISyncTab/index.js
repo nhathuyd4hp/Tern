@@ -1,10 +1,8 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState } from 'react';
 import classnames from 'classnames';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { v4 as uuid } from 'uuid';
 import { addTab } from 'providers/ReduxStore/slices/tabs';
-import { setTabUiState } from 'providers/ReduxStore/slices/openapi-sync';
-import ResponsiveTabs from 'ui/ResponsiveTabs';
 import StyledWrapper from './StyledWrapper';
 import OpenAPISyncHeader from './OpenAPISyncHeader';
 import ConnectSpecForm from './ConnectSpecForm';
@@ -48,10 +46,10 @@ const OpenAPISyncTab = ({ collection }) => {
 
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showDisconnectModal, setShowDisconnectModal] = useState(false);
-  const activeTab = useSelector((state) => state.openapiSync?.tabUiState?.[collection.uid]?.activeTab) || 'overview';
-  const setActiveTab = useCallback((tab) => {
-    dispatch(setTabUiState({ collectionUid: collection.uid, activeTab: tab }));
-  }, [dispatch, collection.uid]);
+  // The sections share one page; the links that used to switch tabs now scroll to the section.
+  const scrollToSection = (section) => {
+    document.getElementById(`sync-${section}`)?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   const hasDriftData = collectionDrift && !collectionDrift.noStoredSpec;
   const collectionChangesCount = hasDriftData
@@ -68,20 +66,6 @@ const OpenAPISyncTab = ({ collection }) => {
     if (collectionChangesCount > 0 || specUpdatesCount > 0) return 'not-in-sync';
     return 'in-sync';
   })();
-
-  const syncTabs = useMemo(() => [
-    { key: 'overview', label: 'Overview' },
-    {
-      key: 'collection-changes',
-      label: 'Collection Changes',
-      indicator: collectionChangesCount > 0 ? <span className="tab-count">{collectionChangesCount}</span> : null
-    },
-    {
-      key: 'spec-updates',
-      label: 'Spec Updates',
-      indicator: specUpdatesCount > 0 ? <span className="tab-count">{specUpdatesCount}</span> : null
-    }
-  ], [collectionChangesCount, specUpdatesCount]);
 
   return (
     <StyledWrapper className="flex flex-col h-full relative px-4 pt-4 overflow-auto">
@@ -114,62 +98,49 @@ const OpenAPISyncTab = ({ collection }) => {
               isLoading={isLoading}
             />
 
-            <ResponsiveTabs
-              tabs={syncTabs}
-              activeTab={activeTab}
-              onTabSelect={setActiveTab}
-            />
+            <div className="sync-tab-content">
+              <OverviewSection
+                collection={collection}
+                storedSpec={storedSpec}
+                collectionDrift={collectionDrift}
+                specDrift={specDrift}
+                remoteDrift={remoteDrift}
+                onTabSelect={scrollToSection}
+                error={error}
+                onOpenSettings={() => setShowSettingsModal(true)}
+              />
+            </div>
 
-            {activeTab === 'overview' && (
-              <div className="sync-tab-content">
-                <OverviewSection
-                  collection={collection}
-                  storedSpec={storedSpec}
-                  collectionDrift={collectionDrift}
-                  specDrift={specDrift}
-                  remoteDrift={remoteDrift}
-                  onTabSelect={setActiveTab}
-                  error={error}
-                  onOpenSettings={() => setShowSettingsModal(true)}
-                />
-              </div>
-            )}
+            <div id="sync-collection-changes" className="sync-tab-content">
+              <CollectionStatusSection
+                collection={collection}
+                collectionDrift={collectionDrift}
+                reloadDrift={reloadDrift}
+                specDrift={specDrift}
+                storedSpec={storedSpec}
+                lastSyncDate={openApiSyncConfig?.lastSyncDate}
+                onOpenEndpoint={openEndpointInTab}
+                isLoading={isDriftLoading || isLoading}
+                onTabSelect={scrollToSection}
+              />
+            </div>
 
-            {activeTab === 'collection-changes' && (
-              <div className="sync-tab-content">
-
-                <CollectionStatusSection
-                  collection={collection}
-                  collectionDrift={collectionDrift}
-                  reloadDrift={reloadDrift}
-                  specDrift={specDrift}
-                  storedSpec={storedSpec}
-                  lastSyncDate={openApiSyncConfig?.lastSyncDate}
-                  onOpenEndpoint={openEndpointInTab}
-                  isLoading={isDriftLoading || isLoading}
-                  onTabSelect={setActiveTab}
-                />
-              </div>
-            )}
-
-            {activeTab === 'spec-updates' && (
-              <div className="sync-tab-content">
-                <SpecStatusSection
-                  collection={collection}
-                  sourceUrl={sourceUrl}
-                  isLoading={isLoading}
-                  error={error}
-                  setError={setError}
-                  fileNotFound={fileNotFound}
-                  specDrift={specDrift}
-                  storedSpec={storedSpec}
-                  collectionDrift={collectionDrift}
-                  remoteDrift={remoteDrift}
-                  onCheck={checkForUpdates}
-                  onOpenSettings={() => setShowSettingsModal(true)}
-                />
-              </div>
-            )}
+            <div id="sync-spec-updates" className="sync-tab-content">
+              <SpecStatusSection
+                collection={collection}
+                sourceUrl={sourceUrl}
+                isLoading={isLoading}
+                error={error}
+                setError={setError}
+                fileNotFound={fileNotFound}
+                specDrift={specDrift}
+                storedSpec={storedSpec}
+                collectionDrift={collectionDrift}
+                remoteDrift={remoteDrift}
+                onCheck={checkForUpdates}
+                onOpenSettings={() => setShowSettingsModal(true)}
+              />
+            </div>
           </>
         )}
 

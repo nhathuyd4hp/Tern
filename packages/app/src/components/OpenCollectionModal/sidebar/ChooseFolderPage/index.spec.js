@@ -82,7 +82,7 @@ describe('ChooseFolderPage', () => {
   it('shows the drop zone with the folder picker setting on by default', () => {
     renderPage();
 
-    expect(screen.getByTestId('choose-folder-drop-zone')).toHaveTextContent('Drop Kevin collection folders here');
+    expect(screen.getByTestId('choose-folder-drop-zone')).toHaveTextContent('Drop Kevin application folders here');
     expect(autoOpenCheckbox()).toBeChecked();
   });
 
@@ -130,7 +130,7 @@ describe('ChooseFolderPage', () => {
 
     expect(screen.queryByTestId('open-collection-note')).not.toBeInTheDocument();
     expect(screen.getAllByTestId('choose-folder-row')).toHaveLength(2);
-    expect(screen.getByTestId('choose-folder-open-selected')).toHaveTextContent('Open 1 collection');
+    expect(screen.getByTestId('choose-folder-open-selected')).toHaveTextContent('Open 1 application');
     expect(screen.queryByTestId('choose-folder-drop-zone')).not.toBeInTheDocument();
   });
 

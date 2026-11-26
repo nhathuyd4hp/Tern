@@ -73,7 +73,7 @@ describe('ModalShell', () => {
     renderShell('recents');
 
     expect(screen.getByTestId('open-collection-page-title')).toHaveTextContent('Recents');
-    expect(screen.getByText('Collections you opened recently, including ones you closed')).toBeInTheDocument();
+    expect(screen.getByText('Applications you opened recently, including ones you closed')).toBeInTheDocument();
     expect(screen.getByTestId('open-collection-page-recents')).toBeInTheDocument();
   });
 
@@ -84,7 +84,7 @@ describe('ModalShell', () => {
     expect(screen.getByTestId('open-collection-menu-item-choose-folder')).toHaveAttribute('aria-current', 'page');
   });
 
-  it('shows that collections are opening over the page and keeps the page out of reach', () => {
+  it('shows that applications are opening over the page and keeps the page out of reach', () => {
     const store = createStore({ isOpen: true, page: 'choose-folder', openingId: 'opening-1' });
     renderWithStore(<ModalShell />, store);
 
@@ -178,7 +178,7 @@ describe('ModalShell', () => {
       expect(queryOverlay()).not.toBeInTheDocument();
     });
 
-    it('does not offer a drop while collections are opening', () => {
+    it('does not offer a drop while applications are opening', () => {
       const store = createStore({ isOpen: true, page: 'choose-folder', openingId: 'opening-1' });
       renderWithStore(<ModalShell />, store);
 
@@ -187,7 +187,7 @@ describe('ModalShell', () => {
       expect(queryOverlay()).not.toBeInTheDocument();
     });
 
-    it('offers the drop once collections finish opening during the drag', () => {
+    it('offers the drop once applications finish opening during the drag', () => {
       const store = createStore({ isOpen: true, page: 'choose-folder', openingId: 'opening-1' });
       renderWithStore(<ModalShell />, store);
 
@@ -215,7 +215,7 @@ describe('ModalShell', () => {
   });
 
   it('leaves the note without an action when it names no file', () => {
-    const result = { id: 'search-1', type: 'message', note: { tone: 'info', text: 'Not a collection.' } };
+    const result = { id: 'search-1', type: 'message', note: { tone: 'info', text: 'Not an application.' } };
     const store = createStore({ isOpen: true, page: 'choose-folder', chooseFolder: { ...closedState.chooseFolder, result } });
     renderWithStore(<ModalShell />, store);
 
@@ -232,7 +232,7 @@ describe('ModalShell', () => {
   it('is a modal dialog labelled by its heading', () => {
     renderShell();
 
-    expect(screen.getByRole('dialog', { name: 'Open collection' })).toHaveAttribute('aria-modal', 'true');
+    expect(screen.getByRole('dialog', { name: 'Open application' })).toHaveAttribute('aria-modal', 'true');
   });
 
   it('closes from the Close button', () => {
@@ -267,7 +267,7 @@ describe('ModalShell', () => {
     expect(isOpen(store)).toBe(false);
   });
 
-  it('stays open while collections are opening', () => {
+  it('stays open while applications are opening', () => {
     const store = createStore({ isOpen: true, page: 'choose-folder', openingId: 'opening-1' });
     renderWithStore(<ModalShell />, store);
 
@@ -300,8 +300,8 @@ describe('ModalShell', () => {
     expect(screen.getByRole('textbox', { name: 'Search recents' })).toHaveFocus();
   });
 
-  it('shows the Choose folder note between the header and the page, and dismisses it', () => {
-    const note = { tone: 'info', text: 'work isn’t a collection itself, but it has 2 collections inside. Pick the ones to open.' };
+  it('shows the Choose collection note between the header and the page, and dismisses it', () => {
+    const note = { tone: 'info', text: 'work isn’t an application itself, but it has 2 applications inside. Pick the ones to open.' };
     const store = createStore({
       isOpen: true,
       page: 'choose-folder',

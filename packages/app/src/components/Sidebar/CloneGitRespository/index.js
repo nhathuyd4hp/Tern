@@ -411,13 +411,13 @@ const CloneGitRepository = ({ onClose, onFinish, collectionRepositoryUrl = null 
                   {collectionPaths.length === 0 && (
                     <div className="scan-warning flex items-start gap-2">
                       <IconAlertCircle className="scan-warning-icon" size={18} strokeWidth={1.5} />
-                      <div>No Kevin collections were found in this repository.</div>
+                      <div>No Kevin applications were found in this repository.</div>
                     </div>
                   )}
                   {collectionPaths.length > 0 && (
                     <SelectionList
-                      title="Collections"
-                      searchPlaceholder="Search Collections"
+                      title="Applications"
+                      searchPlaceholder="Search Applications"
                       items={collectionPaths}
                       selectedItems={selectedCollectionPaths}
                       onSelectAll={handleSelectAllCollections}

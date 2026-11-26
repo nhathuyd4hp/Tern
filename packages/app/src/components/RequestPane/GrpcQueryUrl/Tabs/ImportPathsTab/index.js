@@ -14,7 +14,7 @@ const ImportPathsTab = ({
       {collectionImportPaths && collectionImportPaths.length > 0 && (
         <div className="content-wrapper">
           <div className="header-wrapper">
-            <div className="header-text">From Collection Settings</div>
+            <div className="header-text">From Application Settings</div>
             <button
               onClick={onOpenCollectionProtobufSettings}
               className="settings-button"

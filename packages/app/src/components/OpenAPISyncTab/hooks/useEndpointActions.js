@@ -75,7 +75,7 @@ const useEndpointActions = (collection, collectionDrift, reloadDrift) => {
     setPendingAction({
       type: 'restore-endpoint',
       title: 'Restore Endpoint',
-      message: `Are you sure you want to restore "${endpoint.method} ${endpoint.path}" to your collection?`,
+      message: `Are you sure you want to restore "${endpoint.method} ${endpoint.path}" to your application?`,
       endpoint
     });
   };
@@ -85,7 +85,7 @@ const useEndpointActions = (collection, collectionDrift, reloadDrift) => {
     setPendingAction({
       type: 'restore-all-missing',
       title: 'Restore All Missing',
-      message: `Are you sure you want to restore ${collectionDrift.missing.length} missing endpoint(s) to your collection?`
+      message: `Are you sure you want to restore ${collectionDrift.missing.length} missing endpoint(s) to your application?`
     });
   };
 
@@ -137,13 +137,13 @@ const useEndpointActions = (collection, collectionDrift, reloadDrift) => {
       case 'restore-endpoint':
         return executeEndpointAction(
           ['renderer:add-missing-endpoints', { collectionPath: collection.pathname, endpoints: [endpoint] }],
-          `Added ${endpoint.method} ${endpoint.path} to collection`,
+          `Added ${endpoint.method} ${endpoint.path} to application`,
           'Failed to add endpoint'
         );
       case 'restore-all-missing':
         return executeEndpointAction(
           ['renderer:add-missing-endpoints', { collectionPath: collection.pathname, endpoints: collectionDrift.missing }],
-          `Added ${collectionDrift.missing.length} endpoints to collection`,
+          `Added ${collectionDrift.missing.length} endpoints to application`,
           'Failed to add endpoints'
         );
     }

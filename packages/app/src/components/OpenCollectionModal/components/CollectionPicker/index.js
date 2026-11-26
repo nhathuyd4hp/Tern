@@ -22,7 +22,7 @@ const ListItem = ({ children, item, context, ...props }) => (
 
 const Scroller = ({ tabIndex, context, ...props }) => <div {...props} />;
 
-const NoMatch = ({ context }) => <p className="collection-picker-no-match">No collection matches “{context.searchText}”.</p>;
+const NoMatch = ({ context }) => <p className="collection-picker-no-match">No application matches “{context.searchText}”.</p>;
 
 const CollectionPicker = ({
   collections,
@@ -91,8 +91,8 @@ const CollectionPicker = ({
         <input
           ref={searchInput}
           type="text"
-          placeholder="Search collections"
-          aria-label="Search found collections"
+          placeholder="Search applications"
+          aria-label="Search found applications"
           value={searchText}
           onChange={(event) => setSearchText(event.target.value)}
           data-testid={`${testIdPrefix}-search`}
@@ -113,7 +113,7 @@ const CollectionPicker = ({
 
       <div className="collection-picker-summary">
         <strong>
-          {countOf(collections.length, 'collection')} in {folders.length === 1 ? tildify(folders[0]) : countOf(folders.length, 'folder')}
+          {countOf(collections.length, 'application')} in {folders.length === 1 ? tildify(folders[0]) : countOf(folders.length, 'folder')}
         </strong>
         {visibleSelectableKeys.length > 1 && (
           <button
@@ -184,7 +184,7 @@ const CollectionPicker = ({
             onClick={() => onOpen(selectedPaths)}
             data-testid={`${testIdPrefix}-open-selected`}
           >
-            {selectedPaths.length > 0 ? `Open ${countOf(selectedPaths.length, 'collection')}` : 'Open'}
+            {selectedPaths.length > 0 ? `Open ${countOf(selectedPaths.length, 'application')}` : 'Open'}
           </Button>
         </div>
       </div>

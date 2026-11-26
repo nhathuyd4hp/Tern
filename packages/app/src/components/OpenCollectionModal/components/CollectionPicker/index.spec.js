@@ -49,33 +49,33 @@ describe('CollectionPicker', () => {
     delete Element.prototype.checkVisibility;
   });
 
-  it('says how many collections were found in the picked folder', () => {
+  it('says how many applications were found in the picked collection', () => {
     renderPicker();
 
-    expect(document.querySelector('.collection-picker-summary strong')).toHaveTextContent('4 collections in ~/work');
+    expect(document.querySelector('.collection-picker-summary strong')).toHaveTextContent('4 applications in ~/work');
   });
 
-  it('counts the picked folders when there are several', () => {
+  it('counts the picked collections when there are several', () => {
     renderPicker({ folders: ['/Users/me/work', '/Users/me/shop'] });
 
-    expect(document.querySelector('.collection-picker-summary strong')).toHaveTextContent('4 collections in 2 folders');
+    expect(document.querySelector('.collection-picker-summary strong')).toHaveTextContent('4 applications in 2 folders');
   });
 
-  it('counts a collection picked directly as one of the folders, without changing where the rows sit', () => {
+  it('counts an application picked directly as one of the collections, without changing where the rows sit', () => {
     renderPicker({ folders: ['/Users/me/work', '/Users/me/work/shop/orders'] });
 
-    expect(document.querySelector('.collection-picker-summary strong')).toHaveTextContent('4 collections in 2 folders');
+    expect(document.querySelector('.collection-picker-summary strong')).toHaveTextContent('4 applications in 2 folders');
     expect(rowFor('Orders').querySelector('.collection-row-meta')).toHaveTextContent('shop/orders');
     expect(rowFor('Payments').querySelector('.collection-row-meta')).toHaveTextContent('payments');
   });
 
-  it('lists the collections in the order found, with the ones already open last', () => {
+  it('lists the applications in the order found, with the ones already open last', () => {
     renderPicker({ openPathKeys: new Set(['/Users/me/work/payments']) });
 
     expect(rowNames()).toEqual(['Billing', 'Orders', 'Accounts', 'Payments']);
   });
 
-  it('shows each collection’s path and where it sits in the picked folder', () => {
+  it('shows each application’s path and where it sits in the picked collection', () => {
     renderPicker({ collections: [...collections, { path: '/Users/me/api', name: 'API' }] });
 
     const orders = rowFor('Orders');
@@ -86,7 +86,7 @@ describe('CollectionPicker', () => {
     expect(rowFor('API').querySelector('.collection-row-meta')).toHaveTextContent('api');
   });
 
-  it('marks a collection that is already open and leaves it out of the selection', () => {
+  it('marks an application that is already open and leaves it out of the selection', () => {
     renderPicker({ openPathKeys: new Set(['/Users/me/work/billing']) });
     const billing = rowFor('Billing');
 
@@ -110,7 +110,7 @@ describe('CollectionPicker', () => {
     fireEvent.click(within(rowFor('Orders')).getByLabelText('Select Orders'));
 
     expect(footerStart()).toHaveTextContent('2 selected');
-    expect(openButton()).toHaveTextContent('Open 2 collections');
+    expect(openButton()).toHaveTextContent('Open 2 applications');
     fireEvent.click(openButton());
     expect(onOpen).toHaveBeenCalledWith(['/Users/me/work/payments', '/Users/me/work/shop/orders']);
 
@@ -122,10 +122,10 @@ describe('CollectionPicker', () => {
   it('starts with the initial selection', () => {
     renderPicker({ initialSelection: ['/Users/me/work/billing'] });
 
-    expect(openButton()).toHaveTextContent('Open 1 collection');
+    expect(openButton()).toHaveTextContent('Open 1 application');
   });
 
-  it('never shows an already open collection as ticked or counts it, even when it was picked directly', () => {
+  it('never shows an already open application as ticked or counts it, even when it was picked directly', () => {
     renderPicker({ initialSelection: ['/Users/me/work/billing'], openPathKeys: new Set(['/Users/me/work/billing']) });
 
     expect(within(rowFor('Billing')).getByLabelText('Select Billing')).not.toBeChecked();
@@ -140,20 +140,20 @@ describe('CollectionPicker', () => {
     expect(screen.getByTestId('picker-list').querySelector('[tabindex="0"]')).toBeNull();
   });
 
-  it('selects every shown collection, then clears them', () => {
+  it('selects every shown application, then clears them', () => {
     renderPicker({ openPathKeys: new Set(['/Users/me/work/billing']) });
     const selectAll = screen.getByTestId('picker-select-all');
     expect(selectAll).toHaveTextContent('Select all');
 
     fireEvent.click(selectAll);
-    expect(openButton()).toHaveTextContent('Open 3 collections');
+    expect(openButton()).toHaveTextContent('Open 3 applications');
     expect(selectAll).toHaveTextContent('Clear selection');
 
     fireEvent.click(selectAll);
     expect(openButton()).toBeDisabled();
   });
 
-  it('clears only the shown collections and keeps the selections the search hides', () => {
+  it('clears only the shown applications and keeps the selections the search hides', () => {
     renderPicker({
       collections: [...collections, { path: '/Users/me/work/pay-ins', name: 'Pay ins' }],
       initialSelection: ['/Users/me/work/accounts']
@@ -162,19 +162,19 @@ describe('CollectionPicker', () => {
     const selectAll = screen.getByTestId('picker-select-all');
 
     fireEvent.click(selectAll);
-    expect(openButton()).toHaveTextContent('Open 3 collections');
+    expect(openButton()).toHaveTextContent('Open 3 applications');
 
     fireEvent.click(selectAll);
-    expect(openButton()).toHaveTextContent('Open 1 collection');
+    expect(openButton()).toHaveTextContent('Open 1 application');
   });
 
-  it('offers Select all only when two or more collections can be picked', () => {
+  it('offers Select all only when two or more applications can be picked', () => {
     renderPicker({ openPathKeys: new Set(['/Users/me/work/billing', '/Users/me/work/shop/orders', '/Users/me/work/accounts']) });
 
     expect(screen.queryByTestId('picker-select-all')).not.toBeInTheDocument();
   });
 
-  it('searches names and paths, and keeps counting selected collections the search hides', () => {
+  it('searches names and paths, and keeps counting selected applications the search hides', () => {
     renderPicker({ initialSelection: ['/Users/me/work/accounts'] });
 
     search('shop/');
@@ -188,7 +188,7 @@ describe('CollectionPicker', () => {
 
     search('PAY');
     expect(rowNames()).toEqual(['Payments']);
-    expect(openButton()).toHaveTextContent('Open 1 collection');
+    expect(openButton()).toHaveTextContent('Open 1 application');
 
     fireEvent.click(screen.getByTestId('picker-search-clear'));
     expect(rows()).toHaveLength(4);
@@ -210,7 +210,7 @@ describe('CollectionPicker', () => {
 
     search('  zzz ');
 
-    expect(screen.getByText('No collection matches “zzz”.')).toBeInTheDocument();
+    expect(screen.getByText('No application matches “zzz”.')).toBeInTheDocument();
   });
 
   it('keeps focus in the search box when the search is cleared', () => {
@@ -234,7 +234,7 @@ describe('CollectionPicker', () => {
     expect(screen.getByTestId('picker-cancel')).toHaveFocus();
   });
 
-  it('opens one collection from its row without changing the selection', () => {
+  it('opens one application from its row without changing the selection', () => {
     const { onOpen } = renderPicker();
 
     fireEvent.click(within(rowFor('Payments')).getByLabelText('Open Payments'));
@@ -242,7 +242,7 @@ describe('CollectionPicker', () => {
     expect(openButton()).toBeDisabled();
   });
 
-  it('chooses other folders and cancels', () => {
+  it('chooses other collections and cancels', () => {
     const { onChooseOtherFolders, onCancel } = renderPicker();
 
     fireEvent.click(screen.getByTestId('picker-choose-other'));

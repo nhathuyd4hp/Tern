@@ -80,15 +80,15 @@ const useSyncFlow = ({
       dispatch(clearCollectionUpdate({ collectionUid: collection.uid }));
       toast.success(
         mode === 'spec-only' ? 'Spec updated successfully'
-          : mode === 'reset' ? 'Collection reset to spec successfully'
-            : 'Collection synced successfully'
+          : mode === 'reset' ? 'Application reset to spec successfully'
+            : 'Application synced successfully'
       );
 
       // Re-check to show "up to date" state
       await checkForUpdates();
     } catch (err) {
       console.error('Error syncing collection:', err);
-      setError(formatIpcError(err) || 'Failed to sync collection');
+      setError(formatIpcError(err) || 'Failed to sync application');
     } finally {
       setIsSyncing(false);
     }

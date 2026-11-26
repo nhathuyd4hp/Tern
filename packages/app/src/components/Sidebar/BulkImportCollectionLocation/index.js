@@ -44,13 +44,13 @@ const IMPORT_TYPE = {
 
 // Extract collection name from raw data
 const getCollectionName = (format, rawData) => {
-  if (!rawData) return 'Collection';
+  if (!rawData) return 'Application';
 
   switch (format) {
     case 'openapi':
-      return rawData.info?.title || 'OpenAPI Collection';
+      return rawData.info?.title || 'OpenAPI Application';
     case 'postman':
-      return rawData.info?.name || rawData.collection?.info?.name || 'Postman Collection';
+      return rawData.info?.name || rawData.collection?.info?.name || 'Postman Application';
     case 'insomnia':
       // For Insomnia v4 format, name is in the workspace resource
       if (rawData.resources && Array.isArray(rawData.resources)) {
@@ -60,15 +60,15 @@ const getCollectionName = (format, rawData) => {
         }
       }
       // Fallback to root name property
-      return rawData.name || 'Insomnia Collection';
+      return rawData.name || 'Insomnia Application';
     case 'bruno':
-      return rawData.name || 'Kevin Collection';
+      return rawData.name || 'Kevin Application';
     case 'opencollection':
       return rawData.info?.name || 'OpenCollection';
     case 'wsdl':
-      return 'WSDL Collection';
+      return 'WSDL Application';
     default:
-      return 'Collection';
+      return 'Application';
   }
 };
 
@@ -101,7 +101,7 @@ const convertCollection = async (format, rawData, { groupingType, authPlacement,
       collection = await processOpenCollection(rawData);
       break;
     default:
-      throw new Error('Unknown collection format');
+      throw new Error('Unknown application format');
   }
 
   return { collection, issues };
@@ -631,7 +631,7 @@ export const BulkImportCollectionLocation = ({
 
                     <div className="flex items-center justify-between mb-2">
                       <div className="font-semibold">
-                        Importing Collections ({importStatus.totalSelected})
+                        Importing Applications ({importStatus.totalSelected})
                       </div>
                       {importStatus.failedCount > 0 && importStatus.totalSelected > 0 && (
                         <div className="text-sm text-red-500">
@@ -775,8 +775,8 @@ export const BulkImportCollectionLocation = ({
                   <div className="w-full mb-6">
                     <SelectionList
                       dataTestId="selection-section-collections"
-                      title="Collections"
-                      searchPlaceholder="Search Collections"
+                      title="Applications"
+                      searchPlaceholder="Search Applications"
                       items={sortedCollections}
                       selectedItems={selectedCollections}
                       onSelectAll={handleSelectAllCollections}
@@ -787,7 +787,7 @@ export const BulkImportCollectionLocation = ({
                       visibleRows={5}
                       rowHeight={isMultipleImport ? 60 : 30}
                       rowGap={4}
-                      emptyMessage="No collections found"
+                      emptyMessage="No applications found"
                       showSelectedCount={true}
                     />
                   </div>
@@ -828,7 +828,7 @@ export const BulkImportCollectionLocation = ({
                             <span className="ml-2">
                               Global Environment
                               <InfoTip
-                                content="Environments will be imported and stored as global, accessible across collections."
+                                content="Environments will be imported and stored as global, accessible across applications."
                                 infotipId="apply-to-global-infotip"
                               />
                             </span>
@@ -842,9 +842,9 @@ export const BulkImportCollectionLocation = ({
                               className="mr-2"
                             />
                             <span className="ml-2">
-                              Duplicate Across Collections
+                              Duplicate Across Applications
                               <InfoTip
-                                content="Each imported collection will receive its own copy of the environments."
+                                content="Each imported application will receive its own copy of the environments."
                                 infotipId="apply-to-each-infotip"
                               />
                             </span>
@@ -860,7 +860,7 @@ export const BulkImportCollectionLocation = ({
                       id="collection-location"
                       data-testid="bulk-import-collection-location-input"
                       type="text"
-                      placeholder="Select a location to save the collection"
+                      placeholder="Select a location to save the application"
                       name="collectionLocation"
                       className="block textbox w-full cursor-pointer"
                       autoComplete="off"
@@ -890,7 +890,7 @@ export const BulkImportCollectionLocation = ({
                       <label htmlFor="format" className="flex items-center font-semibold">
                         File Format
                         <Help width="300">
-                          <p>Choose the file format for storing requests in this collection.</p>
+                          <p>Choose the file format for storing requests in this application.</p>
                           <p className="mt-2">
                             <strong>OpenCollection (YAML):</strong> Industry-standard YAML format (.yml files)
                           </p>

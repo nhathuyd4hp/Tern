@@ -49,9 +49,9 @@ const ProtoFileDropdown = ({
     }
 
     if (alreadyExists) {
-      toast.error('Proto file already exists in collection settings');
+      toast.error('Proto file already exists in application settings');
     } else {
-      toast.success('Added proto file to collection');
+      toast.success('Added proto file to application');
     }
 
     dispatch(updateRequestProtoPath({
@@ -100,7 +100,7 @@ const ProtoFileDropdown = ({
       return;
     }
 
-    toast.success('Added import path to collection');
+    toast.success('Added import path to application');
   };
 
   const handleToggleImportPath = async (index) => {

@@ -10,11 +10,11 @@ import StyledWrapper, { ModalTitle } from './StyledWrapper';
 
 const CollectionNotFound = ({ onClose }) => (
   <Portal>
-    <Modal size="sm" title="Change Collection Version" confirmText="Close" handleConfirm={onClose} hideCancel>
+    <Modal size="sm" title="Change Application Version" confirmText="Close" handleConfirm={onClose} hideCancel>
       <StyledWrapper className="w-[480px]">
         <div className="flex items-center gap-2 text-warning">
           <IconAlertTriangle size={16} className="shrink-0" />
-          <span>Collection not found. It may have been deleted or is no longer available.</span>
+          <span>Application not found. It may have been deleted or is no longer available.</span>
         </div>
       </StyledWrapper>
     </Modal>
@@ -61,7 +61,7 @@ const ChangeCollectionVersion = ({ collectionUid, onClose }) => {
     <Portal>
       <Modal
         size="md"
-        customHeader={<ModalTitle>Change Collection Version</ModalTitle>}
+        customHeader={<ModalTitle>Change Application Version</ModalTitle>}
         confirmText={isSaving ? 'Updating...' : 'Update Version'}
         cancelText="Cancel"
         handleConfirm={handleConfirm}
@@ -71,7 +71,7 @@ const ChangeCollectionVersion = ({ collectionUid, onClose }) => {
       >
         <StyledWrapper className="w-[560px]">
           <div className="subheader" data-testid="change-version-collection">
-            Collection: <span className="collection-name">{collection.name}</span>
+            Application: <span className="collection-name">{collection.name}</span>
           </div>
 
           <div className="version-card">

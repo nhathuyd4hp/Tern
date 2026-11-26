@@ -30,7 +30,7 @@ export const OPEN_COLLECTION_PAGES = [
     id: 'choose-folder',
     label: 'Choose folder…',
     title: 'Choose folder',
-    description: 'Pick one or more collection folders to open them in Kevin.',
+    description: 'Pick one or more application folders to open them in Kevin.',
     icon: IconFolder,
     component: ChooseFolderPage
   },
@@ -38,7 +38,7 @@ export const OPEN_COLLECTION_PAGES = [
     id: 'recents',
     label: 'Recents',
     title: 'Recents',
-    description: 'Collections you opened recently, including ones you closed',
+    description: 'Applications you opened recently, including ones you closed',
     icon: IconClock,
     component: RecentsPage
   },
@@ -46,7 +46,7 @@ export const OPEN_COLLECTION_PAGES = [
     id: 'my-computer',
     label: 'My computer',
     title: 'My computer',
-    description: 'Collections Kevin found on your computer',
+    description: 'Applications Kevin found on your computer',
     icon: IconDeviceLaptop,
     group: 'sources',
     component: MyComputerPage
@@ -55,7 +55,7 @@ export const OPEN_COLLECTION_PAGES = [
     id: 'registry',
     label: 'Registry',
     title: 'Registry',
-    description: 'Collections published to your team’s private registry',
+    description: 'Applications published to your team’s private registry',
     icon: IconDatabase,
     group: 'sources',
     component: RegistryPage
@@ -64,7 +64,7 @@ export const OPEN_COLLECTION_PAGES = [
     id: 'api-catalog',
     label: 'API Catalog',
     title: 'API Catalog',
-    description: 'Every public Kevin collection indexed from GitHub',
+    description: 'Every public Kevin application indexed from GitHub',
     icon: IconBrandSafari,
     group: 'sources',
     component: ApiCatalogPage

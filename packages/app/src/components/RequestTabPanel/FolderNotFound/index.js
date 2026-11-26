@@ -28,8 +28,8 @@ const FolderNotFound = ({ folderUid }) => {
 
   const errors = [
     {
-      title: 'Folder no longer exists',
-      message: 'This can happen when the folder was renamed or deleted on your filesystem.'
+      title: 'Collection no longer exists',
+      message: 'This can happen when the collection was renamed or deleted on your filesystem.'
     }
   ];
 

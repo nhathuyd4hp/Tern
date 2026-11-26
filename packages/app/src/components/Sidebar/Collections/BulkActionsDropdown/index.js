@@ -80,7 +80,7 @@ const BulkActionsDropdown = ({ visible, onClose, position, onRequestRemoveCollec
       });
       clearAndClose();
     } catch (err) {
-      toast.error('An error occurred while toggling collections');
+      toast.error('An error occurred while toggling applications');
     }
   }, [dispatch, clearAndClose]);
 

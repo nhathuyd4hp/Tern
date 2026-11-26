@@ -141,8 +141,8 @@ describe('ImportHandoff', () => {
   });
 
   it.each([
-    ['an existing folder', true, 'Failed to import the collection'],
-    ['not a folder', false, 'Failed to import the collection: /work is not an existing folder']
+    ['an existing folder', true, 'Failed to import the application'],
+    ['not a folder', false, 'Failed to import the application: /work is not an existing folder']
   ])('keeps the location modal open when nothing was imported and the location is %s', async (_label, isFolder, message) => {
     importCollection.mockReturnValue(() => Promise.resolve(undefined));
     isDirectory.mockResolvedValue(isFolder);

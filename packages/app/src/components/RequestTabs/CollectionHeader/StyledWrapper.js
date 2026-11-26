@@ -39,9 +39,6 @@ const StyledWrapper = styled.div`
     }
 
     .switcher-name {
-      max-width: 124px;
-      overflow: hidden;
-      text-overflow: ellipsis;
       white-space: nowrap;
 
       &.scratch-collection {

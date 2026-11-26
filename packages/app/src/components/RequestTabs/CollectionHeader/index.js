@@ -118,7 +118,7 @@ const CollectionHeader = ({ collection, isScratchCollection }) => {
   // Display name and icon based on context
   const displayName = isScratchCollection
     ? 'Home'
-    : (collection.name || 'Untitled Collection');
+    : (collection.name || 'Untitled Application');
 
   const DisplayIcon = isScratchCollection ? IconCategory : IconBox;
 
@@ -196,7 +196,7 @@ const CollectionHeader = ({ collection, isScratchCollection }) => {
     ...(!hasOpenApiSyncConfigured
       ? [{ id: 'openapi-sync', label: 'OpenAPI', leftSection: OpenAPISyncIcon, onClick: viewOpenApiSync }]
       : []),
-    { id: 'collection-settings', label: 'Collection Settings', leftSection: IconSettings, onClick: viewCollectionSettings }
+    { id: 'collection-settings', label: 'Application Settings', leftSection: IconSettings, onClick: viewCollectionSettings }
   ];
 
   const handleDisplayIconClick = (e) => {
@@ -227,7 +227,7 @@ const CollectionHeader = ({ collection, isScratchCollection }) => {
                 </button>
               )}
             >
-              <div className="max-w-124 overflow-hidden">
+              <div>
                 {currentWorkspace && (
                   <>
                     <div
@@ -252,7 +252,7 @@ const CollectionHeader = ({ collection, isScratchCollection }) => {
                 {mountedCollections.length > 0 && (
                   <>
                     <div className="dropdown-separator" />
-                    <div className="label-item">Collections</div>
+                    <div className="label-item">Applications</div>
                     {mountedCollections.map((col) => {
                       const colTabCount = getTabCount(col.uid);
                       return (
@@ -266,7 +266,7 @@ const CollectionHeader = ({ collection, isScratchCollection }) => {
                           <div className="dropdown-icon">
                             <IconBox size={16} strokeWidth={1.5} />
                           </div>
-                          <span className="dropdown-label collection-header-dropdown-label">{col.name || 'Untitled Collection'}</span>
+                          <span className="dropdown-label collection-header-dropdown-label">{col.name || 'Untitled Application'}</span>
                           {colTabCount > 0 && (
                             <span className="dropdown-tab-count">{colTabCount}</span>
                           )}
@@ -287,7 +287,7 @@ const CollectionHeader = ({ collection, isScratchCollection }) => {
                 <div
                   className="migrate-yml-pill"
                   data-testid="migrate-yml-pill"
-                  title="Migrate this collection to YML"
+                  title="Migrate this application to YML"
                 >
                   <button
                     type="button"

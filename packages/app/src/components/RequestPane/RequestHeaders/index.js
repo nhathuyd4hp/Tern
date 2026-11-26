@@ -362,8 +362,8 @@ const RequestHeaders = ({ item, collection, addHeaderText }) => {
     if (row.rowType === ROW_TYPE.INHERITED) {
       const sourceName = row.source.name || 'Unnamed';
       const sourceLabel = row.source.type === 'folder'
-        ? `folder “${sourceName}”`
-        : `collection “${sourceName}”`;
+        ? `collection “${sourceName}”`
+        : `application “${sourceName}”`;
 
       return (
         <HeaderHint
