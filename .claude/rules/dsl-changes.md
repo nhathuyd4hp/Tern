@@ -2,10 +2,8 @@
 paths:
   - "packages/bruno-app/**"
   - "packages/bruno-electron/**"
-  - "packages/bruno-cli/**"
   - "packages/bruno-lang/**"
   - "packages/bruno-filestore/**"
-  - "packages/bruno-io/**"
   - "packages/bruno-schema/**"
   - "packages/bruno-schema-types/**"
   - "packages/bruno-converters/**"
@@ -27,8 +25,7 @@ exist:
 - Plus `bruno.json` (per-collection config, passed through `stringifyCollection`) and `.env` files
   (`parseDotEnv` / `dotenvToJson`).
 
-(`packages/bruno-toml` exists but is **orphaned** — imported nowhere outside its own test and on no
-serialization path; a DSL change never needs it. `preferences.json` is app-level electron-store
+(`preferences.json` is app-level electron-store
 state under `userData`, not part of a collection's on-disk contract, so it is out of scope here.)
 
 These files outlive the version that wrote them: an older Bruno reads files written by a
@@ -43,7 +40,7 @@ layer — in `bruno-electron` (IPC handlers) or `bruno-app` (Redux) — and hand
 change can originate in *any* package on the data path, not just the format packages. Treat
 this rule as in scope for changes anywhere the collection/request/environment/config object
 is built, mutated, or serialized — the serialization packages plus `bruno-app`,
-`bruno-electron`, and `bruno-cli`, where these objects are assembled or read/written. Adding a
+and `bruno-electron`, where these objects are assembled or read/written. Adding a
 persisted field in app/electron without wiring it through `bruno-filestore` (both formats) and
 `bruno-schema` silently drops or rejects data on save — the exact bug this rule guards against.
 
@@ -185,7 +182,7 @@ Find a comparable field already in the code and follow how it's wired before add
 - [ ] Types (`bruno-schema-types`), Yup schema (`bruno-schema`), and converters updated —
       "converters" means `bruno-converters/src/opencollection/items/*` in **both** directions,
       which is a different field list from `bruno-filestore`
-- [ ] Field survives the app save transform and BRU → YML migration (see `feature-parity.md` §2)
+- [ ] Field survives the app save transform and BRU → YML migration (see `feature-parity.md` §1)
 - [ ] Old files still parse — read-time compat shim added if the shape changed
 - [ ] No new `.bru` syntax that older parsers can't read (or a forward-compat path decided)
 - [ ] Any new escaping proven via on-disk reparse + fuzz, escaping single chars not the delimiter

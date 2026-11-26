@@ -1,4 +1,0 @@
-name: staging
-variables:
-  - name: apiKeyValue
-    value: plain-env-value

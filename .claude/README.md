@@ -13,10 +13,9 @@ automatically when you launch from the project root.
 | Path | What it is | Loads |
 |------|------------|-------|
 | `CLAUDE.md` | Project overview — commands, key architecture, coding standards, index of rules/references. | Every session (auto). |
-| `rules/*.md` | Path-scoped engineering guidance: `architecture` (`@usebruno/*` dependency boundaries + manifests), `bruno-app-layout` (component directories, `src/ui` vs `src/components`), `redux-store`, `electron-ipc`, `sqlite` (`@usebruno/sqlite` — migrations, statements, per-statement IPC), `dsl-changes` (on-disk `.bru`/`.yml` format), `cross-platform`, `testing`, `conventions` (readability, reuse, replacement hygiene, comment/diff hygiene). | When Claude touches files matching each rule's `paths:`. |
+| `rules/*.md` | Path-scoped engineering guidance: `architecture` (`@usebruno/*` dependency boundaries + manifests), `bruno-app-layout` (component directories, `src/ui` vs `src/components`), `redux-store`, `electron-ipc`, `sqlite` (`@usebruno/sqlite` — migrations, statements, per-statement IPC), `dsl-changes` (on-disk `.bru`/`.yml` format), `cross-platform`, `conventions` (readability, reuse, replacement hygiene, comment/diff hygiene). | When Claude touches files matching each rule's `paths:`. |
 | `reference/architecture.md` | The monorepo map — request pipeline, sandbox, file formats, core types, dependency versions. Too big to auto-load. | On demand only (Claude reads it when a task needs it). |
-| `skills/code-review/` | `/code-review` — reviews the current branch/PR via focused lenses in parallel; takes base pointers from `.coderabbit.yaml`. | On invocation / when relevant. |
-| `skills/write-e2e-test/` | `/write-e2e-test` — writes a Playwright E2E test following Bruno's fixtures and conventions. | On invocation / when relevant. |
+| `skills/code-review/` | `/code-review` — reviews the current branch/PR via focused lenses in parallel. | On invocation / when relevant. |
 | `settings.json` | Shared project settings, checked in for the team. Denies `Read` on `**/dist/**` so Claude works from `src/`, not generated bundles. | At startup, from the launch directory. |
 | `settings.local.json` | Your machine-specific overrides. Gitignored — never committed. | At startup, if present. |
 
@@ -36,13 +35,12 @@ Start Claude Code (`claude`) from the Bruno root and everything loads on its own
   kicks in on `bruno-filestore`). Launching from a package subdirectory still loads this root
   `.claude/` (rules + `CLAUDE.md`) from the ancestor directory.
 - **`reference/architecture.md`** is *not* auto-loaded; Claude reads it on demand.
-- **Skills** are discovered from `.claude/skills/` — type `/code-review` or `/write-e2e-test`.
+- **Skills** are discovered from `.claude/skills/` — type `/code-review`.
 
 ## Everyday use
 
 ```bash
 /code-review            # review the current branch against main before pushing
-/write-e2e-test         # scaffold a Playwright spec under tests/
 ```
 
 Otherwise just work normally — Claude consults the rules on demand. Machine-specific overrides go
@@ -102,7 +100,7 @@ maintained place under `.claude/` and attach exactly where they're needed (see t
 
 - **Detect duplication/conflicts**: `grep -rn "<claim>" .claude` before writing a fact; if two files
   state the same thing, keep it in one and point to it. Watch for the same fact drifting across
-  `CLAUDE.md`, a rule, a skill, and `CODING_STANDARDS.md` / `.coderabbit.yaml`.
+  `CLAUDE.md`, a rule, a skill, and `CODING_STANDARDS.md`.
 - **Verify against real code.** Every rule/example must reflect the actual repo — grep the source,
   don't assume. Rules are the source of truth; reviewer lenses and CLAUDE.md are thin pointers.
 - **Don't hardcode volatile catalogs** (slice lists, handler names, dep versions that drift).
@@ -131,7 +129,7 @@ maintained place under `.claude/` and attach exactly where they're needed (see t
   confirm the right rule attaches. Use the `InstructionsLoaded` hook only temporarily if you need to
   debug lazy loading — don't commit a diagnostic hook.
 - **Skill triggering**: from the repo root, phrase a request the skill should catch ("review my
-  changes", "add an e2e test for X") and confirm it's offered; phrase a near-miss ("explain how
+  changes", "add a unit test for X") and confirm it's offered; phrase a near-miss ("explain how
   requests are persisted") and confirm it is *not* auto-invoked.
 
 ### When to revisit

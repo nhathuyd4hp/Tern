@@ -1,6 +1,0 @@
-{
-  "name": "Development",
-  "variables": [
-    { "name": "api_url", "value": "http://localhost:3000", "enabled": true, "secret": false }
-  ]
-}

@@ -1,8 +1,0 @@
-info:
-  name: DELETE-Request
-  type: http
-  seq: 4
-
-http:
-  method: DELETE
-  url: "{{host}}/api/resource"

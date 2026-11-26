@@ -22,23 +22,19 @@ Full script list: root `package.json`. Setup: `nvm use && npm i --legacy-peer-de
 # Single unit test (Jest) — scope to the workspace, pass a path/pattern after --
 npm test --workspace=packages/bruno-app -- path/to/file.spec.js
 npm test --workspace=packages/bruno-requests -- -t "test name pattern"
-
-# Single e2e test (Playwright) — a project flag is REQUIRED (config has no default)
-npx playwright test tests/collection/create-collection.spec.ts --project=default
-npx playwright test --project=default -g "test name pattern"
 ```
 
-Prefer the smallest scope — one workspace, one spec — over `--workspaces` or the full e2e run.
+Prefer the smallest scope — one workspace, one spec — over `--workspaces`.
 
 ### Building shared packages
 
 `npm run dev` does **not** rebuild the shared packages (bruno-common, bruno-requests,
-bruno-filestore, bruno-io, bruno-sqlite, bruno-converters, bruno-query, bruno-schema-types,
+bruno-filestore, bruno-sqlite, bruno-converters, bruno-query, bruno-schema-types,
 bruno-graphql-docs).
 After editing one, rebuild it or run its watcher, or the app won't pick up changes:
 
 ```bash
-npm run build:bruno-common      # also :bruno-requests, :bruno-filestore, :bruno-io, :bruno-sqlite, etc.
+npm run build:bruno-common      # also :bruno-requests, :bruno-filestore, :bruno-sqlite, etc.
 npm run watch:common            # also watch:requests, watch:converters
 ```
 
@@ -46,13 +42,11 @@ npm run watch:common            # also watch:requests, watch:converters
 
 - **Main process entry**: `packages/bruno-electron/src/index.js`
 - **Renderer + Redux store**: `packages/bruno-app/src/providers/ReduxStore/`
-- Packages live under `packages/`, with top-level `tests/` and `playwright/`.
+- Packages live under `packages/`.
 
 ## Testing
 
 - **Unit**: Jest, config per-package (`packages/*/jest.config.js`); bruno-app uses jsdom + `jest.setup.js`.
-- **E2E**: Playwright — fixtures, helpers, isolation rules, and pitfalls live in
-  `.claude/rules/testing.md`; use the `write-e2e-test` skill when adding specs.
 
 ## Coding Standards
 
@@ -62,17 +56,16 @@ Non-obvious project rules worth holding:
 
 - React: avoid `useEffect` (prefer derived state / custom hooks); import hooks by name, never `React.useX`; a component is controlled XOR uncontrolled; Tailwind for layout, styled-components `theme` for colors.
 - Every component owns a directory — `<ComponentName>/index.js(x)`, never `<ComponentName>.js(x)`.
-- Extract for readability or clear reuse; avoid only indirection that adds no payoff. Add `data-testid` attributes for Playwright selectors.
+- Extract for readability or clear reuse; avoid only indirection that adds no payoff.
 
 ## Detailed rules & references
 
 Path-scoped rules in `.claude/rules/` auto-attach when you touch matching files:
 `architecture.md` (`@usebruno/*` dependency boundaries, manifests), `bruno-app-layout.md` (bruno-app
 module layout), `electron-ipc.md` (IPC handlers + startup), `redux-store.md` (slices/middleware),
-`sqlite.md` (`@usebruno/sqlite` — migrations, statements, per-statement IPC), `testing.md` (e2e
-patterns & gotchas), `cross-platform.md` (Windows file/process/path pitfalls), `dsl-changes.md`
+`sqlite.md` (`@usebruno/sqlite` — migrations, statements, per-statement IPC), `cross-platform.md` (Windows file/process/path pitfalls), `dsl-changes.md`
 (on-disk `.bru`/`.yml` format & backward compat), `feature-parity.md` (co-related features —
-app↔CLI twins, converter/shim/level/protocol pairs), `conventions.md` (readability, reuse,
+converter/shim/level/protocol pairs), `conventions.md` (readability, reuse,
 replacement & pre-submit hygiene).
 
 Read on demand (not auto-loaded): `.claude/reference/architecture.md` — the monorepo map, request

@@ -26,7 +26,7 @@ defect without resolving it are a **blocker**:
   and edge cases the change introduces.
 - **Check the twin path.** Bruno keeps parallel implementations of the same behavior — `.bru`
   vs `.yml` serializers, the default app-data workspace vs custom-filesystem workspaces, the
-  Electron request pipeline vs its `bruno-cli` copy, the scripting API vs its QuickJS shim,
+  scripting API vs its QuickJS shim,
   `bruno-filestore` vs the `bruno-converters` export. A change that touches one path must be
   verified against its twin; behavior that diverges between them (a value that persists or
   defaults in one but is dropped or defaulted differently in the other) is a bug, not two

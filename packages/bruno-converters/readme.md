@@ -57,15 +57,14 @@ const brunoCollection = await wsdlToBruno(wsdlContent);
 ```javascript
 
 const { postmanToBruno } = require('@usebruno/converters');
-const { writeCollection } = require('@usebruno/io');
 const fs = require('fs/promises');
 
 async function convertPostmanToBruno(inputFile, outputDir) {
   const inputData = await fs.readFile(inputFile, 'utf8');
 
   const collection = await postmanToBruno(JSON.parse(inputData));
-  // Writes YAML (OpenCollection) files.
-  await writeCollection(collection, outputDir);
+  // `collection` is a Bruno collection object; serialize it with @usebruno/filestore.
+  return collection;
 }
 
 convertPostmanToBruno('demo_collection.postman_collection.json', './bruno-collection');
@@ -87,25 +86,19 @@ The WSDL importer supports the following features:
 
 ```javascript
 import { wsdlToBruno } from '@usebruno/converters';
-import { writeCollection } from '@usebruno/io';
 import fs from 'fs/promises';
 
 async function importWSDL() {
   const wsdlContent = await fs.readFile('service.wsdl', 'utf8');
 
   const collection = await wsdlToBruno(wsdlContent);
-  // Writes YAML (OpenCollection) files.
-  await writeCollection(collection, './soap-collection');
+  // `collection` is a Bruno collection object; serialize it with @usebruno/filestore.
+  return collection;
 }
 
 importWSDL();
 ```
 
-### CLI Usage
-
-You can also use the Bruno CLI to import WSDL files:
-
-```bash
 # Import WSDL file to a directory
 bruno import wsdl --source service.wsdl --output ~/Desktop/soap-collection --collection-name "SOAP Service"
 

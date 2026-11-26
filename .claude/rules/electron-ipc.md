@@ -42,7 +42,7 @@ Follow the prefix that matches the direction — the vast majority of handlers a
   events routed through `ipcMain.emit`/`ipcMain.on` (`main:renderer-ready`,
   `main:workspaces-ready`) — see the startup sequence.
 - **Domain-namespaced invokes** for stateful sub-protocols: `grpc:*`, `renderer:ws:*` (WebSocket),
-  `terminal:*`, `menu:*` (menu→main), `internal:*` (main-to-main only).
+  `menu:*` (menu→main), `internal:*` (main-to-main only).
 - **Legacy unprefixed network channels** — `send-http-request`, `cancel-http-request`,
   `fetch-gql-schema`, `clear-oauth2-cache`, `connections-changed`. These predate the convention;
   prefer a `renderer:*` name for new request-side channels rather than adding to this unprefixed set.
@@ -171,8 +171,6 @@ runs.
 - `DISABLE_SAMPLE_COLLECTION_IMPORT` — skip sample collection on first launch.
 - `PLAYWRIGHT` — signals the app is running under Playwright (read in `preload.js`, stores, etc.).
 - `DISABLE_SINGLE_INSTANCE` — allow multiple app instances.
-
-(All four are set to `'true'` for e2e in `playwright/index.ts`.)
 
 ## Before adding or changing an IPC handler — checklist
 

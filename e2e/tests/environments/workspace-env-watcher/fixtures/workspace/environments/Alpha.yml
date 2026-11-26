@@ -1,4 +1,0 @@
-name: Alpha
-variables:
-  - name: mode
-    value: alpha

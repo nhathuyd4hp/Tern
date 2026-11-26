@@ -1,7 +1,0 @@
-{
-  "preferences": {
-    "general": {
-      "defaultLocation": "{{wsLocation}}"
-    }
-  }
-}

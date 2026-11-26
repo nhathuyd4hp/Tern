@@ -15,13 +15,11 @@ it before non-trivial cross-package or architectural work.
 ## Dependency direction & ownership boundaries
 
 - **Leaf libs — zero internal `@usebruno/*` deps:** bruno-common, bruno-lang, bruno-query,
-  bruno-requests, bruno-graphql-docs, bruno-schema, bruno-schema-types, bruno-toml, bruno-sqlite
+  bruno-requests, bruno-graphql-docs, bruno-schema, bruno-schema-types, bruno-sqlite
   (a leaf, but *not* platform-neutral — see guardrail 6).
 - **Mid consumers:** bruno-js → (common, query); bruno-converters → (common, schema; schema-types
-  as devDep); bruno-filestore → (common, lang; schema-types as devDep); bruno-io → (filestore,
-  common; schema-types as devDep).
-- **Top consumers (things flow *into* them, never out):** bruno-cli → (common, converters,
-  filestore, io, js, lang, requests); bruno-electron → (common, converters, filestore, js, lang,
+  as devDep); bruno-filestore → (common, lang; schema-types as devDep).
+- **Top consumers (things flow *into* them, never out):** bruno-electron → (common, converters, filestore, js, lang,
   requests, schema, sqlite); bruno-app → (common, converters, graphql-docs, schema).
 
 Guardrails this enforces:
@@ -33,10 +31,10 @@ Guardrails this enforces:
    a util that needs Node or another bruno package belongs in a different package.
 2. **No shared/library package may import bruno-app or bruno-electron.** Renderer- or
    Electron-specific code must not be pushed down into a lib to make it importable upward.
-3. **bruno-js must stay Electron-free.** It runs in both the Electron main process *and* the CLI
-   (bruno-cli → js). Adding an `electron`/IPC import to bruno-js breaks the CLI. Sandbox logic
+3. **bruno-js must stay Electron-free.** It is a plain Node library; keep it free of Electron/IPC
+   imports so it stays reusable and testable outside the app. Sandbox logic
    belongs in bruno-js; host wiring belongs in bruno-electron.
-4. **bruno-schema-types is types-only** (a *devDependency* of converters/filestore/io, built with
+4. **bruno-schema-types is types-only** (a *devDependency* of converters/filestore, built with
    plain `tsc`). Import types from it; never add runtime code or a runtime import of it.
 5. **bruno-schema (Yup) and bruno-schema-types (TS types) are distinct and both live.** app +
    converters use `@usebruno/schema` for runtime validation; filestore + converters use

@@ -1,6 +1,0 @@
-name: Test
-variables:
-  - name: envVar
-    value: original
-    enabled: true
-    secret: false

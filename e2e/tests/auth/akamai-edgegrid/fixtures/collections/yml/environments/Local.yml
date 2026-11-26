@@ -1,5 +1,0 @@
-name: Local
-
-variables:
-  - name: localhost
-    value: http://localhost:8081

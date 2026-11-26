@@ -37,7 +37,6 @@ This is an Electron app targeting macOS, Windows, and Linux. All code touching t
 
 ## Platform-Specific Dependencies
 
-- `forceInstallPlatformDeps()` in `scripts/setup.js` installs platform-specific native modules (e.g., `@lydell/node-pty-{platform}-{arch}`).
 - Electron builder config handles platform-specific packaging (`mac`/`win`/`linux` targets).
 
 ## Path Separators in Collection/Workspace Stores

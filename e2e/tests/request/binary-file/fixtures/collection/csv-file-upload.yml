@@ -1,8 +1,0 @@
-info:
-  name: csv-file-upload
-  type: http
-  seq: 6
-
-http:
-  method: POST
-  url: http://localhost:8081/api/file-binary/binary-upload-any

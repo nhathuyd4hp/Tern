@@ -1,5 +1,0 @@
-name: workspace_scripted
-extends: workspace_base
-variables:
-  - name: workspace_scripted_only
-    value: workspace_scripted_only_value

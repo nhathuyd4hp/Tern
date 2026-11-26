@@ -1,4 +1,0 @@
-name: Beta
-variables:
-  - name: mode
-    value: beta

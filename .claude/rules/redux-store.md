@@ -84,7 +84,7 @@ set):
 
 The store isn't persisted wholesale, and there's no `redux-persist`. Instead the `snapshot`
 middleware serializes a **curated subset** — workspaces, collection metadata, per-collection tabs,
-selected environments, and devtools console open-state (`extras.devTools`, from the `logs` slice;
+selected environments, and sidebar width/collapsed state (`extras.sidebar`;
 see `middlewares/snapshot/serializeSnapshot.js`) — and writes it to disk via IPC. Request/response
 bodies are deliberately not persisted. To persist a new piece of state, extend `serializeSnapshot`
 and its save-trigger list (`utils/snapshot`) — the snapshot is the established mechanism, so prefer

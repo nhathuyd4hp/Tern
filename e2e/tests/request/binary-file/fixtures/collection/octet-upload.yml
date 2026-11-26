@@ -1,8 +1,0 @@
-info:
-  name: octet-upload
-  type: http
-  seq: 2
-
-http:
-  method: POST
-  url: http://localhost:8081/api/file-binary/binary-upload-octet-stream

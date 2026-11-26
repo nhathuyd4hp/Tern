@@ -1,4 +1,0 @@
-name: dev
-variables:
-  - secret: true
-    name: apiKeyValue
