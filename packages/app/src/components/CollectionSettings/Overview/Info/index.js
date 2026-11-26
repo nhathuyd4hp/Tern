@@ -1,11 +1,10 @@
 import React, { useMemo } from 'react';
 import { getTotalRequestCountInCollection } from 'utils/collections/';
-import { IconFolder, IconWorld, IconApi, IconShare, IconBook, IconTag } from '@tabler/icons';
+import { IconFolder, IconWorld, IconApi, IconBook, IconTag } from '@tabler/icons';
 import { areItemsLoading, getItemsLoadStats, getCollectionVersion } from 'utils/collections/index';
 import { useRef, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { makeSelectInvalidItemCountForCollection } from 'src/selectors/collections';
-import ShareCollection from 'components/ShareCollection/index';
 import GenerateDocumentation from 'components/Sidebar/Collections/Collection/GenerateDocumentation';
 import ChangeCollectionVersion from 'components/Sidebar/Collections/Collection/ChangeCollectionVersion';
 import ToolHint from 'components/ToolHint';
@@ -21,7 +20,6 @@ const Info = ({ collection }) => {
 
   const isCollectionLoading = areItemsLoading(collection);
   const { loading: itemsLoadingCount, total: totalItems } = getItemsLoadStats(collection);
-  const [showShareCollectionModal, toggleShowShareCollectionModal] = useState(false);
   const [showGenerateDocumentationModal, setShowGenerateDocumentationModal] = useState(false);
   const [showChangeVersionModal, setShowChangeVersionModal] = useState(false);
   const [isVersionOverflowing, setIsVersionOverflowing] = useState(false);
@@ -39,10 +37,6 @@ const Info = ({ collection }) => {
 
   const collectionEnvironmentCount = collection.environments?.length || 0;
   const globalEnvironmentCount = globalEnvironments?.length || 0;
-
-  const handleToggleShowShareCollectionModal = (value) => (e) => {
-    toggleShowShareCollectionModal(value);
-  };
 
   return (
     <StyledWrapper className="w-full flex flex-col h-fit">
@@ -158,19 +152,6 @@ const Info = ({ collection }) => {
               </div>
             </div>
           </div>
-
-          <div className="flex items-start group cursor-pointer" onClick={handleToggleShowShareCollectionModal(true)}>
-            <div className="icon-box share flex-shrink-0 p-3 rounded-lg">
-              <IconShare className="w-5 h-5" stroke={1.5} />
-            </div>
-            <div className="ml-4 h-full flex flex-col justify-start">
-              <div className="font-medium h-fit my-auto" data-testid="info-share-label">Share</div>
-              <div className="group-hover:underline text-link" data-testid="info-share-collection">
-                Share Collection
-              </div>
-            </div>
-          </div>
-          {showShareCollectionModal && <ShareCollection collectionUid={collection.uid} onClose={handleToggleShowShareCollectionModal(false)} />}
 
           <div className="flex items-start group cursor-pointer" onClick={() => setShowGenerateDocumentationModal(true)}>
             <div className="icon-box generate-docs flex-shrink-0 p-3 rounded-lg">

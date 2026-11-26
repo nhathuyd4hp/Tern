@@ -12,6 +12,7 @@ import { convertOpenapiToBruno, isSwagger2Spec, buildOpenApiSyncBrunoConfig } fr
 import { processBrunoCollection } from 'utils/importers/bruno-collection';
 import { processOpenCollection } from 'utils/importers/opencollection';
 import { convertWsdlToBruno } from 'utils/importers/wsdl-collection';
+import { convertProtoToBruno } from 'utils/importers/proto-collection';
 import { toastError } from 'utils/common/error';
 import Portal from 'components/Portal';
 import Modal from 'components/Modal';
@@ -52,6 +53,8 @@ const getCollectionName = (format, rawData) => {
       return rawData.info?.name || 'OpenCollection';
     case 'wsdl':
       return 'WSDL Collection';
+    case 'proto':
+      return rawData.filePath.split(/[\\/]/).pop().replace(/\.proto$/i, '');
     case 'bruno-zip':
       return rawData.collectionName || 'Kevin Collection';
     default:
@@ -81,6 +84,9 @@ const convertCollection = async (format, rawData, { groupingType, collectionForm
       }
       case 'insomnia':
         collection = convertInsomniaToBruno(rawData);
+        break;
+      case 'proto':
+        collection = await convertProtoToBruno(rawData);
         break;
       case 'bruno':
         collection = await processBrunoCollection(rawData);

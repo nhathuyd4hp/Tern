@@ -4,7 +4,6 @@ import {
   IconBox,
   IconTrash,
   IconEdit,
-  IconShare,
   IconDots,
   IconX,
   IconFolder,
@@ -21,7 +20,6 @@ import toast from 'react-hot-toast';
 import RenameCollection from 'components/Sidebar/Collections/Collection/RenameCollection';
 import RemoveCollections from 'components/Sidebar/Collections/Collection/RemoveCollections';
 import DeleteCollection from 'components/Sidebar/Collections/Collection/DeleteCollection';
-import ShareCollection from 'components/ShareCollection';
 import Dropdown from 'components/Dropdown';
 import StatusBadge from 'ui/StatusBadge';
 import ConnectGitRemote from './ConnectGitRemote';
@@ -36,7 +34,6 @@ const CollectionsList = ({ workspace }) => {
   const [renameCollectionModalOpen, setRenameCollectionModalOpen] = useState(false);
   const [removeCollectionModalOpen, setRemoveCollectionModalOpen] = useState(false);
   const [deleteCollectionModalOpen, setDeleteCollectionModalOpen] = useState(false);
-  const [shareCollectionModalOpen, setShareCollectionModalOpen] = useState(false);
   const [selectedCollectionUid, setSelectedCollectionUid] = useState(null);
   const [gitTarget, setGitTarget] = useState(null);
   const [showConnectGitModal, setShowConnectGitModal] = useState(false);
@@ -175,25 +172,6 @@ const CollectionsList = ({ workspace }) => {
     setRenameCollectionModalOpen(true);
   };
 
-  const handleShareCollection = (collection) => {
-    dropdownRefs.current[collection.uid]?.hide();
-    if (collection.isLoaded === false) {
-      toast.error('Please clone this collection first before sharing it');
-      return;
-    }
-
-    dispatch(
-      mountCollection({
-        collectionUid: collection.uid,
-        collectionPathname: collection.pathname,
-        brunoConfig: collection.brunoConfig
-      })
-    );
-
-    setSelectedCollectionUid(collection.uid);
-    setShareCollectionModalOpen(true);
-  };
-
   const handleRemoveCollection = (collection) => {
     dropdownRefs.current[collection.uid]?.hide();
     if (collection.failedToOpen || collection.notFoundLocally) {
@@ -302,16 +280,6 @@ const CollectionsList = ({ workspace }) => {
         />
       )}
 
-      {shareCollectionModalOpen && selectedCollectionUid && (
-        <ShareCollection
-          collectionUid={selectedCollectionUid}
-          onClose={() => {
-            setShareCollectionModalOpen(false);
-            setSelectedCollectionUid(null);
-          }}
-        />
-      )}
-
       {showConnectGitModal && gitTarget && (
         <ConnectGitRemote
           collectionPath={gitTarget.path}
@@ -393,16 +361,6 @@ const CollectionsList = ({ workspace }) => {
                         >
                           <IconEdit size={16} strokeWidth={1.5} />
                           <span>Rename</span>
-                        </div>
-                        <div
-                          className="dropdown-item"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleShareCollection(collection);
-                          }}
-                        >
-                          <IconShare size={16} strokeWidth={1.5} />
-                          <span>Share</span>
                         </div>
                         <div
                           className="dropdown-item"

@@ -43,15 +43,6 @@ const StyledWrapper = styled.div`
       }
     }
 
-    &.share {
-      background-color: ${(props) => rgba(props.theme.textLink, 0.08)};
-      border: 1px solid ${(props) => rgba(props.theme.textLink, 0.09)};
-
-      svg {
-        color: ${(props) => props.theme.textLink};
-      }
-    }
-
     &.version {
       background-color: ${(props) => rgba(props.theme.colors.text.yellow, 0.1)};
       border: 1px solid ${(props) => rgba(props.theme.colors.text.yellow, 0.1)};

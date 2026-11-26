@@ -13,7 +13,6 @@ import {
   IconClipboard,
   IconPlayerPlay,
   IconEdit,
-  IconShare,
   IconFoldDown,
   IconX,
   IconSettings,
@@ -44,7 +43,6 @@ import RenameCollection from '../RenameCollection';
 import StyledWrapper from './StyledWrapper';
 import CloneCollection from '../CloneCollection';
 import InvalidFilesBadge from '../InvalidFilesBadge';
-import ShareCollection from 'components/ShareCollection/index';
 import GenerateDocumentation from '../GenerateDocumentation';
 import { getRevealInFolderLabel } from 'utils/common/platform';
 import ActionIcon from 'ui/ActionIcon';
@@ -62,7 +60,6 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
   const [showNewAppModal, setShowNewAppModal] = useState(false);
   const [showRenameCollectionModal, setShowRenameCollectionModal] = useState(false);
   const [showCloneCollectionModalOpen, setShowCloneCollectionModalOpen] = useState(false);
-  const [showShareCollectionModal, setShowShareCollectionModal] = useState(false);
   const [showGenerateDocumentationModal, setShowGenerateDocumentationModal] = useState(false);
   const [showRemoveCollectionModal, setShowRemoveCollectionModal] = useState(false);
   const [showMoveToWorkspaceModal, setShowMoveToWorkspaceModal] = useState(false);
@@ -447,15 +444,6 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
       }
     },
     {
-      id: 'share',
-      leftSection: IconShare,
-      label: 'Share',
-      onClick: () => {
-        ensureCollectionIsMounted();
-        setShowShareCollectionModal(true);
-      }
-    },
-    {
       id: 'generate-docs',
       leftSection: IconBook,
       label: 'Generate Docs',
@@ -528,9 +516,6 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
       )}
       {showMoveToWorkspaceModal && (
         <MoveToWorkspace collectionUid={collection.uid} onClose={() => setShowMoveToWorkspaceModal(false)} />
-      )}
-      {showShareCollectionModal && (
-        <ShareCollection collectionUid={collection.uid} onClose={() => setShowShareCollectionModal(false)} />
       )}
       {showGenerateDocumentationModal && (
         <GenerateDocumentation collectionUid={collection.uid} onClose={() => setShowGenerateDocumentationModal(false)} />

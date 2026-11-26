@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
-import { IconBrandGit, IconUnlink, IconX } from '@tabler/icons';
+import { IconBrandGit, IconFileCode, IconUnlink, IconX } from '@tabler/icons';
 import Modal from 'components/Modal';
 import Portal from 'components/Portal';
 import classnames from 'classnames';
 import StyledWrapper from './StyledWrapper';
 import GitHubTab from './GitHubTab';
 import UrlTab from './UrlTab';
+import ProtoTab from './ProtoTab';
 import FullscreenLoader from './FullscreenLoader/index';
 import { useTheme } from 'providers/Theme';
 
 const IMPORT_TABS = {
   GITHUB: 'github',
-  URL: 'url'
+  URL: 'url',
+  PROTO: 'proto'
 };
 
 const ImportCollection = ({ onClose, handleSubmit }) => {
@@ -57,6 +59,14 @@ const ImportCollection = ({ onClose, handleSubmit }) => {
                 <IconBrandGit size={18} strokeWidth={1.5} className="mr-2" />
                 Git Repository
               </div>
+              <div
+                className={getTabClassname(IMPORT_TABS.PROTO)}
+                onClick={handleTabSelect(IMPORT_TABS.PROTO)}
+                data-testid="proto-tab"
+              >
+                <IconFileCode size={18} strokeWidth={1.5} className="mr-2" />
+                Proto File
+              </div>
             </div>
           </div>
 
@@ -95,6 +105,13 @@ const ImportCollection = ({ onClose, handleSubmit }) => {
           )}
           {tab === IMPORT_TABS.URL && (
             <UrlTab
+              setIsLoading={setIsLoading}
+              handleSubmit={handleSubmit}
+              setErrorMessage={setErrorMessage}
+            />
+          )}
+          {tab === IMPORT_TABS.PROTO && (
+            <ProtoTab
               setIsLoading={setIsLoading}
               handleSubmit={handleSubmit}
               setErrorMessage={setErrorMessage}
