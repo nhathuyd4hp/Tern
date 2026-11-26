@@ -1,9 +1,11 @@
 import React, { useRef, useEffect, useState, forwardRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch, useSelector, useStore } from 'react-redux';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import path from 'utils/common/path';
-import { browseDirectory, createCollection } from 'providers/ReduxStore/slices/collections/actions';
+import { browseDirectory, createCollection, mountCollection, newFolder, updateBrunoConfig } from 'providers/ReduxStore/slices/collections/actions';
+import { selectCollectionByUid } from 'src/selectors/collections';
+import { buildOpenApiFolderImport, buildProtoFolderImport } from 'utils/importers/folder-source';
 import toast from 'react-hot-toast';
 import Portal from 'components/Portal';
 import Modal from 'components/Modal';
@@ -18,14 +20,26 @@ import { DEFAULT_COLLECTION_FORMAT } from 'utils/common/constants';
 import StyledWrapper from './StyledWrapper';
 import get from 'lodash/get';
 import Button from 'ui/Button';
+import SourceRow, { createSource } from './SourceRow';
+
+const waitFor = async (predicate, timeoutMs = 10000) => {
+  const start = Date.now();
+  while (!predicate()) {
+    if (Date.now() - start > timeoutMs) throw new Error('Timed out while preparing the new application');
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+};
 
 const CreateCollection = ({ onClose, defaultLocation: propDefaultLocation, initialCollectionName = '' }) => {
   const inputRef = useRef();
   const dispatch = useDispatch();
+  const store = useStore();
   const workspaces = useSelector((state) => state.workspaces?.workspaces || []);
   const workspaceUid = useSelector((state) => state.workspaces?.activeWorkspaceUid);
   const [isEditing, toggleEditing] = useState(false);
   const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
+  const [sources, setSources] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const preferences = useSelector((state) => state.app.preferences);
 
   const dropdownTippyRef = useRef();
@@ -61,19 +75,75 @@ const CreateCollection = ({ onClose, defaultLocation: propDefaultLocation, initi
       format: Yup.string().oneOf(['bru', 'yml'], 'invalid format').required('Format is required')
     }),
     onSubmit: async (values) => {
+      const unready = sources.find((source) => (source.type === 'openapi' ? !source.specData : !source.protoData));
+      if (unready) {
+        updateSource(unready.id, { error: unready.type === 'openapi' ? 'Load an OpenAPI spec first' : 'Choose a .proto file first' });
+        return;
+      }
+      const invalid = sources.find((source) => !source.name.trim() || !validateName(sanitizeName(source.name)));
+      if (invalid) {
+        updateSource(invalid.id, { error: 'Enter a valid collection name' });
+        return;
+      }
+
+      setIsSubmitting(true);
       try {
-        await dispatch(createCollection(values.collectionName.trim(),
+        const created = await dispatch(createCollection(values.collectionName.trim(),
           values.collectionFolderName,
           values.collectionLocation,
           { format: values.format }));
 
-        toast.success('Application created!');
+        const failed = created?.uid ? await addSources(created, sources) : [];
+        if (failed.length) {
+          toast.error(multiLineMsg('Application created, but some collections could not be added', ...failed));
+        } else {
+          toast.success('Application created!');
+        }
         onClose();
       } catch (e) {
+        setIsSubmitting(false);
         toast.error(multiLineMsg('An error occurred while creating the application', formatIpcError(e)));
       }
     }
   });
+
+  const updateSource = (id, patch) => setSources((current) => current.map((source) => (source.id === id ? { ...source, ...patch } : source)));
+
+  // The new application has to be in the store and mounted (watched) before collections can be written into it.
+  const addSources = async ({ uid, pathname }, list) => {
+    const getCollection = () => selectCollectionByUid(store.getState(), uid);
+    const failed = [];
+    if (!list.length) return failed;
+
+    await waitFor(() => getCollection()?.pathname);
+    if (!['mounted', 'mounting'].includes(getCollection().mountStatus)) {
+      await dispatch(mountCollection({ collectionUid: uid, collectionPathname: pathname, brunoConfig: getCollection().brunoConfig }));
+    }
+    await waitFor(() => getCollection().mountStatus === 'mounted');
+
+    for (const source of list) {
+      try {
+        const name = source.name.trim();
+        const { pathname: folderPath } = await dispatch(newFolder(name, sanitizeName(name), uid, null));
+        const collection = getCollection();
+        const imported = source.type === 'openapi'
+          ? buildOpenApiFolderImport(source.specData)
+          : await buildProtoFolderImport(source.protoData, { collectionPathname: collection.pathname, protobuf: collection.brunoConfig?.protobuf });
+        await window.ipcRenderer.invoke('renderer:import-items-into-folder', {
+          collectionPath: collection.pathname,
+          folderPath,
+          items: imported.items,
+          openapiSync: imported.openapiSync
+        });
+        if (imported.protobuf) {
+          await dispatch(updateBrunoConfig({ ...getCollection().brunoConfig, protobuf: imported.protobuf }, uid));
+        }
+      } catch (err) {
+        failed.push(`${source.name}: ${formatIpcError(err) || 'failed'}`);
+      }
+    }
+    return failed;
+  };
 
   const browse = () => {
     dispatch(browseDirectory())
@@ -187,6 +257,33 @@ const CreateCollection = ({ onClose, defaultLocation: propDefaultLocation, initi
                   Browse
                 </span>
               </div>
+              <div className="mt-4">
+                <div className="flex items-center justify-between">
+                  <label className="flex items-center font-medium">
+                    Sources
+                    <Help width="300">
+                      <p>
+                        Each source becomes one collection inside the application. OpenAPI sources stay in sync with their spec.
+                      </p>
+                      <p className="mt-2">
+                        You can also create an empty application and add collections later.
+                      </p>
+                    </Help>
+                  </label>
+                  <Button type="button" size="sm" variant="ghost" onClick={() => setSources((current) => [...current, createSource('openapi')])} data-testid="create-add-source">
+                    + Add source
+                  </Button>
+                </div>
+                {sources.map((source) => (
+                  <SourceRow
+                    key={source.id}
+                    source={source}
+                    onChange={updateSource}
+                    onRemove={(id) => setSources((current) => current.filter((item) => item.id !== id))}
+                  />
+                ))}
+              </div>
+
               {formik.values.collectionName?.trim()?.length > 0 && (
                 <div className="mt-4">
                   <div className="flex items-center justify-between">
@@ -295,7 +392,7 @@ const CreateCollection = ({ onClose, defaultLocation: propDefaultLocation, initi
                 <Button type="button" color="secondary" variant="ghost" onClick={onClose} className="mr-2">
                   Cancel
                 </Button>
-                <Button type="submit">
+                <Button type="submit" loading={isSubmitting}>
                   Create
                 </Button>
               </div>

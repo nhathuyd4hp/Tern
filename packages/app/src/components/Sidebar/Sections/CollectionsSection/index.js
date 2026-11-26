@@ -5,7 +5,6 @@ import { useDispatch, useSelector, useStore } from 'react-redux';
 import {
   IconArrowsSort,
   IconDotsVertical,
-  IconDownload,
   IconFolder,
   IconPlus,
   IconSearch,
@@ -15,7 +14,7 @@ import {
   IconBox
 } from '@tabler/icons';
 
-import { importCollection, importCollectionFromZip, newHttpRequest } from 'providers/ReduxStore/slices/collections/actions';
+import { newHttpRequest } from 'providers/ReduxStore/slices/collections/actions';
 import { sortCollections } from 'providers/ReduxStore/slices/collections/index';
 import { savePreferences, setIsCreatingCollection, setIsOpeningCollection, toggleSidebarSearch } from 'providers/ReduxStore/slices/app';
 import { flattenItems, isItemTransientRequest, getWorkspaceCollections } from 'utils/collections';
@@ -25,19 +24,11 @@ import filter from 'lodash/filter';
 
 import MenuDropdown from 'ui/MenuDropdown';
 import ActionIcon from 'ui/ActionIcon';
-import ImportCollection from 'components/Sidebar/ImportCollection';
-import ImportCollectionLocation from 'components/Sidebar/ImportCollectionLocation';
-import BulkImportCollectionLocation from 'components/Sidebar/BulkImportCollectionLocation';
-import CloneGitRepository from 'components/Sidebar/CloneGitRespository';
 import RemoveCollections from 'components/Sidebar/Collections/Collection/RemoveCollections/index';
 import CreateCollection from 'components/Sidebar/CreateCollection';
-import PostmanPackageReport from 'components/Sidebar/PostmanPackageReport';
-import usePostmanPackagePrompt from 'hooks/usePostmanPackagePrompt';
 import WelcomeModal from 'components/WelcomeModal';
 import Collections from 'components/Sidebar/Collections';
 import SidebarSection from 'components/Sidebar/SidebarSection';
-import useKeybinding from 'hooks/useKeybinding';
-import useKeybindingDisplayText from 'hooks/useKeybindingDisplayText';
 
 const CollectionsSection = () => {
   const dispatch = useDispatch();
@@ -51,21 +42,8 @@ const CollectionsSection = () => {
   const preferences = useSelector((state) => state.app.preferences);
   const [collectionsToClose, setCollectionsToClose] = useState([]);
 
-  const [importData, setImportData] = useState(null);
   const [createCollectionModalOpen, setCreateCollectionModalOpen] = useState(false);
   const [advancedCreateName, setAdvancedCreateName] = useState('');
-  const [importCollectionModalOpen, setImportCollectionModalOpen] = useState(false);
-  const [importCollectionLocationModalOpen, setImportCollectionLocationModalOpen] = useState(false);
-  const [showCloneGitModal, setShowCloneGitModal] = useState(false);
-  const [gitRepositoryUrl, setGitRepositoryUrl] = useState(null);
-  const { postmanPackagePrompt, clearPostmanPackagePrompt, handleImportResolved } = usePostmanPackagePrompt();
-
-  // Import collection shortcut
-  useKeybinding('importCollection', () => {
-    setImportCollectionModalOpen(true);
-    return false;
-  });
-  const getKeybindingDisplayText = useKeybindingDisplayText();
 
   // Default to true (don't show modal) so that:
   // 1. Existing users who upgrade (no hasSeenWelcomeModal in their prefs) don't see it
@@ -94,37 +72,6 @@ const CollectionsSection = () => {
       workspaces: state.workspaces.workspaces,
       activeWorkspace
     });
-  };
-
-  const handleImportCollection = ({ rawData, type, repositoryUrl, ...rest }) => {
-    setImportCollectionModalOpen(false);
-
-    if (type === 'git-repository') {
-      setGitRepositoryUrl(repositoryUrl);
-      setShowCloneGitModal(true);
-      return;
-    }
-
-    setImportData({ rawData, type, ...rest });
-    setImportCollectionLocationModalOpen(true);
-  };
-
-  const handleImportCollectionLocation = (convertedCollection, collectionLocation, options = {}) => {
-    const importAction = options.isZipImport
-      ? importCollectionFromZip(convertedCollection.zipFilePath, collectionLocation)
-      : importCollection(convertedCollection, collectionLocation, options);
-
-    dispatch(importAction)
-      .then((importedItem) => {
-        setImportCollectionLocationModalOpen(false);
-        setImportData(null);
-        handleImportResolved(convertedCollection, importedItem);
-      });
-  };
-
-  const handleCloseGitModal = () => {
-    setShowCloneGitModal(false);
-    setGitRepositoryUrl(null);
   };
 
   const handleToggleSearch = () => {
@@ -240,24 +187,15 @@ const CollectionsSection = () => {
       leftSection: IconPlus,
       label: 'Create application',
       onClick: () => {
-        dispatch(setIsCreatingCollection(true));
+        setCreateCollectionModalOpen(true);
       }
     },
     {
       id: 'open',
       leftSection: IconFolder,
-      label: 'Open application',
+      label: 'Import application',
       onClick: () => {
         handleOpenCollection();
-      }
-    },
-    {
-      id: 'import',
-      leftSection: IconDownload,
-      label: 'Import application',
-      shortcut: getKeybindingDisplayText('importCollection'),
-      onClick: () => {
-        setImportCollectionModalOpen(true);
       }
     }
   ];
@@ -326,10 +264,6 @@ const CollectionsSection = () => {
       {showWelcomeModal && (
         <WelcomeModal
           onDismiss={handleDismissWelcomeModal}
-          onImportCollection={() => {
-            handleDismissWelcomeModal();
-            setImportCollectionModalOpen(true);
-          }}
           onCreateCollection={() => {
             handleDismissWelcomeModal();
             setCreateCollectionModalOpen(true);
@@ -351,45 +285,6 @@ const CollectionsSection = () => {
             setAdvancedCreateName('');
           }}
           initialCollectionName={advancedCreateName}
-        />
-      )}
-      {importCollectionModalOpen && (
-        <ImportCollection
-          onClose={() => setImportCollectionModalOpen(false)}
-          handleSubmit={handleImportCollection}
-        />
-      )}
-      {importCollectionLocationModalOpen && importData && (importData.type !== 'multiple' && importData.type !== 'bulk') && (
-        <ImportCollectionLocation
-          rawData={importData.rawData}
-          format={importData.type}
-          sourceUrl={importData.sourceUrl}
-          filePath={importData.filePath}
-          rawContent={importData.rawContent}
-          onClose={() => setImportCollectionLocationModalOpen(false)}
-          handleSubmit={handleImportCollectionLocation}
-        />
-      )}
-      {importCollectionLocationModalOpen && importData && (importData.type === 'multiple' || importData.type === 'bulk') && (
-        <BulkImportCollectionLocation
-          importData={importData}
-          onClose={() => setImportCollectionLocationModalOpen(false)}
-          handleSubmit={handleImportCollectionLocation}
-        />
-      )}
-      {showCloneGitModal && (
-        <CloneGitRepository
-          onClose={handleCloseGitModal}
-          onFinish={handleCloseGitModal}
-          collectionRepositoryUrl={gitRepositoryUrl}
-        />
-      )}
-      {postmanPackagePrompt && (
-        <PostmanPackageReport
-          key={postmanPackagePrompt.collectionPath}
-          report={postmanPackagePrompt.report}
-          collectionPath={postmanPackagePrompt.collectionPath}
-          onClose={clearPostmanPackagePrompt}
         />
       )}
       <SidebarSection
