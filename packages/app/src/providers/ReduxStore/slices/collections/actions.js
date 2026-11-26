@@ -1800,95 +1800,6 @@ export const openLinkedRequest = ({ url, collectionUid, requestType }) => (dispa
   );
 };
 
-const DEFAULT_APP_STARTER = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>App</title>
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 1rem; }
-    button { padding: 6px 10px; cursor: pointer; }
-    pre { background: #f6f7f9; padding: 8px; border-radius: 4px; overflow: auto; }
-    body.dark { color: #e0e0e0; }
-    body.dark pre { background: #1f2123; }
-  </style>
-</head>
-<body>
-  <h2>Hello from a Kevin app</h2>
-  <p>This app can list request in the collection.</p>
-  <button id="refresh">List requests</button>
-  <pre id="out">click "List requests"</pre>
-  <script>
-    const out = document.getElementById('out');
-    document.getElementById('refresh').addEventListener('click', async () => {
-      const requests = await bru.ctx.listRequests();
-      out.textContent = requests.map(r => \`\${r.method || r.type}  \${r.name}\`).join('\\n') || '(no requests)';
-    });
-  </script>
-</body>
-</html>
-`;
-
-export const newApp = (params) => (dispatch, getState) => {
-  const { appName, filename, collectionUid, itemUid } = params;
-
-  return new Promise((resolve, reject) => {
-    const state = getState();
-    const collection = findCollectionByUid(state.collections.collections, collectionUid);
-    if (!collection) {
-      return reject(new Error('Collection not found'));
-    }
-
-    const item = {
-      uid: uuid(),
-      type: 'app',
-      name: appName,
-      filename,
-      app: { code: '' },
-      settings: {}
-    };
-
-    const resolvedFilename = resolveRequestFilename(filename, collection.format);
-
-    const selectedItem = itemUid ? findItemInCollection(collection, itemUid) : null;
-    let parent = collection;
-    if (selectedItem) {
-      parent = isItemAFolder(selectedItem)
-        ? selectedItem
-        : (findParentItemInCollection(collection, selectedItem.uid) || collection);
-    }
-    const parentPath = parent.pathname;
-    const siblings = parent.items || [];
-
-    const orderableSiblings = filter(
-      siblings,
-      (i) => isItemAFolder(i) || isItemARequest(i) || i.type === 'app'
-    );
-    item.seq = orderableSiblings.length + 1;
-
-    const fullName = path.join(parentPath, resolvedFilename);
-    const { ipcRenderer } = window;
-
-    ipcRenderer
-      .invoke('renderer:new-request', fullName, item)
-      .then((result) => {
-        dispatch(
-          insertTaskIntoQueue({
-            uid: uuid(),
-            type: 'OPEN_REQUEST',
-            collectionUid,
-            // Use the path the handler actually wrote (it silently suffixes on a
-            // filename collision), not the optimistic pre-suffix path.
-            itemPathname: result?.pathname || fullName
-          })
-        );
-        resolve();
-      })
-      .catch(reject);
-  });
-};
-
 export const loadGrpcMethodsFromReflection = (item, collectionUid, url) => async (dispatch, getState) => {
   const state = getState();
   const collection = findCollectionByUid(state.collections.collections, collectionUid);
@@ -3120,17 +3031,6 @@ export const createCollection = (collectionName, collectionFolderName, collectio
       .then(resolve)
       .catch(reject);
   });
-};
-export const cloneCollection = (collectionName, collectionFolderName, collectionLocation, previousPath) => () => {
-  const { ipcRenderer } = window;
-
-  return ipcRenderer.invoke(
-    'renderer:clone-collection',
-    collectionName,
-    collectionFolderName,
-    collectionLocation,
-    previousPath
-  );
 };
 export const openMultipleCollections = (collectionPaths, options = {}) => () => {
   return new Promise((resolve, reject) => {

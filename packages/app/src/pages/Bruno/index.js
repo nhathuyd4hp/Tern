@@ -3,7 +3,6 @@ import classnames from 'classnames';
 import ManageWorkspace from 'components/ManageWorkspace';
 import RequestTabs from 'components/RequestTabs';
 import RequestTabPanel from 'components/RequestTabPanel';
-import AppPreviewKeepAlive from 'components/AppPreviewKeepAlive';
 import Sidebar from 'components/Sidebar';
 import OpenCollection from 'components/Sidebar/OpenCollection';
 import OpenCollectionModal from 'components/OpenCollectionModal';
@@ -109,7 +108,6 @@ export default function Main() {
                   <TabPanelErrorBoundary key={activeTabUid} tabUid={activeTabUid}>
                     <RequestTabPanel key={activeTabUid} />
                   </TabPanelErrorBoundary>
-                  <AppPreviewKeepAlive />
                 </div>
               </>
             )}

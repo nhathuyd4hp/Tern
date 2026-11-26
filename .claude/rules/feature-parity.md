@@ -41,7 +41,7 @@ hand:
 | BRU → YML migration | `electron/src/ipc/yml-migration.js` (bru parse → yml stringify) | lost when a user migrates |
 | Collection config | `bruno.json` ↔ `opencollection.yml` — `utils/transformBrunoConfig.js`, `stringifyCollection`, migration's config transform (e.g. `transformProxyConfig`) | config lost or misread |
 | OpenCollection import/export | `converters/src/opencollection/items/{http,graphql,grpc,websocket}.ts`, `folder.ts`, `environment.ts` — **both** directions; app entry `app/src/utils/exporters/opencollection.js` | lost on export or import |
-| Other converters | `postman/{postman-to-bruno,bruno-to-postman}.js`, `insomnia/`, `openapi/`, `wsdl/`; app exporters `postman-collection.js`, `openapi-spec.js`, `bruno-environment.js` | lost on import/export where the target can represent it |
+| Other converters | `postman/{postman-to-bruno,bruno-to-postman}.js`, `insomnia/`, `openapi/`, `wsdl/`; app exporters `postman-collection.js`, `bruno-environment.js` | lost on import/export where the target can represent it |
 
 The migration also rewrites content, not just shape: `bru.runRequest("x.bru")` paths are stripped
 of `.bru`, and tab snapshots are remapped. A new script API that takes a file path, a new file

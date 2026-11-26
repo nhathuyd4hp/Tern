@@ -9,7 +9,6 @@ Bruno is an API **client**, not a server: it sends requests and handles response
 ```bash
 npm run dev              # Run electron + react concurrently
 npm run dev:watch        # Same, with hot-reload of the electron main process
-npm run storybook        # Component dev (app)
 npm run lint:fix         # ESLint fix
 npm test --workspaces    # Unit tests (Jest) across all packages
 ```

@@ -5,8 +5,8 @@ import { utils } from '@usebruno/common';
 import Toggle from 'ui/Toggle';
 import SettingsInput from 'components/SettingsInput';
 import InheritableSettingsInput from 'components/InheritableSettingsInput';
-import { updateItemSettings, toggleAppMode } from 'providers/ReduxStore/slices/collections';
-import { setTabAppPreview, addTab } from 'providers/ReduxStore/slices/tabs';
+import { updateItemSettings } from 'providers/ReduxStore/slices/collections';
+import { addTab } from 'providers/ReduxStore/slices/tabs';
 import { updateActivePreferencesTab } from 'providers/ReduxStore/slices/app';
 import { saveRequest, sendRequest } from 'providers/ReduxStore/slices/collections/actions';
 import Tags from './Tags/index';
@@ -34,7 +34,6 @@ const Settings = ({ item, collection }) => {
   const rawSettings = getPropertyFromDraftOrRequest('settings');
   const settings = { ...DEFAULT_SETTINGS, ...rawSettings };
   const { encodeUrl, followRedirects, maxRedirects, timeout, forwardAuthorizationHeader } = settings;
-  const enableApp = getPropertyFromDraftOrRequest('app.enabled') === true;
 
   // Reusable function to update settings
   const updateSetting = useCallback((settingUpdate) => {
@@ -55,14 +54,6 @@ const Settings = ({ item, collection }) => {
 
   const onToggleForwardAuthorizationOnRedirect = useCallback(() =>
     updateSetting({ forwardAuthorizationHeader: !forwardAuthorizationHeader }), [forwardAuthorizationHeader, updateSetting]);
-
-  const onToggleEnableApp = useCallback(() => {
-    const next = !enableApp;
-    dispatch(toggleAppMode({ enabled: next, itemUid: item.uid, collectionUid: collection.uid }));
-    if (next) {
-      dispatch(setTabAppPreview({ uid: item.uid, appPreview: false }));
-    }
-  }, [enableApp, dispatch, item.uid, collection.uid]);
 
   const onMaxRedirectsChange = useCallback((e) => {
     const value = e.target.value;
@@ -175,17 +166,6 @@ const Settings = ({ item, collection }) => {
             size="medium"
             data-testid="forward-auth-header-toggle"
           />
-
-          {item.type === 'http-request' && (
-            <Toggle
-              checked={enableApp}
-              onChange={onToggleEnableApp}
-              label="Enable App"
-              description="Show the App tab and app view mode for this request"
-              size="medium"
-              data-testid="enable-app-toggle"
-            />
-          )}
         </FieldList>
       </div>
     </StyledWrapper>

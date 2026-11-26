@@ -354,27 +354,9 @@ describe('getUnopenableWorkspaceCollections', () => {
   });
 });
 
-describe('workspace specs normalization', () => {
-  const {
-    readWorkspaceConfig,
-    addApiSpecToWorkspace,
-    removeApiSpecFromWorkspace
-  } = require('../../src/utils/workspace-config');
+describe('legacy specs key', () => {
+  const { readWorkspaceConfig, writeWorkspaceConfig } = require('../../src/utils/workspace-config');
   let workspacePath;
-
-  // Writes workspace.yml with a verbatim `specs:` block so we control its YAML shape.
-  const writeWorkspaceYml = (specsYaml) => {
-    const content = [
-      'opencollection: 1.0.0',
-      'info:',
-      '  name: Test',
-      '  type: workspace',
-      'collections: []',
-      specsYaml,
-      'docs: \'\''
-    ].join('\n');
-    fs.writeFileSync(path.join(workspacePath, 'workspace.yml'), content);
-  };
 
   beforeEach(() => {
     workspacePath = fs.mkdtempSync(path.join(os.tmpdir(), 'bruno-ws-'));
@@ -384,251 +366,20 @@ describe('workspace specs normalization', () => {
     fs.rmSync(workspacePath, { recursive: true, force: true });
   });
 
-  // --- Regression guard: the `|| []` -> `Array.isArray(...) ? ... : []` swap must
-  //     preserve behavior for every VALID shape, and only change non-array inputs. ---
-  describe('readWorkspaceConfig coerces specs to an array', () => {
-    const cases = [
-      {
-        name: 'valid populated list is preserved unchanged',
-        yaml: ['specs:', '  - name: foo', '    path: foo.yaml', '  - name: bar', '    path: bar.yaml'].join('\n'),
-        expected: [
-          { name: 'foo', path: 'foo.yaml' },
-          { name: 'bar', path: 'bar.yaml' }
-        ]
-      },
-      { name: 'empty list stays empty', yaml: 'specs: []', expected: [] },
-      { name: 'missing specs key -> []', yaml: '# no specs key', expected: [] },
-      { name: 'null specs -> []', yaml: 'specs: null', expected: [] },
-      { name: 'map (object) specs -> []', yaml: ['specs:', '  brokenEntry: not a list'].join('\n'), expected: [] },
-      { name: 'string specs -> []', yaml: 'specs: "oops a string"', expected: [] },
-      { name: 'number specs -> []', yaml: 'specs: 42', expected: [] },
-      { name: 'boolean specs -> []', yaml: 'specs: true', expected: [] },
-      {
-        // An array of junk is still an array: coercion preserves it (no crash on .map);
-        // invalid entries are dropped later by sanitizeSpecs on write, not here.
-        name: 'array with non-object elements is preserved as-is',
-        yaml: 'specs: [1, "two", null]',
-        expected: [1, 'two', null]
-      }
-    ];
+  test.each([
+    ['a list', ['specs:', '  - name: foo', '    path: foo.yaml']],
+    ['a map', ['specs:', '  brokenEntry: not a list']],
+    ['a scalar', ['specs: 42']]
+  ])('a workspace.yml with specs as %s still loads and is dropped on the next write', async (_label, specsLines) => {
+    fs.writeFileSync(
+      path.join(workspacePath, 'workspace.yml'),
+      ['opencollection: 1.0.0', 'info:', '  name: Test', '  type: workspace', 'collections: []', ...specsLines, 'docs: \'\''].join('\n')
+    );
 
-    test.each(cases)('$name', ({ yaml, expected }) => {
-      writeWorkspaceYml(yaml);
-      const config = readWorkspaceConfig(workspacePath);
-      // Both the legacy `specs` field and the renderer-facing `apiSpecs` must be arrays.
-      expect(Array.isArray(config.specs)).toBe(true);
-      expect(Array.isArray(config.apiSpecs)).toBe(true);
-      expect(config.specs).toEqual(expected);
-      expect(config.apiSpecs).toEqual(expected);
-      // apiSpecs mirrors specs by value but is a distinct array, so an in-place
-      // mutation of one field can't silently change the other.
-      expect(config.apiSpecs).not.toBe(config.specs);
-    });
-  });
+    const config = readWorkspaceConfig(workspacePath);
+    expect(config.name).toBe('Test');
 
-  // --- Write paths must not throw on an already-malformed workspace.yml and must self-heal. ---
-  describe('write paths survive a malformed (non-array) specs', () => {
-    const malformedYaml = ['specs:', '  brokenEntry: not a list'].join('\n');
-    const specsInYml = () => {
-      const raw = fs.readFileSync(path.join(workspacePath, 'workspace.yml'), 'utf8');
-      return yaml.load(raw).specs;
-    };
-
-    test('addApiSpecToWorkspace does not throw and writes a valid list', async () => {
-      writeWorkspaceYml(malformedYaml);
-      const specPath = path.join(workspacePath, 'api.yaml');
-      await expect(
-        addApiSpecToWorkspace(workspacePath, { name: 'api', path: specPath })
-      ).resolves.toBeDefined();
-
-      const stored = specsInYml();
-      expect(Array.isArray(stored)).toBe(true);
-      expect(stored).toEqual([{ name: 'api', path: 'api.yaml' }]);
-    });
-
-    test('removeApiSpecFromWorkspace does not throw on malformed specs', async () => {
-      writeWorkspaceYml(malformedYaml);
-      const result = await removeApiSpecFromWorkspace(workspacePath, path.join(workspacePath, 'whatever.yaml'));
-      expect(result.removedApiSpec).toBeNull();
-      // Round-trip through readWorkspaceConfig (which coerces) must yield a safe array.
-      expect(Array.isArray(readWorkspaceConfig(workspacePath).specs)).toBe(true);
-    });
-  });
-
-  describe('addApiSpecToWorkspace identity', () => {
-    test('same name, different path adds a second entry', async () => {
-      writeWorkspaceYml(['specs:', '  - name: openapi', '    path: a/openapi.yaml'].join('\n'));
-
-      const specs = await addApiSpecToWorkspace(workspacePath, {
-        name: 'openapi',
-        path: path.join(workspacePath, 'b/openapi.yaml')
-      });
-
-      expect(specs.map((s) => s.path)).toEqual(['a/openapi.yaml', 'b/openapi.yaml']);
-    });
-
-    test('same path, different name updates the existing entry in place', async () => {
-      writeWorkspaceYml(['specs:', '  - name: openapi', '    path: a/openapi.yaml'].join('\n'));
-
-      const specs = await addApiSpecToWorkspace(workspacePath, {
-        name: 'Orders API',
-        path: path.join(workspacePath, 'a/openapi.yaml')
-      });
-
-      expect(specs).toEqual([{ name: 'Orders API', path: 'a/openapi.yaml' }]);
-    });
-
-    test('matches an existing entry written with a leading ./', async () => {
-      writeWorkspaceYml(['specs:', '  - name: openapi', '    path: ./a/openapi.yaml'].join('\n'));
-
-      const specs = await addApiSpecToWorkspace(workspacePath, {
-        name: 'openapi',
-        path: path.join(workspacePath, 'a/openapi.yaml')
-      });
-
-      expect(specs).toEqual([{ name: 'openapi', path: 'a/openapi.yaml' }]);
-    });
-
-    test.each([
-      ['a control character', 'Pet\u0001store'],
-      ['a line break', 'Pet\nstore'],
-      ['a tab', 'Pet\tstore'],
-      ['a quote and a backslash', 'Pet "v2" C:\\specs'],
-      ['non-ascii text', 'Petstore \u65e5\u672c\u8a9e']
-    ])('keeps the workspace readable when a spec name carries %s', async (_, name) => {
-      writeWorkspaceYml(['specs:', '  - name: openapi', '    path: a/openapi.yaml'].join('\n'));
-
-      await addApiSpecToWorkspace(workspacePath, { name, path: path.join(workspacePath, 'a/openapi.yaml') });
-
-      expect(readWorkspaceConfig(workspacePath).specs[0].name).toBe(name);
-    });
-  });
-
-  describe('renameApiSpecInWorkspace', () => {
-    const { renameApiSpecInWorkspace } = require('../../src/utils/workspace-config');
-    const twoSpecs = ['specs:', '  - name: openapi', '    path: a/openapi.yaml', '  - name: openapi', '    path: b/openapi.yaml'].join('\n');
-    const specFile = () => path.join(workspacePath, 'a/openapi.yaml');
-    const readFile = () => fs.readFileSync(path.join(workspacePath, 'workspace.yml'), 'utf8');
-
-    test('renames only the entry at the given path, leaving a same-named entry alone', async () => {
-      writeWorkspaceYml(twoSpecs);
-
-      const config = await renameApiSpecInWorkspace(workspacePath, specFile(), 'Orders API');
-
-      expect(config.specs).toEqual([
-        { name: 'Orders API', path: 'a/openapi.yaml' },
-        { name: 'openapi', path: 'b/openapi.yaml' }
-      ]);
-      expect(readWorkspaceConfig(workspacePath).specs[0].name).toBe('Orders API');
-    });
-
-    test('trims the new name', async () => {
-      writeWorkspaceYml(twoSpecs);
-
-      const config = await renameApiSpecInWorkspace(workspacePath, specFile(), '  Orders API  ');
-
-      expect(config.specs[0].name).toBe('Orders API');
-    });
-
-    test('rejects an empty name without touching the file', async () => {
-      writeWorkspaceYml(twoSpecs);
-      const before = readFile();
-
-      await expect(renameApiSpecInWorkspace(workspacePath, specFile(), '   ')).rejects.toThrow('API spec name is required');
-
-      expect(readFile()).toBe(before);
-    });
-
-    test.each([
-      ['a line break', 'Orders\nAPI'],
-      ['a control character', 'Orders\u0001API']
-    ])('rejects a name with %s without touching the file', async (_, name) => {
-      writeWorkspaceYml(twoSpecs);
-      const before = readFile();
-
-      await expect(renameApiSpecInWorkspace(workspacePath, specFile(), name)).rejects.toThrow('control characters');
-
-      expect(readFile()).toBe(before);
-    });
-
-    test('round-trips quotes and backslashes in a name through the written file', async () => {
-      writeWorkspaceYml(twoSpecs);
-      const name = 'Orders "v2" C:\\specs';
-
-      await renameApiSpecInWorkspace(workspacePath, specFile(), name);
-
-      expect(readWorkspaceConfig(workspacePath).specs[0].name).toBe(name);
-    });
-
-    test('rejects a path that is not in the workspace', async () => {
-      writeWorkspaceYml(twoSpecs);
-
-      await expect(renameApiSpecInWorkspace(workspacePath, path.join(workspacePath, 'c/missing.yaml'), 'X')).rejects.toThrow('API spec not found in workspace');
-    });
-  });
-
-  describe('api spec path matching', () => {
-    const specFile = () => path.join(workspacePath, 'a', 'openapi.yaml');
-    const STORED_PATHS = [
-      ['a backslash path', 'a\\openapi.yaml'],
-      ['an absolute path inside the workspace', '<workspace>/a/openapi.yaml'],
-      ['a path with . and .. segments', './a/../a/openapi.yaml']
-    ];
-    const writeStoredPath = (stored) => {
-      const resolved = stored.replace('<workspace>', workspacePath.split(path.sep).join('/'));
-      writeWorkspaceYml(['specs:', '  - name: openapi', `    path: '${resolved}'`].join('\n'));
-    };
-
-    test.each(STORED_PATHS)('treats %s as the same file when adding', async (_, stored) => {
-      writeStoredPath(stored);
-
-      const specs = await addApiSpecToWorkspace(workspacePath, { name: 'openapi', path: specFile() });
-
-      expect(specs).toEqual([{ name: 'openapi', path: 'a/openapi.yaml' }]);
-    });
-
-    test.each(STORED_PATHS)('removes the entry stored as %s', async (_, stored) => {
-      writeStoredPath(stored);
-
-      const { removedApiSpec } = await removeApiSpecFromWorkspace(workspacePath, specFile());
-
-      expect(removedApiSpec).toEqual(expect.objectContaining({ name: 'openapi' }));
-      expect(readWorkspaceConfig(workspacePath).specs).toEqual([]);
-    });
-
-    describe('on Windows', () => {
-      const realPlatform = process.platform;
-      beforeEach(() => Object.defineProperty(process, 'platform', { value: 'win32' }));
-      afterEach(() => Object.defineProperty(process, 'platform', { value: realPlatform }));
-
-      test('matches a stored path that differs only in letter case', async () => {
-        writeWorkspaceYml(['specs:', '  - name: openapi', '    path: A/OpenAPI.yaml'].join('\n'));
-
-        const specs = await addApiSpecToWorkspace(workspacePath, { name: 'openapi', path: specFile() });
-        expect(specs).toHaveLength(1);
-
-        await removeApiSpecFromWorkspace(workspacePath, specFile());
-        expect(readWorkspaceConfig(workspacePath).specs).toEqual([]);
-      });
-    });
-
-    test('removing the middle of three entries keeps the others in order with their fields', async () => {
-      writeWorkspaceYml([
-        'specs:',
-        '  - name: First API',
-        '    path: a/first.yaml',
-        '  - name: openapi',
-        '    path: a/openapi.yaml',
-        '  - name: Last API',
-        '    path: b/last.yaml'
-      ].join('\n'));
-
-      await removeApiSpecFromWorkspace(workspacePath, specFile());
-
-      expect(readWorkspaceConfig(workspacePath).specs).toEqual([
-        { name: 'First API', path: 'a/first.yaml' },
-        { name: 'Last API', path: 'b/last.yaml' }
-      ]);
-    });
+    await writeWorkspaceConfig(workspacePath, config);
+    expect(fs.readFileSync(path.join(workspacePath, 'workspace.yml'), 'utf8')).not.toContain('specs');
   });
 });

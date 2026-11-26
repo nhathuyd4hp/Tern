@@ -68,7 +68,7 @@ const Collections = ({ showSearch, isCreatingCollection, onCreateClick, onDismis
   // A collection can't be dragged together with folders/requests/apps from inside it.
   const hasMixedCollectionSelection = Boolean(
     selectionInfo?.hasCollection
-    && (selectionInfo.hasFolder || selectionInfo.hasRequest || selectionInfo.hasApp)
+    && (selectionInfo.hasFolder || selectionInfo.hasRequest)
   );
 
   // Whether a selected collection row can be dragged as part of the multi-selection.
@@ -78,7 +78,7 @@ const Collections = ({ showSearch, isCreatingCollection, onCreateClick, onDismis
   const isItemMultiDragDisabled = !!selectionInfo && (selectionInfo.hasExample || selectionInfo.hasCollection);
 
   const multiDragCollections = useMemo(() => {
-    if (!selectionInfo || selectionInfo.hasFolder || selectionInfo.hasRequest || selectionInfo.hasApp || selectionInfo.hasExample) return null;
+    if (!selectionInfo || selectionInfo.hasFolder || selectionInfo.hasRequest || selectionInfo.hasExample) return null;
     return selectionInfo.effectiveSelection.filter((entry) => entry.type === 'collection').map((entry) => entry.collection);
   }, [selectionInfo]);
 

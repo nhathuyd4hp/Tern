@@ -1,15 +1,6 @@
 const { ipcMain } = require('electron');
-const { cloneGitRepository, getCollectionGitRepoUrl, listBranchesForRemoteUrl } = require('../utils/git');
+const { cloneGitRepository, listBranchesForRemoteUrl } = require('../utils/git');
 const { createDirectory, removeDirectory } = require('../utils/filesystem');
-
-const getCollectionGitRemoteUrl = async (collectionPath) => {
-  try {
-    const url = await getCollectionGitRepoUrl(collectionPath);
-    return url || null;
-  } catch (error) {
-    return null;
-  }
-};
 
 const handleListRemoteBranches = async (event, { url }) => {
   const repositoryUrl = typeof url === 'string' ? url.trim() : '';
@@ -40,13 +31,8 @@ const registerGitIpc = (mainWindow) => {
     }
   });
 
-  ipcMain.handle('renderer:get-collection-git-remote-url', (event, collectionPath) =>
-    getCollectionGitRemoteUrl(collectionPath)
-  );
-
   ipcMain.handle('renderer:list-remote-branches-for-url', handleListRemoteBranches);
 };
 
 module.exports = registerGitIpc;
-module.exports.getCollectionGitRemoteUrl = getCollectionGitRemoteUrl;
 module.exports.handleListRemoteBranches = handleListRemoteBranches;

@@ -35,12 +35,4 @@ export const sortByNameThenSequence = <T extends SortableItem>(items: T[]): T[] 
   return sortedItems.flat() as T[];
 };
 
-export const resolveCollectionVersion = (
-  brunoConfig: { version?: string; collectionVersion?: string } | null | undefined,
-  isOpenCollection: boolean
-): string => {
-  if (!brunoConfig) return '';
-  return (isOpenCollection ? brunoConfig.version : brunoConfig.collectionVersion) || '';
-};
-
 export default sortByNameThenSequence;

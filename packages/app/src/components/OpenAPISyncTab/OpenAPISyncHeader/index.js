@@ -128,9 +128,7 @@ const OpenAPISyncHeader = ({
               <IconCopy size={12} />
             </button>
           </div>
-          <div className="linked-collection-row">
-            <span className="spec-url-label">Linked Collection:</span>
-            <span className="linked-collection-name">{collection.name}</span>
+          <div className="sync-status-row">
             {syncStatus === 'in-sync' && (
               <Help
                 placement="bottom"

@@ -57,21 +57,13 @@ describe('getOpenApiSpecError', () => {
 });
 
 describe('isSpecSourceReady', () => {
-  const workspaceSpecs = [{ uid: 'pets', pathname: '/ws/specs/pets.yaml' }];
-
-  it('needs a workspace spec that is still in the workspace', () => {
-    expect(isSpecSourceReady('workspace', '/ws/specs/pets.yaml', workspaceSpecs)).toBe(true);
-    expect(isSpecSourceReady('workspace', '/ws/specs/removed.yaml', workspaceSpecs)).toBe(false);
-    expect(isSpecSourceReady('workspace', '', workspaceSpecs)).toBe(false);
-  });
-
   it('needs an http URL', () => {
-    expect(isSpecSourceReady('url', ' https://api.example.com/openapi.json ', workspaceSpecs)).toBe(true);
-    expect(isSpecSourceReady('url', 'not a url', workspaceSpecs)).toBe(false);
+    expect(isSpecSourceReady('url', ' https://api.example.com/openapi.json ')).toBe(true);
+    expect(isSpecSourceReady('url', 'not a url')).toBe(false);
   });
 
   it('needs a chosen file', () => {
-    expect(isSpecSourceReady('file', '/outside/spec.yaml', workspaceSpecs)).toBe(true);
-    expect(isSpecSourceReady('file', '  ', workspaceSpecs)).toBe(false);
+    expect(isSpecSourceReady('file', '/outside/spec.yaml')).toBe(true);
+    expect(isSpecSourceReady('file', '  ')).toBe(false);
   });
 });

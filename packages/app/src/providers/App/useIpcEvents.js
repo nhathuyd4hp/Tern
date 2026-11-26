@@ -40,7 +40,6 @@ import { isElectron } from 'utils/common/platform';
 import { globalEnvironmentsUpdateEvent, updateGlobalEnvironments } from 'providers/ReduxStore/slices/global-environments';
 import { collectionAddOauth2CredentialsByUrl, collectionClearOauth2CredentialsByCredentialsId, updateCollectionLoadingState } from 'providers/ReduxStore/slices/collections/index';
 import { migrationProgressEvent } from 'providers/ReduxStore/slices/collection-migration';
-import { apiSpecAddFileEvent, apiSpecChangeFileEvent } from 'providers/ReduxStore/slices/apiSpec';
 
 const useIpcEvents = () => {
   const dispatch = useDispatch();
@@ -103,23 +102,9 @@ const useIpcEvents = () => {
       }
     };
 
-    const _apiSpecTreeUpdated = (type, val) => {
-      if (window.__IS_DEV__) {
-        console.log('API Spec update:', type);
-        console.log(val);
-      }
-      if (type === 'addFile') {
-        dispatch(apiSpecAddFileEvent({ data: val }));
-      }
-      if (type === 'changeFile') {
-        dispatch(apiSpecChangeFileEvent({ data: val }));
-      }
-    };
     ipcRenderer.invoke('renderer:ready');
 
     const removeCollectionTreeUpdateListener = ipcRenderer.on('main:collection-tree-updated', _collectionTreeUpdated);
-
-    const removeApiSpecTreeUpdateListener = ipcRenderer.on('main:apispec-tree-updated', _apiSpecTreeUpdated);
 
     const removeCollectionMigrationProgressListener = ipcRenderer.on(
       'main:collection-migration-progress',
@@ -350,7 +335,6 @@ const useIpcEvents = () => {
 
     return () => {
       removeCollectionTreeUpdateListener();
-      removeApiSpecTreeUpdateListener();
       removeOpenCollectionListener();
       removeCollectionMigrationProgressListener();
       removeOpenWorkspaceListener();

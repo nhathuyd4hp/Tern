@@ -1,11 +1,10 @@
 import React, { useMemo } from 'react';
 import { getTotalRequestCountInCollection } from 'utils/collections/';
-import { IconFolder, IconWorld, IconApi, IconBook, IconTag } from '@tabler/icons';
+import { IconFolder, IconWorld, IconApi, IconTag } from '@tabler/icons';
 import { areItemsLoading, getItemsLoadStats, getCollectionVersion } from 'utils/collections/index';
 import { useRef, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { makeSelectInvalidItemCountForCollection } from 'src/selectors/collections';
-import GenerateDocumentation from 'components/Sidebar/Collections/Collection/GenerateDocumentation';
 import ChangeCollectionVersion from 'components/Sidebar/Collections/Collection/ChangeCollectionVersion';
 import ToolHint from 'components/ToolHint';
 import { addTab } from 'providers/ReduxStore/slices/tabs';
@@ -20,7 +19,6 @@ const Info = ({ collection }) => {
 
   const isCollectionLoading = areItemsLoading(collection);
   const { loading: itemsLoadingCount, total: totalItems } = getItemsLoadStats(collection);
-  const [showGenerateDocumentationModal, setShowGenerateDocumentationModal] = useState(false);
   const [showChangeVersionModal, setShowChangeVersionModal] = useState(false);
   const [isVersionOverflowing, setIsVersionOverflowing] = useState(false);
 
@@ -152,19 +150,6 @@ const Info = ({ collection }) => {
               </div>
             </div>
           </div>
-
-          <div className="flex items-start group cursor-pointer" onClick={() => setShowGenerateDocumentationModal(true)}>
-            <div className="icon-box generate-docs flex-shrink-0 p-3 rounded-lg">
-              <IconBook className="w-5 h-5" stroke={1.5} />
-            </div>
-            <div className="ml-4 h-full flex flex-col justify-start">
-              <div className="font-medium h-fit my-auto" data-testid="info-documentation-label">Documentation</div>
-              <div className="group-hover:underline text-link" data-testid="info-generate-docs">
-                Generate Docs
-              </div>
-            </div>
-          </div>
-          {showGenerateDocumentationModal && <GenerateDocumentation collectionUid={collection.uid} onClose={() => setShowGenerateDocumentationModal(false)} />}
 
           <Migration collection={collection} />
         </div>

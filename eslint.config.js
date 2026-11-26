@@ -153,18 +153,6 @@ module.exports = runESMImports().then(() => defineConfig([
     }
   },
   {
-    // Storybook config files use CommonJS with __dirname and module.exports
-    files: ['packages/app/storybook/**/*.js'],
-    languageOptions: {
-      globals: {
-        ...globals.node
-      }
-    },
-    rules: {
-      'no-undef': 'error'
-    }
-  },
-  {
     files: ['packages/common/**/*.ts'],
     ignores: ['**/*.config.js', '**/dist/**/*'],
     languageOptions: {

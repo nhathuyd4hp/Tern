@@ -9,16 +9,13 @@ import {
   IconLoader2,
   IconFilePlus,
   IconFolderPlus,
-  IconCopy,
   IconClipboard,
   IconEdit,
   IconFoldDown,
   IconX,
   IconSettings,
   IconFolder,
-  IconBook,
-  IconFileArrowRight,
-  IconAppWindow
+  IconFileArrowRight
 } from '@tabler/icons';
 import OpenAPISyncIcon from 'components/Icons/OpenAPISync';
 import { toggleCollection, collapseFullCollection, clearSidebarSelection } from 'providers/ReduxStore/slices/collections';
@@ -29,7 +26,6 @@ import { setFocusedSidebarPath } from 'providers/ReduxStore/slices/app';
 import toast from 'react-hot-toast';
 import NewRequest from 'components/Sidebar/NewRequest';
 import NewFolder from 'components/Sidebar/NewFolder';
-import NewApp from 'components/Sidebar/NewApp';
 import RemoveCollections from '../RemoveCollections';
 import MoveToWorkspace from '../MoveToWorkspace';
 import { isPathExternalToBasePath } from 'utils/common/path';
@@ -40,9 +36,7 @@ import { makeSelectInvalidItemCountForCollection } from 'src/selectors/collectio
 
 import RenameCollection from '../RenameCollection';
 import StyledWrapper from './StyledWrapper';
-import CloneCollection from '../CloneCollection';
 import InvalidFilesBadge from '../InvalidFilesBadge';
-import GenerateDocumentation from '../GenerateDocumentation';
 import { getRevealInFolderLabel } from 'utils/common/platform';
 import ActionIcon from 'ui/ActionIcon';
 import MenuDropdown from 'ui/MenuDropdown';
@@ -56,10 +50,7 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
   const { dropdownContainerRef } = useSidebarAccordion();
   const [showNewFolderModal, setShowNewFolderModal] = useState(false);
   const [showNewRequestModal, setShowNewRequestModal] = useState(false);
-  const [showNewAppModal, setShowNewAppModal] = useState(false);
   const [showRenameCollectionModal, setShowRenameCollectionModal] = useState(false);
-  const [showCloneCollectionModalOpen, setShowCloneCollectionModalOpen] = useState(false);
-  const [showGenerateDocumentationModal, setShowGenerateDocumentationModal] = useState(false);
   const [showRemoveCollectionModal, setShowRemoveCollectionModal] = useState(false);
   const [showMoveToWorkspaceModal, setShowMoveToWorkspaceModal] = useState(false);
   const [dropType, setDropType] = useState(null);
@@ -218,11 +209,6 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
   const getKeybindingDisplayText = useKeybindingDisplayText();
 
   // Sidebar shortcuts — only active when this collection has keyboard focus
-  useKeybinding('cloneItem', () => {
-    setShowCloneCollectionModalOpen(true);
-    return false;
-  }, { enabled: isKeyboardFocused, deps: [isKeyboardFocused] });
-
   useKeybinding('renameItem', () => {
     setShowRenameCollectionModal(true);
     return false;
@@ -379,25 +365,6 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
       }
     },
     {
-      id: 'new-app',
-      leftSection: IconAppWindow,
-      label: 'New App',
-      onClick: () => {
-        ensureCollectionIsMounted();
-        setShowNewAppModal(true);
-      }
-    },
-    {
-      id: 'clone',
-      leftSection: IconCopy,
-      label: 'Clone',
-      testId: 'clone-collection',
-      shortcut: getKeybindingDisplayText('cloneItem'),
-      onClick: () => {
-        setShowCloneCollectionModalOpen(true);
-      }
-    },
-    {
       id: 'sync-openapi',
       leftSection: OpenAPISyncIcon,
       label: 'OpenAPI',
@@ -421,15 +388,6 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
       shortcut: getKeybindingDisplayText('renameItem'),
       onClick: () => {
         setShowRenameCollectionModal(true);
-      }
-    },
-    {
-      id: 'generate-docs',
-      leftSection: IconBook,
-      label: 'Generate Docs',
-      onClick: () => {
-        ensureCollectionIsMounted();
-        setShowGenerateDocumentationModal(true);
       }
     },
     {
@@ -487,7 +445,6 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
     <StyledWrapper className="flex flex-col">
       {showNewRequestModal && <NewRequest collectionUid={collection.uid} onClose={() => setShowNewRequestModal(false)} />}
       {showNewFolderModal && <NewFolder collectionUid={collection.uid} onClose={() => setShowNewFolderModal(false)} />}
-      {showNewAppModal && <NewApp collectionUid={collection.uid} onClose={() => setShowNewAppModal(false)} />}
       {showRenameCollectionModal && (
         <RenameCollection collectionUid={collection.uid} onClose={() => setShowRenameCollectionModal(false)} />
       )}
@@ -496,12 +453,6 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
       )}
       {showMoveToWorkspaceModal && (
         <MoveToWorkspace collectionUid={collection.uid} onClose={() => setShowMoveToWorkspaceModal(false)} />
-      )}
-      {showGenerateDocumentationModal && (
-        <GenerateDocumentation collectionUid={collection.uid} onClose={() => setShowGenerateDocumentationModal(false)} />
-      )}
-      {showCloneCollectionModalOpen && (
-        <CloneCollection collectionUid={collection.uid} onClose={() => setShowCloneCollectionModalOpen(false)} />
       )}
       <div
         className={collectionRowClassName}

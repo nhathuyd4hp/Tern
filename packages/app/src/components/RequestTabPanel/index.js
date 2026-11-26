@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import get from 'lodash/get';
 import toast from 'react-hot-toast';
 import { useSelector, useDispatch } from 'react-redux';
 import GraphQLRequestPane from 'components/RequestPane/GraphQLRequestPane';
@@ -42,7 +41,6 @@ import EnvironmentSettings from 'components/Environments/EnvironmentSettings';
 import GlobalEnvironmentSettings from 'components/Environments/GlobalEnvironmentSettings';
 import OpenAPISyncTab from 'components/OpenAPISyncTab';
 import OpenAPISpecTab from 'components/OpenAPISpecTab';
-import ApiSpecTab from 'components/ApiSpecTab';
 import ChangelogTab from 'components/ChangelogTab';
 import CollapsedPanelIndicator from './CollapsedPanelIndicator';
 import { clampRequestHeightForResponse } from './paneSize';
@@ -461,10 +459,6 @@ const RequestTabPanel = () => {
     return <OpenAPISpecTab collection={collection} tabUid={focusedTab.uid} />;
   }
 
-  if (focusedTab.type === 'api-spec') {
-    return <ApiSpecTab tabUid={focusedTab.uid} />;
-  }
-
   if (!item || !item.uid) {
     const showLoading = focusedTab.name && isItemsLoading;
     return showLoading
@@ -513,16 +507,6 @@ const RequestTabPanel = () => {
         </StyledWrapper>
       </ScopedPersistenceProvider>
     );
-  }
-
-  const itemSource = item.draft ? item.draft : item;
-  // Preview state is runtime-only, kept on the tab; unset means "preview on" so
-  // an app-enabled request opens in preview mode by default.
-  const appEnabled = item.type !== 'app'
-    && get(itemSource, 'app.enabled', false) === true
-    && focusedTab.appPreview !== false;
-  if (item.type === 'app' || appEnabled) {
-    return <StyledWrapper className="flex flex-col flex-grow relative overflow-hidden" data-testid="app-tab-placeholder" />;
   }
 
   const renderQueryUrl = () => {

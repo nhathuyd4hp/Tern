@@ -8,9 +8,7 @@
     "build": "rsbuild build -m production",
     "build:benchmark": "cross-env BRUNO_BENCHMARK=true rsbuild build -m production",
     "preview": "rsbuild preview",
-    "test": "jest",
-    "storybook": "storybook dev -p 6006 --config-dir storybook",
-    "build-storybook": "storybook build --config-dir storybook"
+    "test": "jest"
   },
   "dependencies": {
     "@fontsource/inter": "^5.0.15",
@@ -64,7 +62,6 @@
     "js-yaml": "4.3.2",
     "jsesc": "^3.0.2",
     "jshint": "^2.13.6",
-    "json5": "^2.2.3",
     "jsonc-parser": "^3.2.1",
     "jsonpath-plus": "^10.3.0",
     "jsonschema": "^1.5.0",
@@ -73,7 +70,6 @@
     "lodash": "4.18.1",
     "lowlight": "^2.9.0",
     "markdown-it": "14.3.3",
-    "markdown-it-replace-link": "^1.2.0",
     "markdown-it-task-lists": "^2.1.1",
     "mime-types": "^3.0.2",
     "moment": "^2.30.1",
@@ -86,7 +82,6 @@
     "polished": "^4.3.1",
     "posthog-node": "4.2.1",
     "prettier": "^2.7.1",
-    "qs": "6.16.1",
     "query-string": "^7.0.1",
     "react": "19.0.0",
     "react-copy-to-clipboard": "^5.1.0",
@@ -95,7 +90,6 @@
     "react-dom": "19.0.0",
     "react-hot-toast": "^2.4.0",
     "react-i18next": "^15.0.1",
-    "react-inspector": "^6.0.2",
     "react-json-view": "^1.21.3",
     "react-pdf": "9.1.1",
     "react-player": "^2.16.0",
@@ -112,11 +106,9 @@
     "tiptap-markdown": "^0.8.10",
     "url": "^0.11.3",
     "xml-formatter": "^3.5.0",
-    "xml2js": "^0.6.2",
     "yup": "^0.32.11"
   },
   "devDependencies": {
-    "@apidevtools/swagger-parser": "10.1.1",
     "@babel/core": "7.29.7",
     "@babel/preset-env": "^7.27.2",
     "@babel/preset-react": "^7.27.1",
@@ -127,8 +119,6 @@
     "@rsbuild/plugin-react": "^1.0.7",
     "@rsbuild/plugin-sass": "^1.1.0",
     "@rsbuild/plugin-styled-components": "^1.6.3",
-    "@storybook/addon-docs": "10.6.2",
-    "@storybook/react": "10.6.2",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
@@ -140,8 +130,6 @@
     "jest-environment-jsdom": "^29.7.0",
     "openapi-path-templating": "2.2.1",
     "postcss": "8.5.23",
-    "storybook": "10.6.2",
-    "storybook-react-rsbuild": "3.6.1",
     "tailwindcss": "^3.4.1"
   }
 }

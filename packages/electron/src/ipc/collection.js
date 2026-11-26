@@ -28,7 +28,6 @@ const { cookiesStore } = require('../store/cookies');
 const { parseLargeRequestWithRedaction } = require('../utils/parse');
 const { getWsClient } = require('../ipc/network/ws-event-handlers');
 const { hasSubDirectories } = require('../utils/filesystem');
-const { readCollectionForApiSpec } = require('../utils/collection-reader');
 const { transformProxyConfig } = require('@usebruno/requests');
 
 const {
@@ -263,78 +262,6 @@ const registerRendererEventHandlers = (mainWindow, watcher) => {
       }
     }
   );
-  // clone collection
-  ipcMain.handle(
-    'renderer:clone-collection',
-    async (event, collectionName, collectionFolderName, collectionLocation, previousPath) => {
-      collectionFolderName = sanitizeName(collectionFolderName);
-
-      if (!validateName(collectionFolderName)) {
-        throw new Error(utils.validateNameError(collectionFolderName));
-      }
-
-      // resolve name collisions silently with a numeric suffix.
-      const { pathname: dirPath } = await mkdirUnique(collectionLocation, collectionFolderName);
-      const uid = generateUidBasedOnHash(dirPath);
-      const format = getCollectionFormat(previousPath);
-      let brunoConfig;
-
-      if (format === 'yml') {
-        const configFilePath = path.join(previousPath, 'opencollection.yml');
-        const content = fs.readFileSync(configFilePath, 'utf8');
-        const {
-          brunoConfig: parsedBrunoConfig,
-          collectionRoot
-        } = parseCollection(content, { format });
-
-        brunoConfig = parsedBrunoConfig;
-        brunoConfig.name = collectionName;
-
-        const newContent = stringifyCollection(collectionRoot, brunoConfig, { format });
-        await writeFile(path.join(dirPath, 'opencollection.yml'), newContent);
-      } else if (format === 'bru') {
-        const configFilePath = path.join(previousPath, 'bruno.json');
-        const content = fs.readFileSync(configFilePath, 'utf8');
-        brunoConfig = JSON.parse(content);
-        brunoConfig.name = collectionName;
-        const newContent = await stringifyJson(brunoConfig);
-        await writeFile(path.join(dirPath, 'bruno.json'), newContent);
-      } else {
-        throw new Error(`Invalid collectionformat: ${format}`);
-      }
-
-      // Now copy all the files matching the collection's filetype along with the dir
-      const files = searchForRequestFiles(previousPath);
-
-      for (const sourceFilePath of files) {
-        const relativePath = path.relative(previousPath, sourceFilePath);
-        const newFilePath = path.join(dirPath, relativePath);
-
-        // skip if the file is opencollection.yml or bruno.json at the root of the collection
-        const isRootConfigFile = (path.basename(sourceFilePath) === 'opencollection.yml' || path.basename(sourceFilePath) === 'bruno.json')
-          && path.dirname(sourceFilePath) === previousPath;
-
-        if (isRootConfigFile) {
-          continue;
-        }
-
-        // handle dir of files
-        fs.mkdirSync(path.dirname(newFilePath), { recursive: true });
-        // copy each files
-        fs.copyFileSync(sourceFilePath, newFilePath);
-      }
-
-      const { size, filesCount } = await getCollectionStats(dirPath);
-      brunoConfig.size = size;
-      brunoConfig.filesCount = filesCount;
-
-      mainWindow.webContents.send('main:collection-opened', dirPath, uid, brunoConfig);
-      ipcMain.emit('main:collection-opened', mainWindow, dirPath, uid, brunoConfig);
-
-      return { pathname: dirPath, name: path.basename(dirPath) };
-    }
-  );
-
   // move an external collection into the workspace's directory
   ipcMain.handle(
     'renderer:move-collection-to-workspace',
@@ -1294,13 +1221,6 @@ const registerRendererEventHandlers = (mainWindow, watcher) => {
         deleteRequestUid(pathname);
 
         fs.unlinkSync(pathname);
-      } else if (type === 'app') {
-        // Standalone app items are single files with no per-line uid mapping.
-        if (!fs.existsSync(pathname)) {
-          return Promise.reject(new Error('The file does not exist'));
-        }
-
-        fs.unlinkSync(pathname);
       } else {
         return Promise.reject(new Error(`Unsupported item type for delete: ${type}`));
       }
@@ -1712,17 +1632,6 @@ const registerRendererEventHandlers = (mainWindow, watcher) => {
             const itemToSave = transformRequestToSaveToFilesystem(item);
             const content = await stringifyRequestViaWorker(itemToSave, { format });
             await writeFile(item.pathname, content);
-          }
-        } else if (item?.type === 'app') {
-          if (fs.existsSync(item.pathname)) {
-            const existingContent = fs.readFileSync(item.pathname, 'utf8');
-            const appJson = parseRequest(existingContent, { format });
-            if (appJson?.seq === item.seq) {
-              continue;
-            }
-            appJson.seq = item.seq;
-            const newContent = stringifyRequest(appJson, { format });
-            await writeFile(item.pathname, newContent);
           }
         }
       }
@@ -2557,17 +2466,6 @@ const registerRendererEventHandlers = (mainWindow, watcher) => {
 
     await waitForShellEnv();
     return runNpmInstall({ collectionPath: collectionPathname, packages });
-  });
-
-  ipcMain.handle('renderer:get-collection-json', (event, collectionPath) => {
-    if (typeof collectionPath !== 'string' || !collectionPath) {
-      throw new Error('collectionPath is required');
-    }
-    if (!fs.existsSync(collectionPath) || !fs.statSync(collectionPath).isDirectory()) {
-      throw new Error(`Collection path does not exist: ${collectionPath}`);
-    }
-
-    return readCollectionForApiSpec(collectionPath);
   });
 
   ipcMain.handle('renderer:export-collection-zip', async (event, collectionPath, collectionName) => {

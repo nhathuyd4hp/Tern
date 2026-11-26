@@ -4,7 +4,6 @@ let uid = 0;
 const nextUid = (p) => `${p}-${++uid}`;
 const request = (name, props = {}) => ({ uid: props.uid || nextUid('req'), name, type: 'http-request', seq: props.seq, request: {}, ...props });
 const folder = (name, items = [], props = {}) => ({ uid: props.uid || nextUid('fol'), name, type: 'folder', seq: props.seq, items, ...props });
-const app = (name, props = {}) => ({ uid: props.uid || nextUid('app'), name, type: 'app', seq: props.seq, ...props });
 const collection = (name, items = [], props = {}) => ({ uid: props.uid || nextUid('col'), name, pathname: `/c/${name}`, mountStatus: 'mounted', isLoading: false, collapsed: false, items, ...props });
 const loaded = (c) => ({ kind: 'loaded', collection: c });
 const flatten = (entries, options) => flattenSidebarTree(entries, options).rows;
@@ -15,11 +14,11 @@ beforeEach(() => { uid = 0; });
 
 describe('flattenSidebarTree', () => {
   describe('ordering and depth', () => {
-    it('emits collection header then folders -> apps -> requests', () => {
-      const c = collection('C', [request('r1', { seq: 1 }), app('a1', { seq: 1 }), folder('f1', [], { seq: 1, collapsed: true })]);
-      expect(kinds(flatten([loaded(c)]))).toEqual(['collection', 'folder', 'app', 'request']);
+    it('emits collection header then folders -> requests', () => {
+      const c = collection('C', [request('r1', { seq: 1 }), folder('f1', [], { seq: 1, collapsed: true })]);
+      expect(kinds(flatten([loaded(c)]))).toEqual(['collection', 'folder', 'request']);
     });
-    it('sorts requests/apps by seq, folders alphabetically', () => {
+    it('sorts requests by seq, folders alphabetically', () => {
       const c = collection('C', [request('rB', { seq: 2 }), request('rA', { seq: 1 }), folder('zeta'), folder('alpha')]);
       const rows = flatten([loaded(c)]);
       expect(names(rows.filter((r) => r.kind === 'request'))).toEqual(['rA', 'rB']);
@@ -61,9 +60,8 @@ describe('flattenSidebarTree', () => {
       const c = collection('C', [folder('match', [request('login')]), folder('nomatch', [request('health')])]);
       expect(names(flatten([loaded(c)], { searchText: 'login' }).filter((x) => x.kind === 'folder'))).toEqual(['match']);
     });
-    it('hides apps and empty-cta while searching', () => {
-      const k = kinds(flatten([loaded(collection('C', [app('a'), request('login')]))], { searchText: 'login' }));
-      expect(k).not.toContain('app');
+    it('hides empty-cta while searching', () => {
+      const k = kinds(flatten([loaded(collection('C', [request('login')]))], { searchText: 'login' }));
       expect(k).not.toContain('empty-cta');
     });
     it('reveals a matching request\'s examples during search, even when collapsed', () => {
@@ -203,13 +201,11 @@ describe('ancestry attributes', () => {
 });
 
 describe('object maps', () => {
-  it('itemsByUid resolves folders, apps and requests to their live objects', () => {
+  it('itemsByUid resolves folders and requests to their live objects', () => {
     const r = request('r1', { uid: 'req-x' });
-    const a = app('a1', { uid: 'app-x' });
     const f = folder('f1', [r], { uid: 'fol-x' });
-    const { itemsByUid } = flattenSidebarTree([loaded(collection('C', [f, a]))]);
+    const { itemsByUid } = flattenSidebarTree([loaded(collection('C', [f]))]);
     expect(itemsByUid.get('fol-x')).toBe(f);
-    expect(itemsByUid.get('app-x')).toBe(a);
     expect(itemsByUid.get('req-x')).toBe(r);
   });
   it('collectionsByUid resolves the collection to its live object', () => {

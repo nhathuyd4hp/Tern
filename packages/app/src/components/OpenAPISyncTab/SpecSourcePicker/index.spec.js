@@ -1,24 +1,15 @@
 import '@testing-library/jest-dom';
 import React, { useState } from 'react';
 import { act, fireEvent, waitFor } from '@testing-library/react';
-import {
-  renderWithWorkspaceSpecs,
-  validOpenApiSpec,
-  workspaceSpec,
-  pickWorkspaceSpec
-} from 'components/OpenAPISyncTab/testUtils';
+import { renderWithTheme, validOpenApiSpec } from 'components/OpenAPISyncTab/testUtils';
 import SpecSourcePicker from './index';
 
 const swaggerJson = { swagger: '2.0', info: { title: 'Legacy' }, paths: {} };
-const petsSpec = workspaceSpec('pets', 'Pets', '/ws/specs/pets.yaml');
-const zooSpec = workspaceSpec('zoo', 'Zoo', '/ws/specs/zoo.yaml');
-const swaggerSpec = workspaceSpec('legacy', 'Legacy', '/ws/specs/legacy.yaml', swaggerJson);
 
-const renderPicker = ({ specs = [zooSpec, petsSpec], ...props } = {}) => {
+const renderPicker = (props = {}) => {
   const handlers = { onModeChange: jest.fn(), onChange: jest.fn(), onError: jest.fn() };
-  const utils = renderWithWorkspaceSpecs(
-    <SpecSourcePicker mode="workspace" value="" {...handlers} {...props} />,
-    specs
+  const utils = renderWithTheme(
+    <SpecSourcePicker mode="url" value="" {...handlers} {...props} />
   );
 
   return { ...utils, ...handlers };
@@ -32,17 +23,17 @@ describe('SpecSourcePicker', () => {
   });
 
   describe('tabs', () => {
-    it('shows Workspace, URL and File tabs in that order on the first render', () => {
+    it('shows URL and File tabs in that order on the first render', () => {
       const { getAllByRole } = renderPicker();
 
-      expect(getAllByRole('tab').map((tab) => tab.textContent)).toEqual(['Workspace', 'URL', 'File']);
+      expect(getAllByRole('tab').map((tab) => tab.textContent)).toEqual(['URL', 'File']);
     });
 
     it('marks the active tab as selected', () => {
       const { getByTestId } = renderPicker({ mode: 'url' });
 
       expect(getByTestId('tab-url')).toHaveAttribute('aria-selected', 'true');
-      expect(getByTestId('tab-workspace')).toHaveAttribute('aria-selected', 'false');
+      expect(getByTestId('tab-file')).toHaveAttribute('aria-selected', 'false');
     });
 
     it('names the tab list and links the active tab to its panel', () => {
@@ -77,91 +68,6 @@ describe('SpecSourcePicker', () => {
       fireEvent.click(getByTestId('tab-url'));
 
       expect(onModeChange).toHaveBeenCalledWith('url');
-    });
-  });
-
-  describe('workspace mode', () => {
-    it('shows a placeholder with nothing selected', () => {
-      const { getByTestId } = renderPicker();
-
-      expect(getByTestId('spec-source-workspace-select')).toHaveTextContent(/^Select an API spec$/);
-    });
-
-    it('lists the workspace specs in the order the workspace keeps them', () => {
-      const { getByTestId, getAllByRole } = renderPicker();
-
-      fireEvent.click(getByTestId('spec-source-workspace-select'));
-
-      expect(getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Zoo', 'Pets']);
-    });
-
-    it('announces the dropdown with its label and the placeholder when nothing is picked', () => {
-      const { getByRole } = renderPicker();
-
-      expect(getByRole('button', { name: 'API spec Select an API spec' })).toBeInTheDocument();
-    });
-
-    it('announces the picked spec in the dropdown name', () => {
-      const { getByRole } = renderPicker({ value: '/ws/specs/zoo.yaml' });
-
-      expect(getByRole('button', { name: 'API spec Zoo' })).toBeInTheDocument();
-    });
-
-    it('announces the empty workspace message in the dropdown name', () => {
-      const { getByRole } = renderPicker({ specs: [] });
-
-      expect(getByRole('button', { name: 'API spec No API specs in this workspace' })).toBeInTheDocument();
-    });
-
-    it('draws a chevron inside the dropdown', () => {
-      const { getByTestId } = renderPicker();
-
-      expect(getByTestId('spec-source-workspace-select').querySelector('.caret')).toBeInTheDocument();
-    });
-
-    it('shows the spec at the current path as selected', () => {
-      const { getByTestId } = renderPicker({ value: '/ws/specs/zoo.yaml' });
-
-      expect(getByTestId('spec-source-workspace-select')).toHaveTextContent('Zoo');
-    });
-
-    it('reports the path of the picked spec', () => {
-      const { getByTestId, onChange, onError } = renderPicker();
-
-      pickWorkspaceSpec(getByTestId, 'pets');
-
-      expect(onError).toHaveBeenCalledWith(null);
-      expect(onChange).toHaveBeenCalledWith('/ws/specs/pets.yaml');
-    });
-
-    it('rejects a picked spec that is not OpenAPI 3.x and leaves the value as it is', () => {
-      const { getByTestId, onChange, onError } = renderPicker({ specs: [petsSpec, swaggerSpec] });
-
-      pickWorkspaceSpec(getByTestId, 'legacy');
-
-      expect(onError).toHaveBeenCalledWith('Swagger 2.0 is not supported. Please convert your spec to OpenAPI 3.x.');
-      expect(onChange).not.toHaveBeenCalled();
-    });
-
-    it.each([
-      ['failed to parse', null],
-      ['parsed to plain text', 'just some text']
-    ])('reports a workspace spec that %s with the same error as browsing it', (_, json) => {
-      const brokenSpec = workspaceSpec('broken', 'Broken', '/ws/specs/broken.yaml', json);
-      const { getByTestId, onChange, onError } = renderPicker({ specs: [petsSpec, brokenSpec] });
-
-      pickWorkspaceSpec(getByTestId, 'broken');
-
-      expect(onError).toHaveBeenCalledWith('Failed to parse the file – ensure it is valid JSON or YAML');
-      expect(onChange).not.toHaveBeenCalled();
-    });
-
-    it('says the workspace has no specs and disables the dropdown when there are none', () => {
-      const { getByTestId } = renderPicker({ specs: [] });
-      const trigger = getByTestId('spec-source-workspace-select');
-
-      expect(trigger).toBeDisabled();
-      expect(trigger).toHaveTextContent('No API specs in this workspace');
     });
   });
 
@@ -252,7 +158,7 @@ describe('SpecSourcePicker', () => {
       const [mode, setMode] = useState('file');
       return <SpecSourcePicker mode={mode} onModeChange={setMode} value="" onChange={onChange} onError={onError} />;
     };
-    const { getByTestId } = renderWithWorkspaceSpecs(<PickerHost />, [petsSpec]);
+    const { getByTestId } = renderWithTheme(<PickerHost />);
 
     let finishReading;
     const file = new File(['{}'], 'pets.json', { type: 'application/json' });

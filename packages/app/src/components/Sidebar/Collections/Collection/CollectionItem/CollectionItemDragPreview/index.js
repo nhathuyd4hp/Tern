@@ -20,14 +20,12 @@ function getItemStyles({ x, y }) {
   };
 }
 
-// Builds the "N folders, M requests and K apps"-style summary for a multi-item drag.
+// Builds the "N folders and M requests"-style summary for a multi-item drag.
 function getMultiDragLabel(multiSelectedItems) {
   const itemsCount = multiSelectedItems.reduce(
     (acc, i) => {
       if (i.type === 'folder') {
         acc.folder++;
-      } else if (i.type === 'app') {
-        acc.app++;
       } else if (i.type && i.type.includes('request')) {
         acc.request++;
       } else if (!i.type || i.type === 'collection') {
@@ -35,11 +33,11 @@ function getMultiDragLabel(multiSelectedItems) {
       }
       return acc;
     },
-    { folder: 0, app: 0, request: 0, collection: 0 }
+    { folder: 0, request: 0, collection: 0 }
   );
 
   const parts = [];
-  const keyOrder = ['collection', 'folder', 'app', 'request'];
+  const keyOrder = ['collection', 'folder', 'request'];
   for (const key of keyOrder) {
     const value = itemsCount[key];
     if (value > 0) {
@@ -54,7 +52,6 @@ function getMultiDragLabel(multiSelectedItems) {
 function getSingleDragIcon(itemType, itemData) {
   if (itemType === 'collection' || (!itemData.type && itemData.pathname)) return IconBook;
   if (itemData.type === 'folder') return IconFolder;
-  if (itemData.type === 'app') return IconFile;
   return IconFile;
 }
 

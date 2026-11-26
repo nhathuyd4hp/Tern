@@ -6,7 +6,6 @@ import collectionsReducer from './slices/collections';
 import tabsReducer from './slices/tabs';
 import globalEnvironmentsReducer from './slices/global-environments';
 import workspacesReducer from './slices/workspaces';
-import apiSpecReducer from './slices/apiSpec';
 import openapiSyncReducer from './slices/openapi-sync';
 import openCollectionModalReducer from './slices/open-collection-modal';
 import collectionMigrationReducer from './slices/collection-migration';
@@ -31,7 +30,6 @@ export const store = configureStore({
     tabs: tabsReducer,
     globalEnvironments: globalEnvironmentsReducer,
     workspaces: workspacesReducer,
-    apiSpec: apiSpecReducer,
     openapiSync: openapiSyncReducer,
     openCollectionModal: openCollectionModalReducer,
     collectionMigration: collectionMigrationReducer

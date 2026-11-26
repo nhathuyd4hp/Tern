@@ -1,6 +1,5 @@
 import { isPlainObject } from 'lodash';
 import { isHttpUrl } from 'utils/url/index';
-import { findApiSpecByPathname } from 'utils/api-specs';
 import { isOpenApiSpec } from 'utils/importers/openapi-collection';
 
 const INVALID_SPEC_ERROR = 'The selected spec is not a valid OpenAPI 3.x specification';
@@ -16,13 +15,10 @@ export const getOpenApiSpecError = (spec) => {
   return spec.openapi.startsWith('3.') && isPlainObject(spec.paths) ? null : INVALID_SPEC_ERROR;
 };
 
-export const isSpecSourceReady = (mode, value, workspaceSpecs) => {
+export const isSpecSourceReady = (mode, value) => {
   const source = (value || '').trim();
   if (mode === 'url') {
     return isHttpUrl(source);
-  }
-  if (mode === 'workspace') {
-    return Boolean(findApiSpecByPathname(workspaceSpecs, source));
   }
   return Boolean(source);
 };

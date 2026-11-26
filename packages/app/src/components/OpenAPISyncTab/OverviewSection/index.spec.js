@@ -1,10 +1,10 @@
 import '@testing-library/jest-dom';
 import React from 'react';
 import { fireEvent } from '@testing-library/react';
-import { renderWithWorkspaceSpecs } from 'components/OpenAPISyncTab/testUtils';
+import { renderWithTheme } from 'components/OpenAPISyncTab/testUtils';
 import OverviewSection from './index';
 
-const renderOverview = (syncConfig) => renderWithWorkspaceSpecs(
+const renderOverview = (syncConfig) => renderWithTheme(
   <OverviewSection
     collection={{
       uid: 'pets-api',

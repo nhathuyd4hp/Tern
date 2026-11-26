@@ -8,7 +8,6 @@
   "files": [
     "dist",
     "src",
-    "license.md",
     "readme.md",
     "package.json"
   ],

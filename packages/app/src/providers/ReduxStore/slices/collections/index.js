@@ -34,7 +34,6 @@ const FILE_DERIVED_REQUEST_FIELDS = [
   'request',
   'settings',
   'examples',
-  'app',
   'raw',
   'filename',
   'pathname',
@@ -938,9 +937,6 @@ export const collectionsSlice = createSlice({
           item.request = item.draft.request;
           if (item.draft.settings) {
             item.settings = item.draft.settings;
-          }
-          if (item.draft.app) {
-            item.app = item.draft.app;
           }
           item.draft = null;
         }
@@ -3126,7 +3122,6 @@ export const collectionsSlice = createSlice({
               request: file.data.request,
               settings: file.data.settings,
               examples: file.data.examples,
-              app: file.data.app,
               filename: file.meta.name,
               pathname: file.meta.pathname,
               raw: file.data.raw,
@@ -3247,7 +3242,6 @@ export const collectionsSlice = createSlice({
               item.request = mergeRequestWithPreservedUids(item.request, file.data.request);
               item.settings = file.data.settings;
               item.examples = file.data.examples;
-              item.app = file.data.app ? { ...file.data.app } : null;
               item.filename = file.meta.name;
               item.pathname = file.meta.pathname;
               item.raw = file.data.raw;
@@ -3269,7 +3263,6 @@ export const collectionsSlice = createSlice({
             item.request = mergeRequestWithPreservedUids(item.request, file.data.request);
             item.settings = file.data.settings;
             item.examples = file.data.examples;
-            item.app = file.data.app ? { ...file.data.app } : null;
             item.filename = file.meta.name;
             item.pathname = file.meta.pathname;
             item.raw = file.data.raw;
@@ -3517,39 +3510,6 @@ export const collectionsSlice = createSlice({
           item.draft.request.docs = action.payload.docs;
         }
       }
-    },
-    updateAppCode: (state, action) => {
-      const collection = findCollectionByUid(state.collections, action.payload.collectionUid);
-      if (!collection) return;
-
-      const item = findItemInCollection(collection, action.payload.itemUid);
-      // Accept both request-attached apps and standalone 'app' items.
-      if (item && (isItemARequest(item) || item.type === 'app')) {
-        if (!item.draft) {
-          item.draft = cloneDeep(item);
-        }
-        item.draft.app = item.draft.app || {};
-        item.draft.app.code = action.payload.code;
-      }
-    },
-    toggleAppMode: (state, action) => {
-      const collection = findCollectionByUid(state.collections, action.payload.collectionUid);
-      if (!collection) return;
-
-      const item = findItemInCollection(collection, action.payload.itemUid);
-      if (item && isItemARequest(item)) {
-        if (!item.draft) {
-          item.draft = cloneDeep(item);
-        }
-        item.draft.app = item.draft.app || {};
-        item.draft.app.enabled = action.payload.enabled;
-      }
-    },
-    appSetRuntimeVariable: (state, action) => {
-      const { collectionUid, key, value } = action.payload;
-      const collection = findCollectionByUid(state.collections, collectionUid);
-      if (!collection) return;
-      collection.runtimeVariables = { ...(collection.runtimeVariables || {}), [key]: value };
     },
     updateFolderDocs: (state, action) => {
       const collection = findCollectionByUid(state.collections, action.payload.collectionUid);
@@ -4183,9 +4143,6 @@ export const {
   updateFolderDocs,
   toggleCollectionFileMode,
   updateFileContent,
-  updateAppCode,
-  toggleAppMode,
-  appSetRuntimeVariable,
   moveCollection,
   streamDataReceived,
   collectionAddOauth2CredentialsByUrl,

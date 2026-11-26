@@ -13,7 +13,6 @@ import Assertions from 'components/RequestPane/Assertions';
 import Script from 'components/RequestPane/Script';
 import Tests from 'components/RequestPane/Tests';
 import Settings from 'components/RequestPane/Settings';
-import AppCodeEditor from 'components/RequestPane/AppCodeEditor';
 import Documentation from 'components/Documentation/index';
 import DocsAction from 'components/Documentation/DocsAction';
 import StatusDot from 'components/StatusDot';
@@ -31,7 +30,6 @@ const TAB_CONFIG = [
   { key: 'assert', label: 'Assert' },
   { key: 'tests', label: 'Tests' },
   { key: 'docs', label: 'Docs' },
-  { key: 'app', label: 'App' },
   { key: 'settings', label: 'Settings' }
 ];
 
@@ -45,7 +43,6 @@ const TAB_PANELS = {
   script: Script,
   tests: Tests,
   docs: Documentation,
-  app: AppCodeEditor,
   settings: Settings
 };
 
@@ -74,10 +71,6 @@ const HttpRequestPane = ({ item, collection }) => {
   const responseVars = getProperty('request.vars.res');
   const auth = getProperty('request.auth');
   const tags = getProperty('tags');
-  const app = getProperty('app', null);
-  const appTabEnabled = app?.enabled === true;
-  // A previously selected App tab may be restored while apps are disabled in settings.
-  const effectiveTab = requestPaneTab === 'app' && !appTabEnabled ? 'params' : requestPaneTab;
 
   const activeCounts = useMemo(() => ({
     params: params.filter((p) => p.enabled).length,
@@ -113,22 +106,19 @@ const HttpRequestPane = ({ item, collection }) => {
       assert: activeCounts.assertions > 0 ? <sup className="font-medium">{activeCounts.assertions}</sup> : null,
       tests: tests?.length > 0 ? (hasTestError ? <StatusDot type="error" /> : <StatusDot />) : null,
       docs: docs?.length > 0 ? <StatusDot /> : null,
-      app: app?.code?.length > 0 ? <StatusDot dataTestId="app" /> : null,
       settings: tags?.length > 0 ? <StatusDot /> : null
     };
-  }, [activeCounts, body.mode, hasAuth, script, item.preRequestScriptErrorMessage, item.postResponseScriptErrorMessage, item.testScriptErrorMessage, tests, docs, app, tags]);
+  }, [activeCounts, body.mode, hasAuth, script, item.preRequestScriptErrorMessage, item.postResponseScriptErrorMessage, item.testScriptErrorMessage, tests, docs, tags]);
 
   const allTabs = useMemo(
-    () => TAB_CONFIG
-      .filter(({ key }) => key !== 'app' || appTabEnabled)
-      .map(({ key, label }) => ({ key, label, indicator: indicators[key] })),
-    [indicators, appTabEnabled]
+    () => TAB_CONFIG.map(({ key, label }) => ({ key, label, indicator: indicators[key] })),
+    [indicators]
   );
 
   const tabPanel = useMemo(() => {
-    const Component = TAB_PANELS[effectiveTab];
+    const Component = TAB_PANELS[requestPaneTab];
     return Component ? <Component key={item.uid} item={item} collection={collection} /> : <div className="mt-4">404 | Not found</div>;
-  }, [effectiveTab, item, collection]);
+  }, [requestPaneTab, item, collection]);
 
   if (!activeTabUid || !focusedTab?.uid || !requestPaneTab) {
     return <div className="pb-4 px-4">An error occurred!</div>;
@@ -158,7 +148,7 @@ const HttpRequestPane = ({ item, collection }) => {
     <div className="flex flex-col h-full relative">
       <ResponsiveTabs
         tabs={allTabs}
-        activeTab={effectiveTab}
+        activeTab={requestPaneTab}
         onTabSelect={selectTab}
         rightContent={rightContent}
         rightContentRef={rightContent ? rightContentRef : null}

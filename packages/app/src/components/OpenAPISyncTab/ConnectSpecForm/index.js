@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { IconCheck } from '@tabler/icons';
 import Button from 'ui/Button';
 import OpenAPISyncIcon from 'components/Icons/OpenAPISync';
-import useWorkspaceApiSpecs from 'hooks/useWorkspaceApiSpecs';
 import SpecSourcePicker from 'components/OpenAPISyncTab/SpecSourcePicker';
 import { isSpecSourceReady } from 'components/OpenAPISyncTab/SpecSourcePicker/utils';
 import StyledWrapper from './StyledWrapper';
@@ -15,14 +14,12 @@ const FEATURES = [
 ];
 
 const SOURCE_HINTS = {
-  workspace: 'Select the spec from the active workspace',
   url: 'Supports OpenAPI 3.x specifications in JSON or YAML format',
   file: 'Select a local OpenAPI/Swagger JSON or YAML file'
 };
 
 const ConnectSpecForm = ({ sourceUrl, setSourceUrl, isLoading, error, setError, onConnect }) => {
-  const [mode, setMode] = useState('workspace');
-  const workspaceSpecs = useWorkspaceApiSpecs();
+  const [mode, setMode] = useState('url');
 
   const handleModeChange = (nextMode) => {
     if (nextMode === mode) return;
@@ -66,7 +63,7 @@ const ConnectSpecForm = ({ sourceUrl, setSourceUrl, isLoading, error, setError, 
               data-testid="openapi-connect-button"
               size="sm"
               className="connect-button"
-              disabled={!isSpecSourceReady(mode, sourceUrl, workspaceSpecs)}
+              disabled={!isSpecSourceReady(mode, sourceUrl)}
               loading={isLoading}
             >
               Connect

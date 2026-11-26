@@ -249,11 +249,10 @@ class DefaultWorkspaceManager {
     const workspaceConfig = {
       opencollection: OPENCOLLECTION_VERSION,
       info: {
-        name: 'My Workspace',
+        name: require('node:os').hostname(),
         type: WORKSPACE_TYPE
       },
       collections: [],
-      specs: [],
       docs: ''
     };
 

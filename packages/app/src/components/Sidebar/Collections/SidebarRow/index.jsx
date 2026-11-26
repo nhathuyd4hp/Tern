@@ -12,7 +12,6 @@ const resolveRowObject = ({ row, itemsByUid, collectionsByUid, ghostsByPath }) =
       // collection header and collection-root empty-cta both key off collectionUid
       return collectionsByUid.get(row.collectionUid);
     case 'folder':
-    case 'app':
     case 'request':
     case 'example':
       // example rows resolve to their parent request.
@@ -42,7 +41,6 @@ const renderRow = (props) => {
       );
     }
     case 'folder':
-    case 'app':
     case 'request': {
       if (!resolved) return null;
       return (

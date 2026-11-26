@@ -89,13 +89,6 @@ const collectCollectionDrafts = (collection) => {
     });
   });
 
-  each(filter(items, (item) => item.type === 'app' && hasRequestChanges(item)), (item) => {
-    drafts.push({
-      ...item,
-      collectionUid: collection.uid
-    });
-  });
-
   return drafts;
 };
 
@@ -200,7 +193,7 @@ const MigrateCollectionToYmlModal = () => {
     try {
       const collectionLevelDrafts = collectionDrafts.filter((d) => d.type === 'collection');
       const folderDrafts = collectionDrafts.filter((d) => d.type === 'folder');
-      const requestDrafts = collectionDrafts.filter((d) => isItemARequest(d) || d.type === 'app');
+      const requestDrafts = collectionDrafts.filter((d) => isItemARequest(d));
       const transientRequestDrafts = requestDrafts.filter((d) => d.isTransient);
       const nonTransientRequestDrafts = requestDrafts.filter((d) => !d.isTransient);
       const environmentDrafts = collectionDrafts.filter((d) => d.type === 'collection-environment');
@@ -277,8 +270,6 @@ const MigrateCollectionToYmlModal = () => {
         return `Folder: ${draft.name}`;
       case 'collection-environment':
         return `Environment: ${draft.name}`;
-      case 'app':
-        return `App: ${draft.name || draft.filename}`;
       default:
         return `Request: ${draft.filename || draft.name}`;
     }

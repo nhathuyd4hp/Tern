@@ -51,7 +51,7 @@ const registerFilesystemIpc = require('./ipc/filesystem');
 const registerPreferencesIpc = require('./ipc/preferences');
 const registerSnapshotIpc = require('./ipc/snapshot');
 const registerWorkspaceIpc = require('./ipc/workspace');
-const registerApiSpecIpc = require('./ipc/apiSpec');
+const registerSpecFetchIpc = require('./ipc/spec-fetch');
 const registerGitIpc = require('./ipc/git');
 const registerOpenAPISyncIpc = require('./ipc/openapi-sync');
 const sqliteService = require('./services/sqlite');
@@ -59,13 +59,10 @@ const { transientManager } = require('./services/transient');
 const { registerWsdlIpc } = require('./ipc/wsdl');
 const collectionWatcher = require('./app/collection-watcher');
 const WorkspaceWatcher = require('./app/workspace-watcher');
-const ApiSpecWatcher = require('./app/apiSpecsWatcher');
 const { loadWindowState, saveBounds, saveMaximized } = require('./utils/window');
 const { preferencesUtil, getPreferences, savePreferences } = require('./store/preferences');
 const { globalEnvironmentsManager } = require('./store/workspace-environments');
 const registerGlobalEnvironmentsIpc = require('./ipc/global-environments');
-const registerAppDocumentIpc = require('./ipc/app-document');
-const AppDocuments = require('./app/app-documents');
 const { safeParseJSON, safeStringifyJSON } = require('./utils/common');
 const { getDomainsWithCookies } = require('./utils/cookies');
 const { cookiesStore } = require('./store/cookies');
@@ -75,11 +72,6 @@ const { handleAppProtocolUrl, getAppProtocolUrlFromArgv } = require('./utils/dee
 const { startBenchmark, stopBenchmark } = require('./benchmark');
 
 const workspaceWatcher = new WorkspaceWatcher();
-const apiSpecWatcher = new ApiSpecWatcher();
-const appDocuments = new AppDocuments();
-
-// Scheme privileges are only honoured when registered before `app.ready`.
-AppDocuments.registerScheme();
 
 // Reference: https://content-security-policy.com/
 const contentSecurityPolicy = [
@@ -139,8 +131,7 @@ const focusMainWindow = () => {
 
 const closeAllWatchers = () => Promise.allSettled([
   collectionWatcher.closeAllWatchers(),
-  workspaceWatcher.closeAllWatchers(),
-  apiSpecWatcher.closeAllWatchers()
+  workspaceWatcher.closeAllWatchers()
 ]);
 
 // Parse protocol URL from command line arguments (if any)
@@ -415,7 +406,7 @@ app.on('ready', async () => {
     }
   });
 
-  // Guests (HTML preview, app views) must never get the preload bridge or Node.
+  // Guests (HTML preview) must never get the preload bridge or Node.
   mainWindow.webContents.on('will-attach-webview', (event, webPreferences) => {
     delete webPreferences.preload;
     webPreferences.nodeIntegration = false;
@@ -475,13 +466,11 @@ app.on('ready', async () => {
   registerPreferencesIpc(mainWindow, collectionWatcher);
   registerSnapshotIpc();
   registerWorkspaceIpc(mainWindow, workspaceWatcher);
-  registerApiSpecIpc(mainWindow, apiSpecWatcher);
+  registerSpecFetchIpc();
   registerFilesystemIpc(mainWindow);
   registerGitIpc(mainWindow);
   registerOpenAPISyncIpc(mainWindow);
   sqliteService.openDatabase();
-  appDocuments.handleProtocol();
-  registerAppDocumentIpc(appDocuments, mainWindow);
   registerWsdlIpc();
   registerCollectionSearchIpc();
 

@@ -20,7 +20,6 @@ const buildWorkspaceYml = (name) => [
   `  name: ${name}`,
   '  type: workspace',
   'collections:',
-  'specs: []',
   'docs: \'\'',
   ''
 ].join('\n');

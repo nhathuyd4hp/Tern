@@ -34,7 +34,7 @@ const {
   getWorkspaceUid
 } = require('../utils/workspace-config');
 
-const DEFAULT_WORKSPACE_NAME = 'My Workspace';
+const DEFAULT_WORKSPACE_NAME = require('node:os').hostname();
 
 const prepareWorkspaceConfigForClient = (workspaceConfig, workspacePath, isDefault) => {
   const config = {
@@ -205,45 +205,6 @@ const registerWorkspaceIpc = (mainWindow, workspaceWatcher) => {
       }
       validateWorkspacePath(workspacePath);
       await reorderWorkspaceCollections(workspacePath, collectionPaths);
-    } catch (error) {
-      throw error;
-    }
-  });
-
-  ipcMain.handle('renderer:load-workspace-apispecs', async (event, workspacePath) => {
-    try {
-      if (!workspacePath) {
-        throw new Error('Workspace path is undefined');
-      }
-
-      const workspaceFilePath = path.join(workspacePath, 'workspace.yml');
-
-      if (!fs.existsSync(workspaceFilePath)) {
-        throw new Error('Invalid workspace: workspace.yml not found');
-      }
-
-      const yamlContent = fs.readFileSync(workspaceFilePath, 'utf8');
-      const workspaceConfig = yaml.load(yamlContent);
-
-      if (!workspaceConfig || typeof workspaceConfig !== 'object') {
-        return [];
-      }
-
-      const specs = Array.isArray(workspaceConfig.specs) ? workspaceConfig.specs : [];
-
-      const resolvedSpecs = specs
-        .map((spec) => {
-          if (spec.path && !path.isAbsolute(spec.path)) {
-            return {
-              ...spec,
-              path: path.join(workspacePath, spec.path)
-            };
-          }
-          return spec;
-        })
-        .filter((spec) => spec.path && fs.existsSync(spec.path));
-
-      return resolvedSpecs;
     } catch (error) {
       throw error;
     }

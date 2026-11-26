@@ -7,7 +7,6 @@ import { useSelector, useDispatch } from 'react-redux';
 import { updateLeftSidebarWidth, updateIsDragging, toggleSidebarSearch } from 'providers/ReduxStore/slices/app';
 import { setLocalStorageValue, SIDEBAR_WIDTH_KEY } from 'utils/common/localStorage';
 import CollectionsSection from './Sections/CollectionsSection/index';
-import ApiSpecsSection from './Sections/ApiSpecsSection/index';
 import useKeybinding from 'hooks/useKeybinding';
 import useClearSidebarSelectionOnEscape from 'hooks/useClearSidebarSelectionOnEscape';
 
@@ -18,10 +17,6 @@ const sidebarSections = [
   {
     id: 'collections',
     component: CollectionsSection
-  },
-  {
-    id: 'api-specs',
-    component: ApiSpecsSection
   }
 ];
 

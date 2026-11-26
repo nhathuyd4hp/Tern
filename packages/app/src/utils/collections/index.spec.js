@@ -2,7 +2,6 @@ const { describe, it, expect } = require('@jest/globals');
 import {
   mergeHeaders,
   transformRequestToSaveToFilesystem,
-  getCollectionItemCounts,
   countInvalidItems,
   getVariableScope,
   isVariableSecret,
@@ -147,52 +146,6 @@ describe('countInvalidItems', () => {
   it('returns 0 for an empty or missing tree', () => {
     expect(countInvalidItems([])).toBe(0);
     expect(countInvalidItems()).toBe(0);
-  });
-});
-
-describe('getCollectionItemCounts', () => {
-  it('counts folders and requests recursively at every depth', () => {
-    const items = [
-      {
-        type: 'folder',
-        name: 'Zoo',
-        items: [
-          { type: 'http-request', name: 'Lion', request: {} },
-          { type: 'graphql-request', name: 'Bear', request: {} }
-        ]
-      },
-      {
-        type: 'folder',
-        name: 'Aviary',
-        items: [
-          {
-            type: 'folder',
-            name: 'Nest',
-            items: [{ type: 'http-request', name: 'Egg', request: {} }]
-          }
-        ]
-      },
-      { type: 'http-request', name: 'RootReq', request: {} }
-    ];
-
-    // Folders: Zoo, Aviary, Nest -> 3. Requests: Lion, Bear, Egg, RootReq -> 4.
-    expect(getCollectionItemCounts(items)).toEqual({ folderCount: 3, requestCount: 4 });
-  });
-
-  it('counts every request transport type', () => {
-    const items = [
-      { type: 'http-request', request: {} },
-      { type: 'graphql-request', request: {} },
-      { type: 'grpc-request', request: {} },
-      { type: 'ws-request', request: {} }
-    ];
-
-    expect(getCollectionItemCounts(items)).toEqual({ folderCount: 0, requestCount: 4 });
-  });
-
-  it('returns zero counts for empty or missing items', () => {
-    expect(getCollectionItemCounts([])).toEqual({ folderCount: 0, requestCount: 0 });
-    expect(getCollectionItemCounts(undefined)).toEqual({ folderCount: 0, requestCount: 0 });
   });
 });
 
@@ -900,13 +853,13 @@ describe('getBulkActionsSelection', () => {
     expect(result.collapsibleEntries.map((e) => e.uid).sort()).toEqual(['colA', 'colB']);
   });
 
-  it('allows delete for app/folder/request selections and excludes scratch collections from resolution', () => {
+  it('allows delete for request selections and excludes scratch collections from resolution', () => {
     const scratch = { uid: 'scratch', pathname: '/scratch', collapsed: false, items: [] };
     const result = getBulkActionsSelection({
       collections: [
         buildCollectionA({
           collection: {
-            items: [{ uid: 'app1', type: 'app', pathname: '/colA/app1' }]
+            items: [{ uid: 'app1', type: 'http-request', request: {}, pathname: '/colA/app1' }]
           }
         }),
         scratch

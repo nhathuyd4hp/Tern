@@ -13,14 +13,7 @@ import { removeCollection, addTransientDirectory, updateCollectionMountStatus, e
 import { sanitizeName } from 'utils/common/regex';
 import { clearCollectionState } from '../openapi-sync';
 import { updateGlobalEnvironments } from '../global-environments';
-import { addTab, closeTabs, focusTab, restoreTabs } from '../tabs';
-import {
-  API_SPEC_TAB_TYPE,
-  findApiSpecByPathname,
-  getApiSpecPathKey,
-  getApiSpecTabUid,
-  hasUnsavedApiSpecChanges
-} from 'utils/api-specs';
+import { addTab, restoreTabs } from '../tabs';
 import {
   setSnapshotReady,
   startSnapshotHydrationSession,
@@ -414,9 +407,6 @@ const loadWorkspaceCollectionsForSwitch = async (dispatch, workspace) => {
       toast.error(`Failed to open ${unopenedCount} collection${unopenedCount === 1 ? '' : 's'}`);
     }
 
-    // Load API specs for this workspace
-    await dispatch(loadWorkspaceApiSpecs(workspace.uid));
-
     return {
       updatedWorkspace,
       openedCollectionPaths
@@ -554,70 +544,6 @@ export const hydrateSnapshotForOpenedCollection = (collectionPathname) => {
   };
 };
 
-export const dropApiSpecTabsMissingFrom = (workspaceUid, pathnames) => (dispatch, getState) => {
-  const state = getState();
-  const scratchCollectionUid = state.workspaces.workspaces
-    .find((workspace) => workspace.uid === workspaceUid)?.scratchCollectionUid;
-
-  if (!scratchCollectionUid) {
-    return;
-  }
-
-  const workspacePathKeys = new Set(
-    (pathnames || []).map((pathname) => getApiSpecPathKey(pathname)).filter(Boolean)
-  );
-
-  const tabUids = state.tabs.tabs
-    .filter((tab) => (
-      tab.type === API_SPEC_TAB_TYPE
-      && tab.collectionUid === scratchCollectionUid
-      && !workspacePathKeys.has(getApiSpecPathKey(tab.apiSpecPathname))
-      && !hasUnsavedApiSpecChanges(findApiSpecByPathname(state.apiSpec.apiSpecs, tab.apiSpecPathname))
-    ))
-    .map((tab) => tab.uid);
-
-  if (tabUids.length) {
-    dispatch(closeTabs({ tabUids, reopenable: false }));
-  }
-};
-
-export const loadWorkspaceApiSpecs = (workspaceUid) => {
-  return async (dispatch, getState) => {
-    try {
-      const workspace = getState().workspaces.workspaces.find((w) => w.uid === workspaceUid);
-      if (!workspace || !workspace.pathname) {
-        return;
-      }
-
-      const apiSpecs = await ipcRenderer.invoke('renderer:load-workspace-apispecs', workspace.pathname);
-
-      dispatch(updateWorkspace({
-        uid: workspaceUid,
-        apiSpecs: apiSpecs
-      }));
-
-      dispatch(dropApiSpecTabsMissingFrom(workspaceUid, apiSpecs.map((apiSpec) => apiSpec?.path)));
-
-      const allApiSpecs = getState().apiSpec.apiSpecs;
-      // Compare by normalized path so a spec already loaded under a native (Windows)
-      // path isn't treated as "not open" and needlessly re-opened.
-      const alreadyOpenApiSpecs = allApiSpecs.map((a) => normalizePath(a.pathname));
-
-      for (const apiSpec of apiSpecs) {
-        if (apiSpec.path && !alreadyOpenApiSpecs.includes(normalizePath(apiSpec.path))) {
-          try {
-            await ipcRenderer.invoke('renderer:open-api-spec-file', apiSpec.path, workspace.pathname);
-          } catch (error) {
-            console.error('Error opening API spec:', error);
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error loading workspace API specs:', error);
-    }
-  };
-};
-
 export const switchWorkspace = (workspaceUid) => {
   return async (dispatch, getState) => {
     clearSnapshotHydrationTimeout();
@@ -689,40 +615,12 @@ export const switchWorkspace = (workspaceUid) => {
       }));
 
       let requestedWorkspaceTabType = null;
-      let requestedApiSpecTabUid = null;
 
       // Add workspace tabs
       if (scratchCollection?.uid) {
         dispatch(addTab({ uid: `${scratchCollection.uid}-overview`, collectionUid: scratchCollection.uid, type: 'workspaceOverview' }));
         dispatch(addTab({ uid: `${scratchCollection.uid}-environments`, collectionUid: scratchCollection.uid, type: 'workspaceEnvironments' }));
 
-        const workspaceApiSpecPathsByKey = new Map(
-          (getState().workspaces.workspaces.find((w) => w.uid === workspaceUid)?.apiSpecs || [])
-            .map((apiSpec) => normalizePath(apiSpec?.path))
-            .filter(Boolean)
-            .map((apiSpecPath) => [getApiSpecPathKey(apiSpecPath), apiSpecPath])
-        );
-        const reopenedApiSpecTabUids = new Set();
-
-        (workspaceSnapshot?.apiSpecTabs || []).forEach((apiSpecPathname) => {
-          const workspaceApiSpecPath = workspaceApiSpecPathsByKey.get(getApiSpecPathKey(apiSpecPathname));
-          if (!workspaceApiSpecPath) return;
-
-          const uid = getApiSpecTabUid(scratchCollection.uid, workspaceApiSpecPath);
-          if (!uid) return;
-
-          reopenedApiSpecTabUids.add(uid);
-          dispatch(addTab({
-            uid,
-            collectionUid: scratchCollection.uid,
-            type: API_SPEC_TAB_TYPE,
-            apiSpecPathname: workspaceApiSpecPath,
-            tabName: path.basename(workspaceApiSpecPath)
-          }));
-        });
-
-        const activeApiSpecTabUid = getApiSpecTabUid(scratchCollection.uid, workspaceSnapshot?.activeApiSpecTabPathname);
-        requestedApiSpecTabUid = reopenedApiSpecTabUids.has(activeApiSpecTabUid) ? activeApiSpecTabUid : null;
         requestedWorkspaceTabType = workspaceSnapshot?.activeWorkspaceTabType;
         const requestedWorkspaceTabSuffix = WORKSPACE_TAB_UID_SUFFIX_BY_TYPE[requestedWorkspaceTabType];
         if (requestedWorkspaceTabSuffix) {
@@ -765,16 +663,12 @@ export const switchWorkspace = (workspaceUid) => {
 
         if (activeTab) {
           dispatch(addTab(activeTab));
-        } else if (scratchCollection?.uid && !requestedWorkspaceTabType && !requestedApiSpecTabUid) {
+        } else if (scratchCollection?.uid && !requestedWorkspaceTabType) {
           dispatch(addTab({ uid: `${scratchCollection.uid}-overview`, collectionUid: scratchCollection.uid, type: 'workspaceOverview' }));
         }
-      } else if (scratchCollection?.uid && !requestedWorkspaceTabType && !requestedApiSpecTabUid) {
+      } else if (scratchCollection?.uid && !requestedWorkspaceTabType) {
         // No active collection, focus the workspace overview tab
         dispatch(addTab({ uid: `${scratchCollection.uid}-overview`, collectionUid: scratchCollection.uid, type: 'workspaceOverview' }));
-      }
-
-      if (requestedApiSpecTabUid) {
-        dispatch(focusTab({ uid: requestedApiSpecTabUid }));
       }
 
       const openWorkspaceCollectionPaths = new Set(
@@ -1006,7 +900,7 @@ export const workspaceConfigUpdatedEvent = (workspacePath, workspaceUid, workspa
       return;
     }
 
-    const { collections, apiSpecs, ...configWithoutCollections } = workspaceConfig;
+    const { collections, ...configWithoutCollections } = workspaceConfig;
 
     dispatch(updateWorkspace({
       uid: workspaceUid,
@@ -1040,9 +934,6 @@ export const workspaceConfigUpdatedEvent = (workspacePath, workspaceUid, workspa
             }
           }
         }
-
-        // Load API specs when workspace config is updated
-        await dispatch(loadWorkspaceApiSpecs(workspaceUid));
       } catch (error) {
       }
     }

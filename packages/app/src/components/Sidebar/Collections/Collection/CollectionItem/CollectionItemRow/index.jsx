@@ -17,7 +17,6 @@ import {
   IconTrash,
   IconSettings,
   IconInfoCircle,
-  IconAppWindow,
   IconEyeOff
 } from '@tabler/icons';
 import { useSelector, useDispatch, useStore } from 'react-redux';
@@ -30,7 +29,6 @@ import { uuid } from 'utils/common';
 import { copyRequest, setFocusedSidebarPath, insertTaskIntoQueue } from 'providers/ReduxStore/slices/app';
 import NewRequest from 'components/Sidebar/NewRequest';
 import NewFolder from 'components/Sidebar/NewFolder';
-import NewApp from 'components/Sidebar/NewApp';
 import RenameCollectionItem from '../RenameCollectionItem';
 import DeleteCollectionItems from '../DeleteCollectionItems';
 import IgnoreCollectionItem from '../IgnoreCollectionItem';
@@ -121,7 +119,6 @@ const CollectionItemRow = ({
   const [generateCodeItemModalOpen, setGenerateCodeItemModalOpen] = useState(false);
   const [newRequestModalOpen, setNewRequestModalOpen] = useState(false);
   const [newFolderModalOpen, setNewFolderModalOpen] = useState(false);
-  const [newAppModalOpen, setNewAppModalOpen] = useState(false);
   const [itemInfoModalOpen, setItemInfoModalOpen] = useState(false);
   const examplesExpanded = !isCollectionItemCollapsed(item);
   const [isKeyboardFocused, setIsKeyboardFocused] = useState(false);
@@ -133,7 +130,7 @@ const CollectionItemRow = ({
     isFolder ? selectFolderInvalidItemCount(state, collectionUid, item.items) : 0
   );
 
-  const isCloneable = isFolder || isItemARequest(item) || item.type === 'app';
+  const isCloneable = isFolder || isItemARequest(item);
 
   // Check if request has examples (only for HTTP requests)
   const hasExamples = isItemARequest(item) && item.type === 'http-request' && item.examples && item.examples.length > 0;
@@ -324,8 +321,7 @@ const CollectionItemRow = ({
     if (handleSelectionClick(event)) return;
     if (event && event.detail != 1) return;
     const isRequest = isItemARequest(item);
-    const isApp = item.type === 'app';
-    if (isRequest || isApp) {
+    if (isRequest) {
       if (isTabForItemPresent) {
         dispatch(
           focusTab({
@@ -425,12 +421,6 @@ const CollectionItemRow = ({
           leftSection: IconFolderPlus,
           label: 'New Folder',
           onClick: () => setNewFolderModalOpen(true)
-        },
-        {
-          id: 'new-app',
-          leftSection: IconAppWindow,
-          label: 'New App',
-          onClick: () => setNewAppModalOpen(true)
         }
       );
     }
@@ -713,9 +703,6 @@ const CollectionItemRow = ({
       )}
       {newFolderModalOpen && (
         <NewFolder item={item} collectionUid={collectionUid} onClose={() => setNewFolderModalOpen(false)} />
-      )}
-      {newAppModalOpen && (
-        <NewApp item={item} collectionUid={collectionUid} onClose={() => setNewAppModalOpen(false)} />
       )}
       {generateCodeItemModalOpen && (
         <GenerateCodeItem collectionUid={collectionUid} item={item} onClose={() => setGenerateCodeItemModalOpen(false)} />

@@ -15,9 +15,7 @@ import { saveRequest, saveMultipleRequests, saveMultipleCollections, saveMultipl
 import { saveGlobalEnvironment, clearGlobalEnvironmentDraft } from 'providers/ReduxStore/slices/global-environments';
 import { focusTab } from 'providers/ReduxStore/slices/tabs';
 import { deleteRequestDraft, deleteCollectionDraft, deleteFolderDraft, clearEnvironmentsDraft } from 'providers/ReduxStore/slices/collections';
-import { saveApiSpecToFile, clearApiSpecDraft } from 'providers/ReduxStore/slices/apiSpec';
-import { API_SPEC_TAB_TYPE, findApiSpecByPathname, hasUnsavedApiSpecChanges } from 'utils/api-specs';
-import { IconAlertTriangle, IconSettings, IconFolder, IconDatabase, IconWorld, IconAppWindow, IconFileCode, IconExternalLink } from '@tabler/icons';
+import { IconAlertTriangle, IconSettings, IconFolder, IconDatabase, IconWorld, IconExternalLink } from '@tabler/icons';
 import RequestMethod from 'components/Sidebar/Collections/Collection/CollectionItem/RequestMethod';
 import Modal from 'components/Modal';
 import StyledWrapper from './StyledWrapper';
@@ -29,7 +27,6 @@ const SaveRequestsModal = ({ onClose, forceCloseTabs = false, tabUidsToClose = [
   const tabs = useSelector((state) => state.tabs.tabs);
   const globalEnvironments = useSelector((state) => state.globalEnvironments.globalEnvironments);
   const globalEnvironmentDraft = useSelector((state) => state.globalEnvironments.globalEnvironmentDraft);
-  const apiSpecs = useSelector((state) => state.apiSpec.apiSpecs);
   const dispatch = useDispatch();
 
   const allDrafts = useMemo(() => {
@@ -37,8 +34,6 @@ const SaveRequestsModal = ({ onClose, forceCloseTabs = false, tabUidsToClose = [
     const collectionDrafts = [];
     const folderDrafts = [];
     const environmentDrafts = [];
-    const appDrafts = [];
-    const apiSpecDrafts = [];
     const relevantTabs = forceCloseTabs ? tabs.filter((t) => tabUidsToClose.includes(t.uid)) : tabs;
     const tabsByCollection = groupBy(relevantTabs, (t) => t.collectionUid);
     const isTabClosing = (uid) => {
@@ -92,15 +87,6 @@ const SaveRequestsModal = ({ onClose, forceCloseTabs = false, tabUidsToClose = [
           });
         });
 
-        const apps = filter(items, (item) => item.type === 'app' && hasRequestChanges(item) && isTabClosing(item.uid));
-        each(apps, (draft) => {
-          appDrafts.push({
-            ...draft,
-            collectionUid: collectionUid,
-            tabIndex: relevantTabs.findIndex((t) => t.uid === draft.uid)
-          });
-        });
-
         // Folder drafts
         const folders = filter(items, (item) => item.type === 'folder' && item.draft && isTabClosing(item.uid));
         each(folders, (folder) => {
@@ -113,23 +99,6 @@ const SaveRequestsModal = ({ onClose, forceCloseTabs = false, tabUidsToClose = [
           });
         });
       }
-    });
-
-    const seenApiSpecUids = new Set();
-    relevantTabs.forEach((tab) => {
-      if (tab.type !== API_SPEC_TAB_TYPE) return;
-
-      const apiSpec = findApiSpecByPathname(apiSpecs, tab.apiSpecPathname);
-      if (!hasUnsavedApiSpecChanges(apiSpec) || seenApiSpecUids.has(apiSpec.uid)) return;
-
-      seenApiSpecUids.add(apiSpec.uid);
-      apiSpecDrafts.push({
-        type: 'api-spec',
-        name: apiSpec.name || apiSpec.filename,
-        uid: apiSpec.uid,
-        draft: apiSpec.draft,
-        tabIndex: relevantTabs.findIndex((t) => t.type === API_SPEC_TAB_TYPE && t.apiSpecPathname === tab.apiSpecPathname)
-      });
     });
 
     // The global environment tab belongs to no collection, so it is matched by type rather than uid
@@ -148,7 +117,7 @@ const SaveRequestsModal = ({ onClose, forceCloseTabs = false, tabUidsToClose = [
       }
     }
 
-    const drafts = [...collectionDrafts, ...folderDrafts, ...environmentDrafts, ...appDrafts, ...requestDrafts, ...apiSpecDrafts];
+    const drafts = [...collectionDrafts, ...folderDrafts, ...environmentDrafts, ...requestDrafts];
 
     // A draft can outlive its tab; those have no position, so they follow the ones that do.
     const [draftsWithTab, draftsWithoutTab] = partition(drafts, (draft) => draft.tabIndex !== -1);
@@ -157,7 +126,7 @@ const SaveRequestsModal = ({ onClose, forceCloseTabs = false, tabUidsToClose = [
       .map((draft) => ({ ...draft, tabUid: relevantTabs[draft.tabIndex]?.uid }));
 
     return sortedByTabSequence;
-  }, [collections, tabs, apiSpecs, globalEnvironments, globalEnvironmentDraft, forceCloseTabs, tabUidsToClose]);
+  }, [collections, tabs, globalEnvironments, globalEnvironmentDraft, forceCloseTabs, tabUidsToClose]);
 
   const totalDraftsCount = allDrafts.length;
 
@@ -189,20 +158,7 @@ const SaveRequestsModal = ({ onClose, forceCloseTabs = false, tabUidsToClose = [
           case 'global-environment':
             dispatch(clearGlobalEnvironmentDraft());
             break;
-          case 'api-spec': {
-            const isOpenInASurvivingTab = tabs.some(
-              (tab) =>
-                tab.type === API_SPEC_TAB_TYPE
-                && !tabUidsToClose.includes(tab.uid)
-                && findApiSpecByPathname(apiSpecs, tab.apiSpecPathname)?.uid === draft.uid
-            );
-            if (!isOpenInASurvivingTab) {
-              dispatch(clearApiSpecDraft({ uid: draft.uid }));
-            }
-            break;
-          }
           default:
-            // Request and app drafts both live on collection items.
             dispatch(deleteRequestDraft({ collectionUid: draft.collectionUid, itemUid: draft.uid }));
             break;
         }
@@ -225,33 +181,11 @@ const SaveRequestsModal = ({ onClose, forceCloseTabs = false, tabUidsToClose = [
       // Separate drafts by type
       const collectionDrafts = allDrafts.filter((d) => d.type === 'collection');
       const folderDrafts = allDrafts.filter((d) => d.type === 'folder');
-      const requestDrafts = allDrafts.filter((d) => isItemARequest(d) || d.type === 'app');
+      const requestDrafts = allDrafts.filter((d) => isItemARequest(d));
       const transientRequestDrafts = requestDrafts.filter((d) => d.isTransient);
       const nonTransientRequestDrafts = requestDrafts.filter((d) => !d.isTransient);
       const collectionEnvironmentDrafts = allDrafts.filter((d) => d.type === 'collection-environment');
       const globalEnvironmentDrafts = allDrafts.filter((d) => d.type === 'global-environment');
-
-      const apiSpecDrafts = allDrafts.filter((d) => d.type === 'api-spec');
-      let hasSkippedApiSpecs = false;
-
-      if (apiSpecDrafts.length > 0) {
-        const results = await Promise.allSettled(
-          apiSpecDrafts.map((draft) => dispatch(saveApiSpecToFile({ uid: draft.uid, content: draft.draft, silent: true })))
-        );
-        const failedApiSpecs = [];
-        results.forEach((result, index) => {
-          if (result.status === 'rejected') {
-            failedApiSpecs.push(apiSpecDrafts[index]);
-            console.error(`Error saving API spec ${apiSpecDrafts[index].name}:`, result.reason);
-          }
-        });
-
-        if (failedApiSpecs.length > 0) {
-          hasSkippedApiSpecs = true;
-          const failedNames = failedApiSpecs.map((draft) => draft.name).join(', ');
-          toast.error(`Failed to save ${pluralizeWord('API spec', failedApiSpecs.length)}: ${failedNames}`);
-        }
-      }
 
       // Save all collection drafts
       if (collectionDrafts.length > 0) {
@@ -274,9 +208,6 @@ const SaveRequestsModal = ({ onClose, forceCloseTabs = false, tabUidsToClose = [
             dispatch(saveRequest(draft.uid, draft.collectionUid, true)).catch(() => null)
           )
         );
-        if (hasSkippedApiSpecs) {
-          return;
-        }
         onClose();
         return;
       }
@@ -311,7 +242,7 @@ const SaveRequestsModal = ({ onClose, forceCloseTabs = false, tabUidsToClose = [
         }
       }
 
-      if (hasSkippedEnvs || hasSkippedApiSpecs) {
+      if (hasSkippedEnvs) {
         return;
       }
 
@@ -373,14 +304,6 @@ const SaveRequestsModal = ({ onClose, forceCloseTabs = false, tabUidsToClose = [
               case 'global-environment':
                 prefix = 'Global Environment: ';
                 icon = <IconWorld {...iconProps} />;
-                break;
-              case 'app':
-                prefix = 'App: ';
-                icon = <IconAppWindow {...iconProps} />;
-                break;
-              case 'api-spec':
-                prefix = 'API Spec: ';
-                icon = <IconFileCode {...iconProps} />;
                 break;
               default:
                 prefix = 'Request: ';

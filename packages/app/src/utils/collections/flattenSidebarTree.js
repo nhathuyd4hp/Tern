@@ -9,7 +9,6 @@ import {
 
 const groupCollectionItems = (collectionItems) => {
   const folders = [];
-  const apps = [];
   const requests = [];
 
   const sortBySeq = (items) => [...items].sort((a, b) => a.seq - b.seq);
@@ -19,8 +18,6 @@ const groupCollectionItems = (collectionItems) => {
 
     if (isItemAFolder(item)) {
       folders.push(item);
-    } else if (item.type === 'app') {
-      apps.push(item);
     } else if (isItemARequest(item)) {
       requests.push(item);
     }
@@ -28,7 +25,6 @@ const groupCollectionItems = (collectionItems) => {
 
   return {
     folders: sortByNameThenSequence(folders),
-    apps: sortBySeq(apps),
     requests: sortBySeq(requests)
   };
 };
@@ -59,7 +55,7 @@ const walkChildren = (
 
   let visibleChildCount = 0;
 
-  const { folders, apps, requests } = groupCollectionItems(collectionItems);
+  const { folders, requests } = groupCollectionItems(collectionItems);
 
   for (const folder of folders) {
     if (hasSearch && !doesFolderHaveItemsMatchSearchText(folder, searchText)) {
@@ -106,26 +102,6 @@ const walkChildren = (
         itemUid: folder.uid,
         sortName: null
       });
-    }
-  }
-
-  if (!hasSearch) {
-    for (const app of apps) {
-      visibleChildCount++;
-
-      appendRow({
-        id: `${collectionUid}:${ancestorKey}:${app.uid}`,
-        kind: 'app',
-        depth,
-        collectionUid,
-        collectionPathname,
-        collectionId,
-        parentName,
-        itemUid: app.uid,
-        sortName: app.name || null
-      });
-
-      addItemToIndex(app.uid, app);
     }
   }
 
@@ -281,7 +257,7 @@ export const flattenSidebarTree = (sidebarEntries = [], options = {}) => {
       rowIndexByCollectionUid.set(row.collectionUid, index);
     } else if (row.kind === 'example' && row.exampleUid) {
       rowIndexByItemUid.set(row.exampleUid, index);
-    } else if (row.itemUid && ['folder', 'app', 'request'].includes(row.kind)) {
+    } else if (row.itemUid && ['folder', 'request'].includes(row.kind)) {
       rowIndexByItemUid.set(row.itemUid, index);
     }
   };

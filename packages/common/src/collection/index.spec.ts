@@ -1,21 +1,5 @@
 import { describe, it, expect } from '@jest/globals';
-import { resolveCollectionVersion, sortByNameThenSequence } from './index';
-
-describe('resolveCollectionVersion', () => {
-  it('reads version for an OpenCollection (.yml) config', () => {
-    expect(resolveCollectionVersion({ version: '2.3.0', collectionVersion: 'ignored' }, true)).toBe('2.3.0');
-  });
-
-  it('reads collectionVersion for a .bru config, not the schema marker in version', () => {
-    expect(resolveCollectionVersion({ version: '1', collectionVersion: 'v2.3.0' }, false)).toBe('v2.3.0');
-  });
-
-  it('returns an empty string when the relevant field is missing', () => {
-    expect(resolveCollectionVersion({ version: '1' }, false)).toBe('');
-    expect(resolveCollectionVersion(null, true)).toBe('');
-    expect(resolveCollectionVersion(undefined, false)).toBe('');
-  });
-});
+import { sortByNameThenSequence } from './index';
 
 describe('sortByNameThenSequence', () => {
   it('returns an empty array unchanged', () => {

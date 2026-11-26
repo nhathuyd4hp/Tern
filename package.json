@@ -60,7 +60,6 @@
     "build:web": "npm run build --workspace=packages/app",
     "dev:electron": "npm run dev --workspace=packages/electron",
     "dev:electron:debug": "npm run debug --workspace=packages/electron",
-    "storybook": "npm run storybook --workspace=packages/app",
     "build:common": "npm run build --workspace=packages/common",
     "build:requests": "npm run build --workspace=packages/requests",
     "build:filestore": "npm run build --workspace=packages/filestore",

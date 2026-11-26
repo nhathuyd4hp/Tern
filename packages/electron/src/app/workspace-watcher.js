@@ -13,7 +13,7 @@ const dotEnvWatcher = require('./dotenv-watcher');
 
 const environmentSecretsStore = new EnvironmentSecretsStore();
 
-const DEFAULT_WORKSPACE_NAME = 'My Workspace';
+const DEFAULT_WORKSPACE_NAME = require('node:os').hostname();
 
 const envHasSecrets = (environment) => {
   const secrets = _.filter(environment.variables, (v) => v.secret === true);

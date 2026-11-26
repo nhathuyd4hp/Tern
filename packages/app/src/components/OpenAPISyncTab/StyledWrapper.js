@@ -88,16 +88,12 @@ const StyledWrapper = styled.div`
 
     }
 
-    .linked-collection-row {
+    .sync-status-row {
       display: flex;
       align-items: center;
       gap: 6px;
       font-size: 11px;
       flex-shrink: 0;
-
-      .linked-collection-name {
-        color: ${(props) => props.theme.colors.text.subtext0};
-      }
 
       .sync-status-icon {
         &.in-sync {

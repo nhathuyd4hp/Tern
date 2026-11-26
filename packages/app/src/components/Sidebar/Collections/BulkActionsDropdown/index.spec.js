@@ -36,7 +36,7 @@ describe('BulkActionsDropdown', () => {
               uid: 'c1',
               pathname: '/c1',
               items: [
-                { uid: 'app1', type: 'app', pathname: '/c1/app1' }
+                { uid: 'app1', type: 'http-request', request: {}, pathname: '/c1/app1' }
               ]
             }
           ]

@@ -713,19 +713,6 @@ export const transformCollectionToSaveToExportAsFile = (collection, options = {}
 export const transformRequestToSaveToFilesystem = (item) => {
   const _item = item.draft ? item.draft : item;
 
-  // Standalone app items have no request, emit only what the filestore needs.
-  if (_item.type === 'app') {
-    return {
-      uid: _item.uid,
-      type: 'app',
-      name: _item.name,
-      seq: _item.seq,
-      tags: _item.tags,
-      settings: _item.settings,
-      app: { code: _item.app?.code || '' }
-    };
-  }
-
   // Transform examples to ensure status is a number
   const transformExamples = (examples = []) => {
     return map(examples, (example) => ({
@@ -739,10 +726,6 @@ export const transformRequestToSaveToFilesystem = (item) => {
     }));
   };
 
-  const appToSave = _item.app && (_item.app.enabled === true || (_item.app.code && _item.app.code.length))
-    ? { code: _item.app.code || null, enabled: _item.app.enabled === true }
-    : null;
-
   const itemToSave = {
     uid: _item.uid,
     type: _item.type,
@@ -751,7 +734,6 @@ export const transformRequestToSaveToFilesystem = (item) => {
     seq: _item.seq,
     settings: _item.settings,
     tags: _item.tags,
-    app: appToSave,
     examples: transformExamples(_item.examples || []),
     request: {
       method: _item.request.method,
@@ -935,22 +917,7 @@ export const getItemTypeLabel = (item) => {
   if (isItemAFolder(item)) {
     return 'Folder';
   }
-  return item?.type === 'app' ? 'App' : 'Request';
-};
-
-/**
- * Counts the folders and requests in a collection's item tree, recursively at every
- * depth. Used to summarise a collection (e.g. in the Generate Documentation modal).
- *
- * @param {Array} items - The collection's `items` tree.
- * @returns {{ folderCount: number, requestCount: number }}
- */
-export const getCollectionItemCounts = (items = []) => {
-  const flattened = flattenItems(items);
-  return {
-    folderCount: flattened.filter(isItemAFolder).length,
-    requestCount: flattened.filter(isItemARequest).length
-  };
+  return 'Request';
 };
 
 /**
@@ -962,25 +929,6 @@ export const getCollectionItemCounts = (items = []) => {
  */
 export const countInvalidItems = (items = []) => {
   return flattenItems(items).filter((item) => item.error && !item.isTransient).length;
-};
-
-/**
- * Orders a list of collection items exactly the way the Sidebar tree renders them:
- * folders first (via `sortByNameThenSequence`), then standalone apps by `seq`, then
- * requests by `seq`. The same ordering is applied recursively to every nested folder
- * so an exported/serialized tree matches the sidebar at all depths.
- *
- * Items that are none of folder/app/request (e.g. `js` script files) are excluded,
- * mirroring the sidebar. Transient items are excluded too.
- */
-export const sortItemsBySidebarOrder = (items = []) => {
-  const folderItems = sortByNameThenSequence(filter(items, (i) => isItemAFolder(i) && !i.isTransient));
-  const appItems = filter(items, (i) => i.type === 'app' && !i.isTransient).sort((a, b) => a.seq - b.seq);
-  const requestItems = filter(items, (i) => isItemARequest(i) && !i.isTransient).sort((a, b) => a.seq - b.seq);
-
-  return [...folderItems, ...appItems, ...requestItems].map((item) =>
-    Array.isArray(item.items) ? { ...item, items: sortItemsBySidebarOrder(item.items) } : item
-  );
 };
 
 export const humanizeRequestBodyMode = (mode) => {
@@ -2147,7 +2095,6 @@ export const getVisibleSidebarUidsInOrder = ({ sidebarEntries = [], searchText =
 
   const visitItems = (items = []) => {
     const folderItems = sortByNameThenSequence(filter(items, (i) => isItemAFolder(i) && !i.isTransient));
-    const appItems = [...filter(items, (i) => i.type === 'app' && !i.isTransient)].sort((a, b) => a.seq - b.seq);
     const requestItems = [...filter(items, (i) => isItemARequest(i) && !i.isTransient)].sort((a, b) => a.seq - b.seq);
 
     folderItems.forEach((folder) => {
@@ -2157,10 +2104,6 @@ export const getVisibleSidebarUidsInOrder = ({ sidebarEntries = [], searchText =
         visitItems(folder.items);
       }
     });
-
-    if (!hasSearchText) {
-      appItems.forEach((app) => uids.push(app.uid));
-    }
 
     requestItems.forEach((request) => {
       if (hasSearchText && !doesRequestMatchSearchText(request, searchText)) return;
@@ -2212,7 +2155,6 @@ const isPathnameDescendantOf = (pathname, ancestorPathname) => {
 const getSelectionEntryType = (item) => {
   if (isItemAFolder(item)) return 'folder';
   if (isItemARequest(item)) return 'request';
-  if (item.type === 'app') return 'app';
   return 'file';
 };
 
@@ -2303,7 +2245,6 @@ export const getSelectionInfo = ({ collections = [], selectedUids = [] }) => {
     hasCollection: effectiveSelection.some((e) => e.type === 'collection'),
     hasFolder: effectiveSelection.some((e) => e.type === 'folder'),
     hasRequest: effectiveSelection.some((e) => e.type === 'request'),
-    hasApp: effectiveSelection.some((e) => e.type === 'app'),
     hasExample: effectiveSelection.some((e) => e.type === 'example')
   };
 };
@@ -2534,15 +2475,15 @@ export const isSelectionEntryCollapsible = (entry) =>
 export const getBulkActionsSelection = ({ collections = [], workspaces = [], selectedUids = [] }) => {
   const visibleCollections = collections.filter((c) => !isScratchCollection(c, workspaces));
   const selectionInfo = getSelectionInfo({ collections: visibleCollections, selectedUids });
-  const { effectiveSelection, hasCollection, hasFolder, hasRequest, hasApp, hasExample } = selectionInfo;
+  const { effectiveSelection, hasCollection, hasFolder, hasRequest, hasExample } = selectionInfo;
 
   const collapsibleEntries = effectiveSelection.filter(isSelectionEntryCollapsible);
   const canCollapse = collapsibleEntries.length > 0;
 
   return {
     ...selectionInfo,
-    isPureCollectionSelection: hasCollection && !hasFolder && !hasRequest && !hasApp && !hasExample,
-    canDelete: !hasCollection && (hasFolder || hasRequest || hasApp || hasExample),
+    isPureCollectionSelection: hasCollection && !hasFolder && !hasRequest && !hasExample,
+    canDelete: !hasCollection && (hasFolder || hasRequest || hasExample),
     collapsibleEntries,
     canCollapse,
     allCollapsed: canCollapse && collapsibleEntries.every(isSelectionEntryCollapsed)

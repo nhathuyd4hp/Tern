@@ -4,8 +4,6 @@ import Button from 'ui/Button';
 import Modal from 'components/Modal';
 import { isHttpUrl } from 'utils/url/index';
 import { getAbsoluteFilePath } from 'utils/common/path';
-import { findApiSpecByPathname } from 'utils/api-specs';
-import useWorkspaceApiSpecs from 'hooks/useWorkspaceApiSpecs';
 import SpecSourcePicker from 'components/OpenAPISyncTab/SpecSourcePicker';
 import { isSpecSourceReady } from 'components/OpenAPISyncTab/SpecSourcePicker/utils';
 import { MIN_CHECK_INTERVAL_MINUTES } from 'components/OpenAPISyncTab/utils';
@@ -14,25 +12,20 @@ const PRESET_INTERVALS = [5, 10, 15, 30, 60];
 
 const toMinutes = (amount, unit) => (unit === 'sec' ? Number((Number(amount) / 60).toFixed(4)) : Number(amount));
 
-const resolveInitialSource = (sourceUrl, collectionPath, workspaceSpecs) => {
+const resolveInitialSource = (sourceUrl, collectionPath) => {
   const source = (sourceUrl || '').trim();
   if (isHttpUrl(source)) {
-    return { mode: 'url', sources: { workspace: '', url: source, file: '' } };
+    return { mode: 'url', sources: { url: source, file: '' } };
   }
 
   const filePath = source && collectionPath ? getAbsoluteFilePath(collectionPath, source) : source;
-  if (findApiSpecByPathname(workspaceSpecs, filePath)) {
-    return { mode: 'workspace', sources: { workspace: filePath, url: '', file: '' } };
-  }
-  return { mode: 'file', sources: { workspace: '', url: '', file: filePath } };
+  return { mode: 'file', sources: { url: '', file: filePath } };
 };
 
 const ConnectionSettingsModal = ({ collection, sourceUrl, onSave, onDisconnect, onClose }) => {
   const openApiSyncConfig = collection?.brunoConfig?.openapi?.[0];
-  const workspaceSpecs = useWorkspaceApiSpecs();
   const [editedSource, setEditedSource] = useState(null);
-  // Recomputed every render until the first edit, so specs that load after the modal opens still select the Workspace tab.
-  const initialSource = resolveInitialSource(sourceUrl, collection?.pathname, workspaceSpecs);
+  const initialSource = resolveInitialSource(sourceUrl, collection?.pathname);
   const { mode, sources } = editedSource || initialSource;
   const editSource = (update) => setEditedSource((current) => update(current || initialSource));
   const [autoCheck, setAutoCheck] = useState(openApiSyncConfig?.autoCheck !== false);
@@ -45,7 +38,7 @@ const ConnectionSettingsModal = ({ collection, sourceUrl, onSave, onDisconnect, 
   const isIntervalValid = !autoCheck || effectiveInterval >= MIN_CHECK_INTERVAL_MINUTES;
 
   const effectiveSource = sources[mode].trim();
-  const canSave = isSpecSourceReady(mode, effectiveSource, workspaceSpecs) && isIntervalValid;
+  const canSave = isSpecSourceReady(mode, effectiveSource) && isIntervalValid;
 
   const handleSave = async () => {
     setIsSaving(true);

@@ -1,11 +1,9 @@
 import { useId } from 'react';
 import Tab from 'components/Tab';
-import WorkspaceSpecSelect from './WorkspaceSpecSelect';
 import SpecFilePicker from './SpecFilePicker';
 import StyledWrapper from './StyledWrapper';
 
 const SOURCE_TABS = [
-  { key: 'workspace', label: 'Workspace' },
   { key: 'url', label: 'URL' },
   { key: 'file', label: 'File' }
 ];
@@ -31,9 +29,6 @@ const SpecSourcePicker = ({ variant, mode, onModeChange, value, onChange, onErro
         ))}
       </div>
       <div className="source-row" role="tabpanel" id={panelId} aria-labelledby={tabId(mode)}>
-        {mode === 'workspace' && (
-          <WorkspaceSpecSelect value={value} onChange={onChange} onError={onError} />
-        )}
         {mode === 'url' && (
           <input
             type="text"

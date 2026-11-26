@@ -4,7 +4,6 @@ import find from 'lodash/find';
 import last from 'lodash/last';
 import { uuid } from 'utils/common';
 import { isActiveTab as checkIsActiveTab, deserializeTab } from 'utils/snapshot';
-import { API_SPEC_TAB_TYPE, isApiSpecTabForPathname } from 'utils/api-specs';
 
 // todo: errors should be tracked in each slice and displayed as toasts
 
@@ -25,10 +24,6 @@ const initialState = {
   recentlyClosedTabs: [], // LIFO stack of closed tabs, grouped by collection
   sidebarRevealRequest: null
 };
-
-const findApiSpecTab = (tabs, collectionUid, apiSpecPathname) => find(tabs, (tab) => (
-  tab.collectionUid === collectionUid && isApiSpecTabForPathname(tab, apiSpecPathname)
-));
 
 const tabTypeAlreadyExists = (tabs, collectionUid, type) => {
   return find(tabs, (tab) => tab.collectionUid === collectionUid && tab.type === type);
@@ -77,7 +72,6 @@ export const tabsSlice = createSlice({
         exampleName,
         exampleIndex,
         isTransient,
-        apiSpecPathname,
         tabName,
         openInEditMode
       } = action.payload;
@@ -91,8 +85,7 @@ export const tabsSlice = createSlice({
         'workspaceEnvironments',
         'openapi-sync',
         'openapi-spec',
-        'changelog',
-        API_SPEC_TAB_TYPE
+        'changelog'
       ];
 
       const existingTab = find(state.tabs, (tab) => tab.uid === uid);
@@ -108,13 +101,7 @@ export const tabsSlice = createSlice({
       }
 
       if (nonReplaceableTabTypes.includes(type)) {
-        let existingTab = null;
-
-        if (type === API_SPEC_TAB_TYPE && apiSpecPathname) {
-          existingTab = findApiSpecTab(state.tabs, collectionUid, apiSpecPathname);
-        } else {
-          existingTab = tabTypeAlreadyExists(state.tabs, collectionUid, type);
-        }
+        const existingTab = tabTypeAlreadyExists(state.tabs, collectionUid, type);
 
         if (existingTab) {
           state.activeTabUid = ensureTabUid(existingTab);
@@ -157,7 +144,6 @@ export const tabsSlice = createSlice({
           ...(exampleName ? { exampleName } : {}),
           ...(typeof exampleIndex === 'number' ? { exampleIndex } : {}),
           ...(isTransient ? { isTransient: true } : {}),
-          ...(apiSpecPathname ? { apiSpecPathname } : {}),
           ...(tabName ? { tabName } : {}),
           ...(openInEditMode ? { openInEditMode: true } : {})
         };
@@ -197,7 +183,6 @@ export const tabsSlice = createSlice({
         ...(exampleName ? { exampleName } : {}),
         ...(typeof exampleIndex === 'number' ? { exampleIndex } : {}),
         ...(isTransient ? { isTransient: true } : {}),
-        ...(apiSpecPathname ? { apiSpecPathname } : {}),
         ...(tabName ? { tabName } : {}),
         ...(openInEditMode ? { openInEditMode: true } : {})
       });
@@ -597,13 +582,6 @@ export const tabsSlice = createSlice({
         tab.tabState = { ...tab.tabState, ...tabState };
       }
     },
-    setTabAppPreview: (state, action) => {
-      const { uid, appPreview } = action.payload;
-      const tab = find(state.tabs, (t) => t.uid === uid);
-      if (tab) {
-        tab.appPreview = appPreview;
-      }
-    },
     reopenLastClosedTab: (state, action) => {
       const collectionUid = action.payload?.collectionUid;
       // Find the last closed tab for this collection (LIFO). If no collectionUid is
@@ -664,7 +642,6 @@ export const {
   syncTabUid,
   restoreTabs,
   updateTabState,
-  setTabAppPreview,
   reopenLastClosedTab,
   removeRecentlyClosedTabs,
   updateQueryBuilderOpen,

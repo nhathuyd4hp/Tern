@@ -84,22 +84,6 @@ const isValidCollectionEntry = (collection) => {
   return true;
 };
 
-const isValidSpecEntry = (spec) => {
-  if (!spec || typeof spec !== 'object') {
-    return false;
-  }
-
-  if (!spec.name || typeof spec.name !== 'string' || spec.name.trim() === '') {
-    return false;
-  }
-
-  if (!spec.path || typeof spec.path !== 'string' || spec.path.trim() === '') {
-    return false;
-  }
-
-  return true;
-};
-
 const sanitizeCollections = (collections) => {
   if (!Array.isArray(collections)) {
     return [];
@@ -123,23 +107,6 @@ const sanitizeCollections = (collections) => {
 
     return sanitized;
   });
-};
-
-const sanitizeSpecs = (specs) => {
-  if (!Array.isArray(specs)) {
-    return [];
-  }
-
-  return specs.filter((spec) => {
-    if (!isValidSpecEntry(spec)) {
-      console.error('Skipping invalid spec entry:', spec);
-      return false;
-    }
-    return true;
-  }).map((spec) => ({
-    name: spec.name.trim(),
-    path: posixifyPath(spec.path.trim())
-  }));
 };
 
 const makeRelativePath = (workspacePath, absolutePath) => {
@@ -210,26 +177,15 @@ const createWorkspaceConfig = (workspaceName) => ({
     type: WORKSPACE_TYPE
   },
   collections: [],
-  specs: [],
   docs: ''
 });
 
-const normalizeWorkspaceConfig = (config) => {
-  // Coerce `specs` to an array once. A malformed workspace.yml (e.g. `specs`
-  // authored as a map) would otherwise flow through as a non-array and crash
-  // both the renderer sidebar (.map) and the write paths (.findIndex/.filter).
-  const specs = Array.isArray(config.specs) ? config.specs : [];
-  return {
-    ...config,
-    name: config.info?.name,
-    type: config.info?.type,
-    collections: config.collections || [],
-    specs,
-    // Distinct array (not an alias of `specs`) so a later in-place mutation of
-    // one field can't silently change the other.
-    apiSpecs: [...specs]
-  };
-};
+const normalizeWorkspaceConfig = (config) => ({
+  ...config,
+  name: config.info?.name,
+  type: config.info?.type,
+  collections: config.collections || []
+});
 
 const readWorkspaceConfig = (workspacePath) => {
   const workspaceFilePath = path.join(workspacePath, 'workspace.yml');
@@ -271,18 +227,6 @@ const generateYamlContent = (config) => {
     }
   } else {
     yamlLines.push('collections:');
-  }
-  yamlLines.push('');
-
-  const specs = sanitizeSpecs(config.specs);
-  if (specs.length > 0) {
-    yamlLines.push('specs:');
-    for (const spec of specs) {
-      yamlLines.push(`  - name: ${quoteYamlValue(spec.name)}`);
-      yamlLines.push(`    path: ${quoteYamlValue(spec.path)}`);
-    }
-  } else {
-    yamlLines.push('specs:');
   }
   yamlLines.push('');
 
@@ -622,141 +566,6 @@ const getUnopenableWorkspaceCollections = (workspacePath) => {
     .map((collection) => ({ name: collection.name, path: collection.path }));
 };
 
-const getWorkspaceApiSpecs = (workspacePath) => {
-  const config = readWorkspaceConfig(workspacePath);
-  const specs = config.specs || [];
-
-  return specs.map((spec) => {
-    const specPath = spec.path ? posixifyPath(spec.path) : spec.path;
-    if (specPath && !path.isAbsolute(specPath)) {
-      return {
-        ...spec,
-        path: path.join(workspacePath, specPath)
-      };
-    }
-    return { ...spec, path: specPath };
-  });
-};
-
-// Windows ignores letter case in file paths: C:\Specs\API.yaml and c:\specs\api.yaml are
-// the same file, so they must match the same workspace entry.
-const specPathKey = (p) => (process.platform === 'win32' ? p.toLowerCase() : p);
-
-const hasWorkspaceFile = (workspacePath) =>
-  Boolean(workspacePath) && fs.existsSync(path.join(workspacePath, 'workspace.yml'));
-
-const isSameApiSpecEntry = (workspacePath, entry, apiSpecPath) => {
-  if (!entry?.path) return false;
-
-  const specPathFromYml = posixifyPath(entry.path);
-  const absoluteSpecPath = path.isAbsolute(specPathFromYml)
-    ? specPathFromYml
-    : path.resolve(workspacePath, specPathFromYml);
-
-  return specPathKey(path.normalize(absoluteSpecPath)) === specPathKey(path.normalize(apiSpecPath));
-};
-
-const findApiSpecEntry = (workspacePath, apiSpecPath) => {
-  const specs = readWorkspaceConfig(workspacePath).specs;
-  return (Array.isArray(specs) ? specs : []).find((a) => isSameApiSpecEntry(workspacePath, a, apiSpecPath)) || null;
-};
-
-const CONTROL_CHARACTERS = /[\u0000-\u001f\u007f-\u009f]/;
-
-const assertWritableApiSpecName = (name) => {
-  const trimmedName = typeof name === 'string' ? name.trim() : '';
-  if (!trimmedName) {
-    throw new Error('API spec name is required');
-  }
-  if (CONTROL_CHARACTERS.test(trimmedName)) {
-    throw new Error('API spec name cannot contain line breaks or control characters');
-  }
-  return trimmedName;
-};
-
-const renameApiSpecInWorkspace = async (workspacePath, apiSpecPath, newName) => {
-  const trimmedName = assertWritableApiSpecName(newName);
-
-  return withLock(getWorkspaceLockKey(workspacePath), async () => {
-    const config = readWorkspaceConfig(workspacePath);
-    const specs = Array.isArray(config.specs) ? config.specs : [];
-    const spec = specs.find((a) => isSameApiSpecEntry(workspacePath, a, apiSpecPath));
-
-    if (!spec) {
-      throw new Error('API spec not found in workspace');
-    }
-
-    spec.name = trimmedName;
-    config.specs = specs;
-
-    const yamlContent = generateYamlContent(config);
-    await writeWorkspaceFileAtomic(workspacePath, yamlContent);
-    return config;
-  });
-};
-
-const addApiSpecToWorkspace = async (workspacePath, apiSpec) => {
-  if (!isValidSpecEntry(apiSpec)) {
-    throw new Error('Invalid API spec: name and path are required');
-  }
-
-  return withLock(getWorkspaceLockKey(workspacePath), async () => {
-    const config = readWorkspaceConfig(workspacePath);
-
-    if (!config.specs) {
-      config.specs = [];
-    }
-
-    const normalizedSpec = {
-      name: apiSpec.name.trim(),
-      path: makeRelativePath(workspacePath, apiSpec.path).trim()
-    };
-
-    const existingIndex = config.specs.findIndex((a) =>
-      isSameApiSpecEntry(workspacePath, a, path.resolve(workspacePath, apiSpec.path))
-    );
-
-    if (existingIndex >= 0) {
-      config.specs[existingIndex] = normalizedSpec;
-    } else {
-      config.specs.push(normalizedSpec);
-    }
-
-    const yamlContent = generateYamlContent(config);
-    await writeWorkspaceFileAtomic(workspacePath, yamlContent);
-    return config.specs;
-  });
-};
-
-const removeApiSpecFromWorkspace = async (workspacePath, apiSpecPath) => {
-  return withLock(getWorkspaceLockKey(workspacePath), async () => {
-    const config = readWorkspaceConfig(workspacePath);
-
-    if (!config.specs) {
-      return { removedApiSpec: null, updatedConfig: config };
-    }
-
-    let removedApiSpec = null;
-
-    config.specs = config.specs.filter((a) => {
-      if (isSameApiSpecEntry(workspacePath, a, apiSpecPath)) {
-        removedApiSpec = a;
-        return false;
-      }
-
-      return true;
-    });
-
-    const yamlContent = generateYamlContent(config);
-    await writeWorkspaceFileAtomic(workspacePath, yamlContent);
-
-    return {
-      removedApiSpec,
-      updatedConfig: config
-    };
-  });
-};
-
 const getWorkspaceUid = (workspacePath) => {
   const { defaultWorkspaceManager } = require('../store/default-workspace');
   const defaultWorkspacePath = defaultWorkspaceManager.getDefaultWorkspacePath();
@@ -786,16 +595,8 @@ module.exports = {
   getWorkspaceCollections,
   getUnopenableWorkspaceCollections,
   resolveAndFilterWorkspaceCollections,
-  getWorkspaceApiSpecs,
-  addApiSpecToWorkspace,
-  renameApiSpecInWorkspace,
-  assertWritableApiSpecName,
-  removeApiSpecFromWorkspace,
-  findApiSpecEntry,
-  hasWorkspaceFile,
   generateYamlContent,
   getWorkspaceUid,
   writeWorkspaceFileAtomic,
-  isValidCollectionEntry,
-  isValidSpecEntry
+  isValidCollectionEntry
 };

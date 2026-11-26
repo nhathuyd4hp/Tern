@@ -62,7 +62,7 @@ file that is never `require`d + called registers nothing.
 **Don't let a handler file keep growing to where its size hurts readability and maintainability.**
 When a group of handlers forms a separable feature, give it its own `ipc/<domain>.js` with its own
 `register*Ipc` (wired into `index.js` as above) rather than appending to an existing large file —
-separate it whenever it makes sense. Splitting by domain is already the norm here (`apiSpec.js`,
+separate it whenever it makes sense. Splitting by domain is already the norm here (`git.js`,
 `workspace.js`, `mount.js`, …).
 
 **Structure a handler so its callback is unit-testable.** Write the logic as a named, exported
@@ -105,7 +105,7 @@ renderer mounts
      -> main handles 'renderer:ready'                    [ipc/preferences.js]
           await onboardingPromise
           send main:load-preferences
-          send main:load-global-environments (+ main:git-version, reopen last apispecs, ...)
+          send main:load-global-environments (+ main:git-version, ...)
           ipcMain.emit('main:renderer-ready')
             -> workspace.js listener:                     [ipc/workspace.js]
                  await ensureDefaultWorkspaceExists()
@@ -143,10 +143,10 @@ store key belongs to the module named after the file.
 ## File watchers (`src/app/`)
 
 Watchers live in `src/app/` — **read the directory for the current set** (`collection-watcher.js`,
-`workspace-watcher.js`, `apiSpecsWatcher.js`, `dotenv-watcher.js`). Cleanup is
+`workspace-watcher.js`, `dotenv-watcher.js`). Cleanup is
 **not** uniform:
-- `closeAllWatchers()` in `index.js` tears down exactly three —
-  `collectionWatcher`, `workspaceWatcher`, `apiSpecWatcher` — each of which exposes
+- `closeAllWatchers()` in `index.js` tears down exactly two —
+  `collectionWatcher`, `workspaceWatcher` — each of which exposes
   its own `closeAllWatchers()`.
 - `dotenv-watcher.js` is a shared singleton exposing `closeAll()` and is torn down transitively by
   the workspace watcher (and driven by the collection watcher), **not** from `index.js`.
