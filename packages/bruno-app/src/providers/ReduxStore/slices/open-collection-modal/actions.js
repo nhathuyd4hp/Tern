@@ -24,10 +24,9 @@ import {
 import { selectAutoOpenFolderPicker, selectOpenCollectionPathKeys } from './selectors';
 import { countOf, getFolderSearchOutcome } from './folder-results';
 import { getFolderName, toPathKey } from './collection-paths';
-import { readImportableFile, readImportFiles, readImportUrl } from 'utils/importers/import-sources';
+import { readImportFiles, readImportUrl } from 'utils/importers/import-sources';
 
 const CHOOSE_FOLDER_PAGE = 'choose-folder';
-const IMPORT_PAGE = 'import';
 
 const getSearchLabel = (folderPaths) =>
   folderPaths.length === 1 ? getFolderName(folderPaths[0]) : `${folderPaths.length} folders`;
@@ -188,11 +187,6 @@ export const loadImportFiles = (files) => async (dispatch) => {
 
 export const loadImportUrl = (url) => loadImportData(() => readImportUrl(url));
 
-export const loadImportableFile = (file) => (dispatch) => {
-  dispatch(showOpenCollectionPage(IMPORT_PAGE));
-  return dispatch(loadImportData(() => readImportableFile(file)));
-};
-
 export const openDroppedItems = ({ folderPaths, hasFolders, files }) => async (dispatch, getState) => {
   if (getState().openCollectionModal.openingId) {
     return;
@@ -205,8 +199,7 @@ export const openDroppedItems = ({ folderPaths, hasFolders, files }) => async (d
     dispatch(showOpenCollectionPage(CHOOSE_FOLDER_PAGE));
     await dispatch(findCollectionsInFolders(folderPaths, files.length));
   } else if (files.length > 0) {
-    dispatch(showOpenCollectionPage(IMPORT_PAGE));
-    return dispatch(loadImportFiles(files));
+    toast.error('Importing a collection from a file is not supported');
   }
 };
 

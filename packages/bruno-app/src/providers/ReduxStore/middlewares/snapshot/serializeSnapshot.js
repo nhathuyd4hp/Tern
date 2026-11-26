@@ -70,7 +70,7 @@ const shouldPreserveCollectionEnvironmentInSnapshot = ({
  */
 export const serializeSnapshot = async (state, options = {}) => {
   const { getExistingSnapshot } = options;
-  const { workspaces, collections, tabs, logs, globalEnvironments } = state;
+  const { workspaces, collections, tabs, globalEnvironments } = state;
   const snapshotHydration = state.app?.snapshotHydration;
   const activeWorkspaceCollectionSortOrder = normalizeCollectionSortOrder(collections.collectionSortOrder);
 
@@ -104,21 +104,9 @@ export const serializeSnapshot = async (state, options = {}) => {
       .map((collectionPath) => normalizePath(collectionPath))
   );
 
-  const existingDevTools = existingSnapshot?.extras?.devTools ?? {};
-  const resolvedDevToolsActiveTab = logs.activeTab ?? existingDevTools.activeTab ?? 'terminal';
-  const existingDevToolsTabs = existingDevTools.tabs || {};
-
   const snapshot = {
     activeWorkspacePath: activeWorkspace?.pathname || null,
     extras: {
-      devTools: {
-        open: logs.isConsoleOpen,
-        activeTab: resolvedDevToolsActiveTab,
-        tabs: {
-          ...existingDevToolsTabs,
-          [resolvedDevToolsActiveTab]: existingDevToolsTabs[resolvedDevToolsActiveTab] ?? {}
-        }
-      },
       sidebar: {
         width: state.app.leftSidebarWidth,
         collapsed: state.app.sidebarCollapsed

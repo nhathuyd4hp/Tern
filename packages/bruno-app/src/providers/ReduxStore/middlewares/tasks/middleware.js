@@ -5,7 +5,7 @@ import { createListenerMiddleware } from '@reduxjs/toolkit';
 import { removeTaskFromQueue } from 'providers/ReduxStore/slices/app';
 import { addTab } from 'providers/ReduxStore/slices/tabs';
 import { sendRequest } from 'providers/ReduxStore/slices/collections/actions';
-import { collectionAddFileEvent, collectionChangeFileEvent, collectionLoadedFromTree } from 'providers/ReduxStore/slices/collections';
+import { collectionAddFileEvent, collectionChangeFileEvent } from 'providers/ReduxStore/slices/collections';
 import { findCollectionByUid, findItemInCollectionByPathname, getDefaultRequestPaneTab, findItemInCollectionByItemUid } from 'utils/collections/index';
 import { taskTypes } from './utils';
 
@@ -23,39 +23,6 @@ taskMiddleware.startListening({
   effect: (action, listenerApi) => {
     const state = listenerApi.getState();
     const collectionUid = get(action, 'payload.file.meta.collectionUid');
-
-    const openRequestTasks = filter(state.app.taskQueue, { type: taskTypes.OPEN_REQUEST });
-    each(openRequestTasks, (task) => {
-      if (collectionUid !== task.collectionUid) return;
-      const collection = findCollectionByUid(state.collections.collections, collectionUid);
-      if (!collection || collection.mountStatus !== 'mounted' || collection.isLoading) return;
-      const item = findItemInCollectionByPathname(collection, task.itemPathname);
-      if (!item) return;
-      listenerApi.dispatch(
-        addTab({
-          uid: item.uid,
-          collectionUid: collection.uid,
-          type: item.type,
-          pathname: item.pathname,
-          requestPaneTab: task?.requestPaneTab || getDefaultRequestPaneTab(item),
-          preview: task?.preview ?? true,
-          ...(item.isTransient ? { isTransient: true } : {})
-        })
-      );
-      if (task.autoSend) {
-        listenerApi.dispatch(sendRequest(item, collection.uid)).catch(() => {});
-      }
-      listenerApi.dispatch(removeTaskFromQueue({ taskUid: task.uid }));
-    });
-  }
-});
-
-// v2 tree push also acts as a signal for queued OPEN_REQUEST tasks.
-taskMiddleware.startListening({
-  actionCreator: collectionLoadedFromTree,
-  effect: (action, listenerApi) => {
-    const state = listenerApi.getState();
-    const collectionUid = get(action, 'payload.collectionUid');
 
     const openRequestTasks = filter(state.app.taskQueue, { type: taskTypes.OPEN_REQUEST });
     each(openRequestTasks, (task) => {

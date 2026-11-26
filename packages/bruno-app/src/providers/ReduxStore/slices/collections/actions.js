@@ -88,8 +88,7 @@ import {
 } from './index';
 
 import { each } from 'lodash';
-import { closeAllCollectionTabs, closeTabs as _closeTabs, focusTab, reopenLastClosedTab, setSidebarRevealRequest } from 'providers/ReduxStore/slices/tabs';
-import { restoreCollectionTabs } from 'providers/ReduxStore/slices/mock-server/actions';
+import { closeAllCollectionTabs, closeTabs as _closeTabs, focusTab, reopenLastClosedTab, restoreTabs, setSidebarRevealRequest } from 'providers/ReduxStore/slices/tabs';
 import { clearOpenApiSyncTabState } from 'providers/ReduxStore/slices/openapi-sync';
 import { removeCollectionFromWorkspace } from 'providers/ReduxStore/slices/workspaces';
 import { resolveRequestFilename } from 'utils/common/platform';
@@ -3116,7 +3115,7 @@ export const openCollectionEvent = (uid, pathname, brunoConfig, options = {}) =>
         .then((snapshotLookups) => hydrateCollectionTabs(
           existingCollection,
           dispatch,
-          restoreCollectionTabs,
+          restoreTabs,
           snapshotLookups,
           workspacePathname,
           true
@@ -3543,10 +3542,8 @@ export const mountCollection
   = ({ collectionUid, collectionPathname, brunoConfig, skipTabRestore = false, workspacePathname = null }) =>
     (dispatch, getState) => {
       dispatch(updateCollectionMountStatus({ collectionUid, mountStatus: 'mounting' }));
-      const fileCacheEnabled = getState().app?.preferences?.cache?.file?.enabled;
-      const channel = fileCacheEnabled ? 'renderer:mount-collection-v2' : 'renderer:mount-collection';
       return new Promise(async (resolve, reject) => {
-        callIpc(channel, { collectionUid, collectionPathname, brunoConfig, workspacePathname })
+        callIpc('renderer:mount-collection', { collectionUid, collectionPathname, brunoConfig, workspacePathname })
           .then(async (transientDirPath) => {
             dispatch(updateCollectionMountStatus({ collectionUid, mountStatus: 'mounted' }));
             dispatch(addTransientDirectory({ collectionUid, pathname: transientDirPath }));
@@ -3554,7 +3551,7 @@ export const mountCollection
             const collection = getState().collections.collections.find((c) => c.uid === collectionUid);
             if (collection?.pathname) {
               if (!skipTabRestore) {
-                await hydrateCollectionTabs(collection, dispatch, restoreCollectionTabs, null, workspacePathname);
+                await hydrateCollectionTabs(collection, dispatch, restoreTabs, null, workspacePathname);
               }
 
               const collectionSnapshotState = await window.ipcRenderer

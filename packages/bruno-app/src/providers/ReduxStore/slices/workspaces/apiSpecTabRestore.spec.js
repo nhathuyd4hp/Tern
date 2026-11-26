@@ -19,14 +19,9 @@ jest.mock('../collections/actions', () => ({
   hydrateCollectionWithUiStateSnapshot: jest.fn(() => () => Promise.resolve())
 }));
 
-jest.mock('utils/mock-server/mock-server-instances', () => ({
-  hydrateMockServerInstances: jest.fn(() => () => Promise.resolve())
-}));
-
 import { configureStore } from '@reduxjs/toolkit';
 import workspacesReducer from './index';
 import collectionsReducer from '../collections';
-import chatReducer from '../chat';
 import appReducer from '../app';
 import tabsReducer from '../tabs';
 import apiSpecReducer from '../apiSpec';
@@ -44,7 +39,7 @@ let workspaceApiSpecPaths = [];
 const snapshotWith = ({ apiSpecTabs = [], activeApiSpecTabPathname = null }) => ({
   version: '0.0.1',
   activeWorkspacePath: WORKSPACE_PATH,
-  extras: { devTools: { open: false, activeTab: '', tabs: {} } },
+  extras: {},
   workspaces: [
     {
       pathname: WORKSPACE_PATH,
@@ -87,7 +82,6 @@ const createStore = () =>
     reducer: {
       workspaces: workspacesReducer,
       collections: collectionsReducer,
-      chat: chatReducer,
       app: appReducer,
       tabs: tabsReducer,
       apiSpec: apiSpecReducer,
@@ -122,7 +116,6 @@ const createStore = () =>
         tempDirectories: {},
         saveTransientRequestModals: []
       },
-      chat: { isOpen: false, chats: {} },
       app: {
         snapshotReady: true,
         snapshotHydration: {

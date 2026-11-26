@@ -18,8 +18,7 @@ const defaults = () => ({
     selectedSidebarUids: [],
     lastClickedSidebarUid: null,
     tempDirectories: {},
-    saveTransientRequestModals: [],
-    mockResponseEditors: {}
+    saveTransientRequestModals: []
   },
   tabs: {
     tabs: [],
@@ -43,9 +42,7 @@ const defaults = () => ({
     leftSidebarWidth: 222,
     sidebarCollapsed: false,
     screenWidth: 1280
-  },
-  logs: { isConsoleOpen: false },
-  chat: { isOpen: false, isPoppedOut: false }
+  }
 });
 
 export const buildTestState = (overrides = {}) => {

@@ -6,12 +6,11 @@ import { updatePreferences } from 'providers/ReduxStore/slices/app';
 import { expandCollection } from 'providers/ReduxStore/slices/collections';
 import { addTab } from 'providers/ReduxStore/slices/tabs';
 import openCollectionModalReducer from './index';
-import { readImportableFile, readImportFiles, readImportUrl } from 'utils/importers/import-sources';
+import { readImportFiles, readImportUrl } from 'utils/importers/import-sources';
 import {
   cancelCollectionSearch,
   closeOpenCollectionModal,
   findCollectionsInFolders,
-  loadImportableFile,
   loadImportFiles,
   loadImportUrl,
   openCollectionModal,
@@ -551,17 +550,6 @@ describe('open collection modal actions', () => {
       expect(callIpc).toHaveBeenCalledWith(CANCEL_SEARCH, { requestId: 'search-1' });
       expect(modalState(store).chooseFolder).toMatchObject({ status: 'idle', searchId: null });
     });
-
-    it('shows the Import page before reading a file named in a note', async () => {
-      readImportableFile.mockResolvedValue(importData);
-      const { store } = createStore({ modal: openOn('choose-folder') });
-      const file = { path: '/work/openapi.yaml', name: 'openapi.yaml', format: 'openapi' };
-
-      await expect(store.dispatch(loadImportableFile(file))).resolves.toEqual(importData);
-
-      expect(readImportableFile).toHaveBeenCalledWith(file);
-      expect(modalState(store).page).toBe('import');
-    });
   });
 
   describe('openDroppedItems', () => {
@@ -591,15 +579,14 @@ describe('open collection modal actions', () => {
       expect(modalState(store).chooseFolder.result.note.text).toContain('2 dropped files weren’t opened.');
     });
 
-    it('goes to Import and returns what the dropped files hold', async () => {
+    it('says importing from a file is not supported when only files were dropped', async () => {
       const { store } = createStore({ modal: openOn('choose-folder') });
-      readImportFiles.mockResolvedValue(importData);
 
-      const result = await store.dispatch(openDroppedItems({ folderPaths: [], hasFolders: false, files: [droppedFile] }));
+      await store.dispatch(openDroppedItems({ folderPaths: [], hasFolders: false, files: [droppedFile] }));
 
-      expect(result).toEqual(importData);
-      expect(readImportFiles).toHaveBeenCalledWith([droppedFile]);
-      expect(modalState(store).page).toBe('import');
+      expect(toast.error).toHaveBeenCalledWith('Importing a collection from a file is not supported');
+      expect(readImportFiles).not.toHaveBeenCalled();
+      expect(modalState(store).page).toBe('choose-folder');
       expect(callIpc).not.toHaveBeenCalledWith(FIND_IN_FOLDERS, expect.anything());
     });
 

@@ -1,6 +1,6 @@
 import { parseQueryParams, buildQueryString as stringifyQueryParams, getDataTypeFromValue, parseValueByDataType, resolveEnvironmentInheritance } from '@usebruno/common/utils';
 import { uuid } from 'utils/common';
-import { find, map, concat, filter, each, cloneDeep, get, set, pick, isEqual } from 'lodash';
+import { find, map, concat, filter, each, cloneDeep, get, set, isEqual } from 'lodash';
 import { createSlice } from '@reduxjs/toolkit';
 import { hexy as hexdump } from 'hexy';
 import {
@@ -25,8 +25,6 @@ import path from 'utils/common/path';
 import { getUniqueTagsFromItems } from 'utils/collections/index';
 import { DEFAULT_HTTP_ITEM_SETTINGS, GRPC_SCRIPT_KEYS, SCRIPT_TYPES } from '@usebruno/common';
 import * as exampleReducers from './exampleReducers';
-import * as mockResponseEditorReducers from './mockResponseEditorReducers';
-import { closeTabs, closeAllCollectionTabs } from 'providers/ReduxStore/slices/tabs';
 
 const FILE_DERIVED_REQUEST_FIELDS = [
   'name',
@@ -47,57 +45,11 @@ const FILE_DERIVED_REQUEST_FIELDS = [
   'isTransient'
 ];
 
-const FILE_DERIVED_FOLDER_FIELDS = [
-  'name',
-  'filename',
-  'pathname',
-  'seq',
-  'type',
-  'root'
-];
-
 // Derive from the config on disk only — never keep a previous collection.format.
 // After a migrate-to-yml followed by a git revert to bru, a stale 'yml' would hide
 // the "Convert to YML" action forever.
 const deriveCollectionFormat = (brunoConfig) => {
   return brunoConfig?.opencollection ? 'yml' : brunoConfig?.format || 'bru';
-};
-
-const mergeTreeItems = (existingItems, newItems) => {
-  if (!Array.isArray(existingItems) || existingItems.length === 0) return newItems;
-  const existingByUid = new Map();
-  for (const item of existingItems) {
-    if (item && item.uid) existingByUid.set(item.uid, item);
-  }
-
-  return newItems.map((newItem) => {
-    const existing = existingByUid.get(newItem.uid);
-    if (!existing) return newItem;
-
-    if (newItem.type === 'folder') {
-      const merged = { ...existing, ...pick(newItem, FILE_DERIVED_FOLDER_FIELDS) };
-      merged.items = mergeTreeItems(existing.items, newItem.items || []);
-      return merged;
-    }
-
-    // seq-only change (reorder) — keep everything else, including the draft
-    if (areItemsTheSameExceptSeqUpdate(existing, newItem)) {
-      const merged = { ...existing, seq: newItem.seq };
-      if (merged.draft) {
-        merged.draft = { ...merged.draft, seq: newItem.seq };
-        if (areItemsTheSameExceptSeqUpdate(merged.draft, newItem)) {
-          merged.draft = null;
-        }
-      }
-      return merged;
-    }
-
-    const merged = { ...existing, ...pick(newItem, FILE_DERIVED_REQUEST_FIELDS) };
-    // only drop the draft if it matches what's on disk — user may still be typing
-    const draftMatchesFile = existing.draft && areItemsTheSameExceptSeqUpdate(existing.draft, newItem);
-    merged.draft = draftMatchesFile ? null : (existing.draft || null);
-    return merged;
-  });
 };
 
 // gRPC status code meanings
@@ -202,8 +154,7 @@ const initialState = {
   selectedSidebarUids: [],
   lastClickedSidebarUid: null,
   tempDirectories: {},
-  saveTransientRequestModals: [],
-  mockResponseEditors: {}
+  saveTransientRequestModals: []
 };
 
 const initiatedGrpcResponse = {
@@ -3820,35 +3771,6 @@ export const collectionsSlice = createSlice({
         }
       }
     },
-    collectionLoadedFromTree: (state, action) => {
-      const { collectionUid, tree } = action.payload;
-      const collection = findCollectionByUid(state.collections, collectionUid);
-      if (!collection) return;
-
-      collection.items = mergeTreeItems(collection.items, tree?.items || []);
-      collection.environments = tree?.environments || [];
-      if (tree?.root !== undefined) {
-        collection.root = tree.root;
-      }
-      if (tree?.brunoConfig) {
-        collection.brunoConfig = tree.brunoConfig;
-        collection.format = deriveCollectionFormat(tree.brunoConfig);
-      }
-      const tempDirectory = state.tempDirectories?.[collectionUid];
-      if (tempDirectory) {
-        const annotateTransient = (items) => {
-          for (const item of items) {
-            if (item.pathname && item.pathname.startsWith(tempDirectory)) {
-              item.isTransient = true;
-            }
-            if (item.type === 'folder' && Array.isArray(item.items)) {
-              annotateTransient(item.items);
-            }
-          }
-        };
-        annotateTransient(collection.items);
-      }
-    },
     collectionAddOauth2CredentialsByUrl: (state, action) => {
       const { collectionUid, folderUid, itemUid, url, credentials, credentialsId, debugInfo, executionMode } = action.payload;
       const collection = findCollectionByUid(state.collections, collectionUid);
@@ -4297,29 +4219,8 @@ export const collectionsSlice = createSlice({
     deleteResponseExampleFormUrlEncodedParam: exampleReducers.deleteResponseExampleFormUrlEncodedParam,
     addResponseExampleMultipartFormParam: exampleReducers.addResponseExampleMultipartFormParam,
     updateResponseExampleMultipartFormParam: exampleReducers.updateResponseExampleMultipartFormParam,
-    deleteResponseExampleMultipartFormParam: exampleReducers.deleteResponseExampleMultipartFormParam,
-    initMockResponseEditor: mockResponseEditorReducers.initMockResponseEditor,
-    syncMockResponseEditorSaved: mockResponseEditorReducers.syncMockResponseEditorSaved,
-    updateMockResponseRules: mockResponseEditorReducers.updateMockResponseRules,
-    cancelMockResponseEditorEdit: mockResponseEditorReducers.cancelMockResponseEditorEdit,
-    setMockResponseEditMode: mockResponseEditorReducers.setMockResponseEditMode,
-    removeMockResponseEditor: mockResponseEditorReducers.removeMockResponseEditor
+    deleteResponseExampleMultipartFormParam: exampleReducers.deleteResponseExampleMultipartFormParam
     /* End Response Example Actions */
-  },
-  extraReducers: (builder) => {
-    builder.addCase(closeTabs, (state, action) => {
-      for (const tabUid of action.payload.tabUids || []) {
-        delete state.mockResponseEditors[tabUid];
-      }
-    });
-    builder.addCase(closeAllCollectionTabs, (state, action) => {
-      const { collectionUid } = action.payload;
-      for (const responseUid of Object.keys(state.mockResponseEditors)) {
-        if (state.mockResponseEditors[responseUid]?.collectionUid === collectionUid) {
-          delete state.mockResponseEditors[responseUid];
-        }
-      }
-    });
   }
 });
 
@@ -4327,7 +4228,6 @@ export const {
   createCollection,
   updateCollectionMountStatus,
   updateCollectionLoadingState,
-  collectionLoadedFromTree,
   setCollectionSecurityConfig,
   updateCollectionVersion,
   brunoConfigUpdateEvent,
@@ -4545,12 +4445,6 @@ export const {
   addResponseExampleMultipartFormParam,
   updateResponseExampleMultipartFormParam,
   deleteResponseExampleMultipartFormParam,
-  initMockResponseEditor,
-  syncMockResponseEditorSaved,
-  updateMockResponseRules,
-  cancelMockResponseEditorEdit,
-  setMockResponseEditMode,
-  removeMockResponseEditor,
   addTransientDirectory,
   addSaveTransientRequestModal,
   removeSaveTransientRequestModal,

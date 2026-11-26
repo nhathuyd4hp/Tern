@@ -11,7 +11,7 @@ const ENVIRONMENT_PATH = '/tmp/workspace/collections/api/environments/local.yml'
 const makeExistingSnapshot = () => ({
   version: '0.0.1',
   activeWorkspacePath: WORKSPACE_PATH,
-  extras: { devTools: { open: false, activeTab: 'terminal', tabs: {} } },
+  extras: {},
   workspaces: [
     {
       pathname: WORKSPACE_PATH,
@@ -70,10 +70,6 @@ const makeState = (collectionOverrides = {}) => ({
   tabs: {
     tabs: [],
     activeTabUid: null
-  },
-  logs: {
-    isConsoleOpen: false,
-    activeTab: 'terminal'
   },
   globalEnvironments: {
     activeGlobalEnvironmentUid: null
@@ -217,17 +213,8 @@ describe('serializeSnapshot collection environment preservation', () => {
       getExistingSnapshot: async () => null
     });
 
-    expect(snapshot).toMatchObject({
-      extras: {
-        devTools: {
-          open: false,
-          activeTab: 'terminal',
-          tabs: {
-            terminal: {}
-          }
-        }
-      }
-    });
+    expect(snapshot.extras.devTools).toBeUndefined();
+    expect(snapshot.workspaces).toHaveLength(1);
   });
 
   it('preserves existing environment fields for an unmounted collection without loaded environments', async () => {

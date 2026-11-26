@@ -13,8 +13,7 @@ import { removeCollection, addTransientDirectory, updateCollectionMountStatus, e
 import { sanitizeName } from 'utils/common/regex';
 import { clearCollectionState } from '../openapi-sync';
 import { updateGlobalEnvironments } from '../global-environments';
-import { addTab, closeTabs, focusTab } from '../tabs';
-import { isDisabledMockServerTab, restoreCollectionTabs } from '../mock-server/actions';
+import { addTab, closeTabs, focusTab, restoreTabs } from '../tabs';
 import {
   API_SPEC_TAB_TYPE,
   findApiSpecByPathname,
@@ -28,12 +27,9 @@ import {
   markSnapshotCollectionHydrated,
   clearSnapshotHydrationSession
 } from '../app';
-import { openConsole, closeConsole, setActiveTab as setActiveDevToolsTab, TAB_IDENFIERS as DEVTOOL_TABS } from '../logs';
 import { normalizePath } from 'utils/common/path';
-import { hydrateMockServerInstances } from 'utils/mock-server/mock-server-instances';
 import { hydrateTabs, getActiveTabFromSnapshot, hydrateSnapshotLookups, getCollectionSnapshotFromLookups, WORKSPACE_TAB_UID_SUFFIX_BY_TYPE } from 'utils/snapshot';
 import toast from 'react-hot-toast';
-import { closeAiSidebar } from '../chat';
 
 const { ipcRenderer } = window;
 let snapshotHydrationTimer = null;
@@ -523,7 +519,7 @@ export const hydrateSnapshotForOpenedCollection = (collectionPathname) => {
     const activeWorkspace = state.workspaces.workspaces.find((w) => w.uid === snapshotHydration.workspaceUid);
     const activeWorkspacePathname = activeWorkspace?.pathname || null;
 
-    await hydrateTabs([collection], dispatch, restoreCollectionTabs, null, activeWorkspacePathname);
+    await hydrateTabs([collection], dispatch, restoreTabs, null, activeWorkspacePathname);
 
     if (
       snapshotHydration.activeCollectionPathname
@@ -548,7 +544,7 @@ export const hydrateSnapshotForOpenedCollection = (collectionPathname) => {
         null,
         activeWorkspacePathname
       );
-      if (activeTab && !isDisabledMockServerTab(getState(), activeTab)) {
+      if (activeTab) {
         dispatch(addTab(activeTab));
       }
     }
@@ -624,7 +620,6 @@ export const loadWorkspaceApiSpecs = (workspaceUid) => {
 
 export const switchWorkspace = (workspaceUid) => {
   return async (dispatch, getState) => {
-    dispatch(closeAiSidebar());
     clearSnapshotHydrationTimeout();
     dispatch(setSnapshotReady(false));
     dispatch(clearSnapshotHydrationSession());
@@ -659,10 +654,6 @@ export const switchWorkspace = (workspaceUid) => {
       const scratchCollection = await dispatch(mountScratchCollection(workspaceUid));
       const { updatedWorkspace, openedCollectionPaths } = await loadWorkspaceCollectionsForSwitch(dispatch, workspace);
 
-      if (workspace.pathname) {
-        await dispatch(hydrateMockServerInstances(workspace.pathname, workspaceUid));
-      }
-
       const latestWorkspace = updatedWorkspace || getState().workspaces.workspaces.find((w) => w.uid === workspaceUid);
       const workspaceCollectionPaths = [...new Map(
         (latestWorkspace?.collections || [])
@@ -680,7 +671,7 @@ export const switchWorkspace = (workspaceUid) => {
           && c.uid !== scratchCollection?.uid
           && workspaceCollectionPathSet.has(normalizePath(c.pathname))
       );
-      await hydrateTabs(collections, dispatch, restoreCollectionTabs, snapshotLookups, workspace.pathname || null);
+      await hydrateTabs(collections, dispatch, restoreTabs, snapshotLookups, workspace.pathname || null);
 
       // Restore each collection's workspace-scoped selected environment, so the same
       // collection open under two workspaces restores its own environment per workspace.
@@ -772,7 +763,7 @@ export const switchWorkspace = (workspaceUid) => {
           workspace.pathname || null
         );
 
-        if (activeTab && !isDisabledMockServerTab(getState(), activeTab)) {
+        if (activeTab) {
           dispatch(addTab(activeTab));
         } else if (scratchCollection?.uid && !requestedWorkspaceTabType && !requestedApiSpecTabUid) {
           dispatch(addTab({ uid: `${scratchCollection.uid}-overview`, collectionUid: scratchCollection.uid, type: 'workspaceOverview' }));
@@ -978,18 +969,6 @@ export const workspaceOpenedEvent = (workspacePath, workspaceUid, workspaceConfi
 
     try {
       snapshot = await ipcRenderer.invoke('renderer:snapshot:get');
-      const currentState = getState();
-
-      if (!currentState.app.snapshotReady && snapshot?.extras?.devTools) {
-        const { open } = snapshot.extras.devTools;
-        if (open) {
-          dispatch(openConsole());
-        } else {
-          dispatch(closeConsole());
-        }
-        const { activeTab = 'terminal' } = snapshot.extras.devTools;
-        dispatch(setActiveDevToolsTab(activeTab));
-      }
     } catch (err) {
     }
 
@@ -1519,20 +1498,11 @@ export const mountScratchCollection = (workspaceUid) => {
         ignore: ['node_modules', '.git']
       };
 
-      const fileCacheEnabled = state.app?.preferences?.cache?.file?.enabled;
-      if (fileCacheEnabled) {
-        await ipcRenderer.invoke('renderer:mount-collection-v2', {
-          collectionUid: scratchCollectionUid,
-          collectionPathname: tempDirectoryPath,
-          brunoConfig
-        });
-      } else {
-        await ipcRenderer.invoke('renderer:add-collection-watcher', {
-          collectionPath: tempDirectoryPath,
-          collectionUid: scratchCollectionUid,
-          brunoConfig
-        });
-      }
+      await ipcRenderer.invoke('renderer:add-collection-watcher', {
+        collectionPath: tempDirectoryPath,
+        collectionUid: scratchCollectionUid,
+        brunoConfig
+      });
 
       // Map scratch collection to workspace so getProcessEnvVars can resolve workspace .env values
       if (workspace.pathname) {

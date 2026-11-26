@@ -1,4 +1,4 @@
-import reducer, { brunoConfigUpdateEvent, collectionLoadedFromTree } from 'providers/ReduxStore/slices/collections';
+import reducer, { brunoConfigUpdateEvent } from 'providers/ReduxStore/slices/collections';
 
 const COLLECTION_UID = 'col-1';
 
@@ -33,17 +33,5 @@ describe('collection format derivation from disk config', () => {
     );
 
     expect(state.collections[0].format).toBe('bru');
-  });
-
-  it('collectionLoadedFromTree derives format from the tree brunoConfig', () => {
-    const state = reducer(
-      makeState('bru'),
-      collectionLoadedFromTree({
-        collectionUid: COLLECTION_UID,
-        tree: { items: [], brunoConfig: { opencollection: '1.0.0', name: 'demo' } }
-      })
-    );
-
-    expect(state.collections[0].format).toBe('yml');
   });
 });

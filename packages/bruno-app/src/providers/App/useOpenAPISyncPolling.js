@@ -3,7 +3,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { checkActiveWorkspaceCollectionsForUpdates } from 'providers/ReduxStore/slices/openapi-sync';
 import { getWorkspaceCollections } from 'utils/collections';
 
-const POLL_INTERVAL = 5 * 60 * 1000; // 5 minutes
+// Tick rate only; each collection is checked at its own autoCheckInterval inside the thunk.
+// Keep in step with MIN_CHECK_INTERVAL_MINUTES in OpenAPISyncTab/utils.js.
+const POLL_INTERVAL = 10 * 1000;
 
 const useOpenAPISyncPolling = () => {
   const dispatch = useDispatch();

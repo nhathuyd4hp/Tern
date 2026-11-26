@@ -73,16 +73,10 @@ export const KEY_BINDING_SECTIONS = [
     }
   },
   {
-    heading: 'Developer Tool',
-    bindings: {
-      openTerminal: { mac: 'command+bind+t', windows: 'ctrl+bind+t', name: 'Open in Terminal' } // D
-    }
-  },
-  {
     heading: 'Others',
     bindings: {
       openPreferences: { mac: 'command+bind+,', windows: 'ctrl+bind+,', name: 'Open Preferences' }, // D
-      closeBruno: { mac: 'command+bind+q', windows: 'ctrl+bind+shift+bind+q', name: 'Close Bruno' } // D
+      closeBruno: { mac: 'command+bind+q', windows: 'ctrl+bind+shift+bind+q', name: 'Close Kevin' } // D
     }
   }
 ];

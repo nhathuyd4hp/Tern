@@ -5,7 +5,6 @@ import last from 'lodash/last';
 import { uuid } from 'utils/common';
 import { isActiveTab as checkIsActiveTab, deserializeTab } from 'utils/snapshot';
 import { API_SPEC_TAB_TYPE, isApiSpecTabForPathname } from 'utils/api-specs';
-import { normalizeMockTabType } from 'utils/mock-server/mock-tab-type';
 
 // todo: errors should be tracked in each slice and displayed as toasts
 
@@ -26,10 +25,6 @@ const initialState = {
   recentlyClosedTabs: [], // LIFO stack of closed tabs, grouped by collection
   sidebarRevealRequest: null
 };
-
-const findMockServerTab = (tabs, mockServerUid) => find(tabs, (tab) => (
-  normalizeMockTabType(tab.type) === 'mock-server' && tab.mockServerUid === mockServerUid
-));
 
 const findApiSpecTab = (tabs, collectionUid, apiSpecPathname) => find(tabs, (tab) => (
   tab.collectionUid === collectionUid && isApiSpecTabForPathname(tab, apiSpecPathname)
@@ -82,10 +77,8 @@ export const tabsSlice = createSlice({
         exampleName,
         exampleIndex,
         isTransient,
-        mockServerUid,
         apiSpecPathname,
         tabName,
-        responseName,
         openInEditMode
       } = action.payload;
 
@@ -100,7 +93,6 @@ export const tabsSlice = createSlice({
         'openapi-sync',
         'openapi-spec',
         'changelog',
-        'mock-server',
         API_SPEC_TAB_TYPE
       ];
 
@@ -119,12 +111,7 @@ export const tabsSlice = createSlice({
       if (nonReplaceableTabTypes.includes(type)) {
         let existingTab = null;
 
-        if (type === 'mock-server' && mockServerUid) {
-          existingTab = findMockServerTab(state.tabs, mockServerUid);
-          if (existingTab && existingTab.type !== 'mock-server') {
-            existingTab.type = 'mock-server';
-          }
-        } else if (type === API_SPEC_TAB_TYPE && apiSpecPathname) {
+        if (type === API_SPEC_TAB_TYPE && apiSpecPathname) {
           existingTab = findApiSpecTab(state.tabs, collectionUid, apiSpecPathname);
         } else {
           existingTab = tabTypeAlreadyExists(state.tabs, collectionUid, type);
@@ -171,10 +158,8 @@ export const tabsSlice = createSlice({
           ...(exampleName ? { exampleName } : {}),
           ...(typeof exampleIndex === 'number' ? { exampleIndex } : {}),
           ...(isTransient ? { isTransient: true } : {}),
-          ...(mockServerUid ? { mockServerUid } : {}),
           ...(apiSpecPathname ? { apiSpecPathname } : {}),
           ...(tabName ? { tabName } : {}),
-          ...(responseName ? { responseName } : {}),
           ...(openInEditMode ? { openInEditMode: true } : {})
         };
 
@@ -213,10 +198,8 @@ export const tabsSlice = createSlice({
         ...(exampleName ? { exampleName } : {}),
         ...(typeof exampleIndex === 'number' ? { exampleIndex } : {}),
         ...(isTransient ? { isTransient: true } : {}),
-        ...(mockServerUid ? { mockServerUid } : {}),
         ...(apiSpecPathname ? { apiSpecPathname } : {}),
         ...(tabName ? { tabName } : {}),
-        ...(responseName ? { responseName } : {}),
         ...(openInEditMode ? { openInEditMode: true } : {})
       });
       state.activeTabUid = uid;
@@ -281,22 +264,6 @@ export const tabsSlice = createSlice({
 
       if (tab) {
         tab.responsePaneTab = action.payload.responsePaneTab;
-      }
-    },
-    updateTabMeta: (state, action) => {
-      const { uid, tabName, responseName } = action.payload;
-      const tab = find(state.tabs, (t) => t.uid === uid);
-
-      if (!tab) {
-        return;
-      }
-
-      if (tabName !== undefined) {
-        tab.tabName = tabName;
-      }
-
-      if (responseName !== undefined) {
-        tab.responseName = responseName;
       }
     },
     updateResponseFormat: (state, action) => {
@@ -613,17 +580,6 @@ export const tabsSlice = createSlice({
 
         ensureTabUid(tab);
 
-        if (normalizeMockTabType(tab.type) === 'mock-server' && tab.mockServerUid) {
-          const existingTab = findMockServerTab(state.tabs, tab.mockServerUid);
-          if (existingTab) {
-            if (checkIsActiveTab(tab, activeTab, collection)) {
-              state.activeTabUid = ensureTabUid(existingTab);
-            }
-            return;
-          }
-          tab.type = 'mock-server';
-        }
-
         state.tabs.push(tab);
 
         if (checkIsActiveTab(tab, activeTab, collection)) {
@@ -683,7 +639,6 @@ export const {
   updateApiSpecTabLeftPaneWidth,
   updateRequestPaneTab,
   updateResponsePaneTab,
-  updateTabMeta,
   updateResponseFormat,
   updateResponseViewTab,
   updateResponseFilter,

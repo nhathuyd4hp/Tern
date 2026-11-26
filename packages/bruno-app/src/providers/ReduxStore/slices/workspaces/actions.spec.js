@@ -22,7 +22,6 @@ import path from 'path';
 import { configureStore } from '@reduxjs/toolkit';
 import workspacesReducer, { updateWorkspace } from './index';
 import collectionsReducer from '../collections';
-import chatReducer, { openAiSidebar } from '../chat';
 import appReducer from '../app';
 import tabsReducer from '../tabs';
 import globalEnvironmentsReducer from '../global-environments';
@@ -72,7 +71,6 @@ const createStore = ({ activeWorkspaceUid = WS_A } = {}) => {
       tempDirectories: {},
       saveTransientRequestModals: []
     },
-    chat: { isOpen: false, chats: {} },
     app: {
       snapshotReady: true,
       snapshotHydration: {
@@ -96,7 +94,6 @@ const createStore = ({ activeWorkspaceUid = WS_A } = {}) => {
     reducer: {
       workspaces: workspacesReducer,
       collections: collectionsReducer,
-      chat: chatReducer,
       app: appReducer,
       tabs: tabsReducer,
       globalEnvironments: globalEnvironmentsReducer
@@ -113,14 +110,11 @@ describe('switchWorkspace', () => {
     ({ switchWorkspace } = await import('./actions'));
   });
 
-  it('closes the AI sidebar when switching workspaces', async () => {
+  it('makes the chosen workspace active', async () => {
     const store = createStore();
-    store.dispatch(openAiSidebar());
-    expect(store.getState().chat.isOpen).toBe(true);
 
     await store.dispatch(switchWorkspace(WS_B));
 
-    expect(store.getState().chat.isOpen).toBe(false);
     expect(store.getState().workspaces.activeWorkspaceUid).toBe(WS_B);
   });
 });

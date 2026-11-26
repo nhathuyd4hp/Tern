@@ -67,34 +67,6 @@ const initialState = {
     autoSave: {
       enabled: false,
       interval: 1000
-    },
-    cache: {
-      sslSession: {
-        enabled: false
-      }
-    },
-    ai: {
-      enabled: false,
-      providers: {
-        'openai': { enabled: false },
-        'anthropic': { enabled: false },
-        'github-copilot': { enabled: false }
-      },
-      models: {},
-      defaultModel: '',
-      autocomplete: {
-        enabled: true,
-        model: '',
-        triggerMode: 'debounced'
-      },
-      security: {
-        redactHeaders: true,
-        redactBody: true,
-        redactVariables: true,
-        redactResponse: true,
-        customRedactedHeaders: [],
-        customRedactedVariables: []
-      }
     }
   },
   generateCode: {
@@ -470,13 +442,6 @@ export const refreshSystemProxy = () => (dispatch, getState) => {
         return variables;
       })
       .then(resolve).catch(reject);
-  });
-};
-
-export const clearHttpHttpsAgentCache = () => () => {
-  return new Promise((resolve, reject) => {
-    const { ipcRenderer } = window;
-    ipcRenderer.invoke('renderer:clear-http-https-agent-cache').then(resolve).catch(reject);
   });
 };
 

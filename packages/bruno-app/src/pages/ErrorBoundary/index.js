@@ -50,19 +50,6 @@ class ErrorBoundary extends React.Component {
             </div>
 
             <h1 className="text-2xl font-medium text-red-600 mb-2">Oops! Something went wrong</h1>
-            <p className="mb-2">
-              If you are using an official production build: the above error is most likely a bug!
-              <br />
-              Please report this under:
-              <a
-                className="text-link hover:underline cursor-pointer ml-2"
-                href="https://github.com/usebruno/bruno/issues"
-                target="_blank"
-              >
-                https://github.com/usebruno/bruno/issues
-              </a>
-            </p>
-
             <div className="inline-flex flex-col items-center mt-4">
               <button
                 className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
