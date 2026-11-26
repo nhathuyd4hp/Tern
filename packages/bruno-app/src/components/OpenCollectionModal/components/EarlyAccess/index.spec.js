@@ -26,10 +26,10 @@ describe('early access pages', () => {
       'Testers, PMs and partners open it without git',
       'Runs on your premises, nothing leaves your network'
     ], 'https://link.usebruno.com/registry-waitlist', 'https://link.usebruno.com/docs/registry'],
-    ['API Catalog', ApiCatalogPage, 'catalog', 'Bruno API Catalog', 'The public home for Bruno collections', [
+    ['API Catalog', ApiCatalogPage, 'catalog', 'Kevin API Catalog', 'The public home for Kevin collections', [
       'List your API’s collection straight from its public repo',
       'Search collections by API, company or topic',
-      'They open it in Bruno in one click and get your updates'
+      'They open it in Kevin in one click and get your updates'
     ], 'https://link.usebruno.com/catalog-waitlist', 'https://link.usebruno.com/docs/catalog']
   ])('shows the %s page and opens its waitlist and docs in the browser', (_name, Page, feature, title, subtitle, points, waitlistUrl, learnMoreUrl) => {
     renderPage(Page);

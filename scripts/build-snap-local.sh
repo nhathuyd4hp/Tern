@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Build a Bruno snap locally on an Ubuntu host.
+# Build a Kevin snap locally on an Ubuntu host.
 #
 # electron-builder's legacy `snap` config (which we use) defaults to the core20
 # base and runs `snapcraft snap`; Snapcraft 9 dropped both. On Snapcraft >= 9

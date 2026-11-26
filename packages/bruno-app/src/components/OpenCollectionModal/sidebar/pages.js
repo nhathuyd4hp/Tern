@@ -46,7 +46,7 @@ export const OPEN_COLLECTION_PAGES = [
     id: 'my-computer',
     label: 'My computer',
     title: 'My computer',
-    description: 'Collections Bruno found on your computer',
+    description: 'Collections Kevin found on your computer',
     icon: IconDeviceLaptop,
     group: 'sources',
     component: MyComputerPage
@@ -64,7 +64,7 @@ export const OPEN_COLLECTION_PAGES = [
     id: 'api-catalog',
     label: 'API Catalog',
     title: 'API Catalog',
-    description: 'Every public Bruno collection indexed from GitHub',
+    description: 'Every public Kevin collection indexed from GitHub',
     icon: IconBrandSafari,
     group: 'sources',
     component: ApiCatalogPage

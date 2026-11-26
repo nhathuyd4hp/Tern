@@ -79,7 +79,7 @@ const initialState = {
   gitOperationProgress: {},
   gitVersion: null,
   clipboard: {
-    hasCopiedItems: false // Whether clipboard has Bruno data (for UI)
+    hasCopiedItems: false // Whether clipboard has Kevin data (for UI)
   },
   systemProxyVariables: {},
   systemProxyLastRefreshedAt: null,

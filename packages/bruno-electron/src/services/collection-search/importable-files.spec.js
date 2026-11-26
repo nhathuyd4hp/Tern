@@ -29,7 +29,7 @@ describe('findImportableFiles', () => {
   const formatsByName = async () =>
     Object.fromEntries((await findImportableFiles(tempDir)).map((file) => [file.name, file.format]));
 
-  it('recognises Postman, Insomnia and OpenAPI exports and Bruno collection zips', async () => {
+  it('recognises Postman, Insomnia and OpenAPI exports and Kevin collection zips', async () => {
     writeZip('backup.zip', ['bruno.json', 'ping.bru']);
     writeFile('Orders.postman_collection.json', '{}');
     writeFile('postman.json', '{ "info": { "_postman_id": "1" } }');
@@ -59,7 +59,7 @@ describe('findImportableFiles', () => {
     expect(await formatsByName()).toEqual({ 'orders.zip': 'zip' });
   });
 
-  it('ignores a zip that is not a Bruno collection', async () => {
+  it('ignores a zip that is not a Kevin collection', async () => {
     writeZip('photos.zip', ['beach.jpg']);
     writeZip('nested.zip', ['backups/orders/bruno.json']);
     writeFile('broken.zip', 'not a zip');
@@ -122,11 +122,11 @@ describe('findImportableFiles', () => {
     it('refuses a ZIP', async () => {
       const filePath = writeFile('backup.zip', 'not text');
 
-      await expect(readImportableFileText(filePath)).rejects.toThrow('backup.zip isn’t a file Bruno can import');
+      await expect(readImportableFileText(filePath)).rejects.toThrow('backup.zip isn’t a file Kevin can import');
     });
 
     it('refuses a missing file', async () => {
-      await expect(readImportableFileText(path.join(tempDir, 'gone.json'))).rejects.toThrow('gone.json isn’t a file Bruno can import');
+      await expect(readImportableFileText(path.join(tempDir, 'gone.json'))).rejects.toThrow('gone.json isn’t a file Kevin can import');
     });
 
     const itWithFileLinks = process.platform === 'win32' ? it.skip : it;
@@ -136,13 +136,13 @@ describe('findImportableFiles', () => {
       const link = path.join(tempDir, 'Orders.postman_collection.json');
       fs.symlinkSync(target, link);
 
-      await expect(readImportableFileText(link)).rejects.toThrow('isn’t a file Bruno can import');
+      await expect(readImportableFileText(link)).rejects.toThrow('isn’t a file Kevin can import');
     });
 
-    it('refuses a file that is not something Bruno can import', async () => {
+    it('refuses a file that is not something Kevin can import', async () => {
       const filePath = writeFile('secrets.json', '{ "token": "abc" }');
 
-      await expect(readImportableFileText(filePath)).rejects.toThrow('secrets.json isn’t a file Bruno can import');
+      await expect(readImportableFileText(filePath)).rejects.toThrow('secrets.json isn’t a file Kevin can import');
     });
   });
 });

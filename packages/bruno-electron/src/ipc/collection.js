@@ -2535,7 +2535,7 @@ const registerRendererEventHandlers = (mainWindow, watcher) => {
         preserveScripts: !!options.preserveScripts
       });
     } catch (error) {
-      console.error('Error converting Postman to Bruno:', error);
+      console.error('Error converting Postman to Kevin:', error);
       return Promise.reject(error);
     }
   });
@@ -2827,7 +2827,7 @@ const registerMainEventHandlers = (mainWindow) => {
               name: brunoConfig.name
             };
           } catch (error) {
-            console.warn(`Skipping invalid Bruno collection at ${pathname}: ${error.message}`);
+            console.warn(`Skipping invalid Kevin collection at ${pathname}: ${error.message}`);
             return { pathname, skipped: true };
           }
         })

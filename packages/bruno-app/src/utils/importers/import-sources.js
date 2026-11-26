@@ -28,7 +28,7 @@ const detectImportFormat = (data) => IMPORT_FORMATS.find(([, matches]) => matche
 
 const readBrunoZip = async (zipFilePath, fileName) => {
   if (!(await callIpc('renderer:is-bruno-collection-zip', zipFilePath))) {
-    throw new Error('The ZIP file is not a valid Bruno collection');
+    throw new Error('The ZIP file is not a valid Kevin collection');
   }
   return { rawData: { zipFilePath, collectionName: fileName.replace(ZIP_FILE, '') }, type: 'bruno-zip' };
 };

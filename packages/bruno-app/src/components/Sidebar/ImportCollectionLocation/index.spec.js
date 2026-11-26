@@ -144,7 +144,7 @@ describe('ImportCollectionLocation collection auth placement', () => {
 });
 
 describe('ImportCollectionLocation naming requests', () => {
-  const NAMING_INFO = 'If an operation doesn\'t have the selected option, Bruno falls back in the following order: summary, operationId, description, then path.';
+  const NAMING_INFO = 'If an operation doesn\'t have the selected option, Kevin falls back in the following order: summary, operationId, description, then path.';
   const namingDropdown = () => screen.getByTestId('request-name-source-dropdown');
   const chooseNaming = async (value) => {
     fireEvent.click(namingDropdown());
@@ -281,7 +281,7 @@ describe('ImportCollectionLocation settings layout', () => {
     expect(collection.brunoConfig.openapi[0].groupBy).toBe('path');
   });
 
-  it('shows neither the Options menu nor Advanced for a Bruno zip import', () => {
+  it('shows neither the Options menu nor Advanced for a Kevin zip import', () => {
     renderImport({ rawData: { collectionName: 'Archive' }, format: 'bruno-zip', sourceUrl: undefined });
 
     expect(optionsButton()).not.toBeInTheDocument();

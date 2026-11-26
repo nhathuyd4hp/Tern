@@ -2,15 +2,15 @@ import { pluralizeWord } from 'utils/common';
 import { getFolderName, toPathKey } from './collection-paths';
 
 const COLLECTION_FOLDER_HINT = 'A collection folder has a bruno.json or opencollection.yml at its top level.';
-const STOPPED_EARLY_TEXT = 'Bruno stopped searching after too many folders, so some collections may be missing.';
+const STOPPED_EARLY_TEXT = 'Kevin stopped searching after too many folders, so some collections may be missing.';
 const UNREADABLE_STATUSES = ['not-found', 'no-access', 'unreadable'];
 
 const FOLDER_PROBLEMS = {
   'not-found': (name) => `${name} doesn’t exist anymore.`,
-  'no-access': (name) => `Bruno can’t read ${name}. Check its permissions.`,
+  'no-access': (name) => `Kevin can’t read ${name}. Check its permissions.`,
   'not-a-folder': (name) => `${name} isn’t a folder.`,
-  'unreadable': (name) => `Bruno couldn’t read ${name}.`,
-  'broken-collection': (name) => `Bruno can’t open ${name} because its config can’t be read. Check its bruno.json or opencollection.yml.`
+  'unreadable': (name) => `Kevin couldn’t read ${name}.`,
+  'broken-collection': (name) => `Kevin can’t open ${name} because its config can’t be read. Check its bruno.json or opencollection.yml.`
 };
 
 const IMPORTABLE_FILE_LABELS = {
@@ -41,7 +41,7 @@ const describeSkippedFolders = (folders) => {
   return {
     notCollectionsText: notCollections.length > 0
       && `${notCollections.join(', ')} ${notCollections.length === 1 ? 'isn’t a collection, so it was' : 'aren’t collections, so they were'} skipped.`,
-    unreadableText: unreadable.length > 0 && `Bruno couldn’t read ${unreadable.join(', ')}.`
+    unreadableText: unreadable.length > 0 && `Kevin couldn’t read ${unreadable.join(', ')}.`
   };
 };
 
@@ -65,7 +65,7 @@ const decideOutcome = (searchResult, openPathKeys) => {
   const brokenText = describeBrokenCollections(brokenCollectionPaths.length);
   const searchTone = stoppedEarly || brokenText || unreadableFolderCount > 0 ? 'warning' : 'info';
   const describeMissing = (place) => sentences(
-    unreadableFolderCount > 0 && `Bruno couldn’t read ${countOf(unreadableFolderCount, 'folder')} inside ${place}.`,
+    unreadableFolderCount > 0 && `Kevin couldn’t read ${countOf(unreadableFolderCount, 'folder')} inside ${place}.`,
     stoppedEarlyText
   );
   const switchTo = (collectionPath, skippedText) => ({ type: 'switch', path: collectionPath, name: namesByPath.get(collectionPath), skippedText });
@@ -86,7 +86,7 @@ const decideOutcome = (searchResult, openPathKeys) => {
     if (folder.collectionPaths.length === 0) {
       const missingText = describeMissing('it');
       if (brokenText) {
-        return showMessage('warning', sentences(`${name} has no collections Bruno can open.`, brokenText, missingText));
+        return showMessage('warning', sentences(`${name} has no collections Kevin can open.`, brokenText, missingText));
       }
       const tone = missingText ? 'warning' : 'info';
       if (folder.importableFiles.length > 0) {
@@ -96,7 +96,7 @@ const decideOutcome = (searchResult, openPathKeys) => {
           missingText
         ), file);
       }
-      return showMessage(tone, sentences(`${name} isn’t a Bruno collection.`, COLLECTION_FOLDER_HINT, missingText));
+      return showMessage(tone, sentences(`${name} isn’t a Kevin collection.`, COLLECTION_FOLDER_HINT, missingText));
     }
 
     return showList({
@@ -122,8 +122,8 @@ const decideOutcome = (searchResult, openPathKeys) => {
   if (allPaths.length === 0) {
     const missingText = describeMissing('them');
     const nothingText = brokenText
-      ? sentences('None of those folders has a collection Bruno can open.', brokenText)
-      : sentences('None of those folders is a Bruno collection.', COLLECTION_FOLDER_HINT);
+      ? sentences('None of those folders has a collection Kevin can open.', brokenText)
+      : sentences('None of those folders is a Kevin collection.', COLLECTION_FOLDER_HINT);
     return showMessage(
       brokenText || unreadableText || missingText ? 'warning' : 'info',
       sentences(nothingText, unreadableText, missingText)

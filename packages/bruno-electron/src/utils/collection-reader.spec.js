@@ -306,8 +306,8 @@ describe('readCollectionForApiSpec: config edge cases', () => {
   });
 });
 
-describe('readCollectionForApiSpec: folders that are not Bruno collections', () => {
-  it('refuses a folder that does not contain a Bruno collection file', async () => {
+describe('readCollectionForApiSpec: folders that are not Kevin collections', () => {
+  it('refuses a folder that does not contain a Kevin collection file', async () => {
     const dir = mkTmp('not-a-collection');
     writeFile(dir, 'readme.txt', 'i am not a collection');
     await expect(readCollectionForApiSpec(dir)).rejects.toThrow('No bruno.json or opencollection.yml found');
@@ -322,7 +322,7 @@ describe('readCollectionForApiSpec: folders that are not Bruno collections', () 
     await expect(readCollectionForApiSpec(missing)).rejects.toThrow('No bruno.json or opencollection.yml found');
   });
 
-  it('says which Bruno collection file it found, so the app can tell a real collection from any other folder', async () => {
+  it('says which Kevin collection file it found, so the app can tell a real collection from any other folder', async () => {
     const ymlDir = mkTmp('marker-yml');
     writeFile(ymlDir, 'opencollection.yml', stringifyCollection({}, { name: 'FromYml', version: '1' }));
     expect((await readCollectionForApiSpec(ymlDir)).configFile).toBe('opencollection.yml');

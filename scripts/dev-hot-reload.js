@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 /**
-# Bruno Development Script
+# Kevin Development Script
 #
-# This script sets up and runs the Bruno development environment with hot-reloading.
+# This script sets up and runs the Kevin development environment with hot-reloading.
 # It manages concurrent processes for various packages and provides cleanup on exit.
 #
 # Usage:
@@ -71,7 +71,7 @@ function log(level, msg) {
 // Show help documentation
 function showHelp() {
   console.log(`
-  Development Environment Setup for Bruno
+  Development Environment Setup for Kevin
 
   Usage:
       From the root of the project, run:
@@ -223,7 +223,7 @@ function startDevelopment() {
     }
   }
 
-  log(LOG_LEVELS.INFO, 'Initializing Bruno development environment...');
+  log(LOG_LEVELS.INFO, 'Initializing Kevin development environment...');
 
   // Ensure required global packages and node version
   ensureNodeVersion(CONFIG.NODE_VERSION);

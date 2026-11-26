@@ -1378,7 +1378,7 @@ describe('exportApiSpec - secrets and other placeholders left unfilled', () => {
     expect(jsyaml.load(content).servers.find((server) => server.description === 'Base Server').variables).toEqual({ apiKey: { default: '{{apiKey}}' } });
   });
 
-  it('re-imports placeholders Bruno fills in itself without a variable that would hide them', () => {
+  it('re-imports placeholders Kevin fills in itself without a variable that would hide them', () => {
     const environments = [{ name: 'Prod', variables: [{ name: 'baseUrl', value: 'https://{{process.env.HOST}}/{{$secrets.vault.path}}', enabled: true }] }];
     const { content } = exportApiSpec({ variables: {}, items: [itemWithUrl('{{baseUrl}}/data')], name: 'Test API', environments });
 
@@ -1398,7 +1398,7 @@ describe('exportApiSpec - secrets and other placeholders left unfilled', () => {
       .forEach((env) => expect(env.variables.find((v) => v.name === 'tenantSecret')).toMatchObject({ value: '', secret: true }));
   });
 
-  it('re-imports into Bruno with secrets still pointing at the variables they came from', () => {
+  it('re-imports into Kevin with secrets still pointing at the variables they came from', () => {
     const environments = [{
       name: 'Prod',
       variables: [

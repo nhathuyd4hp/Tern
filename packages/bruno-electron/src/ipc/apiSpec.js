@@ -100,7 +100,7 @@ const toDeleteError = (error) => {
     return new Error('The file is in use by another program. Close it and try again.');
   }
   if (error.code === 'EPERM' || error.code === 'EACCES') {
-    return new Error('Bruno does not have permission to delete this file.');
+    return new Error('Kevin does not have permission to delete this file.');
   }
   return error;
 };

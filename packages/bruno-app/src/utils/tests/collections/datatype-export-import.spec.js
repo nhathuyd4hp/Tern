@@ -89,7 +89,7 @@ const assertTypedVars = (vars) => {
   expect(vars[3].dataType).toBeUndefined();
 };
 
-describe('Bruno JSON export/import — dataType preservation', () => {
+describe('Kevin JSON export/import — dataType preservation', () => {
   it('preserves dataType on collection / folder / request variables and env variables through a full round-trip', async () => {
     const collection = buildCollection();
     const exported = prepareCollectionForExport(transformCollectionToSaveToExportAsFile(collection));
@@ -118,7 +118,7 @@ describe('Bruno JSON export/import — dataType preservation', () => {
     expect(secretEnv).toMatchObject({ secret: true, value: '', dataType: 'number' });
   });
 
-  it('imports Bruno JSON with root descriptions when collection and folder root UIDs are absent', async () => {
+  it('imports Kevin JSON with root descriptions when collection and folder root UIDs are absent', async () => {
     const imported = await processBrunoCollection({
       name: 'descriptions-imported-bru',
       version: '1',

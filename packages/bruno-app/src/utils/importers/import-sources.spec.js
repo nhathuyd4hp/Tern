@@ -85,7 +85,7 @@ describe('import sources', () => {
       await expect(readImportFiles([file('broken.json', '{ nope')])).rejects.toThrow('ensure it is valid JSON or YAML');
     });
 
-    it('accepts a Bruno ZIP, whatever the case of its extension', async () => {
+    it('accepts a Kevin ZIP, whatever the case of its extension', async () => {
       callIpc.mockResolvedValue(true);
 
       await expect(readImportFiles([file('Orders.ZIP')])).resolves.toEqual({
@@ -95,10 +95,10 @@ describe('import sources', () => {
       expect(callIpc).toHaveBeenCalledWith('renderer:is-bruno-collection-zip', '/files/Orders.ZIP');
     });
 
-    it('refuses a ZIP that is not a Bruno collection', async () => {
+    it('refuses a ZIP that is not a Kevin collection', async () => {
       callIpc.mockResolvedValue(false);
 
-      await expect(readImportFiles([file('other.zip')])).rejects.toThrow('The ZIP file is not a valid Bruno collection');
+      await expect(readImportFiles([file('other.zip')])).rejects.toThrow('The ZIP file is not a valid Kevin collection');
     });
 
     it('refuses a ZIP mixed with other files', async () => {

@@ -204,7 +204,7 @@ describe('reopening API spec tabs when a workspace is opened', () => {
     expect(activeTabType(store)).toBe('workspaceOverview');
   });
 
-  it('opens a workspace that was saved before Bruno started remembering spec tabs', async () => {
+  it('opens a workspace that was saved before Kevin started remembering spec tabs', async () => {
     workspaceApiSpecPaths = [PETSTORE];
     snapshot = snapshotFromOlderVersion();
     const reportedFailure = jest.spyOn(console, 'error').mockImplementation(() => {});

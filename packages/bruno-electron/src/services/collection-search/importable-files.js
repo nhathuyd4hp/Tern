@@ -86,7 +86,7 @@ const readImportableFileText = async (filePath) => {
   const stats = await fs.lstat(filePath).catch(() => null);
   const format = stats?.isFile() && await detectFormat(filePath, name);
   if (!format || format === 'zip') {
-    throw new Error(`${name} isn’t a file Bruno can import`);
+    throw new Error(`${name} isn’t a file Kevin can import`);
   }
   const text = await fs.readFile(filePath, 'utf8');
   return text.replace(/^\uFEFF/, '');

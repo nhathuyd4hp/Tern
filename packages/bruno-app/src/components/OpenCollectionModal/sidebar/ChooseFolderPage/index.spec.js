@@ -82,7 +82,7 @@ describe('ChooseFolderPage', () => {
   it('shows the drop zone with the folder picker setting on by default', () => {
     renderPage();
 
-    expect(screen.getByTestId('choose-folder-drop-zone')).toHaveTextContent('Drop Bruno collection folders here');
+    expect(screen.getByTestId('choose-folder-drop-zone')).toHaveTextContent('Drop Kevin collection folders here');
     expect(autoOpenCheckbox()).toBeChecked();
   });
 
@@ -136,7 +136,7 @@ describe('ChooseFolderPage', () => {
 
   it('keeps the drop zone when nothing can be listed', () => {
     renderPage({
-      chooseFolder: { result: { id: 'search-2', type: 'message', note: { tone: 'info', text: 'notes isn’t a Bruno collection.' } } }
+      chooseFolder: { result: { id: 'search-2', type: 'message', note: { tone: 'info', text: 'notes isn’t a Kevin collection.' } } }
     });
 
     expect(screen.getByTestId('choose-folder-drop-zone')).toBeInTheDocument();

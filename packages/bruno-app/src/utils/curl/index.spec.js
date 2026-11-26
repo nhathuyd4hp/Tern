@@ -45,7 +45,7 @@ describe('GraphQL variables imported from a cURL command', () => {
     expect(request.body.graphql.variables).toBe('{\n  "id": 1\n}');
   });
 
-  it('keeps a Bruno placeholder inside string-encoded variables', () => {
+  it('keeps a Kevin placeholder inside string-encoded variables', () => {
     const curl = graphqlCurl({ query: QUERY, variables: '{"id": {{userId}}}' });
 
     const request = getRequestFromCurlCommand(curl, GRAPHQL_REQUEST);

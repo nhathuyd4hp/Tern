@@ -47,7 +47,7 @@ jest.mock('components/Modal', () => ({
 
 const buildCollection = (overrides = {}) => ({
   uid: 'collection-1',
-  name: 'Bruno-Testbench',
+  name: 'Kevin-Testbench',
   pathname: path.join(os.tmpdir(), 'bruno-testbench'),
   format: 'bru',
   items: [],
@@ -84,7 +84,7 @@ describe('NewApp', () => {
 
   it('shows the collection name in the description when opened at the collection root', () => {
     renderNewApp();
-    expect(screen.getByText(/collection "Bruno-Testbench"/i)).toBeInTheDocument();
+    expect(screen.getByText(/collection "Kevin-Testbench"/i)).toBeInTheDocument();
   });
 
   it('shows "this folder" wording when opened on a folder item', () => {

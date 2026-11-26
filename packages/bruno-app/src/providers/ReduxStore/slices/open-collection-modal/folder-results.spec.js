@@ -11,7 +11,7 @@ const searchResult = ({ folders, collections = [], brokenCollectionPaths = [], u
 });
 
 const HINT = 'A collection folder has a bruno.json or opencollection.yml at its top level.';
-const STOPPED_EARLY = 'Bruno stopped searching after too many folders, so some collections may be missing.';
+const STOPPED_EARLY = 'Kevin stopped searching after too many folders, so some collections may be missing.';
 const nothingOpen = new Set();
 
 const api = { path: '/work/api', name: 'API' };
@@ -21,10 +21,10 @@ const orders = { path: '/shop/orders', name: 'Orders' };
 describe('getFolderSearchOutcome with one folder', () => {
   it.each([
     ['not-found', 'api doesn’t exist anymore.'],
-    ['no-access', 'Bruno can’t read api. Check its permissions.'],
+    ['no-access', 'Kevin can’t read api. Check its permissions.'],
     ['not-a-folder', 'api isn’t a folder.'],
-    ['unreadable', 'Bruno couldn’t read api.'],
-    ['broken-collection', 'Bruno can’t open api because its config can’t be read. Check its bruno.json or opencollection.yml.']
+    ['unreadable', 'Kevin couldn’t read api.'],
+    ['broken-collection', 'Kevin can’t open api because its config can’t be read. Check its bruno.json or opencollection.yml.']
   ])('explains a %s folder', (status, text) => {
     const outcome = getFolderSearchOutcome(searchResult({ folders: [folder('/work/api', status)] }), nothingOpen);
 
@@ -85,7 +85,7 @@ describe('getFolderSearchOutcome with one folder', () => {
   it('explains a folder without collections', () => {
     const outcome = getFolderSearchOutcome(searchResult({ folders: [folder('/work/notes', 'folder')] }), nothingOpen);
 
-    expect(outcome).toEqual({ type: 'message', note: { tone: 'info', text: `notes isn’t a Bruno collection. ${HINT}` } });
+    expect(outcome).toEqual({ type: 'message', note: { tone: 'info', text: `notes isn’t a Kevin collection. ${HINT}` } });
   });
 
   it.each([
@@ -123,7 +123,7 @@ describe('getFolderSearchOutcome with one folder', () => {
 
     expect(outcome.note).toEqual({
       tone: 'warning',
-      text: 'exports isn’t a collection, but it has an importable file in it (a.zip). That needs importing, not opening. Bruno couldn’t read 1 folder inside it.',
+      text: 'exports isn’t a collection, but it has an importable file in it (a.zip). That needs importing, not opening. Kevin couldn’t read 1 folder inside it.',
       importFile: { name: 'a.zip', format: 'zip' }
     });
   });
@@ -136,7 +136,7 @@ describe('getFolderSearchOutcome with one folder', () => {
 
     expect(outcome.note).toEqual({
       tone: 'warning',
-      text: `work isn’t a Bruno collection. ${HINT} Bruno couldn’t read 3 folders inside it.`
+      text: `work isn’t a Kevin collection. ${HINT} Kevin couldn’t read 3 folders inside it.`
     });
   });
 
@@ -148,7 +148,7 @@ describe('getFolderSearchOutcome with one folder', () => {
 
     expect(outcome).toEqual({
       type: 'message',
-      note: { tone: 'warning', text: 'work has no collections Bruno can open. 2 collections were skipped because their config can’t be read.' }
+      note: { tone: 'warning', text: 'work has no collections Kevin can open. 2 collections were skipped because their config can’t be read.' }
     });
   });
 
@@ -174,7 +174,7 @@ describe('getFolderSearchOutcome with one folder', () => {
     expect(outcome.collections).toEqual([api]);
     expect(outcome.note).toEqual({
       tone: 'warning',
-      text: 'work isn’t a collection itself, but it has 1 collection inside. Pick the ones to open. Bruno couldn’t read 1 folder inside it.'
+      text: 'work isn’t a collection itself, but it has 1 collection inside. Pick the ones to open. Kevin couldn’t read 1 folder inside it.'
     });
   });
 
@@ -185,7 +185,7 @@ describe('getFolderSearchOutcome with one folder', () => {
       nothingOpen
     );
 
-    expect(empty.note).toEqual({ tone: 'warning', text: `/ isn’t a Bruno collection. ${HINT} ${STOPPED_EARLY}` });
+    expect(empty.note).toEqual({ tone: 'warning', text: `/ isn’t a Kevin collection. ${HINT} ${STOPPED_EARLY}` });
     expect(listed.note.tone).toBe('warning');
     expect(listed.note.text).toContain(STOPPED_EARLY);
   });
@@ -207,7 +207,7 @@ describe('getFolderSearchOutcome with files dropped along with folders', () => {
   it('adds them to the note of a message', () => {
     const outcome = getFolderSearchOutcome(searchResult({ folders: [folder('/work/notes', 'folder')] }), nothingOpen, 1);
 
-    expect(outcome.note.text).toBe(`notes isn’t a Bruno collection. ${HINT} 1 dropped file wasn’t opened. Use Import file or URL to import it.`);
+    expect(outcome.note.text).toBe(`notes isn’t a Kevin collection. ${HINT} 1 dropped file wasn’t opened. Use Import file or URL to import it.`);
   });
 
   it('adds them to the skipped text when the collection opens straight away', () => {
@@ -251,7 +251,7 @@ describe('getFolderSearchOutcome with several folders', () => {
     expect(outcome).toEqual({
       type: 'open',
       paths: [api.path],
-      skippedText: 'docs, notes aren’t collections, so they were skipped. Bruno couldn’t read secrets.'
+      skippedText: 'docs, notes aren’t collections, so they were skipped. Kevin couldn’t read secrets.'
     });
   });
 
@@ -381,7 +381,7 @@ describe('getFolderSearchOutcome with several folders', () => {
       nothingOpen
     );
 
-    expect(outcome).toEqual({ type: 'message', note: { tone: 'info', text: `None of those folders is a Bruno collection. ${HINT}` } });
+    expect(outcome).toEqual({ type: 'message', note: { tone: 'info', text: `None of those folders is a Kevin collection. ${HINT}` } });
   });
 
   it('warns when the only collections among the folders cannot be opened', () => {
@@ -392,7 +392,7 @@ describe('getFolderSearchOutcome with several folders', () => {
 
     expect(outcome).toEqual({
       type: 'message',
-      note: { tone: 'warning', text: 'None of those folders has a collection Bruno can open. 1 collection was skipped because its config can’t be read.' }
+      note: { tone: 'warning', text: 'None of those folders has a collection Kevin can open. 1 collection was skipped because its config can’t be read.' }
     });
   });
 
@@ -404,7 +404,7 @@ describe('getFolderSearchOutcome with several folders', () => {
 
     expect(outcome.note).toEqual({
       tone: 'warning',
-      text: `None of those folders is a Bruno collection. ${HINT} Bruno couldn’t read secrets. Bruno couldn’t read 2 folders inside them.`
+      text: `None of those folders is a Kevin collection. ${HINT} Kevin couldn’t read secrets. Kevin couldn’t read 2 folders inside them.`
     });
   });
 
@@ -416,7 +416,7 @@ describe('getFolderSearchOutcome with several folders', () => {
 
     expect(outcome).toEqual({
       type: 'message',
-      note: { tone: 'warning', text: 'gone doesn’t exist anymore. Bruno can’t read secrets. Check its permissions.' }
+      note: { tone: 'warning', text: 'gone doesn’t exist anymore. Kevin can’t read secrets. Check its permissions.' }
     });
   });
 
@@ -432,7 +432,7 @@ describe('getFolderSearchOutcome with several folders', () => {
 
     expect(outcome.note).toEqual({
       tone: 'warning',
-      text: 'Found 2 collections in the folders you picked. Pick the ones to open. Bruno couldn’t read 2 folders inside them.'
+      text: 'Found 2 collections in the folders you picked. Pick the ones to open. Kevin couldn’t read 2 folders inside them.'
     });
   });
 
@@ -442,7 +442,7 @@ describe('getFolderSearchOutcome with several folders', () => {
       nothingOpen
     );
 
-    expect(outcome.skippedText).toBe('docs isn’t a collection, so it was skipped. Bruno couldn’t read 1 folder inside them.');
+    expect(outcome.skippedText).toBe('docs isn’t a collection, so it was skipped. Kevin couldn’t read 1 folder inside them.');
   });
 
   it('adds the stopped-early warning to the skipped text when it opens the picked collections', () => {
