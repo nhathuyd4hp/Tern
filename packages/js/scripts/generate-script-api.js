@@ -782,7 +782,8 @@ const assertDeclarationsCompile = (declarations) => {
       noEmit: true,
       lib: ['es2022'],
       types: [],
-      typeRoots: [path.join(ROOT, 'node_modules', '@types')]
+      // npm may leave @types packages nested under the package instead of hoisting them to the root.
+      typeRoots: [path.join(JS_PKG, 'node_modules', '@types'), path.join(ROOT, 'node_modules', '@types')]
     }, dir);
     assertNoDiagnostics(errors, 'compiler options');
     const program = ts.createProgram([file], options);
