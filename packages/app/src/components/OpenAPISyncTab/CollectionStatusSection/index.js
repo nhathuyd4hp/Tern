@@ -14,7 +14,6 @@ import Button from 'ui/Button';
 import StatusBadge from 'ui/StatusBadge';
 import Modal from 'components/Modal';
 import EndpointChangeSection from '../EndpointChangeSection';
-import SyncEmptyStatus from '../SyncEmptyStatus';
 import ExpandableEndpointRow from '../EndpointChangeSection/ExpandableEndpointRow';
 import useEndpointActions from '../hooks/useEndpointActions';
 
@@ -52,12 +51,13 @@ const CollectionStatusSection = ({
       key={endpoint.id}
       endpoint={endpoint}
       collectionPath={collection.pathname}
+      folder={collection.syncFolder}
       newSpec={spec}
       showDecisions={false}
       diffLeftLabel="Last Synced Spec"
       diffRightLabel="Current (in application)"
       swapDiffSides
-      collectionUid={collection.uid}
+      collectionUid={collection.syncKey || collection.uid}
       actions={actions}
     />
   );
@@ -123,7 +123,7 @@ const CollectionStatusSection = ({
             type="modified"
             endpoints={collectionDrift.modified || []}
             expandableLayout
-            collectionUid={collection.uid}
+            collectionUid={collection.syncKey || collection.uid}
             sectionKey="drift-modified"
             renderItem={(endpoint, idx) =>
               renderDriftRow(endpoint, idx, (
@@ -155,7 +155,7 @@ const CollectionStatusSection = ({
             type="missing"
             endpoints={collectionDrift.missing || []}
             expandableLayout
-            collectionUid={collection.uid}
+            collectionUid={collection.syncKey || collection.uid}
             sectionKey="drift-missing"
             renderItem={(endpoint, idx) =>
               renderDriftRow(endpoint, idx, (
@@ -182,7 +182,7 @@ const CollectionStatusSection = ({
             type="local-only"
             endpoints={collectionDrift.localOnly || []}
             expandableLayout
-            collectionUid={collection.uid}
+            collectionUid={collection.syncKey || collection.uid}
             sectionKey="drift-local-only"
             renderItem={(endpoint, idx) =>
               renderDriftRow(endpoint, idx, (
@@ -225,12 +225,7 @@ const CollectionStatusSection = ({
           </p>
           <Button variant="outline" size="sm" className="mt-4" onClick={() => onTabSelect('spec-updates')}>Go to Spec Updates</Button>
         </div>
-      ) : (
-        <SyncEmptyStatus
-          title="No changes in application"
-          description="Application endpoints match the last synced spec."
-        />
-      )}
+      ) : null}
       {/* Action confirmation modal */}
       {pendingAction && (
         <Modal size="sm" title={pendingAction.title} hideFooter={true} handleCancel={() => setPendingAction(null)}>

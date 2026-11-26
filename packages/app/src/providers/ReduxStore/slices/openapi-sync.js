@@ -1,5 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { getWorkspaceCollections } from 'utils/collections';
+import { getSyncEntry, listSyncEntries, syncKeyOf } from 'utils/openapi-sync-scope';
 
 const initialState = {
   // Map of collectionUid -> { hasUpdates, lastChecked, error }
@@ -160,15 +161,17 @@ export const {
   clearOpenApiSyncTabState
 } = openapiSyncSlice.actions;
 
-// Lightweight thunk for polling — only checks hash, no deep comparison
-export const checkCollectionForUpdates = (collection) => async (dispatch) => {
-  if (!collection?.brunoConfig?.openapi?.[0]?.sourceUrl) {
+// Lightweight thunk for polling — only checks hash, no deep comparison. `folder` picks the sync entry
+// of one collection of the application; without it the application-wide entry is checked.
+export const checkCollectionForUpdates = (collection, folder = '') => async (dispatch) => {
+  const syncConfig = getSyncEntry(collection, folder);
+  if (!syncConfig?.sourceUrl) {
     return null;
   }
 
+  const collectionUid = syncKeyOf(collection.uid, folder);
   try {
     const { ipcRenderer } = window;
-    const syncConfig = collection.brunoConfig.openapi[0];
     const result = await ipcRenderer.invoke('renderer:check-openapi-updates', {
       collectionUid: collection.uid,
       collectionPath: collection.pathname,
@@ -183,7 +186,7 @@ export const checkCollectionForUpdates = (collection) => async (dispatch) => {
     });
 
     dispatch(setCollectionUpdate({
-      collectionUid: collection.uid,
+      collectionUid,
       hasUpdates: result.hasUpdates || false,
       error: result.error || null
     }));
@@ -192,7 +195,7 @@ export const checkCollectionForUpdates = (collection) => async (dispatch) => {
   } catch (error) {
     console.error('[OpenAPI Sync] Error checking for updates:', error);
     dispatch(setCollectionUpdate({
-      collectionUid: collection.uid,
+      collectionUid,
       hasUpdates: false,
       error: error.message
     }));
@@ -200,7 +203,7 @@ export const checkCollectionForUpdates = (collection) => async (dispatch) => {
   }
 };
 
-// Thunk to check active workspace collections for updates (respects per-collection autoCheck and autoCheckInterval)
+// Thunk to check active workspace collections for updates (respects per-entry autoCheck and autoCheckInterval)
 export const checkActiveWorkspaceCollectionsForUpdates = () => async (dispatch, getState) => {
   const state = getState();
   const collections = state.collections?.collections || [];
@@ -208,22 +211,17 @@ export const checkActiveWorkspaceCollectionsForUpdates = () => async (dispatch, 
   const activeWorkspace = workspaces.find((w) => w.uid === activeWorkspaceUid);
   const now = Date.now();
 
-  // Filter to active workspace collections that have OpenAPI sync configured and auto-check enabled
-  const syncableCollections = getWorkspaceCollections({ collections, workspaces, activeWorkspace }).filter((c) => {
-    const syncConfig = c.brunoConfig?.openapi?.[0];
-    if (!syncConfig?.sourceUrl) return false;
-    if (syncConfig.autoCheck === false) return false;
-    return true;
-  });
+  for (const collection of getWorkspaceCollections({ collections, workspaces, activeWorkspace })) {
+    for (const { folder, entry } of listSyncEntries(collection)) {
+      if (entry.autoCheck === false) continue;
 
-  for (const collection of syncableCollections) {
-    const syncConfig = collection.brunoConfig.openapi[0];
-    const intervalMs = (syncConfig.autoCheckInterval || 5) * 60 * 1000;
-    const lastChecked = state.openapiSync?.collectionUpdates?.[collection.uid]?.lastChecked || 0;
+      const intervalMs = (entry.autoCheckInterval || 5) * 60 * 1000;
+      const lastChecked = state.openapiSync?.collectionUpdates?.[syncKeyOf(collection.uid, folder)]?.lastChecked || 0;
 
-    // Only check if enough time has elapsed since last check for this collection
-    if (now - lastChecked >= intervalMs) {
-      await dispatch(checkCollectionForUpdates(collection));
+      // Only check if enough time has elapsed since last check for this entry
+      if (now - lastChecked >= intervalMs) {
+        await dispatch(checkCollectionForUpdates(collection, folder));
+      }
     }
   }
 

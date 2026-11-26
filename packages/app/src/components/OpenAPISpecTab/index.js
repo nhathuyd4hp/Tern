@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import find from 'lodash/find';
 import { IconLoader2, IconCloud } from '@tabler/icons';
@@ -6,6 +6,7 @@ import fastJsonFormat from 'fast-json-format';
 import SpecViewer from 'components/ApiSpecPanel/SpecViewer';
 import StyledWrapper from 'components/ApiSpecPanel/StyledWrapper';
 import { updateApiSpecTabLeftPaneWidth } from 'providers/ReduxStore/slices/tabs';
+import { getSyncScopedCollection } from 'utils/openapi-sync-scope';
 
 /**
  * Pretty-print JSON content for readable display. YAML content is returned as-is.
@@ -20,7 +21,8 @@ const prettyPrintSpec = (content) => {
   }
 };
 
-const OpenAPISpecTab = ({ collection, tabUid }) => {
+const OpenAPISpecTab = ({ collection: application, folder, tabUid }) => {
+  const collection = useMemo(() => getSyncScopedCollection(application, folder), [application, folder]);
   const dispatch = useDispatch();
   const leftPaneWidth = useSelector((state) => {
     const tab = find(state.tabs.tabs, (t) => t.uid === tabUid);
@@ -56,14 +58,14 @@ const OpenAPISpecTab = ({ collection, tabUid }) => {
     try {
       const { ipcRenderer } = window;
       const result = await ipcRenderer.invoke('renderer:read-openapi-spec', {
-        collectionPath: collection.pathname
+        collectionPath: collection.pathname, folder: collection.syncFolder
       });
       if (result.error) {
         // Local file not found — fall back to fetching from remote URL
         if (sourceUrl) {
           const fetchResult = await ipcRenderer.invoke('renderer:fetch-openapi-spec', {
             collectionUid: collection.uid,
-            collectionPath: collection.pathname,
+            collectionPath: collection.pathname, folder: collection.syncFolder,
             sourceUrl,
             environmentContext: envContextRef.current
           });

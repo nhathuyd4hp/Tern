@@ -28,13 +28,13 @@ const useOpenAPISync = (collection) => {
   const [fileNotFound, setFileNotFound] = useState(false);
   const [isDriftLoading, setIsDriftLoading] = useState(false);
 
-  const drift = useSelector((state) => state.openapiSync?.drift?.[collection.uid] || null);
+  const drift = useSelector((state) => state.openapiSync?.drift?.[collection.syncKey || collection.uid] || null);
   const specDrift = drift?.specDrift || null;
   const collectionDrift = drift?.collectionDrift || null;
   const remoteDrift = drift?.remoteDrift || null;
-  const storedSpec = useSelector((state) => state.openapiSync?.storedSpec?.[collection.uid] || null);
+  const storedSpec = useSelector((state) => state.openapiSync?.storedSpec?.[collection.syncKey || collection.uid] || null);
 
-  const updateDrift = (patch) => dispatch(setDrift({ collectionUid: collection.uid, patch }));
+  const updateDrift = (patch) => dispatch(setDrift({ collectionUid: collection.syncKey || collection.uid, patch }));
 
   // useStore: tabs are read only inside handlers — useSelector would re-render on every tab change.
   const store = useStore();
@@ -42,9 +42,9 @@ const useOpenAPISync = (collection) => {
   const isConfigured = !!openApiSyncConfig?.sourceUrl;
 
   const updateStoredSpec = (spec) => {
-    dispatch(setStoredSpec({ collectionUid: collection.uid, spec }));
+    dispatch(setStoredSpec({ collectionUid: collection.syncKey || collection.uid, spec }));
     dispatch(setStoredSpecMeta({
-      collectionUid: collection.uid,
+      collectionUid: collection.syncKey || collection.uid,
       title: spec?.info?.title || null,
       version: spec?.info?.version || null,
       endpointCount: spec ? countEndpoints(spec) : null
@@ -109,7 +109,7 @@ const useOpenAPISync = (collection) => {
     try {
       const { ipcRenderer } = window;
       const result = await ipcRenderer.invoke('renderer:get-collection-drift', {
-        collectionPath: collection.pathname
+        collectionPath: collection.pathname, folder: collection.syncFolder
       });
 
       if (!result.error) {
@@ -139,7 +139,7 @@ const useOpenAPISync = (collection) => {
       const { ipcRenderer } = window;
       const result = await ipcRenderer.invoke('renderer:compare-openapi-specs', {
         collectionUid: collection.uid,
-        collectionPath: collection.pathname,
+        collectionPath: collection.pathname, folder: collection.syncFolder,
         sourceUrl: effectiveUrl,
         environmentContext: {
           activeEnvironmentUid: collection.activeEnvironmentUid,
@@ -160,7 +160,7 @@ const useOpenAPISync = (collection) => {
 
       // Update Redux store so toolbar status stays in sync
       dispatch(setCollectionUpdate({
-        collectionUid: collection.uid,
+        collectionUid: collection.syncKey || collection.uid,
         hasUpdates: result.isValid !== false && result.hasChanges,
         error: result.isValid === false ? result.error : null
       }));
@@ -168,7 +168,7 @@ const useOpenAPISync = (collection) => {
       // Fetch remote drift (remote spec vs collection) for collection-centric categorization
       if (result.newSpec) {
         const remoteComparison = await ipcRenderer.invoke('renderer:get-collection-drift', {
-          collectionPath: collection.pathname,
+          collectionPath: collection.pathname, folder: collection.syncFolder,
           compareSpec: result.newSpec
         });
         if (remoteComparison.error) {
@@ -187,7 +187,7 @@ const useOpenAPISync = (collection) => {
       console.error('Error checking for updates:', err);
       setError(formatIpcError(err) || 'Failed to check for updates');
       dispatch(setCollectionUpdate({
-        collectionUid: collection.uid,
+        collectionUid: collection.syncKey || collection.uid,
         hasUpdates: false,
         error: formatIpcError(err) || 'Failed to check for updates'
       }));
@@ -243,7 +243,7 @@ const useOpenAPISync = (collection) => {
       // Validate the spec first
       const result = await ipcRenderer.invoke('renderer:compare-openapi-specs', {
         collectionUid: collection.uid,
-        collectionPath: collection.pathname,
+        collectionPath: collection.pathname, folder: collection.syncFolder,
         sourceUrl: trimmedUrl,
         environmentContext: {
           activeEnvironmentUid: collection.activeEnvironmentUid,
@@ -261,7 +261,7 @@ const useOpenAPISync = (collection) => {
 
       // Save sync config (no spec file yet — deferred to first sync unless collection already matches)
       await ipcRenderer.invoke('renderer:update-openapi-sync-config', {
-        collectionPath: collection.pathname,
+        collectionPath: collection.pathname, folder: collection.syncFolder,
         config: {
           sourceUrl: trimmedUrl,
           groupBy: 'tags',
@@ -273,7 +273,7 @@ const useOpenAPISync = (collection) => {
       // Check if collection already matches the spec
       if (result.newSpec) {
         const initialDrift = await ipcRenderer.invoke('renderer:get-collection-drift', {
-          collectionPath: collection.pathname,
+          collectionPath: collection.pathname, folder: collection.syncFolder,
           compareSpec: result.newSpec
         });
 
@@ -285,7 +285,7 @@ const useOpenAPISync = (collection) => {
         if (isInSync) {
           // Collection matches — save spec file silently to complete setup
           await ipcRenderer.invoke('renderer:save-openapi-spec', {
-            collectionPath: collection.pathname,
+            collectionPath: collection.pathname, folder: collection.syncFolder,
             specContent: result.newSpecContent || JSON.stringify(result.newSpec, null, 2)
           });
         }
@@ -304,17 +304,17 @@ const useOpenAPISync = (collection) => {
     try {
       const { ipcRenderer } = window;
       await ipcRenderer.invoke('renderer:remove-openapi-sync-config', {
-        collectionPath: collection.pathname,
+        collectionPath: collection.pathname, folder: collection.syncFolder,
         deleteSpecFile: true
       });
       setSourceUrl('');
 
       // Clear Redux state for this collection
-      dispatch(clearCollectionState({ collectionUid: collection.uid }));
+      dispatch(clearCollectionState({ collectionUid: collection.syncKey || collection.uid }));
 
       // Close the openapi-spec tab if open (spec file no longer exists)
       const tabs = store.getState().tabs?.tabs || [];
-      const specTab = tabs.find((t) => t.collectionUid === collection.uid && t.type === 'openapi-spec');
+      const specTab = tabs.find((t) => t.collectionUid === collection.uid && t.type === 'openapi-spec' && (t.syncFolder || null) === (collection.syncFolder || null));
       if (specTab) {
         dispatch(closeTabs({ tabUids: [specTab.uid] }));
       }
@@ -339,7 +339,7 @@ const useOpenAPISync = (collection) => {
       try {
         const { ipcRenderer } = window;
         const remoteComparison = await ipcRenderer.invoke('renderer:get-collection-drift', {
-          collectionPath: collection.pathname,
+          collectionPath: collection.pathname, folder: collection.syncFolder,
           compareSpec: currentSpecDrift.newSpec
         });
         if (!remoteComparison.error) {
@@ -375,7 +375,7 @@ const useOpenAPISync = (collection) => {
       const { ipcRenderer } = window;
 
       await ipcRenderer.invoke('renderer:update-openapi-sync-config', {
-        collectionPath: collection.pathname,
+        collectionPath: collection.pathname, folder: collection.syncFolder,
         config: {
           sourceUrl: newUrl,
           autoCheck,

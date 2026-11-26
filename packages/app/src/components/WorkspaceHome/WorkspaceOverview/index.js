@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { IconPlus, IconFolder, IconDownload } from '@tabler/icons';
+import { IconPlus, IconFolder, IconDownload, IconLayoutGrid, IconList } from '@tabler/icons';
 import { importCollection, importCollectionFromZip } from 'providers/ReduxStore/slices/collections/actions';
 import { setIsCreatingCollection, setIsOpeningCollection, toggleSidebarCollapse } from 'providers/ReduxStore/slices/app';
 import { setLocalStorageValue, SIDEBAR_COLLAPSED_KEY } from 'utils/common/localStorage';
@@ -15,8 +15,28 @@ import Button from 'ui/Button';
 import CollectionsList from './CollectionsList';
 import StyledWrapper from './StyledWrapper';
 
+const VIEW_MODE_KEY = 'kevin.home.viewMode';
+
+const readViewMode = () => {
+  try {
+    return localStorage.getItem(VIEW_MODE_KEY) === 'table' ? 'table' : 'card';
+  } catch {
+    return 'card';
+  }
+};
+
 const WorkspaceOverview = ({ workspace }) => {
   const dispatch = useDispatch();
+  const [viewMode, setViewMode] = useState(readViewMode);
+
+  const changeViewMode = (mode) => {
+    setViewMode(mode);
+    try {
+      localStorage.setItem(VIEW_MODE_KEY, mode);
+    } catch {
+      // the choice just is not remembered
+    }
+  };
   const { globalEnvironments } = useSelector((state) => state.globalEnvironments);
   const { sidebarCollapsed, isCreatingCollection } = useSelector((state) => state.app);
 
@@ -139,28 +159,43 @@ const WorkspaceOverview = ({ workspace }) => {
 
       <div className="overview-layout">
         <div className="overview-main">
-          <div className="stats-row">
-            <div className="stat-item">
-              <span className="stat-value">{workspaceCollectionsCount}</span>
-              <span className="stat-label">Applications</span>
+          <div className="home-header">
+            <div className="home-heading">
+              <h2 className="home-title">Applications</h2>
+              <div className="home-summary">
+                {workspaceCollectionsCount} {workspaceCollectionsCount === 1 ? 'application' : 'applications'}
+                {' · '}
+                {workspaceEnvironmentsCount} {workspaceEnvironmentsCount === 1 ? 'global environment' : 'global environments'}
+              </div>
             </div>
-            <div className="stat-item">
-              <span className="stat-value">{workspaceEnvironmentsCount}</span>
-              <span className="stat-label">Environments</span>
-            </div>
-          </div>
-
-          <div className="quick-actions-section">
-            <div className="section-title">Quick Actions</div>
-            <div className="quick-actions-buttons">
+            <div className="home-actions">
+              <div className="view-toggle" role="group" aria-label="View mode">
+                <button
+                  type="button"
+                  className={viewMode === 'card' ? 'active' : ''}
+                  onClick={() => changeViewMode('card')}
+                  title="Card view"
+                  data-testid="home-view-card"
+                >
+                  <IconLayoutGrid size={16} strokeWidth={1.5} />
+                </button>
+                <button
+                  type="button"
+                  className={viewMode === 'table' ? 'active' : ''}
+                  onClick={() => changeViewMode('table')}
+                  title="Table view"
+                  data-testid="home-view-table"
+                >
+                  <IconList size={16} strokeWidth={1.5} />
+                </button>
+              </div>
               <Button
-                color="light"
                 size="sm"
                 icon={<IconPlus size={14} strokeWidth={1.5} />}
                 onClick={handleCreateCollection}
                 disabled={isCreatingCollection}
               >
-                Create Application
+                New Application
               </Button>
               <Button
                 color="light"
@@ -168,7 +203,7 @@ const WorkspaceOverview = ({ workspace }) => {
                 icon={<IconFolder size={14} strokeWidth={1.5} />}
                 onClick={handleOpenCollection}
               >
-                Open Application
+                Open
               </Button>
               <Button
                 color="light"
@@ -176,14 +211,13 @@ const WorkspaceOverview = ({ workspace }) => {
                 icon={<IconDownload size={14} strokeWidth={1.5} />}
                 onClick={handleImportCollection}
               >
-                Import Application
+                Import
               </Button>
             </div>
           </div>
 
           <div className="collections-section">
-            <div className="section-title">Applications</div>
-            <CollectionsList workspace={workspace} />
+            <CollectionsList workspace={workspace} viewMode={viewMode} />
           </div>
         </div>
 

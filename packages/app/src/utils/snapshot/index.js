@@ -90,7 +90,9 @@ const sanitizeSnapshotTabs = (tabsSnapshot) => {
 };
 
 export const shouldExcludeTab = (tab, transientDirectory) => {
+  // tabs of a folder-scoped OpenAPI sync are not restored: a snapshot cannot tell them from the application-wide one
   return IGNORED_TAB_TYPES.has(tab?.type)
+    || Boolean(tab?.syncFolder)
     || (transientDirectory && tab.pathname?.startsWith(transientDirectory));
 };
 

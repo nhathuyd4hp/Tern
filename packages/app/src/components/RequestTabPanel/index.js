@@ -452,11 +452,11 @@ const RequestTabPanel = () => {
   }
 
   if (focusedTab.type === 'openapi-sync') {
-    return <OpenAPISyncTab collection={collection} />;
+    return <OpenAPISyncTab collection={collection} folder={focusedTab.syncFolder} />;
   }
 
   if (focusedTab.type === 'openapi-spec') {
-    return <OpenAPISpecTab collection={collection} tabUid={focusedTab.uid} />;
+    return <OpenAPISpecTab collection={collection} folder={focusedTab.syncFolder} tabUid={focusedTab.uid} />;
   }
 
   if (!item || !item.uid) {

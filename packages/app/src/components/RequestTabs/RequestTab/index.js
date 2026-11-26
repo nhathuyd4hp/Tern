@@ -525,7 +525,7 @@ const RequestTab = ({ tab, collection, tabIndex, collectionRequestTabs, folderUi
         ) : tab.type === 'workspaceEnvironments' ? (
           <SpecialTab handleCloseClick={null} type={tab.type} hasDraft={hasGlobalEnvironmentDraft} />
         ) : (
-          <SpecialTab handleCloseClick={handleCloseClick} handleDoubleClick={() => dispatch(makeTabPermanent({ uid: tab.uid }))} type={tab.type} />
+          <SpecialTab handleCloseClick={handleCloseClick} handleDoubleClick={() => dispatch(makeTabPermanent({ uid: tab.uid }))} type={tab.type} tabName={tab.syncFolder ? tab.tabName : undefined} />
         )}
       </StyledWrapper>
     );

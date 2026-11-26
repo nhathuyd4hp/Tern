@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import classnames from 'classnames';
 import { useDispatch } from 'react-redux';
 import { v4 as uuid } from 'uuid';
@@ -12,8 +12,10 @@ import ConnectionSettingsModal from './ConnectionSettingsModal';
 import DisconnectSyncModal from './DisconnectSyncModal';
 import OverviewSection from './OverviewSection';
 import useOpenAPISync from './hooks/useOpenAPISync';
+import { getSyncScopedCollection } from 'utils/openapi-sync-scope';
 
-const OpenAPISyncTab = ({ collection }) => {
+const OpenAPISyncTab = ({ collection: application, folder }) => {
+  const collection = useMemo(() => getSyncScopedCollection(application, folder), [application, folder]);
   const {
     sourceUrl, setSourceUrl,
     isLoading,
@@ -40,7 +42,9 @@ const OpenAPISyncTab = ({ collection }) => {
     dispatch(addTab({
       uid: uuid(),
       collectionUid: collection.uid,
-      type: 'openapi-spec'
+      type: 'openapi-spec',
+      syncFolder: collection.syncFolder,
+      tabName: collection.syncFolderName
     }));
   };
 
@@ -58,6 +62,12 @@ const OpenAPISyncTab = ({ collection }) => {
   const specUpdatesCount = hasDriftData
     ? (specDrift?.added?.length || 0) + (specDrift?.modified?.length || 0) + (specDrift?.removed?.length || 0)
     : (remoteDrift?.modified?.length || 0) + (remoteDrift?.missing?.length || 0);
+
+  // The summary cards above already say "0"; the detail lists only appear when there is something to act on
+  // (or something to explain: loading, errors, a missing stored spec).
+  const showCollectionSection = !hasDriftData || collectionChangesCount > 0;
+  const showSpecSection = !hasDriftData || specUpdatesCount > 0 || isLoading || !!error || fileNotFound
+    || specDrift?.isValid === false || !!specDrift?.storedSpecMissing;
 
   const syncStatus = (() => {
     if (isLoading) return 'loading';
@@ -111,36 +121,40 @@ const OpenAPISyncTab = ({ collection }) => {
               />
             </div>
 
-            <div id="sync-collection-changes" className="sync-tab-content">
-              <CollectionStatusSection
-                collection={collection}
-                collectionDrift={collectionDrift}
-                reloadDrift={reloadDrift}
-                specDrift={specDrift}
-                storedSpec={storedSpec}
-                lastSyncDate={openApiSyncConfig?.lastSyncDate}
-                onOpenEndpoint={openEndpointInTab}
-                isLoading={isDriftLoading || isLoading}
-                onTabSelect={scrollToSection}
-              />
-            </div>
+            {showCollectionSection && (
+              <div id="sync-collection-changes" className="sync-tab-content">
+                <CollectionStatusSection
+                  collection={collection}
+                  collectionDrift={collectionDrift}
+                  reloadDrift={reloadDrift}
+                  specDrift={specDrift}
+                  storedSpec={storedSpec}
+                  lastSyncDate={openApiSyncConfig?.lastSyncDate}
+                  onOpenEndpoint={openEndpointInTab}
+                  isLoading={isDriftLoading || isLoading}
+                  onTabSelect={scrollToSection}
+                />
+              </div>
+            )}
 
-            <div id="sync-spec-updates" className="sync-tab-content">
-              <SpecStatusSection
-                collection={collection}
-                sourceUrl={sourceUrl}
-                isLoading={isLoading}
-                error={error}
-                setError={setError}
-                fileNotFound={fileNotFound}
-                specDrift={specDrift}
-                storedSpec={storedSpec}
-                collectionDrift={collectionDrift}
-                remoteDrift={remoteDrift}
-                onCheck={checkForUpdates}
-                onOpenSettings={() => setShowSettingsModal(true)}
-              />
-            </div>
+            {showSpecSection && (
+              <div id="sync-spec-updates" className="sync-tab-content">
+                <SpecStatusSection
+                  collection={collection}
+                  sourceUrl={sourceUrl}
+                  isLoading={isLoading}
+                  error={error}
+                  setError={setError}
+                  fileNotFound={fileNotFound}
+                  specDrift={specDrift}
+                  storedSpec={storedSpec}
+                  collectionDrift={collectionDrift}
+                  remoteDrift={remoteDrift}
+                  onCheck={checkForUpdates}
+                  onOpenSettings={() => setShowSettingsModal(true)}
+                />
+              </div>
+            )}
           </>
         )}
 

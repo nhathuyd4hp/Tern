@@ -49,8 +49,8 @@ const SUMMARY_CARDS = [
 const OverviewSection = ({ collection, storedSpec, collectionDrift, specDrift, remoteDrift, onTabSelect, error, onOpenSettings }) => {
   const openApiSyncConfig = collection?.brunoConfig?.openapi?.[0];
 
-  const reduxError = useSelector((state) => state.openapiSync?.collectionUpdates?.[collection.uid]?.error);
-  const specMeta = useSelector((state) => state.openapiSync?.storedSpecMeta?.[collection.uid] || null);
+  const reduxError = useSelector((state) => state.openapiSync?.collectionUpdates?.[collection.syncKey || collection.uid]?.error);
+  const specMeta = useSelector((state) => state.openapiSync?.storedSpecMeta?.[collection.syncKey || collection.uid] || null);
   const activeError = error || reduxError;
 
   const version = specMeta?.version;

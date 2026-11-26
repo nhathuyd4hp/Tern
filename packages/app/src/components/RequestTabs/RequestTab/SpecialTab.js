@@ -82,7 +82,7 @@ const SpecialTab = ({ handleCloseClick, type, tabName, handleDoubleClick, hasDra
         return (
           <>
             <OpenAPISyncIcon size={14} className="special-tab-icon flex-shrink-0" />
-            <span className="ml-1 tab-name mr-1">OpenAPI</span>
+            <span className="ml-1 tab-name mr-1">{tabName || 'OpenAPI'}</span>
           </>
         );
       }
@@ -90,7 +90,7 @@ const SpecialTab = ({ handleCloseClick, type, tabName, handleDoubleClick, hasDra
         return (
           <>
             <IconFileCode size={14} strokeWidth={1.5} className="special-tab-icon flex-shrink-0" />
-            <span className="ml-1 tab-name">API Spec</span>
+            <span className="ml-1 tab-name">{tabName ? `${tabName} spec` : 'API Spec'}</span>
           </>
         );
       }

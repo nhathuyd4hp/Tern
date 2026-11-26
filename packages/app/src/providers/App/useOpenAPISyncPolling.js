@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { checkActiveWorkspaceCollectionsForUpdates } from 'providers/ReduxStore/slices/openapi-sync';
 import { getWorkspaceCollections } from 'utils/collections';
+import { listSyncEntries } from 'utils/openapi-sync-scope';
 
 // Tick rate only; each collection is checked at its own autoCheckInterval inside the thunk.
 // Must not exceed the shortest selectable interval (1 minute).
@@ -24,10 +25,7 @@ const useOpenAPISyncPolling = () => {
 
   // Derive a stable boolean so polling doesn't restart on every collection mutation
   const hasSyncableCollections = useMemo(
-    () => activeWorkspaceCollections.some((c) => {
-      const syncConfig = c.brunoConfig?.openapi?.[0];
-      return syncConfig?.sourceUrl && syncConfig.autoCheck !== false;
-    }),
+    () => activeWorkspaceCollections.some((c) => listSyncEntries(c).some(({ entry }) => entry.autoCheck !== false)),
     [activeWorkspaceCollections]
   );
 

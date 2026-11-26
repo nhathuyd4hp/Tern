@@ -85,6 +85,7 @@ const { transformBrunoConfigBeforeSave, transformBrunoConfigAfterRead } = requir
 const { REQUEST_TYPES } = require('../utils/constants');
 const { cancelOAuth2AuthorizationRequest, isOauth2AuthorizationRequestInProgress } = require('../utils/oauth2-protocol-handler');
 const { findUniqueFolderName } = require('../utils/collection-import');
+const { importItemsIntoFolder } = require('../utils/import-items');
 const { renameEnvironmentExtendsReferences } = require('../utils/environments');
 const { saveSpecAndUpdateMetadata, cleanupSpecFilesForCollection } = require('./openapi-sync');
 const {
@@ -1516,6 +1517,11 @@ const registerRendererEventHandlers = (mainWindow, watcher) => {
         items: successfulImports
       }
     };
+  });
+
+  ipcMain.handle('renderer:import-items-into-folder', async (event, payload) => {
+    validatePathIsInsideCollection(payload.folderPath);
+    return importItemsIntoFolder(payload);
   });
 
   ipcMain.handle('renderer:clone-folder', async (event, itemFolder, collectionPath, collectionPathname) => {

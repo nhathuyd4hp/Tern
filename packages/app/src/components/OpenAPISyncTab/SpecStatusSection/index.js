@@ -20,7 +20,7 @@ const SpecStatusSection = ({
   onCheck, onOpenSettings
 }) => {
   const openApiSyncConfig = collection?.brunoConfig?.openapi?.[0];
-  const lastCheckedAt = useSelector((state) => state.openapiSync?.collectionUpdates?.[collection.uid]?.lastChecked);
+  const lastCheckedAt = useSelector((state) => state.openapiSync?.collectionUpdates?.[collection.syncKey || collection.uid]?.lastChecked);
 
   const {
     isSyncing, showConfirmModal, confirmGroups,
@@ -125,7 +125,8 @@ const SpecStatusSection = ({
             remoteDrift={remoteDrift}
             collectionDrift={collectionDrift}
             collectionPath={collection.pathname}
-            collectionUid={collection.uid}
+            folder={collection.syncFolder}
+            collectionUid={collection.syncKey || collection.uid}
             newSpec={specDrift?.newSpec}
             isSyncing={isSyncing}
             isLoading={isLoading}

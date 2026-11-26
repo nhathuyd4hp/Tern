@@ -37,7 +37,7 @@ const OpenAPISyncHeader = ({
     }
   }, [sourceUrl, sourceIsLocal, collection.pathname]);
 
-  const specMeta = useSelector((state) => state.openapiSync?.storedSpecMeta?.[collection.uid] || null);
+  const specMeta = useSelector((state) => state.openapiSync?.storedSpecMeta?.[(collection.syncKey || collection.uid)] || null);
   const title = specMeta?.title || spec?.info?.title || 'Unknown API';
 
   const copyUrl = async () => {
@@ -70,7 +70,7 @@ const OpenAPISyncHeader = ({
   const openInBrowser = async () => {
     try {
       const { error } = await window.ipcRenderer.invoke('renderer:open-openapi-spec-in-browser', {
-        collectionPath: collection.pathname
+        collectionPath: collection.pathname, folder: collection.syncFolder
       });
       if (error) toast.error(error);
     } catch (err) {

@@ -15,61 +15,58 @@ const StyledWrapper = styled.div`
     overflow-y: auto;
   }
 
-  .stats-row {
+  .home-header {
     display: flex;
-    gap: 24px;
-    margin-bottom: 16px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
   }
 
-  .stat-item {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  .stat-value {
-    font-size: 22px;
+  .home-title {
+    margin: 0;
+    font-size: 20px;
     font-weight: 600;
     color: ${(props) => props.theme.text};
-    line-height: 1;
   }
 
-  .stat-label {
-    font-size: ${(props) => props.theme.font.size.xs};
-    color: ${(props) => props.theme.colors.text.muted};
-  }
-
-  .quick-actions-section {
-    margin-bottom: 16px;
-  }
-
-  .section-title {
+  .home-summary {
+    margin-top: 4px;
     font-size: ${(props) => props.theme.font.size.sm};
-    font-weight: 500;
     color: ${(props) => props.theme.colors.text.muted};
-    margin-bottom: 8px;
   }
 
-  .quick-actions-buttons {
+  .home-actions {
     display: flex;
+    align-items: center;
     gap: 8px;
   }
 
-  .quick-action-btn {
+  .view-toggle {
     display: flex;
-    align-items: center;
-    gap: 5px;
-    padding: 4px 8px;
-    border: 1px solid ${(props) => props.theme.brand};
-    border-radius: ${(props) => props.theme.border.radius.base};
-    background: transparent;
-    color: ${(props) => props.theme.brand};
-    font-size: ${(props) => props.theme.font.size.sm};
-    cursor: pointer;
-    transition: all 0.15s ease;
+    margin-right: 4px;
+    border: 1px solid ${(props) => props.theme.border.border1};
+    border-radius: 6px;
+    overflow: hidden;
 
-    &:hover {
-      background: ${(props) => props.theme.brand}10;
+    button {
+      display: flex;
+      align-items: center;
+      padding: 5px 8px;
+      border: none;
+      background: transparent;
+      color: ${(props) => props.theme.colors.text.muted};
+      cursor: pointer;
+
+      &:hover {
+        color: ${(props) => props.theme.text};
+      }
+
+      &.active {
+        background: ${(props) => props.theme.sidebar.collection.item.hoverBg};
+        color: ${(props) => props.theme.text};
+      }
     }
   }
 

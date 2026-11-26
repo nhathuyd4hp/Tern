@@ -64,7 +64,7 @@ const useSyncFlow = ({
 
       await ipcRenderer.invoke('renderer:apply-openapi-sync', {
         collectionUid: collection.uid,
-        collectionPath: collection.pathname,
+        collectionPath: collection.pathname, folder: collection.syncFolder,
         addNewRequests: mode !== 'spec-only',
         removeDeletedRequests: localOnlyIds.length > 0,
         diff: filteredDiff,
@@ -77,7 +77,7 @@ const useSyncFlow = ({
 
       setPendingSyncMode(null);
 
-      dispatch(clearCollectionUpdate({ collectionUid: collection.uid }));
+      dispatch(clearCollectionUpdate({ collectionUid: collection.syncKey || collection.uid }));
       toast.success(
         mode === 'spec-only' ? 'Spec updated successfully'
           : mode === 'reset' ? 'Application reset to spec successfully'

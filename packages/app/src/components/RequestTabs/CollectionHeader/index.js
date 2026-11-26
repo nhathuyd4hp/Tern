@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { getSyncEntry } from 'utils/openapi-sync-scope';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   IconCategory,
@@ -102,7 +103,7 @@ const CollectionHeader = ({ collection, isScratchCollection }) => {
     return null;
   }
 
-  const hasOpenApiSyncConfigured = collection?.brunoConfig?.openapi?.[0]?.sourceUrl;
+  const hasOpenApiSyncConfigured = getSyncEntry(collection, '')?.sourceUrl;
   const hasOpenApiUpdates = hasOpenApiSyncConfigured && collectionUpdates[collection.uid]?.hasUpdates;
   const hasOpenApiError = hasOpenApiSyncConfigured && collectionUpdates[collection.uid]?.error;
 

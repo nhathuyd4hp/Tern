@@ -20,8 +20,34 @@ import DeleteCollection from 'components/Sidebar/Collections/Collection/DeleteCo
 import Dropdown from 'components/Dropdown';
 import StatusBadge from 'ui/StatusBadge';
 import StyledWrapper from './StyledWrapper';
+import { getApplicationStats } from './getApplicationStats';
 
-const CollectionsList = ({ workspace }) => {
+const PROTOCOL_LABELS = [
+  ['rest', 'REST'],
+  ['graphql', 'GraphQL'],
+  ['grpc', 'gRPC'],
+  ['websocket', 'WebSocket']
+];
+
+const hasOpenApiSync = (application) => !!application.brunoConfig?.openapi?.some((entry) => entry.sourceUrl);
+
+const ApplicationStats = ({ application }) => {
+  const stats = getApplicationStats(application);
+  const isSynced = hasOpenApiSync(application);
+
+  return (
+    <div className="application-stats">
+      <span className="stat-chip">{stats.collections} {stats.collections === 1 ? 'collection' : 'collections'}</span>
+      <span className="stat-chip">{stats.requests} {stats.requests === 1 ? 'request' : 'requests'}</span>
+      {PROTOCOL_LABELS.filter(([key]) => stats[key] > 0).map(([key, label]) => (
+        <span key={key} className="stat-chip protocol">{label} {stats[key]}</span>
+      ))}
+      {isSynced && <span className="stat-chip synced">OpenAPI sync</span>}
+    </div>
+  );
+};
+
+const CollectionsList = ({ workspace, viewMode = 'card' }) => {
   const dispatch = useDispatch();
   const { collections } = useSelector((state) => state.collections);
   const dropdownRefs = useRef({});
@@ -181,6 +207,66 @@ const CollectionsList = ({ workspace }) => {
     });
   };
 
+  const renderMenu = (collection) => (
+    <div className="collection-menu">
+      <Dropdown
+        style="new"
+        placement="bottom-end"
+        onCreate={(ref) => (dropdownRefs.current[collection.uid] = ref)}
+        icon={<IconDots size={18} strokeWidth={1.5} />}
+      >
+        <div className="collection-dropdown">
+          {!collection.failedToOpen && (
+            <>
+              <div
+                className="dropdown-item"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleRenameCollection(collection);
+                }}
+              >
+                <IconEdit size={16} strokeWidth={1.5} />
+                <span>Rename</span>
+              </div>
+              <div
+                className="dropdown-item"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleShowInFolder(collection);
+                }}
+              >
+                <IconFolder size={16} strokeWidth={1.5} />
+                <span>{getRevealInFolderLabel()}</span>
+              </div>
+            </>
+          )}
+          <div
+            className="dropdown-item"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleRemoveCollection(collection);
+            }}
+          >
+            <IconX size={16} strokeWidth={1.5} />
+            <span>Remove</span>
+          </div>
+          {!collection.failedToOpen && (
+            <div
+              className="dropdown-item delete-item"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDeleteCollection(collection);
+              }}
+            >
+              <IconTrash size={16} strokeWidth={1.5} />
+              <span>Delete</span>
+            </div>
+          )}
+        </div>
+      </Dropdown>
+    </div>
+  );
+
   return (
     <StyledWrapper>
       {renameCollectionModalOpen && selectedCollectionUid && (
@@ -214,93 +300,86 @@ const CollectionsList = ({ workspace }) => {
         />
       )}
 
-      <div className="collections-list">
-        {workspaceCollections.length === 0 ? (
-          <div className="empty-state">
-            <IconBox size={32} strokeWidth={1.5} className="empty-icon" />
-            <h3 className="empty-title">No applications yet</h3>
-            <p className="empty-description">Create your first application or open an existing one to get started.</p>
-          </div>
-        ) : (
-          workspaceCollections.map((collection, index) => (
-            <div
-              key={collection.uid || index}
-              className="collection-card"
-              onClick={(e) => handleOpenCollectionClick(collection, e)}
-            >
-              <div className="collection-info">
-                <div className="collection-header">
-                  <div className="collection-icon-wrapper">
-                    <IconBox size={18} strokeWidth={1.5} />
+      {viewMode === 'table' && workspaceCollections.length > 0 ? (
+        <table className="applications-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Collections</th>
+              <th>Requests</th>
+              <th>Protocols</th>
+              <th>Sync</th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            {workspaceCollections.map((collection, index) => {
+              const isReadable = collection.isLoaded !== false && !collection.failedToOpen;
+              const stats = getApplicationStats(collection);
+              return (
+                <tr key={collection.uid || index} onClick={(e) => handleOpenCollectionClick(collection, e)}>
+                  <td>
+                    <div className="collection-header">
+                      <div className="collection-icon-wrapper">
+                        <IconBox size={16} strokeWidth={1.5} />
+                      </div>
+                      <div className="collection-name">{collection.name}</div>
+                      {collection.failedToOpen && <StatusBadge status="danger" size="xs">Failed to open</StatusBadge>}
+                    </div>
+                    <div className="collection-path" title={collection.pathname}>{collection.pathname}</div>
+                  </td>
+                  <td>{isReadable ? stats.collections : '—'}</td>
+                  <td>{isReadable ? stats.requests : '—'}</td>
+                  <td>
+                    {isReadable
+                      ? PROTOCOL_LABELS.filter(([key]) => stats[key] > 0).map(([key, label]) => (
+                          <span key={key} className="stat-chip protocol">{label} {stats[key]}</span>
+                        ))
+                      : '—'}
+                  </td>
+                  <td>{isReadable && hasOpenApiSync(collection) ? <span className="stat-chip synced">OpenAPI sync</span> : '—'}</td>
+                  <td className="menu-cell">{renderMenu(collection)}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      ) : (
+        <div className="collections-list">
+          {workspaceCollections.length === 0 ? (
+            <div className="empty-state">
+              <IconBox size={32} strokeWidth={1.5} className="empty-icon" />
+              <h3 className="empty-title">No applications yet</h3>
+              <p className="empty-description">Create your first application or open an existing one to get started.</p>
+            </div>
+          ) : (
+            workspaceCollections.map((collection, index) => (
+              <div
+                key={collection.uid || index}
+                className="collection-card"
+                onClick={(e) => handleOpenCollectionClick(collection, e)}
+              >
+                <div className="collection-info">
+                  <div className="collection-header">
+                    <div className="collection-icon-wrapper">
+                      <IconBox size={18} strokeWidth={1.5} />
+                    </div>
+                    <div className="collection-name">{collection.name}</div>
+                    {collection.failedToOpen && (
+                      <StatusBadge status="danger" size="xs">Failed to open</StatusBadge>
+                    )}
                   </div>
-                  <div className="collection-name">{collection.name}</div>
-                  {collection.failedToOpen && (
-                    <StatusBadge status="danger" size="xs">Failed to open</StatusBadge>
+                  <div className="collection-path" title={collection.pathname}>{collection.pathname}</div>
+                  {collection.isLoaded !== false && !collection.failedToOpen && (
+                    <ApplicationStats application={collection} />
                   )}
                 </div>
-                <div className="collection-path">{collection.pathname}</div>
+                {renderMenu(collection)}
               </div>
-              <div className="collection-menu">
-                <Dropdown
-                  style="new"
-                  placement="bottom-end"
-                  onCreate={(ref) => (dropdownRefs.current[collection.uid] = ref)}
-                  icon={<IconDots size={18} strokeWidth={1.5} />}
-                >
-                  <div className="collection-dropdown">
-                    {!collection.failedToOpen && (
-                      <>
-                        <div
-                          className="dropdown-item"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleRenameCollection(collection);
-                          }}
-                        >
-                          <IconEdit size={16} strokeWidth={1.5} />
-                          <span>Rename</span>
-                        </div>
-                        <div
-                          className="dropdown-item"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleShowInFolder(collection);
-                          }}
-                        >
-                          <IconFolder size={16} strokeWidth={1.5} />
-                          <span>{getRevealInFolderLabel()}</span>
-                        </div>
-                      </>
-                    )}
-                    <div
-                      className="dropdown-item"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemoveCollection(collection);
-                      }}
-                    >
-                      <IconX size={16} strokeWidth={1.5} />
-                      <span>Remove</span>
-                    </div>
-                    {!collection.failedToOpen && (
-                      <div
-                        className="dropdown-item delete-item"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteCollection(collection);
-                        }}
-                      >
-                        <IconTrash size={16} strokeWidth={1.5} />
-                        <span>Delete</span>
-                      </div>
-                    )}
-                  </div>
-                </Dropdown>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
+            ))
+          )}
+        </div>
+      )}
     </StyledWrapper>
   );
 };

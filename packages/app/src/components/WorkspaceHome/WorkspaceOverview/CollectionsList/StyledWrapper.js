@@ -1,13 +1,14 @@
 import styled from 'styled-components';
+import { rgba } from 'polished';
 
 const StyledWrapper = styled.div`
   flex: 1;
   overflow-y: auto;
 
   .collections-list {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 12px;
   }
 
   .empty-state {
@@ -38,14 +39,80 @@ const StyledWrapper = styled.div`
 
   .collection-card {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 10px;
-    padding: 10px 0;
-    border-bottom: 1px solid ${(props) => props.theme.sidebar.collection.item.hoverBg};
+    padding: 14px 16px;
+    border: 1px solid ${(props) => props.theme.border.border1};
+    border-radius: 8px;
+    background: ${(props) => props.theme.background.default};
     cursor: pointer;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
 
-    &:last-child {
-      border-bottom: none;
+    &:hover {
+      border-color: ${(props) => props.theme.brand};
+      background: ${(props) => rgba(props.theme.brand, 0.04)};
+    }
+  }
+
+  .applications-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: ${(props) => props.theme.font.size.sm};
+
+    th {
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 500;
+      color: ${(props) => props.theme.colors.text.muted};
+      border-bottom: 1px solid ${(props) => props.theme.border.border1};
+    }
+
+    td {
+      padding: 10px 12px;
+      vertical-align: middle;
+      color: ${(props) => props.theme.text};
+      border-bottom: 1px solid ${(props) => props.theme.sidebar.collection.item.hoverBg};
+    }
+
+    tbody tr {
+      cursor: pointer;
+
+      &:hover {
+        background: ${(props) => props.theme.sidebar.collection.item.hoverBg};
+      }
+    }
+
+    .stat-chip {
+      margin-right: 6px;
+    }
+
+    .menu-cell {
+      width: 1%;
+      text-align: right;
+    }
+  }
+
+  .application-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  .stat-chip {
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: ${(props) => props.theme.font.size.xs};
+    color: ${(props) => props.theme.colors.text.subtext0};
+    background: ${(props) => props.theme.sidebar.collection.item.hoverBg};
+
+    &.protocol {
+      color: ${(props) => props.theme.text};
+    }
+
+    &.synced {
+      color: ${(props) => props.theme.colors.text.green};
+      background: ${(props) => rgba(props.theme.colors.text.green, 0.1)};
     }
   }
 

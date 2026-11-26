@@ -4,8 +4,14 @@ import toast from 'react-hot-toast';
 import * as Yup from 'yup';
 import Portal from 'components/Portal';
 import Modal from 'components/Modal';
-import { useDispatch } from 'react-redux';
-import { newFolder } from 'providers/ReduxStore/slices/collections/actions';
+import { useDispatch, useSelector } from 'react-redux';
+import { newFolder, browseFiles, updateBrunoConfig } from 'providers/ReduxStore/slices/collections/actions';
+import { selectCollectionByUid } from 'src/selectors/collections';
+import SpecSourcePicker from 'components/OpenAPISyncTab/SpecSourcePicker';
+import { isSpecSourceReady } from 'components/OpenAPISyncTab/SpecSourcePicker/utils';
+import { loadGrpcMethodsFromProtoFile } from 'utils/network/index';
+import { buildOpenApiFolderImport, buildProtoFolderImport, parseSpecContent, getProtoName } from 'utils/importers/folder-source';
+import { formatIpcError } from 'utils/common/error';
 import { IconArrowBackUp, IconEdit } from '@tabler/icons';
 import { sanitizeName, validateName, validateNameError } from 'utils/common/regex';
 import PathDisplay from 'components/PathDisplay/index';
@@ -15,8 +21,24 @@ import { IconCaretDown } from '@tabler/icons';
 import StyledWrapper from './StyledWrapper';
 import Button from 'ui/Button';
 
+const SOURCES = [
+  { key: 'empty', label: 'Empty' },
+  { key: 'openapi', label: 'OpenAPI' },
+  { key: 'proto', label: 'Proto file' }
+];
+
 const NewFolder = ({ collectionUid, item, onClose }) => {
   const dispatch = useDispatch();
+  const collection = useSelector((state) => selectCollectionByUid(state, collectionUid));
+  const [source, setSource] = useState('empty');
+  const [specMode, setSpecMode] = useState('url');
+  const [specValue, setSpecValue] = useState('');
+  const [specData, setSpecData] = useState(null);
+  const [protoData, setProtoData] = useState(null);
+  const [sourceError, setSourceError] = useState(null);
+  const [isSourceLoading, setIsSourceLoading] = useState(false);
+  const [isNameEdited, setIsNameEdited] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const inputRef = useRef();
   const [isEditing, toggleEditing] = useState(false);
   const [showFilesystemName, toggleShowFilesystemName] = useState(false);
@@ -52,15 +74,125 @@ const NewFolder = ({ collectionUid, item, onClose }) => {
           }
         })
     }),
-    onSubmit: (values) => {
-      dispatch(newFolder(values.folderName, values.directoryName, collectionUid, item ? item.uid : null))
-        .then(() => {
-          toast.success('New collection created!');
-          onClose();
-        })
-        .catch((err) => toast.error(err ? err.message : 'An error occurred while adding the collection'));
+    onSubmit: async (values) => {
+      if (source === 'openapi' && !specData) {
+        setSourceError('Load an OpenAPI spec first');
+        return;
+      }
+      if (source === 'proto' && !protoData) {
+        setSourceError('Choose a .proto file first');
+        return;
+      }
+
+      setIsSubmitting(true);
+      try {
+        const { pathname } = await dispatch(newFolder(values.folderName, values.directoryName, collectionUid, item ? item.uid : null));
+        if (source !== 'empty') {
+          const imported = await buildImport();
+          await window.ipcRenderer.invoke('renderer:import-items-into-folder', {
+            collectionPath: collection.pathname,
+            folderPath: pathname,
+            items: imported.items,
+            openapiSync: imported.openapiSync
+          });
+          if (imported.protobuf) {
+            await dispatch(updateBrunoConfig({ ...collection.brunoConfig, protobuf: imported.protobuf }, collectionUid));
+          }
+        }
+        toast.success('New collection created!');
+        onClose();
+      } catch (err) {
+        toast.error(formatIpcError(err) || 'An error occurred while adding the collection');
+        setIsSubmitting(false);
+      }
     }
   });
+
+  const buildImport = () => (source === 'openapi'
+    ? buildOpenApiFolderImport(specData)
+    : buildProtoFolderImport(protoData, { collectionPathname: collection.pathname, protobuf: collection.brunoConfig?.protobuf }));
+
+  // A name the user typed is never replaced by the one taken from the source.
+  const prefillName = (name) => {
+    if (isNameEdited || !name) return;
+    formik.setFieldValue('folderName', name);
+    if (!isEditing) formik.setFieldValue('directoryName', sanitizeName(name));
+  };
+
+  const switchSource = (nextSource) => {
+    setSource(nextSource);
+    setSourceError(null);
+  };
+
+  const loadSpec = async (sourceUrl) => {
+    setSpecData(null);
+    setSourceError(null);
+    setIsSourceLoading(true);
+    try {
+      const result = await window.ipcRenderer.invoke('renderer:fetch-openapi-spec', {
+        collectionUid,
+        collectionPath: collection.pathname,
+        sourceUrl,
+        environmentContext: {
+          activeEnvironmentUid: collection.activeEnvironmentUid,
+          environments: collection.environments,
+          runtimeVariables: collection.runtimeVariables,
+          globalEnvironmentVariables: collection.globalEnvironmentVariables
+        }
+      });
+      if (result.error) {
+        setSourceError(result.error);
+        return;
+      }
+      const spec = parseSpecContent(result.content);
+      setSpecData({ spec, specContent: result.content, sourceUrl });
+      prefillName(spec?.info?.title);
+    } catch (err) {
+      setSourceError(formatIpcError(err) || 'Failed to load the spec');
+    } finally {
+      setIsSourceLoading(false);
+    }
+  };
+
+  const handleSpecValueChange = (value) => {
+    setSpecValue(value);
+    setSpecData(null);
+    if (specMode === 'file' && value) loadSpec(value);
+  };
+
+  const handleSpecModeChange = (mode) => {
+    setSpecMode(mode);
+    setSpecValue('');
+    setSpecData(null);
+    setSourceError(null);
+  };
+
+  const handleSpecError = (message) => {
+    setSourceError(message);
+    if (message) setSpecValue('');
+  };
+
+  const chooseProtoFile = async () => {
+    setSourceError(null);
+    try {
+      const [filePath] = (await dispatch(browseFiles([{ name: 'Proto Files', extensions: ['proto'] }], [''])) || []);
+      if (!filePath) return;
+
+      setIsSourceLoading(true);
+      const { success, methods, error } = await loadGrpcMethodsFromProtoFile(filePath);
+      if (!success) {
+        setProtoData(null);
+        setSourceError(`Could not read the proto file: ${error}`);
+        return;
+      }
+      setProtoData({ filePath, methods });
+      prefillName(getProtoName(filePath));
+    } catch (err) {
+      setSourceError('Could not read the proto file.');
+    } finally {
+      setIsSourceLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (inputRef && inputRef.current) {
@@ -101,6 +233,7 @@ const NewFolder = ({ collectionUid, item, onClose }) => {
               autoCapitalize="off"
               spellCheck="false"
               onChange={(e) => {
+                setIsNameEdited(true);
                 formik.setFieldValue('folderName', e.target.value);
                 !isEditing && formik.setFieldValue('directoryName', sanitizeName(e.target.value));
               }}
@@ -110,6 +243,57 @@ const NewFolder = ({ collectionUid, item, onClose }) => {
             {formik.touched.folderName && formik.errors.folderName ? (
               <div className="text-red-500" data-testid="form-error">{formik.errors.folderName}</div>
             ) : null}
+
+            <div className="mt-4">
+              <label className="block font-medium">Source</label>
+              <div className="flex gap-4 mt-2" role="radiogroup" aria-label="Source">
+                {SOURCES.map(({ key, label }) => (
+                  <label key={key} className="flex items-center gap-1 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="source"
+                      checked={source === key}
+                      onChange={() => switchSource(key)}
+                      data-testid={`new-folder-source-${key}`}
+                    />
+                    {label}
+                  </label>
+                ))}
+              </div>
+              {source === 'openapi' && (
+                <div className="mt-3">
+                  <SpecSourcePicker
+                    mode={specMode}
+                    onModeChange={handleSpecModeChange}
+                    value={specValue}
+                    onChange={handleSpecValueChange}
+                    onError={handleSpecError}
+                    action={specMode === 'url' ? (
+                      <Button
+                        type="button"
+                        size="sm"
+                        loading={isSourceLoading}
+                        disabled={!isSpecSourceReady(specMode, specValue)}
+                        onClick={() => loadSpec(specValue.trim())}
+                        data-testid="new-folder-load-spec"
+                      >
+                        Load
+                      </Button>
+                    ) : null}
+                  />
+                  {specData && <div className="text-muted mt-2">Spec loaded: {specData.spec?.info?.title}</div>}
+                </div>
+              )}
+              {source === 'proto' && (
+                <div className="mt-3 flex items-center gap-3">
+                  <Button type="button" variant="filled" color="primary" size="sm" loading={isSourceLoading} onClick={chooseProtoFile} data-testid="new-folder-choose-proto">
+                    Choose .proto file
+                  </Button>
+                  <span className="text-muted truncate">{protoData ? protoData.filePath : 'Service → collection, method → request.'}</span>
+                </div>
+              )}
+              {sourceError && <div className="text-red-500 mt-2" data-testid="new-folder-source-error">{sourceError}</div>}
+            </div>
 
             {showFilesystemName && (
               <div className="mt-4">
@@ -186,7 +370,7 @@ const NewFolder = ({ collectionUid, item, onClose }) => {
                 <Button type="button" color="secondary" variant="ghost" onClick={onClose} className="mr-2">
                   Cancel
                 </Button>
-                <Button type="submit">
+                <Button type="submit" loading={isSubmitting}>
                   Create
                 </Button>
               </div>

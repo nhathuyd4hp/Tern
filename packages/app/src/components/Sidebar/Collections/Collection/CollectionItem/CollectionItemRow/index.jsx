@@ -29,6 +29,8 @@ import { uuid } from 'utils/common';
 import { copyRequest, setFocusedSidebarPath, insertTaskIntoQueue } from 'providers/ReduxStore/slices/app';
 import NewRequest from 'components/Sidebar/NewRequest';
 import NewFolder from 'components/Sidebar/NewFolder';
+import OpenAPISyncIcon from 'components/Icons/OpenAPISync';
+import { getFolderSyncPath, getSyncEntry } from 'utils/openapi-sync-scope';
 import RenameCollectionItem from '../RenameCollectionItem';
 import DeleteCollectionItems from '../DeleteCollectionItems';
 import IgnoreCollectionItem from '../IgnoreCollectionItem';
@@ -125,6 +127,11 @@ const CollectionItemRow = ({
   const hasSearchText = searchText && searchText?.trim()?.length;
   const itemIsCollapsed = hasSearchText ? false : isCollectionItemCollapsed(item);
   const isFolder = isItemAFolder(item);
+  const syncFolder = useSelector((state) => {
+    const application = isFolder ? selectCollectionByUid(state, collectionUid) : null;
+    return application ? getFolderSyncPath(application, item) : '';
+  });
+  const hasFolderSync = useSelector((state) => Boolean(syncFolder && getSyncEntry(selectCollectionByUid(state, collectionUid), syncFolder)?.sourceUrl));
   const selectFolderInvalidItemCount = useMemo(makeSelectInvalidItemCountForFolder, []);
   const invalidItemCount = useSelector((state) =>
     isFolder ? selectFolderInvalidItemCount(state, collectionUid, item.items) : 0
@@ -518,6 +525,15 @@ const CollectionItemRow = ({
       onClick: () => setItemInfoModalOpen(true)
     });
 
+    if (isFolder && syncFolder) {
+      items.push({
+        id: 'openapi-sync',
+        leftSection: OpenAPISyncIcon,
+        label: hasFolderSync ? 'OpenAPI Sync' : 'Connect OpenAPI spec',
+        onClick: viewOpenApiSync
+      });
+    }
+
     if (isFolder) {
       items.push(
         {
@@ -609,6 +625,16 @@ const CollectionItemRow = ({
     } else {
       toast.error('URL is required');
     }
+  };
+
+  const viewOpenApiSync = () => {
+    dispatch(addTab({
+      uid: `${collectionUid}-openapi-sync-${syncFolder}`,
+      collectionUid,
+      type: 'openapi-sync',
+      syncFolder,
+      tabName: item.name
+    }));
   };
 
   const viewFolderSettings = () => {

@@ -49,7 +49,7 @@ const Wrapper = styled.div`
 
     li {
       display: inline-flex;
-      min-width: 80px;
+      min-width: 120px;
       list-style: none;
       cursor: pointer;
       font-size: 0.8125rem;
@@ -66,6 +66,8 @@ const Wrapper = styled.div`
         width: 100%;
         position: relative;
         overflow: hidden;
+        // room for the close button (44px wide, fades in over the right edge on hover) so it never covers the name
+        padding-right: 44px;
       }
 
       &:not(.active) {

@@ -25,8 +25,8 @@ const initialState = {
   sidebarRevealRequest: null
 };
 
-const tabTypeAlreadyExists = (tabs, collectionUid, type) => {
-  return find(tabs, (tab) => tab.collectionUid === collectionUid && tab.type === type);
+const tabTypeAlreadyExists = (tabs, collectionUid, type, syncFolder) => {
+  return find(tabs, (tab) => tab.collectionUid === collectionUid && tab.type === type && (tab.syncFolder || null) === (syncFolder || null));
 };
 
 const findTabByPathname = (tabs, { collectionUid, pathname, type, exampleName, exampleIndex }) => {
@@ -73,7 +73,8 @@ export const tabsSlice = createSlice({
         exampleIndex,
         isTransient,
         tabName,
-        openInEditMode
+        openInEditMode,
+        syncFolder
       } = action.payload;
 
       const nonReplaceableTabTypes = [
@@ -101,7 +102,7 @@ export const tabsSlice = createSlice({
       }
 
       if (nonReplaceableTabTypes.includes(type)) {
-        const existingTab = tabTypeAlreadyExists(state.tabs, collectionUid, type);
+        const existingTab = tabTypeAlreadyExists(state.tabs, collectionUid, type, syncFolder);
 
         if (existingTab) {
           state.activeTabUid = ensureTabUid(existingTab);
@@ -145,6 +146,7 @@ export const tabsSlice = createSlice({
           ...(typeof exampleIndex === 'number' ? { exampleIndex } : {}),
           ...(isTransient ? { isTransient: true } : {}),
           ...(tabName ? { tabName } : {}),
+          ...(syncFolder ? { syncFolder } : {}),
           ...(openInEditMode ? { openInEditMode: true } : {})
         };
 
@@ -184,6 +186,7 @@ export const tabsSlice = createSlice({
         ...(typeof exampleIndex === 'number' ? { exampleIndex } : {}),
         ...(isTransient ? { isTransient: true } : {}),
         ...(tabName ? { tabName } : {}),
+        ...(syncFolder ? { syncFolder } : {}),
         ...(openInEditMode ? { openInEditMode: true } : {})
       });
       state.activeTabUid = uid;

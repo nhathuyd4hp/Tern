@@ -13,7 +13,6 @@ import StatusBadge from 'ui/StatusBadge';
 import EndpointChangeSection from '../EndpointChangeSection';
 import ExpandableEndpointRow from '../EndpointChangeSection/ExpandableEndpointRow';
 import ConfirmSyncModal from '../ConfirmSyncModal';
-import SyncEmptyStatus from '../SyncEmptyStatus';
 import SpecDiffModal from '../SpecDiffModal';
 import Help from 'components/Help';
 import { setReviewDecision, setReviewDecisions } from 'providers/ReduxStore/slices/openapi-sync';
@@ -81,6 +80,7 @@ const SyncReviewPage = ({
   remoteDrift,
   collectionDrift,
   collectionPath,
+  folder,
   collectionUid,
   newSpec,
   isSyncing,
@@ -300,12 +300,7 @@ const SyncReviewPage = ({
               <h4>Checking for updates</h4>
               <p>Comparing your last synced spec with the latest spec...</p>
             </div>
-          ) : (
-            <SyncEmptyStatus
-              title="No updates from the spec"
-              description="The spec has not changed since the last sync."
-            />
-          )
+          ) : null
         ) : (
           <div className="endpoints-review-sections">
             {/* === Updates from Spec === */}
@@ -340,6 +335,7 @@ const SyncReviewPage = ({
                       decision={decisions?.[endpoint.id]}
                       onDecisionChange={(decision) => handleDecisionChange(endpoint.id, decision)}
                       collectionPath={collectionPath}
+                      folder={folder}
                       newSpec={newSpec}
                       showDecisions={true}
                       decisionLabels={{ keep: 'Keep Current', accept: 'Update' }}
@@ -365,6 +361,7 @@ const SyncReviewPage = ({
                       decision={decisions?.[endpoint.id]}
                       onDecisionChange={(decision) => handleDecisionChange(endpoint.id, decision)}
                       collectionPath={collectionPath}
+                      folder={folder}
                       newSpec={newSpec}
                       showDecisions={true}
                       decisionLabels={{ keep: 'Skip', accept: 'Add' }}
@@ -390,6 +387,7 @@ const SyncReviewPage = ({
                       decision={decisions?.[endpoint.id]}
                       onDecisionChange={(decision) => handleDecisionChange(endpoint.id, decision)}
                       collectionPath={collectionPath}
+                      folder={folder}
                       newSpec={newSpec}
                       showDecisions={true}
                       decisionLabels={{ keep: 'Keep', accept: 'Delete' }}

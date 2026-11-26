@@ -88,6 +88,7 @@ import {
 import { each } from 'lodash';
 import { closeAllCollectionTabs, closeTabs as _closeTabs, focusTab, reopenLastClosedTab, restoreTabs, setSidebarRevealRequest } from 'providers/ReduxStore/slices/tabs';
 import { clearOpenApiSyncTabState } from 'providers/ReduxStore/slices/openapi-sync';
+import { syncKeyOf } from 'utils/openapi-sync-scope';
 import { removeCollectionFromWorkspace } from 'providers/ReduxStore/slices/workspaces';
 import { resolveRequestFilename } from 'utils/common/platform';
 import { interpolateUrl, parsePathParams, splitOnFirst } from 'utils/url/index';
@@ -3623,7 +3624,7 @@ export const closeTabs = ({ tabUids }) => async (dispatch, getState) => {
 
   const closingOpenApiSyncCollectionUids = (state.tabs?.tabs || [])
     .filter((t) => tabUids.includes(t.uid) && t.type === 'openapi-sync' && t.collectionUid)
-    .map((t) => t.collectionUid);
+    .map((t) => syncKeyOf(t.collectionUid, t.syncFolder));
 
   // Close the tabs first
   await dispatch(_closeTabs({ tabUids }));
