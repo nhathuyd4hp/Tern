@@ -10,8 +10,6 @@ const posixifyPath = (p) => (p ? p.replace(/\\/g, '/') : p);
 
 const WORKSPACE_TYPE = 'workspace';
 const OPENCOLLECTION_VERSION = '1.0.0';
-const GITIGNORE_MANAGED_BLOCK_START = '# Bruno managed collection remotes';
-const GITIGNORE_MANAGED_BLOCK_END = '# End Bruno managed collection remotes';
 
 const YAML_NAMED_ESCAPES = {
   '\\': '\\\\',
@@ -163,23 +161,6 @@ const validateWorkspacePath = (workspacePath) => {
   return true;
 };
 
-const validateWorkspaceDirectory = (dirPath) => {
-  if (!validateName(path.basename(dirPath))) {
-    throw new Error(`Invalid workspace directory name: ${dirPath}`);
-  }
-  return true;
-};
-
-const createWorkspaceConfig = (workspaceName) => ({
-  opencollection: OPENCOLLECTION_VERSION,
-  info: {
-    name: workspaceName,
-    type: WORKSPACE_TYPE
-  },
-  collections: [],
-  docs: ''
-});
-
 const normalizeWorkspaceConfig = (config) => ({
   ...config,
   name: config.info?.name,
@@ -270,29 +251,6 @@ const validateWorkspaceConfig = (config) => {
   return true;
 };
 
-const updateWorkspaceName = async (workspacePath, newName) => {
-  return withLock(getWorkspaceLockKey(workspacePath), async () => {
-    const config = readWorkspaceConfig(workspacePath);
-    config.name = newName;
-    if (config.info) {
-      config.info.name = newName;
-    }
-    const yamlContent = generateYamlContent(config);
-    await writeWorkspaceFileAtomic(workspacePath, yamlContent);
-    return config;
-  });
-};
-
-const updateWorkspaceDocs = async (workspacePath, docs) => {
-  return withLock(getWorkspaceLockKey(workspacePath), async () => {
-    const config = readWorkspaceConfig(workspacePath);
-    config.docs = docs;
-    const yamlContent = generateYamlContent(config);
-    await writeWorkspaceFileAtomic(workspacePath, yamlContent);
-    return docs;
-  });
-};
-
 const addCollectionToWorkspace = async (workspacePath, collection) => {
   if (!isValidCollectionEntry(collection)) {
     throw new Error('Invalid collection: name and path are required');
@@ -325,128 +283,6 @@ const addCollectionToWorkspace = async (workspacePath, collection) => {
     const yamlContent = generateYamlContent(config);
     await writeWorkspaceFileAtomic(workspacePath, yamlContent);
     return config.collections;
-  });
-};
-
-const getCollectionGitignoreEntry = (workspacePath, collectionPath) => {
-  const absolute = path.isAbsolute(collectionPath)
-    ? collectionPath
-    : path.resolve(workspacePath, collectionPath);
-  const relative = path.relative(workspacePath, absolute);
-  if (!relative || relative.startsWith('..') || path.isAbsolute(relative)) return null;
-  return posixifyPath(relative).replace(/\/+$/, '') + '/';
-};
-
-const findGitignoreManagedBlock = (lines) => {
-  const start = lines.findIndex((line) => line.trim() === GITIGNORE_MANAGED_BLOCK_START);
-  if (start === -1) return null;
-
-  const end = lines.findIndex((line, index) => index > start && line.trim() === GITIGNORE_MANAGED_BLOCK_END);
-  if (end === -1) return null;
-
-  return { start, end };
-};
-
-const addCollectionToWorkspaceGitignore = async (workspacePath, collectionPath) => {
-  const entry = getCollectionGitignoreEntry(workspacePath, collectionPath);
-  if (!entry) return;
-
-  const gitignorePath = path.join(workspacePath, '.gitignore');
-  const existing = fs.existsSync(gitignorePath) ? fs.readFileSync(gitignorePath, 'utf8') : '';
-  const lines = existing.split('\n');
-
-  if (lines.some((line) => line.trim() === entry)) return;
-
-  const managedBlock = findGitignoreManagedBlock(lines);
-  if (managedBlock) {
-    const updated = [...lines];
-    updated.splice(managedBlock.end, 0, entry);
-    await writeFile(gitignorePath, updated.join('\n'));
-    return;
-  }
-
-  const prefix = existing.length === 0 || existing.endsWith('\n') ? existing : existing + '\n';
-  await writeFile(gitignorePath, `${prefix}${GITIGNORE_MANAGED_BLOCK_START}\n${entry}\n${GITIGNORE_MANAGED_BLOCK_END}\n`);
-};
-
-const removeCollectionFromWorkspaceGitignore = async (workspacePath, collectionPath) => {
-  const entry = getCollectionGitignoreEntry(workspacePath, collectionPath);
-  if (!entry) return;
-
-  const gitignorePath = path.join(workspacePath, '.gitignore');
-  if (!fs.existsSync(gitignorePath)) return;
-
-  const lines = fs.readFileSync(gitignorePath, 'utf8').split('\n');
-  const managedBlock = findGitignoreManagedBlock(lines);
-  if (!managedBlock) return;
-
-  const managedLines = lines.slice(managedBlock.start + 1, managedBlock.end);
-  const filteredManagedLines = managedLines.filter((line) => line.trim() !== entry);
-  if (filteredManagedLines.length === managedLines.length) return;
-
-  const hasManagedEntries = filteredManagedLines.some((line) => line.trim() !== '');
-  const filtered = hasManagedEntries
-    ? [
-        ...lines.slice(0, managedBlock.start + 1),
-        ...filteredManagedLines,
-        ...lines.slice(managedBlock.end)
-      ]
-    : [
-        ...lines.slice(0, managedBlock.start),
-        ...lines.slice(managedBlock.end + 1)
-      ];
-
-  await writeFile(gitignorePath, filtered.join('\n'));
-};
-
-const setCollectionGitRemote = async (workspacePath, collectionPath, remoteUrl) => {
-  if (typeof remoteUrl !== 'string' || remoteUrl.trim() === '') {
-    throw new Error('A non-empty Git remote URL is required');
-  }
-  const trimmedUrl = remoteUrl.trim();
-
-  return withLock(getWorkspaceLockKey(workspacePath), async () => {
-    const config = readWorkspaceConfig(workspacePath);
-    const target = path.normalize(collectionPath);
-    let matched = false;
-
-    config.collections = (config.collections || []).map((c) => {
-      if (getNormalizedAbsoluteCollectionPath(workspacePath, c) !== target) return c;
-      matched = true;
-      return { ...c, remote: trimmedUrl };
-    });
-
-    if (!matched) {
-      throw new Error('Collection not found in workspace');
-    }
-
-    await writeWorkspaceFileAtomic(workspacePath, generateYamlContent(config));
-    await addCollectionToWorkspaceGitignore(workspacePath, collectionPath);
-    return config;
-  });
-};
-
-const clearCollectionGitRemote = async (workspacePath, collectionPath) => {
-  return withLock(getWorkspaceLockKey(workspacePath), async () => {
-    const config = readWorkspaceConfig(workspacePath);
-    const target = path.normalize(collectionPath);
-    let matched = false;
-
-    config.collections = (config.collections || []).map((c) => {
-      if (getNormalizedAbsoluteCollectionPath(workspacePath, c) !== target) return c;
-      matched = true;
-      const updated = { ...c };
-      delete updated.remote;
-      return updated;
-    });
-
-    if (!matched) {
-      throw new Error('Collection not found in workspace');
-    }
-
-    await writeWorkspaceFileAtomic(workspacePath, generateYamlContent(config));
-    await removeCollectionFromWorkspaceGitignore(workspacePath, collectionPath);
-    return config;
   });
 };
 
@@ -579,18 +415,12 @@ module.exports = {
   makeRelativePath,
   normalizeCollectionEntry,
   validateWorkspacePath,
-  validateWorkspaceDirectory,
-  createWorkspaceConfig,
   normalizeWorkspaceConfig,
   readWorkspaceConfig,
   writeWorkspaceConfig,
   validateWorkspaceConfig,
-  updateWorkspaceName,
-  updateWorkspaceDocs,
   addCollectionToWorkspace,
   removeCollectionFromWorkspace,
-  setCollectionGitRemote,
-  clearCollectionGitRemote,
   reorderWorkspaceCollections,
   getWorkspaceCollections,
   getUnopenableWorkspaceCollections,

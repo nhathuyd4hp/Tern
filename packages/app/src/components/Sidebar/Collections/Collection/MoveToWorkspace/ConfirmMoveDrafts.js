@@ -53,7 +53,7 @@ const ConfirmMoveDrafts = ({ onClose, collection, collectionUid }) => {
   const moveAndClose = () => {
     dispatch(moveCollectionToWorkspace(collectionUid))
       .then(() => {
-        toast.success('Collection moved into workspace');
+        toast.success('Collection moved into app storage');
         onClose();
       })
       .catch((err) => {
@@ -113,7 +113,7 @@ const ConfirmMoveDrafts = ({ onClose, collection, collectionUid }) => {
     <StyledWrapper>
       <Modal
         size="md"
-        title="Move into Workspace"
+        title="Move into App Storage"
         handleCancel={onClose}
         disableEscapeKey={true}
         disableCloseOnOutsideClick={true}

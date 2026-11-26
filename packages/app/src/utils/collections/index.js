@@ -2027,24 +2027,15 @@ export const getVariableNamesWithScope = (collection, item) => {
 
 const sidebarEntryCollator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
 
-const getSidebarEntryName = (entry) => {
-  if (entry.kind === 'loaded') {
-    return entry.collection?.name || '';
-  }
-
-  return entry.entry?.name || path.basename(entry.entry?.path || '');
-};
+const getSidebarEntryName = (entry) => entry.collection?.name || '';
 
 /**
- * The sidebar list in workspace.yml order: each entry is either a fully loaded collection or,
- * for non-default workspaces, a "ghost" git-backed entry whose local folder is missing. Shared
+ * The sidebar list in workspace.yml order: one entry per loaded collection. Shared
  * between Collections/index.js's render and the shift-select range thunk so both agree on
  * ordering — see Collections/index.js for the rendering this mirrors.
  */
 export const buildSidebarEntries = ({ collections = [], workspaces = [], activeWorkspace, collectionSortOrder }) => {
   if (!activeWorkspace?.collections?.length) return [];
-
-  const isDefaultWorkspace = activeWorkspace?.type === 'default';
 
   const loadedByPath = new Map();
   for (const c of collections) {
@@ -2065,8 +2056,6 @@ export const buildSidebarEntries = ({ collections = [], workspaces = [], activeW
     const loaded = loadedByPath.get(key);
     if (loaded) {
       entries.push({ kind: 'loaded', collection: loaded, key: loaded.uid });
-    } else if (wc.remote && !isDefaultWorkspace) {
-      entries.push({ kind: 'ghost', entry: wc, key: `ghost:${wc.path}` });
     }
   }
 

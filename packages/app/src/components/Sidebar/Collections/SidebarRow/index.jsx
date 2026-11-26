@@ -1,11 +1,10 @@
 import React from 'react';
 import CollectionRow from '../Collection/CollectionRow';
 import CollectionItemRow from '../Collection/CollectionItem/CollectionItemRow';
-import GitRemoteCollectionRow from '../GitRemoteCollectionRow';
 import ExampleItem from '../Collection/CollectionItem/ExampleItem';
 import EmptyCtaRow from './EmptyCtaRow';
 
-const resolveRowObject = ({ row, itemsByUid, collectionsByUid, ghostsByPath }) => {
+const resolveRowObject = ({ row, itemsByUid, collectionsByUid }) => {
   switch (row.kind) {
     case 'collection':
     case 'empty-cta':
@@ -16,8 +15,6 @@ const resolveRowObject = ({ row, itemsByUid, collectionsByUid, ghostsByPath }) =
     case 'example':
       // example rows resolve to their parent request.
       return itemsByUid.get(row.itemUid);
-    case 'ghost':
-      return ghostsByPath.get(row.collectionPathname);
     default:
       return undefined;
   }
@@ -60,10 +57,6 @@ const renderRow = (props) => {
     case 'empty-cta': {
       if (!resolved) return null;
       return <EmptyCtaRow collection={resolved} itemUid={row.itemUid} depth={row.depth} />;
-    }
-    case 'ghost': {
-      if (!resolved) return null;
-      return <GitRemoteCollectionRow entry={resolved} />;
     }
     case 'example': {
       const item = resolved;

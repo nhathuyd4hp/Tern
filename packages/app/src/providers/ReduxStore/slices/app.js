@@ -31,7 +31,6 @@ const initialState = {
   focusedSidebarPath: null,
   screenWidth: 500,
   showHomePage: false,
-  showManageWorkspacePage: false,
   isEnvironmentSettingsModalOpen: false,
   isGlobalEnvironmentSettingsModalOpen: false,
   activePreferencesTab: 'general',
@@ -165,17 +164,9 @@ export const appSlice = createSlice({
     },
     showHomePage: (state) => {
       state.showHomePage = true;
-      state.showManageWorkspacePage = false;
     },
     hideHomePage: (state) => {
       state.showHomePage = false;
-    },
-    showManageWorkspacePage: (state) => {
-      state.showManageWorkspacePage = true;
-      state.showHomePage = false;
-    },
-    hideManageWorkspacePage: (state) => {
-      state.showManageWorkspacePage = false;
     },
     updatePreferences: (state, action) => {
       state.preferences = action.payload;
@@ -253,11 +244,9 @@ export const appSlice = createSlice({
     builder
       .addCase(addTab, (state) => {
         state.showHomePage = false;
-        state.showManageWorkspacePage = false;
       })
       .addCase(focusTab, (state) => {
         state.showHomePage = false;
-        state.showManageWorkspacePage = false;
       });
   }
 });
@@ -274,8 +263,6 @@ export const {
   updateIsDragging,
   showHomePage,
   hideHomePage,
-  showManageWorkspacePage,
-  hideManageWorkspacePage,
   updatePreferences,
   updateActivePreferencesTab,
   updateCookies,

@@ -106,11 +106,11 @@ used in just one place (`src/selectors/tab.js`). Default to inline
 
 ## Sidebar collection visibility
 
-Collections render in the sidebar only when they belong to the **active workspace**.
+Collections render in the sidebar only when they belong to the app's single implicit (default) workspace.
 `Sidebar/Collections/index.js` builds the list in a `useMemo` that walks
 `activeWorkspace.collections`, matches loaded collections through a `Map` keyed on
-`normalizePath(pathname)`, **excludes scratch collections** (`isScratchCollection`), adds "ghost"
-git-remote rows (`GitRemoteCollectionRow`) for non-default workspaces, and sorts alphabetically.
+`normalizePath(pathname)`, **excludes scratch collections** (`isScratchCollection`), and sorts
+alphabetically.
 Read the current `useMemo` before changing this. Collapsed folders do **not** render their children
 in the DOM (conditional render on `item.collapsed`).
 

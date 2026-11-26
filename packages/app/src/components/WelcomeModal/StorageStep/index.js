@@ -31,7 +31,7 @@ const StorageStep = ({ collectionLocation, onBrowse }) => (
       </div>
     </div>
     <div className="location-hint">
-      Each collection and workspace gets its own folder inside this directory. You can change this later.
+      Each collection gets its own folder inside this directory. You can change this later.
     </div>
   </StyledWrapper>
 );

@@ -196,26 +196,6 @@ class WorkspaceWatcher {
     }, 100);
   }
 
-  removeWatcher(workspacePath) {
-    try {
-      if (this.watchers[workspacePath]) {
-        this.watchers[workspacePath].close();
-        delete this.watchers[workspacePath];
-      }
-      if (this.environmentWatchers[workspacePath]) {
-        this.environmentWatchers[workspacePath].close();
-        delete this.environmentWatchers[workspacePath];
-      }
-      dotEnvWatcher.removeWorkspaceWatcher(workspacePath);
-    } catch (error) {
-      console.error('Error removing workspace watcher:', error);
-    }
-  }
-
-  hasWatcher(workspacePath) {
-    return Boolean(this.watchers[workspacePath]);
-  }
-
   closeAllWatchers() {
     const pending = [];
     const collect = (watcher) => {

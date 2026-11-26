@@ -5,7 +5,7 @@ const { app } = require('electron');
 const APP_DIR_NAME = 'Kevin';
 
 /**
- * Returns the default location where new workspaces and collections are stored.
+ * Returns the default location where new collections are stored.
  * Checks ~/Documents/Kevin if available, otherwise falls back to the app's data directory
  */
 function resolveDefaultLocation() {

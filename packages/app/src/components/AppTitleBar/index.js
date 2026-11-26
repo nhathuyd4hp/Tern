@@ -1,40 +1,25 @@
-import React from 'react';
-import { IconCheck, IconChevronDown, IconFolder, IconHome, IconPin, IconPinned, IconPlus, IconDownload, IconSettings, IconMinus, IconSquare, IconX, IconCopy } from '@tabler/icons';
-import { forwardRef, useCallback, useEffect, useMemo, useState } from 'react';
-import toast from 'react-hot-toast';
+import { IconHome, IconMinus, IconSquare, IconX, IconCopy } from '@tabler/icons';
+import { useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { savePreferences, showManageWorkspacePage, toggleSidebarCollapse } from 'providers/ReduxStore/slices/app';
+import { toggleSidebarCollapse } from 'providers/ReduxStore/slices/app';
 import { setLocalStorageValue, SIDEBAR_COLLAPSED_KEY } from 'utils/common/localStorage';
-import { createWorkspaceWithUniqueName, openWorkspaceDialog, switchWorkspace } from 'providers/ReduxStore/slices/workspaces/actions';
-import { sortWorkspaces, toggleWorkspacePin } from 'utils/workspaces';
 import { focusTab } from 'providers/ReduxStore/slices/tabs';
-import get from 'lodash/get';
 
 import Bruno from 'components/Bruno';
-import MenuDropdown from 'ui/MenuDropdown';
 import ActionIcon from 'ui/ActionIcon';
 import IconSidebarToggle from 'components/Icons/IconSidebarToggle';
-import CreateWorkspace from 'components/WorkspaceSidebar/CreateWorkspace';
-import ImportWorkspace from 'components/WorkspaceSidebar/ImportWorkspace';
 
 import AppMenu from './AppMenu';
 import StyledWrapper from './StyledWrapper';
 import ResponseLayoutToggle from 'components/ResponsePane/ResponseLayoutToggle';
 import { isMacOS, isWindowsOS, isLinuxOS } from 'utils/common/platform';
-import classNames from 'classnames';
 
 const getOsClass = () => {
   if (isMacOS()) return 'os-mac';
   if (isWindowsOS()) return 'os-windows';
   if (isLinuxOS()) return 'os-linux';
   return 'os-other';
-};
-
-// Helper to get display name for workspace
-export const getWorkspaceDisplayName = (name) => {
-  if (!name) return 'Untitled Workspace';
-  return name;
 };
 
 const AppTitleBar = () => {
@@ -113,28 +98,9 @@ const AppTitleBar = () => {
     window.ipcRenderer?.send('renderer:window-close');
   }, []);
 
-  // Get workspace info
   const { workspaces, activeWorkspaceUid } = useSelector((state) => state.workspaces);
-  const preferences = useSelector((state) => state.app.preferences);
   const sidebarCollapsed = useSelector((state) => state.app.sidebarCollapsed);
   const activeWorkspace = workspaces.find((w) => w.uid === activeWorkspaceUid);
-
-  // Sort workspaces according to preferences
-  const sortedWorkspaces = useMemo(() => {
-    return sortWorkspaces(workspaces, preferences);
-  }, [workspaces, preferences]);
-
-  const [createWorkspaceModalOpen, setCreateWorkspaceModalOpen] = useState(false);
-  const [importWorkspaceModalOpen, setImportWorkspaceModalOpen] = useState(false);
-
-  const WorkspaceName = forwardRef((props, ref) => {
-    return (
-      <div ref={ref} className="workspace-name-container" {...props}>
-        <span data-testid="workspace-name" className={classNames('workspace-name', { 'italic text-muted': !activeWorkspace?.name })}>{getWorkspaceDisplayName(activeWorkspace?.name)}</span>
-        <IconChevronDown size={14} stroke={1.5} className="chevron-icon" />
-      </div>
-    );
-  });
 
   const handleHomeClick = () => {
     const scratchCollectionUid = activeWorkspace?.scratchCollectionUid;
@@ -143,128 +109,13 @@ const AppTitleBar = () => {
     }
   };
 
-  const handleWorkspaceSwitch = (workspaceUid) => {
-    if (workspaceUid === activeWorkspaceUid) return;
-
-    dispatch(switchWorkspace(workspaceUid));
-    toast.success(`Switched to ${getWorkspaceDisplayName(workspaces.find((w) => w.uid === workspaceUid)?.name)}`);
-  };
-
-  const handleOpenWorkspace = async () => {
-    try {
-      const result = await dispatch(openWorkspaceDialog());
-      if (result) {
-        toast.success('Workspace opened successfully');
-      }
-    } catch (error) {
-      toast.error(error.message || 'Failed to open workspace');
-    }
-  };
-
-  const handleCreateWorkspace = useCallback(async () => {
-    const defaultLocation = get(preferences, 'general.defaultLocation', '');
-    if (!defaultLocation) {
-      setCreateWorkspaceModalOpen(true);
-      return;
-    }
-
-    try {
-      await dispatch(createWorkspaceWithUniqueName(defaultLocation));
-    } catch (error) {
-      toast.error(error?.message || 'Failed to create workspace');
-    }
-  }, [preferences, dispatch]);
-
-  const handleManageWorkspaces = () => {
-    dispatch(showManageWorkspacePage());
-  };
-
-  const handleImportWorkspace = () => {
-    setImportWorkspaceModalOpen(true);
-  };
-
-  const handlePinWorkspace = useCallback((workspaceUid, e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const newPreferences = toggleWorkspacePin(workspaceUid, preferences);
-    dispatch(savePreferences(newPreferences));
-  }, [dispatch, preferences]);
-
   const handleToggleSidebar = () => {
     dispatch(toggleSidebarCollapse());
     setLocalStorageValue(SIDEBAR_COLLAPSED_KEY, !sidebarCollapsed);
   };
 
-  // Build workspace menu items
-  const workspaceMenuItems = useMemo(() => {
-    const items = sortedWorkspaces.map((workspace) => {
-      const isActive = workspace.uid === activeWorkspaceUid;
-      const isPinned = preferences?.workspaces?.pinnedWorkspaceUids?.includes(workspace.uid);
-
-      return {
-        id: workspace.uid,
-        label: getWorkspaceDisplayName(workspace.name),
-        onClick: () => handleWorkspaceSwitch(workspace.uid),
-        className: `workspace-item ${isActive ? 'active' : ''}`,
-        rightSection: (
-          <div className="workspace-actions">
-            {workspace.type !== 'default' && (
-              <ActionIcon
-                className={`pin-btn ${isPinned ? 'pinned' : ''}`}
-                onClick={(e) => handlePinWorkspace(workspace.uid, e)}
-                label={isPinned ? 'Unpin workspace' : 'Pin workspace'}
-                size="sm"
-              >
-                {isPinned ? <IconPinned size={14} stroke={1.5} /> : <IconPin size={14} stroke={1.5} />}
-              </ActionIcon>
-            )}
-            {isActive && <IconCheck size={16} stroke={1.5} className="check-icon" />}
-          </div>
-        )
-      };
-    });
-
-    // Add label and action items
-    items.push(
-      { type: 'label', label: 'Workspaces' },
-      {
-        id: 'create-workspace',
-        leftSection: IconPlus,
-        label: 'Create workspace',
-        onClick: handleCreateWorkspace
-      },
-      {
-        id: 'open-workspace',
-        leftSection: IconFolder,
-        label: 'Open workspace',
-        onClick: handleOpenWorkspace
-      },
-      {
-        id: 'import-workspace',
-        leftSection: IconDownload,
-        label: 'Import workspace',
-        onClick: handleImportWorkspace
-      },
-      {
-        id: 'manage-workspaces',
-        leftSection: IconSettings,
-        label: 'Manage workspaces',
-        onClick: handleManageWorkspaces
-      }
-    );
-
-    return items;
-  }, [sortedWorkspaces, activeWorkspaceUid, preferences, handlePinWorkspace, handleCreateWorkspace]);
-
   return (
     <StyledWrapper data-testid="app-titlebar" className={`app-titlebar ${osClass} ${isFullScreen ? 'fullscreen' : ''}`}>
-      {createWorkspaceModalOpen && (
-        <CreateWorkspace onClose={() => setCreateWorkspaceModalOpen(false)} />
-      )}
-      {importWorkspaceModalOpen && (
-        <ImportWorkspace onClose={() => setImportWorkspaceModalOpen(false)} />
-      )}
-
       <div className="titlebar-content">
         <div className="titlebar-left">
           {showWindowControls && <AppMenu />}
@@ -272,16 +123,6 @@ const AppTitleBar = () => {
           <ActionIcon onClick={handleHomeClick} label="Home" size="lg" className="home-button">
             <IconHome size={16} stroke={1.5} />
           </ActionIcon>
-
-          {/* Workspace Dropdown */}
-          <MenuDropdown
-            data-testid="workspace-menu"
-            items={workspaceMenuItems}
-            placement="bottom-start"
-            selectedItemId={activeWorkspaceUid}
-          >
-            <WorkspaceName />
-          </MenuDropdown>
         </div>
 
         {/* Center section: Bruno logo + text */}

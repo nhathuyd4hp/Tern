@@ -35,10 +35,7 @@ const Collections = ({ showSearch, isCreatingCollection, onCreateClick, onDismis
 
   const activeWorkspace = workspaces.find((w) => w.uid === activeWorkspaceUid) || workspaces.find((w) => w.type === 'default');
 
-  // Build the sidebar list in workspace.yml order. Each entry is either a fully
-  // loaded collection (rendered via <Collection />) or, for non-default workspaces,
-  // a "ghost" git-backed entry whose local folder is missing (rendered via
-  // <GitRemoteCollectionRow /> so the user can click to clone it).
+  // Build the sidebar list in workspace.yml order.
   const sidebarEntries = useMemo(
     () => buildSidebarEntries({ collections, workspaces, activeWorkspace, collectionSortOrder }),
     [activeWorkspace, collections, workspaces, collectionSortOrder]
@@ -49,15 +46,6 @@ const Collections = ({ showSearch, isCreatingCollection, onCreateClick, onDismis
     () => flattenSidebarTree(sidebarEntries, { searchText: debouncedSearchText }),
     [sidebarEntries, debouncedSearchText]
   );
-
-  // Ghost rows carry only path/name. GitRemoteCollectionRow needs the full entry (for `remote`).
-  const ghostsByPath = useMemo(() => {
-    const map = new Map();
-    for (const entry of sidebarEntries) {
-      if (entry.kind === 'ghost' && entry.entry?.path) map.set(entry.entry.path, entry.entry);
-    }
-    return map;
-  }, [sidebarEntries]);
 
   // Multi-select drag context, computed once for the whole list and threaded to rows via SidebarRow.
   const selectionInfo = useMemo(
@@ -147,7 +135,6 @@ const Collections = ({ showSearch, isCreatingCollection, onCreateClick, onDismis
               openBulkMenu={openBulkMenu}
               itemsByUid={itemsByUid}
               collectionsByUid={collectionsByUid}
-              ghostsByPath={ghostsByPath}
               isCollectionMultiDragDisabled={isCollectionMultiDragDisabled}
               isItemMultiDragDisabled={isItemMultiDragDisabled}
               multiDragCollections={multiDragCollections}

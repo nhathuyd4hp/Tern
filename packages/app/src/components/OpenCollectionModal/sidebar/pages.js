@@ -30,7 +30,7 @@ export const OPEN_COLLECTION_PAGES = [
     id: 'choose-folder',
     label: 'Choose folder…',
     title: 'Choose folder',
-    description: 'Pick one or more collection folders to open them in the current workspace.',
+    description: 'Pick one or more collection folders to open them in Kevin.',
     icon: IconFolder,
     component: ChooseFolderPage
   },

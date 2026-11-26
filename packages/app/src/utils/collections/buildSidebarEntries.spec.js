@@ -7,13 +7,13 @@ jest.mock('utils/common/platform', () => ({
 }));
 
 describe('buildSidebarEntries', () => {
-  it('resolves collection without ghost entry when paths differ only by case on Windows', () => {
+  it('resolves collection without a duplicate entry when paths differ only by case on Windows', () => {
     platformUtils.isWindowsOS.mockReturnValue(true);
 
     const activeWorkspace = {
       type: 'custom',
       collections: [
-        { path: 'C:\\users\\bob\\my-collection', remote: true }
+        { path: 'C:\\users\\bob\\my-collection' }
       ]
     };
 
@@ -34,7 +34,7 @@ describe('buildSidebarEntries', () => {
     const activeWorkspace = {
       type: 'custom',
       collections: [
-        { path: '/users/bob/my-collection', remote: true }
+        { path: '/users/bob/my-collection' }
       ]
     };
 
@@ -44,7 +44,6 @@ describe('buildSidebarEntries', () => {
 
     const entries = buildSidebarEntries({ collections, activeWorkspace, workspaces: [] });
 
-    expect(entries).toHaveLength(1);
-    expect(entries[0].kind).toBe('ghost');
+    expect(entries).toHaveLength(0);
   });
 });

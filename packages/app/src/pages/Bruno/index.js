@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import classnames from 'classnames';
-import ManageWorkspace from 'components/ManageWorkspace';
 import RequestTabs from 'components/RequestTabs';
 import RequestTabPanel from 'components/RequestTabPanel';
 import Sidebar from 'components/Sidebar';
@@ -41,7 +40,6 @@ const TransientRequestModalsRenderer = ({ modals }) => {
 export default function Main() {
   const activeTabUid = useSelector((state) => state.tabs.activeTabUid);
   const isDragging = useSelector((state) => state.app.isDragging);
-  const showManageWorkspacePage = useSelector((state) => state.app.showManageWorkspacePage);
   const saveTransientRequestModals = useSelector((state) => state.collections.saveTransientRequestModals);
 
   const mainSectionRef = useRef(null);
@@ -99,18 +97,12 @@ export default function Main() {
         <StyledWrapper className={className} style={{ height: '100%', zIndex: 1 }}>
           <Sidebar />
           <section className="flex flex-grow flex-col overflow-hidden">
-            {showManageWorkspacePage ? (
-              <ManageWorkspace />
-            ) : (
-              <>
-                <RequestTabs />
-                <div className="relative flex flex-col flex-grow overflow-hidden">
-                  <TabPanelErrorBoundary key={activeTabUid} tabUid={activeTabUid}>
-                    <RequestTabPanel key={activeTabUid} />
-                  </TabPanelErrorBoundary>
-                </div>
-              </>
-            )}
+            <RequestTabs />
+            <div className="relative flex flex-col flex-grow overflow-hidden">
+              <TabPanelErrorBoundary key={activeTabUid} tabUid={activeTabUid}>
+                <RequestTabPanel key={activeTabUid} />
+              </TabPanelErrorBoundary>
+            </div>
           </section>
         </StyledWrapper>
       </div>

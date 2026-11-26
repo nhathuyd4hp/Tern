@@ -102,25 +102,25 @@ const createStore = ({ activeWorkspaceUid = WS_A } = {}) => {
   });
 };
 
-describe('switchWorkspace', () => {
-  let switchWorkspace;
+describe('activateWorkspace', () => {
+  let activateWorkspace;
 
   beforeAll(async () => {
     window.ipcRenderer = { invoke: jest.fn(mockIpcInvoke) };
-    ({ switchWorkspace } = await import('./actions'));
+    ({ activateWorkspace } = await import('./actions'));
   });
 
   it('makes the chosen workspace active', async () => {
     const store = createStore();
 
-    await store.dispatch(switchWorkspace(WS_B));
+    await store.dispatch(activateWorkspace(WS_B));
 
     expect(store.getState().workspaces.activeWorkspaceUid).toBe(WS_B);
   });
 });
 
-describe('collections that fail to open on workspace switch', () => {
-  let switchWorkspace;
+describe('collections that fail to open on workspace activation', () => {
+  let activateWorkspace;
   let toast;
   let openMultipleCollections;
 
@@ -137,7 +137,7 @@ describe('collections that fail to open on workspace switch', () => {
   beforeAll(async () => {
     ({ default: toast } = await import('react-hot-toast'));
     ({ openMultipleCollections } = await import('../collections/actions'));
-    ({ switchWorkspace } = await import('./actions'));
+    ({ activateWorkspace } = await import('./actions'));
   });
 
   beforeEach(() => {
@@ -166,7 +166,7 @@ describe('collections that fail to open on workspace switch', () => {
   const switchToWorkspaceB = async () => {
     const store = createStore();
     store.dispatch(updateWorkspace({ uid: WS_B, pathname: WS_B_PATH }));
-    await store.dispatch(switchWorkspace(WS_B));
+    await store.dispatch(activateWorkspace(WS_B));
     return store;
   };
 

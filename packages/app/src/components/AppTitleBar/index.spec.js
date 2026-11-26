@@ -5,7 +5,6 @@ import { ThemeProvider } from 'styled-components';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 
-jest.mock('ui/MenuDropdown', () => ({ children }) => <div>{children}</div>);
 jest.mock('ui/ActionIcon', () => ({ children, onClick, label }) => (
   <button onClick={onClick} aria-label={label}>{children}</button>
 ));

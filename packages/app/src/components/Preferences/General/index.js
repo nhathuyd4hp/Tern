@@ -330,7 +330,7 @@ const General = () => {
 
         <SettingsGroup
           title="Default Location"
-          description="Used as the default location for new workspaces and collections"
+          description="Used as the default location for new collections"
         >
           <SettingsField error={formik.errors.defaultLocation} className="default-location-field">
             <input

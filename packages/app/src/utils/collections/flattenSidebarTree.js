@@ -268,23 +268,6 @@ export const flattenSidebarTree = (sidebarEntries = [], options = {}) => {
   for (const entry of sidebarEntries) {
     if (!entry) continue;
 
-    // A ghost represents a missing Git-backed collection and is never expanded.
-    if (entry.kind === 'ghost') {
-      const ghost = entry.entry || {};
-
-      appendRow({
-        id: `ghost:${ghost.path}`,
-        kind: 'ghost',
-        depth: 0,
-        collectionUid: null,
-        collectionPathname: ghost.path || null,
-        itemUid: null,
-        sortName: ghost.name || null
-      });
-
-      continue;
-    }
-
     if (!entry.collection) continue;
 
     flattenCollection({

@@ -13,7 +13,6 @@ import PostmanPackageReport from 'components/Sidebar/PostmanPackageReport';
 import usePostmanPackagePrompt from 'hooks/usePostmanPackagePrompt';
 import Button from 'ui/Button';
 import CollectionsList from './CollectionsList';
-import WorkspaceDocs from '../WorkspaceDocs';
 import StyledWrapper from './StyledWrapper';
 
 const WorkspaceOverview = ({ workspace }) => {
@@ -38,7 +37,7 @@ const WorkspaceOverview = ({ workspace }) => {
     }
 
     if (!workspace?.pathname) {
-      toast.error('Workspace path not found');
+      toast.error('Application storage path not found');
       return;
     }
 
@@ -52,7 +51,7 @@ const WorkspaceOverview = ({ workspace }) => {
       dispatch(setIsCreatingCollection(true));
     } catch (error) {
       console.error('Error ensuring collections folder exists:', error);
-      toast.error('Error preparing workspace for collection creation');
+      toast.error('Error preparing storage for collection creation');
     }
   };
 
@@ -188,9 +187,6 @@ const WorkspaceOverview = ({ workspace }) => {
           </div>
         </div>
 
-        <div className="overview-docs">
-          <WorkspaceDocs key={workspace?.uid} workspace={workspace} />
-        </div>
       </div>
     </StyledWrapper>
   );

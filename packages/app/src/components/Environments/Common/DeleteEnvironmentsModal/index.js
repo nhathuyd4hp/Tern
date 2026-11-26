@@ -19,12 +19,12 @@ const DELETE_ENVIRONMENT_TYPE_CONFIG = {
   },
   global: {
     testIdPrefix: 'delete-global-environments',
-    scopeLabel: 'workspace',
+    scopeLabel: 'global scope',
     getDescription: (environments) =>
       environments.length === 1 ? (
-        <>This permanently deletes <span className="env-name">{environments[0].name}</span> from this workspace. This cannot be undone.</>
+        <>This permanently deletes <span className="env-name">{environments[0].name}</span> from the global environments. This cannot be undone.</>
       ) : (
-        'This permanently deletes the environments from this workspace. This cannot be undone.'
+        'This permanently deletes the environments from the global environments. This cannot be undone.'
       )
   }
 };

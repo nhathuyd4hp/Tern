@@ -654,10 +654,9 @@ const buildCollectionB = () => ({
 });
 
 describe('getVisibleSidebarUidsInOrder', () => {
-  it('lists loaded collections and their expanded items in render order, skipping ghost entries and collapsed subtrees', () => {
+  it('lists loaded collections and their expanded items in render order and skipping collapsed subtrees', () => {
     const sidebarEntries = [
       { kind: 'loaded', collection: buildCollectionA() },
-      { kind: 'ghost', entry: { name: 'Missing', path: '/ghost' } },
       { kind: 'loaded', collection: buildCollectionB() }
     ];
 

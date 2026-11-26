@@ -10,17 +10,9 @@ const StyledWrapper = styled.div`
   }
 
   .overview-main {
-    flex: 3;
+    flex: 1;
     padding: 20px 16px 16px;
     overflow-y: auto;
-    border-right: 1px solid ${(props) => props.theme.workspace.border};
-  }
-
-  .overview-docs {
-    display: flex;
-    flex: 2;
-    flex-direction: column;
-    overflow: hidden;
   }
 
   .stats-row {

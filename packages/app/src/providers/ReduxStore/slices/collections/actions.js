@@ -2656,14 +2656,8 @@ export const removeCollection = (collectionUid) => (dispatch, getState) => {
     ipcRenderer
       .invoke('renderer:remove-collection', collection.pathname, collectionUid, workspaceId)
       .then(() => {
-        // Check if the collection still exists in other workspaces
-        return ipcRenderer.invoke('renderer:get-collection-workspaces', collection.pathname);
-      })
-      .then((remainingWorkspaces) => {
-        // Close tabs for this collection
         dispatch(closeAllCollectionTabs({ collectionUid }));
 
-        // Remove collection from workspace in Redux state
         if (activeWorkspace) {
           dispatch(removeCollectionFromWorkspace({
             workspaceUid: activeWorkspace.uid,
@@ -2673,16 +2667,11 @@ export const removeCollection = (collectionUid) => (dispatch, getState) => {
 
         dispatch(ensureActiveTabInCurrentWorkspace());
 
-        // Only remove from Redux if no workspaces remain
-        if (!remainingWorkspaces || remainingWorkspaces.length === 0) {
-          return waitForNextTick().then(() => {
-            dispatch(_removeCollection({
-              collectionUid: collectionUid
-            }));
-          });
-        } else {
-          // Collection still exists in other workspaces
-        }
+        return waitForNextTick().then(() => {
+          dispatch(_removeCollection({
+            collectionUid: collectionUid
+          }));
+        });
       })
       .then(resolve)
       .catch(reject);

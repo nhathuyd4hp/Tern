@@ -17,7 +17,7 @@ const DeleteCollection = ({ onClose, collectionUid, workspaceUid }) => {
 
   const onConfirm = async () => {
     if (!collection || !workspace) {
-      toast.error('Collection or workspace not found');
+      toast.error('Collection not found');
       onClose();
       return;
     }

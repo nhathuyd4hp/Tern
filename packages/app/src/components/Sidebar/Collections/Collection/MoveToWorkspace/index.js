@@ -36,7 +36,7 @@ const MoveToWorkspace = ({ onClose, collectionUid }) => {
     setIsMoving(true);
     dispatch(moveCollectionToWorkspace(collection.uid))
       .then(() => {
-        toast.success('Collection moved into workspace');
+        toast.success('Collection moved into app storage');
         onClose();
       })
       .catch((err) => {
@@ -64,7 +64,7 @@ const MoveToWorkspace = ({ onClose, collectionUid }) => {
     <StyledWrapper>
       <Modal
         size="sm"
-        title="Move into Workspace"
+        title="Move into App Storage"
         confirmText={isMoving ? 'Moving...' : 'Move'}
         confirmDisabled={isMoving}
         handleConfirm={onConfirm}

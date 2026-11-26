@@ -70,7 +70,7 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
   const handleSelectionClick = useSidebarSelectionClick({ uid: collection.uid, searchText });
   const menuDropdownRef = useRef(null);
 
-  // 'Move into Workspace' is available for collections opened from outside the current workspace.
+  // 'Move into App Storage' is available for collections opened from outside the current workspace.
   const activeWorkspace = useSelector((state) =>
     state.workspaces.workspaces.find((w) => w.uid === state.workspaces.activeWorkspaceUid)
   );
@@ -417,7 +417,7 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
           {
             id: 'move-to-workspace',
             leftSection: IconFileArrowRight,
-            label: 'Move into Workspace',
+            label: 'Move into App Storage',
             testId: 'move-collection-to-workspace',
             onClick: () => {
               setShowMoveToWorkspaceModal(true);

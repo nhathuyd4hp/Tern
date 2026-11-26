@@ -28,15 +28,6 @@ export const workspacesSlice = createSlice({
       }
     },
 
-    removeWorkspace: (state, action) => {
-      const workspaceUid = action.payload;
-      state.workspaces = state.workspaces.filter((w) => w.uid !== workspaceUid);
-
-      if (state.activeWorkspaceUid === workspaceUid) {
-        state.activeWorkspaceUid = DEFAULT_WORKSPACE_UID;
-      }
-    },
-
     updateWorkspace: (state, action) => {
       const { uid, ...updates } = action.payload;
       const workspace = state.workspaces.find((w) => w.uid === uid);
@@ -133,7 +124,6 @@ export const workspacesSlice = createSlice({
 export const {
   setActiveWorkspace,
   createWorkspace,
-  removeWorkspace,
   updateWorkspace,
   addCollectionToWorkspace,
   removeCollectionFromWorkspace,

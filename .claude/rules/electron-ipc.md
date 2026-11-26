@@ -34,7 +34,7 @@ handler.
 Follow the prefix that matches the direction — the vast majority of handlers already do:
 
 - **`renderer:*`** — renderer→main via `ipcMain.handle` (the default for new work; ~255 of ~290
-  handlers). e.g. `renderer:ready`, `renderer:save-request`, `renderer:create-workspace`,
+  handlers). e.g. `renderer:ready`, `renderer:save-request`, `renderer:add-collection-to-workspace`,
   `renderer:browse-directory`, `renderer:get-global-environments`.
 - **`main:*`** — main→renderer push via `webContents.send`. e.g. `main:load-preferences`,
   `main:collection-opened`, `main:workspace-opened`, `main:collection-tree-updated`,
@@ -79,7 +79,7 @@ Two patterns by handler type — match the one that fits:
   `throw new Error(...)`; caught errors are re-surfaced with `return Promise.reject(error)` or
   `throw error`. The renderer `invoke` promise rejects and is shown via a `main:display-error`
   toast (`useIpcEvents.js`). A few read-only probes intentionally swallow and return a fallback
-  (e.g. `exists-sync` → `false`, `get-collection-workspaces` → `[]`).
+  (e.g. `exists-sync` → `false`).
 - **Request-execution handlers embed the error in the result.** `send-http-request`
   (`ipc/network/index.js`) does **not** reject on a failed request/script/test — it returns a
   result object carrying an `error` field so the renderer can render the failure as data. New
@@ -109,7 +109,7 @@ renderer mounts
           ipcMain.emit('main:renderer-ready')
             -> workspace.js listener:                     [ipc/workspace.js]
                  await ensureDefaultWorkspaceExists()
-                 send main:workspace-opened (per workspace)
+                 send main:workspace-opened (the one default workspace)
                  send + ipcMain.emit('main:workspaces-ready')
                    -> onboarding.js sends main:collection-opened  [app/onboarding.js]
 

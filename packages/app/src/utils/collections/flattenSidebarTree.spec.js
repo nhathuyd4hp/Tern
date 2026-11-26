@@ -91,12 +91,6 @@ describe('flattenSidebarTree', () => {
     });
   });
 
-  it('emits a ghost row', () => {
-    const rows = flatten([{ kind: 'ghost', entry: { path: '/repo/x', name: 'X' } }]);
-    expect(rows).toHaveLength(1);
-    expect(rows[0]).toMatchObject({ kind: 'ghost', collectionPathname: '/repo/x', sortName: 'X', depth: 0 });
-  });
-
   describe('examples', () => {
     it('emits example rows when expanded at request depth + 1', () => {
       const c = collection('C', [request('r1', { collapsed: false, examples: [{ uid: 'ex1', name: 'ok' }, { uid: 'ex2', name: 'err' }] })]);
