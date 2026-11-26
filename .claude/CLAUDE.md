@@ -9,7 +9,7 @@ Bruno is an API **client**, not a server: it sends requests and handles response
 ```bash
 npm run dev              # Run electron + react concurrently
 npm run dev:watch        # Same, with hot-reload of the electron main process
-npm run storybook        # Component dev (bruno-app)
+npm run storybook        # Component dev (app)
 npm run lint:fix         # ESLint fix
 npm test --workspaces    # Unit tests (Jest) across all packages
 ```
@@ -20,33 +20,33 @@ Full script list: root `package.json`. Setup: `nvm use && npm i --legacy-peer-de
 
 ```bash
 # Single unit test (Jest) — scope to the workspace, pass a path/pattern after --
-npm test --workspace=packages/bruno-app -- path/to/file.spec.js
-npm test --workspace=packages/bruno-requests -- -t "test name pattern"
+npm test --workspace=packages/app -- path/to/file.spec.js
+npm test --workspace=packages/requests -- -t "test name pattern"
 ```
 
 Prefer the smallest scope — one workspace, one spec — over `--workspaces`.
 
 ### Building shared packages
 
-`npm run dev` does **not** rebuild the shared packages (bruno-common, bruno-requests,
-bruno-filestore, bruno-sqlite, bruno-converters, bruno-query, bruno-schema-types,
-bruno-graphql-docs).
+`npm run dev` does **not** rebuild the shared packages (common, requests,
+filestore, sqlite, converters, query, schema-types,
+graphql-docs).
 After editing one, rebuild it or run its watcher, or the app won't pick up changes:
 
 ```bash
-npm run build:bruno-common      # also :bruno-requests, :bruno-filestore, :bruno-sqlite, etc.
+npm run build:common      # also :requests, :filestore, :sqlite, etc.
 npm run watch:common            # also watch:requests, watch:converters
 ```
 
 ## Key Architecture
 
-- **Main process entry**: `packages/bruno-electron/src/index.js`
-- **Renderer + Redux store**: `packages/bruno-app/src/providers/ReduxStore/`
+- **Main process entry**: `packages/electron/src/index.js`
+- **Renderer + Redux store**: `packages/app/src/providers/ReduxStore/`
 - Packages live under `packages/`.
 
 ## Testing
 
-- **Unit**: Jest, config per-package (`packages/*/jest.config.js`); bruno-app uses jsdom + `jest.setup.js`.
+- **Unit**: Jest, config per-package (`packages/*/jest.config.js`); app uses jsdom + `jest.setup.js`.
 
 ## Coding Standards
 
@@ -61,7 +61,7 @@ Non-obvious project rules worth holding:
 ## Detailed rules & references
 
 Path-scoped rules in `.claude/rules/` auto-attach when you touch matching files:
-`architecture.md` (`@usebruno/*` dependency boundaries, manifests), `bruno-app-layout.md` (bruno-app
+`architecture.md` (`@usebruno/*` dependency boundaries, manifests), `app-layout.md` (app
 module layout), `electron-ipc.md` (IPC handlers + startup), `redux-store.md` (slices/middleware),
 `sqlite.md` (`@usebruno/sqlite` — migrations, statements, per-statement IPC), `cross-platform.md` (Windows file/process/path pitfalls), `dsl-changes.md`
 (on-disk `.bru`/`.yml` format & backward compat), `feature-parity.md` (co-related features —

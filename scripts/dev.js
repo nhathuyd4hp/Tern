@@ -23,8 +23,8 @@ const log = {
 };
 
 const rootDir = path.join(__dirname, '..');
-const webDir = path.join(rootDir, 'packages/bruno-app');
-const electronDir = path.join(rootDir, 'packages/bruno-electron');
+const webDir = path.join(rootDir, 'packages/app');
+const electronDir = path.join(rootDir, 'packages/electron');
 
 let electronProcess = null;
 let detectedPort = null;

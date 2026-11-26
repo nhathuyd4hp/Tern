@@ -1,7 +1,7 @@
 ---
 paths:
   - "scripts/**/*"
-  - "packages/bruno-electron/**/*"
+  - "packages/electron/**/*"
 ---
 
 # Cross-Platform Guidelines
@@ -29,7 +29,7 @@ This is an Electron app targeting macOS, Windows, and Linux. All code touching t
 
 ## Line Endings
 
-- Files authored on Windows use CRLF. When parsing multiline `.bru`/text blocks line by line, split with a CRLF-aware regex (`/\r\n|\r|\n/`), never on `\n` alone — a trailing `\r` otherwise leaks into parsed values and causes spurious dirty-state and diffs. the `.split(/\r\n|\r|\n/)` in `bruno-lang`'s `v2/src/envToJson.js` is the reference pattern; keep new parsers consistent with it.
+- Files authored on Windows use CRLF. When parsing multiline `.bru`/text blocks line by line, split with a CRLF-aware regex (`/\r\n|\r|\n/`), never on `\n` alone — a trailing `\r` otherwise leaks into parsed values and causes spurious dirty-state and diffs. the `.split(/\r\n|\r|\n/)` in `lang`'s `v2/src/envToJson.js` is the reference pattern; keep new parsers consistent with it.
 
 ## stdout vs stderr
 

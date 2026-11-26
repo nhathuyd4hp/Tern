@@ -14,34 +14,34 @@ it before non-trivial cross-package or architectural work.
 
 ## Dependency direction & ownership boundaries
 
-- **Leaf libs — zero internal `@usebruno/*` deps:** bruno-common, bruno-lang, bruno-query,
-  bruno-requests, bruno-graphql-docs, bruno-schema, bruno-schema-types, bruno-sqlite
+- **Leaf libs — zero internal `@usebruno/*` deps:** common, lang, query,
+  requests, graphql-docs, schema, schema-types, sqlite
   (a leaf, but *not* platform-neutral — see guardrail 6).
-- **Mid consumers:** bruno-js → (common, query); bruno-converters → (common, schema; schema-types
-  as devDep); bruno-filestore → (common, lang; schema-types as devDep).
-- **Top consumers (things flow *into* them, never out):** bruno-electron → (common, converters, filestore, js, lang,
-  requests, schema, sqlite); bruno-app → (common, converters, graphql-docs, schema).
+- **Mid consumers:** js → (common, query); converters → (common, schema; schema-types
+  as devDep); filestore → (common, lang; schema-types as devDep).
+- **Top consumers (things flow *into* them, never out):** electron → (common, converters, filestore, js, lang,
+  requests, schema, sqlite); app → (common, converters, graphql-docs, schema).
 
 Guardrails this enforces:
 
-1. **bruno-common is the browser-safe base leaf.** It runs in the web renderer (`bruno-app`), not
+1. **common is the browser-safe base leaf.** It runs in the web renderer (`app`), not
    just Node, so it must stay platform-neutral: no Node built-ins (`fs`, `path`, `os`, `crypto`,
    `child_process`, `node:*`) and no dependency that itself pulls in Node. It currently ships with
    zero runtime dependencies — keep it that way. It also depends on no other `@usebruno/*` package;
    a util that needs Node or another bruno package belongs in a different package.
-2. **No shared/library package may import bruno-app or bruno-electron.** Renderer- or
+2. **No shared/library package may import app or electron.** Renderer- or
    Electron-specific code must not be pushed down into a lib to make it importable upward.
-3. **bruno-js must stay Electron-free.** It is a plain Node library; keep it free of Electron/IPC
+3. **js must stay Electron-free.** It is a plain Node library; keep it free of Electron/IPC
    imports so it stays reusable and testable outside the app. Sandbox logic
-   belongs in bruno-js; host wiring belongs in bruno-electron.
-4. **bruno-schema-types is types-only** (a *devDependency* of converters/filestore, built with
+   belongs in js; host wiring belongs in electron.
+4. **schema-types is types-only** (a *devDependency* of converters/filestore, built with
    plain `tsc`). Import types from it; never add runtime code or a runtime import of it.
-5. **bruno-schema (Yup) and bruno-schema-types (TS types) are distinct and both live.** app +
+5. **schema (Yup) and schema-types (TS types) are distinct and both live.** app +
    converters use `@usebruno/schema` for runtime validation; filestore + converters use
    `@usebruno/schema-types` for compile-time types. A data-model change usually touches both.
-6. **bruno-sqlite is main-process only.** `@usebruno/sqlite` (= `/node`) imports `node:sqlite`,
+6. **sqlite is main-process only.** `@usebruno/sqlite` (= `/node`) imports `node:sqlite`,
    `node:fs` and `node:crypto`; importing it from the renderer breaks the bundle. The renderer
-   reaches statements only through the per-statement IPC handlers in bruno-electron. See
+   reaches statements only through the per-statement IPC handlers in electron. See
    `.claude/rules/sqlite.md`.
 
 ## Declared dependencies must match real imports

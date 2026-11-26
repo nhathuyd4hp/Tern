@@ -1,11 +1,11 @@
 ---
 paths:
-  - "packages/bruno-electron/**/*"
+  - "packages/electron/**/*"
 ---
 
 # Electron Main Process Guide
 
-The main process (`packages/bruno-electron/src/index.js`) owns the filesystem, network, child
+The main process (`packages/electron/src/index.js`) owns the filesystem, network, child
 processes, and all electron-store data. The renderer reaches it **only** over IPC through the
 preload bridge — there is no direct Node access in the renderer despite `nodeIntegration: true`
 (see Security below). Before adding or changing any IPC, read this file plus the target
@@ -25,7 +25,7 @@ preload bridge — there is no direct Node access in the renderer despite `nodeI
 Also exposed: `window.isPlaywright` (`process.env.PLAYWRIGHT === 'true'`).
 
 Renderer code accesses this as `window.ipcRenderer` (e.g. `const { ipcRenderer } = window;` in
-`bruno-app/src/providers/App/useIpcEvents.js`). **There is no channel allowlist** — any channel
+`app/src/providers/App/useIpcEvents.js`). **There is no channel allowlist** — any channel
 string is forwarded. Do not rely on the preload to gate channels; validate inputs inside the
 handler.
 

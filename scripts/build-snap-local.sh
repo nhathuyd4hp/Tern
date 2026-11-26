@@ -8,13 +8,13 @@
 # packs the generated snap project itself with `snapcraft pack --destructive-mode`.
 #
 # Usage: ./scripts/build-snap-local.sh [--skip-web]
-#   --skip-web   reuse the existing packages/bruno-app/dist build
+#   --skip-web   reuse the existing packages/app/dist build
 #   SNAP_BASE=core22 ./scripts/build-snap-local.sh   force a base
 
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-ELECTRON_DIR="$ROOT_DIR/packages/bruno-electron"
+ELECTRON_DIR="$ROOT_DIR/packages/electron"
 SKIP_WEB=false
 
 for arg in "$@"; do
@@ -67,12 +67,12 @@ if [ "$SKIP_WEB" = false ]; then
   npm run build:web
 fi
 
-[ -d packages/bruno-app/dist ] || { echo "packages/bruno-app/dist is missing; run without --skip-web" >&2; exit 1; }
+[ -d packages/app/dist ] || { echo "packages/app/dist is missing; run without --skip-web" >&2; exit 1; }
 
 # Same web staging as scripts/build-electron.sh
 rm -rf "$ELECTRON_DIR/out" "$ELECTRON_DIR/web"
 mkdir "$ELECTRON_DIR/web"
-cp -r packages/bruno-app/dist/* "$ELECTRON_DIR/web"
+cp -r packages/app/dist/* "$ELECTRON_DIR/web"
 sed -i'' -e 's@/static/@static/@g' "$ELECTRON_DIR"/web/**.html
 sed -i'' -e 's@/static/font@../../static/font@g' "$ELECTRON_DIR"/web/static/css/**.**.css
 find "$ELECTRON_DIR/web" -name '*.map' -type f -delete

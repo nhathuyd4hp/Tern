@@ -34,13 +34,13 @@ hand:
 
 | Layer | Where | Missed → |
 |---|---|---|
-| Types | `bruno-schema-types/src/collection/item.ts` | type drift |
-| Yup schema | `bruno-schema/src/collections/index.js` — `.noUnknown(true)`, cast output is persisted | **silently stripped on save** |
-| App save transform | `bruno-app/src/utils/collections/index.js` — `transformRequestToSaveToFilesystem`, `transform{Collection,Folder}RootToSave`, `transformCollectionToSaveToExportAsFile` | dropped before reaching disk / Bruno JSON export |
-| On-disk formats | `bruno-filestore/src/formats/{bru,yml}` (+ `bruno-lang`) — parse **and** stringify | lost in one format |
-| BRU → YML migration | `bruno-electron/src/ipc/yml-migration.js` (bru parse → yml stringify) | lost when a user migrates |
+| Types | `schema-types/src/collection/item.ts` | type drift |
+| Yup schema | `schema/src/collections/index.js` — `.noUnknown(true)`, cast output is persisted | **silently stripped on save** |
+| App save transform | `app/src/utils/collections/index.js` — `transformRequestToSaveToFilesystem`, `transform{Collection,Folder}RootToSave`, `transformCollectionToSaveToExportAsFile` | dropped before reaching disk / Bruno JSON export |
+| On-disk formats | `filestore/src/formats/{bru,yml}` (+ `lang`) — parse **and** stringify | lost in one format |
+| BRU → YML migration | `electron/src/ipc/yml-migration.js` (bru parse → yml stringify) | lost when a user migrates |
 | Collection config | `bruno.json` ↔ `opencollection.yml` — `utils/transformBrunoConfig.js`, `stringifyCollection`, migration's config transform (e.g. `transformProxyConfig`) | config lost or misread |
-| OpenCollection import/export | `bruno-converters/src/opencollection/items/{http,graphql,grpc,websocket}.ts`, `folder.ts`, `environment.ts` — **both** directions; app entry `bruno-app/src/utils/exporters/opencollection.js` | lost on export or import |
+| OpenCollection import/export | `converters/src/opencollection/items/{http,graphql,grpc,websocket}.ts`, `folder.ts`, `environment.ts` — **both** directions; app entry `app/src/utils/exporters/opencollection.js` | lost on export or import |
 | Other converters | `postman/{postman-to-bruno,bruno-to-postman}.js`, `insomnia/`, `openapi/`, `wsdl/`; app exporters `postman-collection.js`, `openapi-spec.js`, `bruno-environment.js` | lost on import/export where the target can represent it |
 
 The migration also rewrites content, not just shape: `bru.runRequest("x.bru")` paths are stripped
@@ -49,13 +49,13 @@ type, or a new `bruno.json` key needs a matching migration step.
 
 ## 2. Scripting API ↔ QuickJS shim
 
-`bruno-js/src/{bru,bruno-request,bruno-response}.js` implement the API. The **QuickJS sandbox — the
-default "safe" mode — bridges each method explicitly** in `bruno-js/src/sandbox/quickjs/shims/`
+`js/src/{bru,bruno-request,bruno-response}.js` implement the API. The **QuickJS sandbox — the
+default "safe" mode — bridges each method explicitly** in `js/src/sandbox/quickjs/shims/`
 (`bru.js`, `bruno-request.js`, `bruno-response.js`, `bruno-grpc.js`, …). Implementation only →
 works in developer mode, `undefined` for most users.
 
 The JSDoc on these classes is the source of the published script API reference. A new or changed
-member needs its JSDoc per `packages/bruno-js/readme.md` § "Script API JSDoc" — summary, typed
+member needs its JSDoc per `packages/js/readme.md` § "Script API JSDoc" — summary, typed
 tags, `@category`; `@internal` for host-only state; `@runtime nodevm` if the shim deliberately
 doesn't bridge it. Then run `npm run generate:script-api` and commit `types/script-api.d.ts`.
 
@@ -68,9 +68,9 @@ for the other two and for `inherit`.
 
 ## 4. Protocols — HTTP ↔ GraphQL ↔ gRPC ↔ WebSocket
 
-`REQUEST_TYPES` (`bruno-app/src/utils/common/constants.js`, `bruno-electron/src/utils/constants.js`)
-lists all four. Each has its own `parse*`/`stringify*` in `bruno-filestore/src/formats/yml/items/`
-and its own converter in `bruno-converters/src/opencollection/items/`. "HTTP only" is a legitimate
+`REQUEST_TYPES` (`app/src/utils/common/constants.js`, `electron/src/utils/constants.js`)
+lists all four. Each has its own `parse*`/`stringify*` in `filestore/src/formats/yml/items/`
+and its own converter in `converters/src/opencollection/items/`. "HTTP only" is a legitimate
 scope — leaving it unstated is how a gap becomes a bug report.
 
 ## 5. Request shaping ↔ code generation

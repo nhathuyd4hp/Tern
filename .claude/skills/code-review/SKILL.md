@@ -38,7 +38,7 @@ merge and report their findings.
      already hold the uncommitted state.
 2. **Enumerate changed files** — `git diff --name-only main...HEAD` (committed range) or
    `git diff --name-only HEAD` (working tree). Use this to skip any lens whose file scope
-   isn't touched (e.g. no `packages/bruno-app/**` change → skip `react.md`). Never skip the lenses scoped to all files, and never skip
+   isn't touched (e.g. no `packages/app/**` change → skip `react.md`). Never skip the lenses scoped to all files, and never skip
    `feature-parity.md` for a small diff — a one-file change is exactly the shape it catches.
 3. **Fan out the reviewers in parallel.** In a *single message*, launch one `Agent`
    (subagent_type `Explore` or `general-purpose`) per in-scope reviewer below. Give each
@@ -71,10 +71,10 @@ Each file is a self-contained checklist for one lens:
 | `reviewers/correctness.md` | Correctness & root-cause | all source (excl. `tests/**`) |
 | `reviewers/architecture.md` | Architecture & dependency boundaries | `packages/**` |
 | `reviewers/conventions.md` | Coding standards & readability | all files |
-| `reviewers/react.md` | React — app files | `packages/bruno-app/**` |
+| `reviewers/react.md` | React — app files | `packages/app/**` |
 | `reviewers/cross-platform.md` | Cross-platform (macOS/Windows/Linux) | all files |
 | `reviewers/security.md` | Security & data safety | all source (excl. `tests/**`) |
-| `reviewers/dsl-changes.md` | On-disk DSL & serialization (backward compat) | `bruno-app`, `bruno-electron`, `bruno-lang`, `bruno-filestore`, `bruno-schema(-types)`, `bruno-converters` |
+| `reviewers/dsl-changes.md` | On-disk DSL & serialization (backward compat) | `app`, `electron`, `lang`, `filestore`, `schema(-types)`, `converters` |
 | `reviewers/feature-parity.md` | Co-related features & parity (app↔CLI, shim, converter, level, protocol twins) | `packages/**` |
 
 ## Shared reviewer persona & output contract

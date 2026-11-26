@@ -28,7 +28,7 @@ jobs:
         run: npm run lint
 
       - name: Script API Check
-        run: npm run generate:script-api --workspace=packages/bruno-js -- --check
+        run: npm run generate:script-api --workspace=packages/js -- --check
 
   windows:
     name: Windows (nsis)
@@ -55,7 +55,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: kevin-windows
-          path: packages/bruno-electron/out/*.exe
+          path: packages/electron/out/*.exe
           if-no-files-found: error
           retention-days: 14
 
@@ -82,19 +82,19 @@ jobs:
         run: node scripts/build-electron.js
 
       - name: Build deb
-        run: npm run dist:deb --workspace=packages/bruno-electron -- --publish never
+        run: npm run dist:deb --workspace=packages/electron -- --publish never
 
       - name: Build rpm
-        run: npm run dist:rpm --workspace=packages/bruno-electron -- --publish never
+        run: npm run dist:rpm --workspace=packages/electron -- --publish never
 
       - name: Upload installers
         uses: actions/upload-artifact@v4
         with:
           name: kevin-linux
           path: |
-            packages/bruno-electron/out/*.AppImage
-            packages/bruno-electron/out/*.deb
-            packages/bruno-electron/out/*.rpm
+            packages/electron/out/*.AppImage
+            packages/electron/out/*.deb
+            packages/electron/out/*.rpm
           if-no-files-found: error
           retention-days: 14
 
@@ -118,14 +118,14 @@ jobs:
         run: node scripts/build-electron.js --prepare-only
 
       - name: Build dmg (x64 and arm64)
-        working-directory: packages/bruno-electron
+        working-directory: packages/electron
         run: npx electron-builder --mac dmg --x64 --arm64 --publish never --config electron-builder-config.js -c.mac.identity=null
 
       - name: Upload installers
         uses: actions/upload-artifact@v4
         with:
           name: kevin-macos
-          path: packages/bruno-electron/out/*.dmg
+          path: packages/electron/out/*.dmg
           if-no-files-found: error
           retention-days: 14
 

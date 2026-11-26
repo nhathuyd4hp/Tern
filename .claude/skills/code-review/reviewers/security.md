@@ -12,11 +12,11 @@ user-authored scripts in a sandbox. Review changes for these Bruno-specific risk
   values must never be written to logs, console, error messages, or telemetry. A secret
   logged in cleartext is a **blocker**. Watch for `console.log`/logger calls that dump a
   whole request, header set, or config object containing credentials.
-- **Script sandbox integrity** (`bruno-js`, QuickJS / Node VM). Changes that widen the
+- **Script sandbox integrity** (`js`, QuickJS / Node VM). Changes that widen the
   sandbox surface — exposing new Node built-ins, `require`, filesystem, or `process` to
   user scripts, or passing unsanitized script output back into privileged code — are a
   potential sandbox escape; call them out.
-- **IPC input validation** (`bruno-electron` handlers, `preload.js`). Treat every argument
+- **IPC input validation** (`electron` handlers, `preload.js`). Treat every argument
   arriving from the renderer as untrusted: validate file paths (guard against traversal
   outside the collection dir), types, and bounds before acting on them.
 - **Path traversal & arbitrary writes.** File reads/writes derived from user or request

@@ -14,21 +14,21 @@ npm run dev        # chạy Electron + React
 ```
 
 `npm run dev` không tự build lại các package dùng chung. Sau khi sửa một package trong số đó,
-hãy chạy `npm run build:<tên-package>` (ví dụ `npm run build:bruno-common`).
+hãy chạy `npm run build:<tên-package>` (ví dụ `npm run build:common`).
 
 ## Lệnh thường dùng
 
 ```bash
 npm run lint:fix                                   # ESLint
-npm test --workspace=packages/bruno-app            # unit test (tương tự: bruno-requests, bruno-filestore, ...)
+npm test --workspace=packages/app            # unit test (tương tự: requests, filestore, ...)
 ```
 
 ## Cấu trúc
 
-- `packages/bruno-app`: giao diện React
-- `packages/bruno-electron`: tiến trình chính của Electron
-- `packages/bruno-js`: sandbox chạy script
-- `packages/bruno-filestore`, `packages/bruno-lang`: đọc và ghi file `.bru` / `.yml`
+- `packages/app`: giao diện React
+- `packages/electron`: tiến trình chính của Electron
+- `packages/js`: sandbox chạy script
+- `packages/filestore`, `packages/lang`: đọc và ghi file `.bru` / `.yml`
 
 Ghi chú dự án cho Claude Code nằm trong `.claude/`.
 

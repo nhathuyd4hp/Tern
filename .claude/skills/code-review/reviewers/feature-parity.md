@@ -10,9 +10,9 @@ question of every changed file: **what else had to change with it, and did it?**
 file, find it in the rule's tables, open the counterpart, and check whether the counterpart logic
 is in the diff. Report with `file:line`, severity:
 
-- **blocker** — a scripting API added or changed in `bruno-js/src/{bru,bruno-request,bruno-response}.js`
-  without the matching bridge in `bruno-js/src/sandbox/quickjs/shims/`.
-- **blocker** — a persisted field that skips a §1 layer: missing from `bruno-schema` (throws on
+- **blocker** — a scripting API added or changed in `js/src/{bru,bruno-request,bruno-response}.js`
+  without the matching bridge in `js/src/sandbox/quickjs/shims/`.
+- **blocker** — a persisted field that skips a §1 layer: missing from `schema` (throws on
   save), the app save transform, one on-disk format, the BRU → YML migration, or OpenCollection
   import/export (either direction). Flag the missing surface only — the on-disk contract itself
   (compat, escaping, round-trip) belongs to the `dsl-changes` lens; don't duplicate its findings.
