@@ -4,7 +4,7 @@ import { rgba } from 'polished';
 const StyledWrapper = styled.div`
   .primary-actions {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 0.75rem;
     margin-bottom: 0.75rem;
   }

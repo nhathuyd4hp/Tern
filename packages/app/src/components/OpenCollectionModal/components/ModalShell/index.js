@@ -6,7 +6,6 @@ import { closeOpenCollectionModal, openDroppedItems } from 'providers/ReduxStore
 import { OPEN_COLLECTION_PAGES } from '../../sidebar/pages';
 import BusyOverlay from '../BusyOverlay';
 import DropOverlay from '../DropOverlay';
-import { useImportHandoff } from '../ImportHandoff/context';
 import ModalMenu from '../../sidebar/ModalMenu';
 import Note from '../Note';
 import PageHeader from '../PageHeader';
@@ -35,7 +34,6 @@ const keepTabInside = (dialog, event) => {
 
 const ModalShell = () => {
   const dispatch = useDispatch();
-  const importFrom = useImportHandoff();
   const [opener] = useState(() => document.activeElement);
   const pageId = useSelector((state) => state.openCollectionModal.page);
   const isOpening = useSelector((state) => state.openCollectionModal.openingId !== null);
@@ -75,7 +73,7 @@ const ModalShell = () => {
     event.preventDefault();
     event.stopPropagation();
     setShowDropOverlay(false);
-    importFrom(openDroppedItems(readDroppedItems(event.dataTransfer, window.ipcRenderer.getFilePath)));
+    dispatch(openDroppedItems(readDroppedItems(event.dataTransfer, window.ipcRenderer.getFilePath)));
   };
 
   const attachDialog = useCallback((dialog) => {

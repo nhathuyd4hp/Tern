@@ -1,7 +1,7 @@
 import { collectionSchema, environmentSchema, itemSchema } from '@usebruno/schema';
 import { parseQueryParams, extractPromptVariables, getDataTypeFromValue, nextCopyName, resolveEnvironmentInheritance } from '@usebruno/common/utils';
 import { DEFAULT_HTTP_ITEM_SETTINGS } from '@usebruno/common';
-import { REQUEST_TYPES, DEFAULT_COLLECTION_FORMAT, VARIABLE_ADD_SCOPES } from 'utils/common/constants';
+import { REQUEST_TYPES, VARIABLE_ADD_SCOPES } from 'utils/common/constants';
 import cloneDeep from 'lodash/cloneDeep';
 import filter from 'lodash/filter';
 import find from 'lodash/find';
@@ -3084,56 +3084,6 @@ export const collectionAddEnvFileEvent = (payload) => (dispatch, getState) => {
       .then(resolve)
       .catch(reject);
   });
-};
-
-export const importCollection = (collection, collectionLocation, options = {}) => (dispatch, getState) => {
-  return new Promise(async (resolve, reject) => {
-    const { ipcRenderer } = window;
-
-    try {
-      const state = getState();
-      const activeWorkspace = state.workspaces.workspaces.find((w) => w.uid === state.workspaces.activeWorkspaceUid);
-      const isMultiple = Array.isArray(collection);
-
-      const result = await ipcRenderer.invoke('renderer:import-collection', collection, collectionLocation, {
-        format: options.format || DEFAULT_COLLECTION_FORMAT,
-        rawOpenAPISpecs: options.rawOpenAPISpecs
-      });
-      const importedPaths = result.success.items;
-
-      if (importedPaths.length > 0 && activeWorkspace && activeWorkspace.pathname && activeWorkspace.type !== 'default') {
-        for (const importedItem of importedPaths) {
-          const workspaceCollection = {
-            name: importedItem.name,
-            path: importedItem.path
-          };
-          await ipcRenderer.invoke('renderer:add-collection-to-workspace', activeWorkspace.pathname, workspaceCollection);
-        }
-      }
-
-      resolve(isMultiple ? importedPaths : importedPaths[0]);
-    } catch (error) {
-      reject(error);
-    }
-  });
-};
-
-export const importCollectionFromZip = (zipFilePath, collectionLocation) => async (dispatch, getState) => {
-  const { ipcRenderer } = window;
-  const state = getState();
-  const activeWorkspace = state.workspaces.workspaces.find((w) => w.uid === state.workspaces.activeWorkspaceUid);
-
-  const collectionPath = await ipcRenderer.invoke('renderer:import-collection-zip', zipFilePath, collectionLocation);
-
-  if (activeWorkspace && activeWorkspace.pathname && activeWorkspace.type !== 'default') {
-    const collectionName = path.basename(collectionPath);
-    await ipcRenderer.invoke('renderer:add-collection-to-workspace', activeWorkspace.pathname, {
-      name: collectionName,
-      path: collectionPath
-    });
-  }
-
-  return collectionPath;
 };
 
 /**

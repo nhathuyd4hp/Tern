@@ -6,13 +6,10 @@ import { updatePreferences } from 'providers/ReduxStore/slices/app';
 import { expandCollection } from 'providers/ReduxStore/slices/collections';
 import { addTab } from 'providers/ReduxStore/slices/tabs';
 import openCollectionModalReducer from './index';
-import { readImportFiles, readImportUrl } from 'utils/importers/import-sources';
 import {
   cancelCollectionSearch,
   closeOpenCollectionModal,
   findCollectionsInFolders,
-  loadImportFiles,
-  loadImportUrl,
   openCollectionModal,
   openCollectionsFromModal,
   openDroppedItems,
@@ -32,11 +29,6 @@ jest.mock('react-hot-toast', () => {
   return { __esModule: true, default: mockToast };
 });
 jest.mock('utils/common/ipc', () => ({ callIpc: jest.fn() }));
-jest.mock('utils/importers/import-sources', () => ({
-  readImportFiles: jest.fn(),
-  readImportUrl: jest.fn(),
-  readImportableFile: jest.fn()
-}));
 jest.mock('providers/ReduxStore/slices/collections/actions', () => ({
   browseDirectories: jest.fn(),
   mountCollection: jest.fn(),
@@ -127,7 +119,6 @@ const searchReturns = (result) =>
   callIpc.mockImplementation((channel) => (channel === FIND_IN_FOLDERS ? result : Promise.resolve()));
 
 const droppedFile = { name: 'openapi.yaml' };
-const importData = { rawData: { openapi: '3.0.0' }, type: 'openapi' };
 
 const openingReturns = (result) => openMultipleCollections.mockReturnValue(() => result);
 
@@ -466,92 +457,6 @@ describe('open collection modal actions', () => {
     });
   });
 
-  describe('loading something to import', () => {
-    it('returns what it read and ends the load', async () => {
-      readImportFiles.mockResolvedValue(importData);
-      const { store } = createStore({ modal: openOn('import') });
-
-      await expect(store.dispatch(loadImportFiles([droppedFile]))).resolves.toEqual(importData);
-
-      expect(modalState(store).importLoadId).toBeNull();
-    });
-
-    it('says which picked files were skipped when it loads the rest', async () => {
-      const severalFiles = { type: 'multiple', filesData: [{ file: droppedFile, data: importData.rawData, type: 'openapi' }], skippedFileNames: ['notes.json', 'broken.json'] };
-      readImportFiles.mockResolvedValue(severalFiles);
-      const { store } = createStore({ modal: openOn('import') });
-
-      await expect(store.dispatch(loadImportFiles([droppedFile]))).resolves.toEqual(severalFiles);
-
-      expect(toast).toHaveBeenCalledWith('notes.json, broken.json aren’t valid applications, so they were skipped.');
-    });
-
-    it('stays quiet when every picked file can be loaded', async () => {
-      readImportFiles.mockResolvedValue({ type: 'multiple', filesData: [{ file: droppedFile, data: importData.rawData, type: 'openapi' }], skippedFileNames: [] });
-      const { store } = createStore({ modal: openOn('import') });
-
-      await store.dispatch(loadImportFiles([droppedFile]));
-
-      expect(toast).not.toHaveBeenCalled();
-    });
-
-    it('marks the page as loading while it reads', () => {
-      readImportUrl.mockReturnValue(new Promise(() => {}));
-      const { store } = createStore({ modal: openOn('import') });
-
-      store.dispatch(loadImportUrl('https://example.com/spec.yaml'));
-
-      expect(modalState(store).importLoadId).toEqual(expect.any(String));
-    });
-
-    it('shows why in a toast when it cannot be read, without the IPC prefix', async () => {
-      readImportUrl.mockRejectedValue(new Error('Error invoking remote method \'renderer:x\': Error: No such file'));
-      const { store } = createStore({ modal: openOn('import') });
-
-      await expect(store.dispatch(loadImportUrl('https://example.com/spec.yaml'))).resolves.toBeNull();
-
-      expect(toast.error).toHaveBeenCalledWith('No such file');
-      expect(modalState(store).importLoadId).toBeNull();
-    });
-
-    it('ignores a read that finishes after the page was left', async () => {
-      const reading = deferred();
-      readImportUrl.mockReturnValue(reading.promise);
-      const { store } = createStore({ modal: openOn('import') });
-
-      const loading = store.dispatch(loadImportUrl('https://example.com/spec.yaml'));
-      store.dispatch(openCollectionModal('recents'));
-      reading.resolve(importData);
-
-      await expect(loading).resolves.toBeNull();
-      expect(modalState(store).importLoadId).toBeNull();
-    });
-
-    it('stays quiet about a failed read after the page was left', async () => {
-      const reading = deferred();
-      readImportUrl.mockReturnValue(reading.promise);
-      const { store } = createStore({ modal: openOn('import') });
-
-      const loading = store.dispatch(loadImportUrl('https://example.com/spec.yaml'));
-      store.dispatch(openCollectionModal('recents'));
-      reading.reject(new Error('Nope'));
-
-      await expect(loading).resolves.toBeNull();
-      expect(toast.error).not.toHaveBeenCalled();
-    });
-
-    it('cancels a running folder search, which would otherwise take the page away', async () => {
-      readImportFiles.mockResolvedValue(importData);
-      const chooseFolder = { ...closedModal.chooseFolder, status: 'searching', searchId: 'search-1', searchLabel: 'work' };
-      const { store } = createStore({ modal: openOn('import', chooseFolder) });
-
-      await store.dispatch(loadImportFiles([droppedFile]));
-
-      expect(callIpc).toHaveBeenCalledWith(CANCEL_SEARCH, { requestId: 'search-1' });
-      expect(modalState(store).chooseFolder).toMatchObject({ status: 'idle', searchId: null });
-    });
-  });
-
   describe('openDroppedItems', () => {
     const plainFolderResult = folderResult(
       [{ path: '/work', status: 'folder', collectionPaths: ['/work/api'], importableFiles: [] }],
@@ -585,7 +490,6 @@ describe('open collection modal actions', () => {
       await store.dispatch(openDroppedItems({ folderPaths: [], hasFolders: false, files: [droppedFile] }));
 
       expect(toast.error).toHaveBeenCalledWith('Importing an application from a file is not supported');
-      expect(readImportFiles).not.toHaveBeenCalled();
       expect(modalState(store).page).toBe('choose-folder');
       expect(callIpc).not.toHaveBeenCalledWith(FIND_IN_FOLDERS, expect.anything());
     });

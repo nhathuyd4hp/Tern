@@ -258,6 +258,7 @@ const registerRendererEventHandlers = (mainWindow, watcher) => {
 
         mainWindow.webContents.send('main:collection-opened', dirPath, uid, persistedConfig);
         ipcMain.emit('main:collection-opened', mainWindow, dirPath, uid, persistedConfig);
+        return { pathname: dirPath, uid };
       } catch (error) {
         return Promise.reject(error);
       }

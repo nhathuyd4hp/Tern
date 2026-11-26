@@ -53,7 +53,6 @@ export const KEY_BINDING_SECTIONS = [
   {
     heading: 'Applications & Environment',
     bindings: {
-      importCollection: { mac: 'command+bind+o', windows: 'ctrl+bind+o', name: 'Import Application' }, // D
       editEnvironment: { mac: 'command+bind+e', windows: 'ctrl+bind+e', name: 'Edit Environment' }, // D
       newRequest: { mac: 'command+bind+n', windows: 'ctrl+bind+n', name: 'New Request' } // D
     }

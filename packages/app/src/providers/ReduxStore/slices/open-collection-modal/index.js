@@ -4,7 +4,6 @@ const initialState = {
   isOpen: false,
   page: null,
   openingId: null,
-  importLoadId: null,
   chooseFolder: {
     status: 'idle',
     searchId: null,
@@ -22,9 +21,6 @@ export const openCollectionModalSlice = createSlice({
       state.page = action.payload;
     },
     showOpenCollectionPage: (state, action) => {
-      if (state.page !== action.payload) {
-        state.importLoadId = null;
-      }
       state.page = action.payload;
       if (state.chooseFolder.result) {
         state.chooseFolder.result.note = null;
@@ -58,12 +54,6 @@ export const openCollectionModalSlice = createSlice({
     folderResultCleared: (state) => {
       state.chooseFolder.result = null;
     },
-    importLoadStarted: (state, action) => {
-      state.importLoadId = action.payload;
-    },
-    importLoadEnded: (state) => {
-      state.importLoadId = null;
-    },
     collectionsOpeningStarted: (state, action) => {
       state.openingId = action.payload;
     },
@@ -85,8 +75,6 @@ export const {
   folderPickEnded,
   folderNoteDismissed,
   folderResultCleared,
-  importLoadStarted,
-  importLoadEnded,
   collectionsOpeningStarted,
   collectionsOpeningEnded
 } = openCollectionModalSlice.actions;

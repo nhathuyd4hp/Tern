@@ -16,15 +16,12 @@ import {
   folderSearchFinished,
   folderPickEnded,
   folderResultCleared,
-  importLoadStarted,
-  importLoadEnded,
   collectionsOpeningStarted,
   collectionsOpeningEnded
 } from './index';
 import { selectAutoOpenFolderPicker, selectOpenCollectionPathKeys } from './selectors';
 import { countOf, getFolderSearchOutcome } from './folder-results';
 import { getFolderName, toPathKey } from './collection-paths';
-import { readImportFiles, readImportUrl } from 'utils/importers/import-sources';
 
 const CHOOSE_FOLDER_PAGE = 'choose-folder';
 
@@ -152,40 +149,6 @@ export const cancelCollectionSearch = () => (dispatch, getState) => {
   cancelSearchInMain(getState().openCollectionModal.chooseFolder.searchId);
   dispatch(folderPickEnded());
 };
-
-const loadImportData = (read) => async (dispatch, getState) => {
-  if (getState().openCollectionModal.chooseFolder.searchId) {
-    dispatch(cancelCollectionSearch());
-  }
-  const loadId = uuid();
-  dispatch(importLoadStarted(loadId));
-  const isCurrentLoad = () => getState().openCollectionModal.importLoadId === loadId;
-
-  try {
-    const importData = await read();
-    if (isCurrentLoad()) {
-      dispatch(importLoadEnded());
-      return importData;
-    }
-  } catch (error) {
-    if (isCurrentLoad()) {
-      dispatch(importLoadEnded());
-      toast.error(formatIpcError(error) || 'Import application failed');
-    }
-  }
-  return null;
-};
-
-export const loadImportFiles = (files) => async (dispatch) => {
-  const importData = await dispatch(loadImportData(() => readImportFiles(files)));
-  const skippedFileNames = importData?.skippedFileNames ?? [];
-  if (skippedFileNames.length > 0) {
-    toast(`${skippedFileNames.join(', ')} ${skippedFileNames.length === 1 ? 'isn’t a valid application, so it was' : 'aren’t valid applications, so they were'} skipped.`);
-  }
-  return importData;
-};
-
-export const loadImportUrl = (url) => loadImportData(() => readImportUrl(url));
 
 export const openDroppedItems = ({ folderPaths, hasFolders, files }) => async (dispatch, getState) => {
   if (getState().openCollectionModal.openingId) {

@@ -10,7 +10,6 @@ import openCollectionModalReducer, {
   showOpenCollectionModal
 } from 'providers/ReduxStore/slices/open-collection-modal';
 import OpenCollectionModal from 'components/OpenCollectionModal';
-import { ImportHandoffContext } from '../ImportHandoff/context';
 import ModalShell from './index';
 
 jest.mock('nanoid', () => {
@@ -44,9 +43,7 @@ const createStore = (openCollectionModal = { isOpen: true, page: 'choose-folder'
 const renderWithStore = (ui, store) =>
   render(
     <Provider store={store}>
-      <ImportHandoffContext.Provider value={(load) => store.dispatch(load)}>
-        <ThemeProvider>{ui}</ThemeProvider>
-      </ImportHandoffContext.Provider>
+      <ThemeProvider>{ui}</ThemeProvider>
     </Provider>
   );
 
