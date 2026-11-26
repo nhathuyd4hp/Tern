@@ -1,5 +1,4 @@
 const { ipcMain } = require('electron');
-const { getStatements } = require('../services/sqlite');
 const { readRunnerExchange, clearRunnerResponses } = require('../services/runner-exchange');
 
 const requireUid = (value, name) => {
@@ -10,14 +9,6 @@ const requireUid = (value, name) => {
 };
 
 const registerSqliteIpc = () => {
-  ipcMain.handle('datastore:file-index:file_index_size', () => {
-    return getStatements().execute('file_index_size');
-  });
-
-  ipcMain.handle('datastore:file-index:file_index_clear', () => {
-    return getStatements().execute('file_index_clear');
-  });
-
   ipcMain.handle('datastore:runner_responses:get_runner_response', (_event, params) => {
     const request_uid = requireUid(params?.request_uid, 'request_uid');
     return readRunnerExchange(request_uid);

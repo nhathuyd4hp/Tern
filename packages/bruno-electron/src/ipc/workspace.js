@@ -568,8 +568,6 @@ const registerWorkspaceIpc = (mainWindow, workspaceWatcher) => {
         const collectionUid = generateUidBasedOnHash(collectionPath);
         const collectionWatcher = require('../app/collection-watcher');
         collectionWatcher.removeWatcher(collectionPath, mainWindow, collectionUid);
-        await require('./mount').unmount(collectionUid).catch(() => {});
-        require('./mount').clearCollectionIndex(collectionPath);
         require('../store/bruno-config').clearBrunoConfig(collectionUid);
         require('../cache/requestUids').clearRequestUidsForCollection(collectionPath);
       }

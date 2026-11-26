@@ -110,6 +110,11 @@ async function main() {
     // Remove sourcemaps
     await removeSourceMapFiles('packages/bruno-electron/web');
 
+    // Lets CI run electron-builder itself with its own flags (e.g. unsigned macOS builds).
+    if (process.argv.includes('--prepare-only')) {
+      return;
+    }
+
     // Run npm dist command
     console.log('Building the Electron distribution');
 

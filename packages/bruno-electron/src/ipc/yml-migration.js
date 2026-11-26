@@ -16,7 +16,6 @@ const { transformProxyConfig } = require('@usebruno/requests');
 const { getCollectionFormat, getCollectionStats, writeFile } = require('../utils/filesystem');
 const { openCollection } = require('../app/collections');
 const snapshotManager = require('../services/snapshot');
-const { unmount, clearCollectionIndex } = require('./mount');
 const { clearBrunoConfig } = require('../store/bruno-config');
 const { clearRequestUidsForCollection } = require('../cache/requestUids');
 
@@ -572,17 +571,11 @@ const migrateCollectionToYml = async ({ mainWindow, watcher, collectionPathname,
     } catch (_) { }
     throw error;
   }
-  // Unmount before touching disk: detach the watcher (for a file-cache v2 mount this also
-  // stops the cache write-through riding on it, so migration's own writes/deletes aren't
-  // double-processed as live changes) and clear every cache keyed by the deterministic
+  // Detach the watcher before touching disk and clear every cache keyed by the deterministic
   // path-derived uid, so the post-migration reopen loads genuinely fresh state.
   if (watcher) {
     watcher.removeWatcher(collectionPathname, mainWindow, collectionUid);
   }
-  try {
-    await unmount(collectionUid);
-  } catch (_) {}
-  clearCollectionIndex(collectionPathname);
   clearBrunoConfig(collectionUid);
   clearRequestUidsForCollection(collectionPathname);
   migrationCancellations.delete(collectionUid);

@@ -65,25 +65,6 @@ const glob = function (startPath, pattern) {
   return results;
 };
 
-function forceInstallPlatformDeps() {
-  // Note: make sure to hard pin deps and only add deps that have been checked
-  // for sec vuln already since the following will be force installed.
-  const deps = {
-    darwin: ['@lydell/node-pty-darwin-arm64@1.1.0', '@lydell/node-pty-darwin-x64@1.1.0'],
-    win32: ['@lydell/node-pty-win32-arm64@1.1.0', '@lydell/node-pty-win32-x64@1.1.0'],
-    linux: ['@lydell/node-pty-linux-arm64@1.1.0', '@lydell/node-pty-linux-x64@1.1.0']
-  };
-
-  // Ignore if no deps need to be installed
-  if (!deps[process.platform] || (Array.isArray(deps[process.platform]) && deps[process.platform].length === 0)) return;
-
-  const toInstall = deps[process.platform];
-  execCommand(
-    `npm i --legacy-peer-deps --no-save --force ${toInstall.join(' ')}`,
-    'Installing platform specific dependencies'
-  );
-}
-
 async function setup() {
   try {
     // Clean up node_modules (if exists)
@@ -98,7 +79,6 @@ async function setup() {
 
     // Install dependencies
     execCommand('npm i --legacy-peer-deps', 'Installing dependencies');
-    forceInstallPlatformDeps();
 
     // Build packages
     execCommand('npm run build:graphql-docs', 'Building graphql-docs');
@@ -108,7 +88,6 @@ async function setup() {
     execCommand('npm run build:bruno-requests', 'Building bruno-requests');
     execCommand('npm run build:schema-types', 'Building schema-types');
     execCommand('npm run build:bruno-filestore', 'Building bruno-filestore');
-    execCommand('npm run build:bruno-io', 'Building bruno-io');
     execCommand('npm run build:bruno-sqlite', 'Building bruno-sqlite');
 
     // Bundle JS sandbox libraries

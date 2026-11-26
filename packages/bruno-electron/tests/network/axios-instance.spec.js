@@ -9,8 +9,7 @@ jest.mock('electron', () => ({
 jest.mock('../../src/store/preferences', () => ({
   preferencesUtil: {
     shouldStoreCookies: () => false,
-    shouldSendCookies: () => false,
-    isSslSessionCachingEnabled: () => true
+    shouldSendCookies: () => false
   }
 }));
 

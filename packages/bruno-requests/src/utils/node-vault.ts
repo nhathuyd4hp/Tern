@@ -132,7 +132,7 @@ function handleVaultResponse(statusCode: number, body: any, path: string): any {
  * Creates a Vault client instance
  *
  * This is a drop-in replacement for node-vault, implementing only the methods
- * used by bruno-electron and bruno-cli.
+ * used by bruno-electron.
  *
  * @param config - Configuration options
  * @returns VaultClient instance with mutable properties

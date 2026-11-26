@@ -36,27 +36,6 @@ const DEFAULT_POLLING_INTERVAL_MS = 100;
 
 const environmentSecretsStore = new EnvironmentSecretsStore();
 
-// registered collections stage parsed data into the git-lite snapshot (no-op otherwise)
-const fileIndexByCollection = new Map();
-const stageToCache = (collectionPath, pathname, data) => {
-  const index = fileIndexByCollection.get(collectionPath);
-  if (!index) return;
-  try {
-    index.stageParsed(collectionPath, pathname, data);
-  } catch (err) {
-    console.error('[collection-watcher] cache stage failed for', pathname, err);
-  }
-};
-const unstageFromCache = (collectionPath, pathname) => {
-  const index = fileIndexByCollection.get(collectionPath);
-  if (!index) return;
-  try {
-    index.unstagePath(collectionPath, pathname);
-  } catch (err) {
-    console.error('[collection-watcher] cache unstage failed for', pathname, err);
-  }
-};
-
 const isBrunoConfigFile = (pathname, collectionPath) => {
   const dirname = path.dirname(pathname);
   const basename = path.basename(pathname);
@@ -131,7 +110,6 @@ const addEnvironmentFile = async (win, pathname, collectionUid, collectionPath) 
     const content = fs.readFileSync(pathname, 'utf8');
 
     file.data = await parseEnvironment(content, { format });
-    stageToCache(collectionPath, pathname, file.data);
 
     // Extract name by removing the extension
     const ext = path.extname(basename);
@@ -173,7 +151,6 @@ const changeEnvironmentFile = async (win, pathname, collectionUid, collectionPat
     const content = fs.readFileSync(pathname, 'utf8');
 
     file.data = await parseEnvironment(content, { format });
-    stageToCache(collectionPath, pathname, file.data);
 
     // Extract name by removing the extension
     const ext = path.extname(basename);
@@ -229,7 +206,6 @@ const add = async (win, pathname, collectionUid, collectionPath, useWorkerThread
     try {
       const content = fs.readFileSync(pathname, 'utf8');
       let brunoConfig = JSON.parse(content);
-      stageToCache(collectionPath, pathname, brunoConfig);
 
       // Transform the config to add exists metadata for protobuf files and import paths
       brunoConfig = await transformBrunoConfigAfterRead(brunoConfig, collectionPath);
@@ -276,8 +252,6 @@ const add = async (win, pathname, collectionUid, collectionPath, useWorkerThread
       }
 
       file.data = collectionRoot;
-      // cache the full parse result (collectionRoot + brunoConfig for yml)
-      stageToCache(collectionPath, pathname, parsed);
 
       hydrateCollectionRootWithUuid(file.data);
       win.webContents.send('main:collection-tree-updated', 'addFile', file);
@@ -317,7 +291,6 @@ const add = async (win, pathname, collectionUid, collectionPath, useWorkerThread
       const format = getCollectionFormat(collectionPath);
       const content = fs.readFileSync(pathname, 'utf8');
       file.data = await parseFolder(content, { format });
-      stageToCache(collectionPath, pathname, file.data);
 
       hydrateCollectionRootWithUuid(file.data);
       win.webContents.send('main:collection-tree-updated', 'addFile', file);
@@ -347,7 +320,6 @@ const add = async (win, pathname, collectionUid, collectionPath, useWorkerThread
     if (!useWorkerThread) {
       try {
         file.data = await parseRequest(content, { format });
-        stageToCache(collectionPath, pathname, file.data);
         file.partial = false;
         file.loading = false;
         file.size = sizeInMB(fileStats?.size);
@@ -403,7 +375,6 @@ const add = async (win, pathname, collectionUid, collectionPath, useWorkerThread
           format,
           filename: pathname
         });
-        stageToCache(collectionPath, pathname, file.data);
         file.partial = false;
         file.loading = false;
         file.data.raw = content;
@@ -473,7 +444,6 @@ const change = async (win, pathname, collectionUid, collectionPath) => {
     try {
       const content = fs.readFileSync(pathname, 'utf8');
       let brunoConfig = JSON.parse(content);
-      stageToCache(collectionPath, pathname, brunoConfig);
 
       // Transform the config to add file existence checks for protobuf files and import paths
       brunoConfig = await transformBrunoConfigAfterRead(brunoConfig, collectionPath);
@@ -522,8 +492,6 @@ const change = async (win, pathname, collectionUid, collectionPath) => {
       }
 
       file.data = collectionRoot;
-      // cache the full parse result (collectionRoot + brunoConfig for yml)
-      stageToCache(collectionPath, pathname, parsed);
 
       hydrateCollectionRootWithUuid(file.data);
       win.webContents.send('main:collection-tree-updated', 'change', file);
@@ -563,7 +531,6 @@ const change = async (win, pathname, collectionUid, collectionPath) => {
       const format = getCollectionFormat(collectionPath);
       const content = fs.readFileSync(pathname, 'utf8');
       file.data = await parseFolder(content, { format });
-      stageToCache(collectionPath, pathname, file.data);
 
       hydrateCollectionRootWithUuid(file.data);
       win.webContents.send('main:collection-tree-updated', 'change', file);
@@ -595,7 +562,6 @@ const change = async (win, pathname, collectionUid, collectionPath) => {
         file.data = await parseLargeRequestWithRedaction(content, 'bru');
       } else {
         file.data = await parseRequest(content, { format });
-        stageToCache(collectionPath, pathname, file.data);
       }
 
       file.data.raw = content;
@@ -626,8 +592,6 @@ const unlink = (win, pathname, collectionUid, collectionPath) => {
       return;
     }
     console.log(`watcher unlink: ${pathname}`);
-    // drop the file from the snapshot regardless of type (request/env/config/folder root)
-    unstageFromCache(collectionPath, pathname);
 
     if (isEnvironmentsFolder(pathname, collectionPath)) {
       return unlinkEnvironmentFile(win, pathname, collectionUid);
@@ -812,11 +776,7 @@ class CollectionWatcher {
       existingWatcher.close();
     }
 
-    // v2 already loaded the tree from cache; skip startup scan and stage live edits
-    const { ignoreInitial = false, fileIndex = null, workspacePathname = null } = options;
-    if (fileIndex) {
-      fileIndexByCollection.set(watchPath, fileIndex);
-    }
+    const { workspacePathname = null } = options;
 
     this.initializeLoadingState(collectionUid);
 
@@ -831,7 +791,7 @@ class CollectionWatcher {
     const defaultIgnores = ['node_modules', '.git'];
 
     const watcher = chokidar.watch(watchPath, {
-      ignoreInitial,
+      ignoreInitial: false,
       usePolling: isWSLPath(watchPath) || forcePolling ? true : false,
       interval: isWSLPath(watchPath) ? WSL_POLLING_INTERVAL_MS : DEFAULT_POLLING_INTERVAL_MS,
       ignored: (filepath) => {
@@ -850,8 +810,8 @@ class CollectionWatcher {
           return true;
         }
 
-        // mocks/ at the collection root holds mock-server data; a nested folder
-        // that happens to be named "mocks" elsewhere in the collection stays watched
+        // mocks/ at the collection root is not request data (older Bruno versions stored mock servers
+        // there); a nested folder named "mocks" elsewhere in the collection stays watched
         if (pathSegments[0] === 'mocks') {
           return true;
         }
@@ -923,8 +883,6 @@ class CollectionWatcher {
       existingWatcher.close();
     }
     this.watchers[watchPath] = null;
-
-    fileIndexByCollection.delete(watchPath);
 
     dotEnvWatcher.removeCollectionWatcher(watchPath);
 

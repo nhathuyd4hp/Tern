@@ -4,7 +4,7 @@ const isBenchmark = process.env.BRUNO_BENCHMARK === 'true';
 
 const config = {
   appId: 'com.usebruno.app',
-  productName: isBenchmark ? 'Bruno Benchmark' : 'Bruno',
+  productName: isBenchmark ? 'Kevin Benchmark' : 'Kevin',
   extraMetadata: {
     brunoBuild: {
       benchmark: isBenchmark,
@@ -25,7 +25,7 @@ const config = {
   files: ['**/*'],
   afterSign: 'notarize.js',
   mac: {
-    artifactName: '${name}_${version}_${arch}_${os}.${ext}',
+    artifactName: '${productName}_${version}_${arch}_${os}.${ext}',
     category: 'public.app-category.developer-tools',
     target: [
       {
@@ -50,7 +50,7 @@ const config = {
     requirements: 'resources/app-requirements.txt',
     protocols: [
       {
-        name: 'Bruno',
+        name: 'Kevin',
         schemes: [
           'bruno'
         ]
@@ -58,7 +58,7 @@ const config = {
     ]
   },
   linux: {
-    artifactName: '${name}_${version}_${arch}_${os}.${ext}',
+    artifactName: '${productName}_${version}_${arch}_${os}.${ext}',
     icon: 'resources/icons/png',
     target: [
       {
@@ -76,7 +76,7 @@ const config = {
     ],
     protocols: [
       {
-        name: 'Bruno',
+        name: 'Kevin',
         schemes: ['bruno']
       }
     ],
@@ -112,7 +112,7 @@ const config = {
     }
   },
   win: {
-    artifactName: '${name}_${version}_${arch}_win.${ext}',
+    artifactName: '${productName}_${version}_${arch}_win.${ext}',
     icon: 'resources/icons/win/icon.ico',
     target: [
       {

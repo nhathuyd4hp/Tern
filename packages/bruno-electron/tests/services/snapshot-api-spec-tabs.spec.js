@@ -31,7 +31,7 @@ const save = (workspace) =>
   snapshotManager.saveSnapshot({
     version: '0.0.1',
     activeWorkspacePath: workspacePath,
-    extras: { devTools: { open: false, activeTab: '', tabs: {} } },
+    extras: {},
     workspaces: [
       {
         pathname: workspacePath,

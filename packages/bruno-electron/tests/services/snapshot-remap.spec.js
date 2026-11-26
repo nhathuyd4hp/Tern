@@ -29,7 +29,7 @@ const seedSnapshot = () => {
   snapshotManager.saveSnapshot({
     version: '0.0.1',
     activeWorkspacePath: null,
-    extras: { devTools: { open: false, activeTab: '', tabs: {} } },
+    extras: {},
     workspaces: [],
     collections: [
       {
@@ -123,7 +123,7 @@ describe('SnapshotManager.remapCollectionTabPaths', () => {
     snapshotManager.saveSnapshot({
       version: '0.0.1',
       activeWorkspacePath: workspaceBPath,
-      extras: { devTools: { open: false, activeTab: '', tabs: {} } },
+      extras: {},
       workspaces: [
         {
           pathname: workspaceAPath,
@@ -186,7 +186,7 @@ describe('SnapshotManager shared collection lookups', () => {
     snapshotManager.saveSnapshot({
       version: '0.0.1',
       activeWorkspacePath: workspaceAPath,
-      extras: { devTools: { open: false, activeTab: '', tabs: {} } },
+      extras: {},
       workspaces: [
         {
           pathname: workspaceAPath,
@@ -243,7 +243,7 @@ describe('SnapshotManager shared collection lookups', () => {
     snapshotManager.saveSnapshot({
       version: '0.0.1',
       activeWorkspacePath: workspaceAPath,
-      extras: { devTools: { open: false, activeTab: '', tabs: {} } },
+      extras: {},
       workspaces: [
         {
           pathname: workspaceAPath,
@@ -303,7 +303,7 @@ describe('SnapshotManager shared collection lookups', () => {
     snapshotManager.saveSnapshot({
       version: '0.0.1',
       activeWorkspacePath: workspaceAPath,
-      extras: { devTools: { open: false, activeTab: '', tabs: {} } },
+      extras: {},
       workspaces: [
         {
           pathname: workspaceAPath,
@@ -358,7 +358,7 @@ describe('SnapshotManager shared collection lookups', () => {
     snapshotManager.saveSnapshot({
       version: '0.0.1',
       activeWorkspacePath: workspaceAPath,
-      extras: { devTools: { open: false, activeTab: '', tabs: {} } },
+      extras: {},
       workspaces: [
         {
           pathname: workspaceAPath,
@@ -407,7 +407,7 @@ describe('SnapshotManager shared collection lookups', () => {
     snapshotManager.saveSnapshot({
       version: '0.0.1',
       activeWorkspacePath: null,
-      extras: { devTools: { open: false, activeTab: '', tabs: {} } },
+      extras: {},
       workspaces: [
         {
           pathname: workspaceAPath,

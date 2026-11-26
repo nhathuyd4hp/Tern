@@ -118,8 +118,6 @@ const createGrpcScriptOrchestration = ({ sendEvent }) => {
   // Duplicated from `onConsoleLog` in ipc/network/index.js.
   const onConsoleLog = (type, args) => {
     console[type](...args);
-
-    sendEvent('main:console-log', { type, args });
   };
 
   // Duplicated from `sendVariableUpdates` in ipc/network/index.js.

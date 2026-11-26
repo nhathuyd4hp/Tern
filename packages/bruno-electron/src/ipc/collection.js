@@ -1384,8 +1384,6 @@ const registerRendererEventHandlers = (mainWindow, watcher) => {
       watcher.removeWatcher(collectionPath, mainWindow, collectionUid);
     }
 
-    await require('./mount').unmount(collectionUid).catch(() => {});
-
     // Clean up
     const { clearCollectionWorkspace } = require('../store/process-env');
     clearCollectionWorkspace(collectionUid);
@@ -2810,11 +2808,6 @@ const registerMainEventHandlers = (mainWindow) => {
 
   ipcMain.on('renderer:open-collection', triggerOpenCollection);
   ipcMain.on('menu:open-collection', triggerOpenCollection);
-
-  ipcMain.on('main:open-docs', () => {
-    const docsURL = 'https://docs.usebruno.com';
-    shell.openExternal(docsURL);
-  });
 
   ipcMain.on('main:collection-opened', async (win, pathname, uid, brunoConfig) => {
     app.addRecentDocument(pathname);

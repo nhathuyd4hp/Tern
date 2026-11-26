@@ -2,15 +2,15 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { app } = require('electron');
 
-const BRUNO_DIR_NAME = 'bruno';
+const APP_DIR_NAME = 'Kevin';
 
 /**
  * Returns the default location where new workspaces and collections are stored.
- * Checks ~/Documents/bruno if available, otherwise falls back to the app's data directory
+ * Checks ~/Documents/Kevin if available, otherwise falls back to the app's data directory
  */
 function resolveDefaultLocation() {
   const defaultPaths = [
-    path.join(app.getPath('documents'), BRUNO_DIR_NAME),
+    path.join(app.getPath('documents'), APP_DIR_NAME),
     app.getPath('userData')
   ];
 

@@ -5,7 +5,7 @@ const path = require('path');
 
 const PACKAGES_DIR = path.join(__dirname, '..', 'packages');
 const EXCLUDE_DIRS = ['node_modules', 'dist', 'build', '.next', 'coverage', '.git'];
-const EXCLUDE_PACKAGES = ['bruno-toml', 'bruno-tests', 'bruno-docs'];
+const EXCLUDE_PACKAGES = [];
 const CODE_EXTENSIONS = ['.js', '.jsx', '.ts', '.tsx', '.css', '.scss', '.json', '.md'];
 
 function countLinesInFile(filePath) {

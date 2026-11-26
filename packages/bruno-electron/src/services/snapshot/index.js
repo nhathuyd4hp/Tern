@@ -33,9 +33,7 @@ const tabSchema = yup.object({
     'pathname',
     'pathname::exampleName',
     'pathname::exampleIndex',
-    'type',
-    'type::mockServerUid',
-    'type::mockResponseUid'
+    'type'
   ]).required(),
   pathname: yup.string().nullable(),
   permanent: yup.boolean().required(),
@@ -43,8 +41,6 @@ const tabSchema = yup.object({
   exampleName: yup.string().optional(),
   exampleIndex: yup.number().integer().min(0).optional(),
   exampleUid: yup.string().optional(),
-  mockServerUid: yup.string().nullable().optional(),
-  responseUid: yup.string().optional(),
   tabName: yup.string().optional(),
   request: yup.object({
     tab: yup.string(),
@@ -66,9 +62,7 @@ const activeTabSchema = yup.object({
     'pathname',
     'pathname::exampleName',
     'pathname::exampleIndex',
-    'type',
-    'type::mockServerUid',
-    'type::mockResponseUid'
+    'type'
   ]).required(),
   value: yup.string().required()
 });
@@ -99,17 +93,6 @@ const workspaceSchema = yup.object({
   collections: yup.array().of(yup.string()).optional()
 });
 
-const devToolsSchema = yup.object({
-  open: yup.boolean().required(),
-  activeTab: yup.string().defined(),
-  tabs: yup.object().shape({
-    console: yup.object().shape({}).optional(),
-    network: yup.object().shape({}).optional(),
-    performance: yup.object().shape({}).optional(),
-    terminal: yup.object().shape({}).optional()
-  })
-});
-
 const sidebarSchema = yup.object({
   collapsed: yup.boolean().optional(),
   width: yup.number().optional()
@@ -119,7 +102,6 @@ const snapshotSchema = yup.object({
   version: yup.string().defined(),
   activeWorkspacePath: yup.string().nullable(),
   extras: yup.object({
-    devTools: devToolsSchema.required(),
     sidebar: sidebarSchema.optional()
   }).required(),
   workspaces: yup.array().of(workspaceSchema).required(),
@@ -129,11 +111,7 @@ const snapshotSchema = yup.object({
 const emptySnapshot = {
   version: SNAPSHOT_VERSION,
   activeWorkspacePath: null,
-  extras: {
-    devTools: {
-      open: false
-    }
-  },
+  extras: {},
   workspaces: [],
   collections: []
 };
@@ -428,9 +406,7 @@ class SnapshotManager {
 
   _normalizeSnapshot(snapshot = {}) {
     const sidebar = this._normalizeSidebar(snapshot?.extras?.sidebar);
-    const extras = {
-      devTools: this._normalizeDevTools(snapshot?.extras?.devTools)
-    };
+    const extras = {};
     if (sidebar !== undefined) {
       extras.sidebar = sidebar;
     }
@@ -455,30 +431,6 @@ class SnapshotManager {
       result.width = sidebar.width;
     }
     return Object.keys(result).length > 0 ? result : undefined;
-  }
-
-  _normalizeDevTools(devTools = {}) {
-    const devToolKeys = [
-      'console',
-      'network',
-      'performance',
-      'terminal'
-    ];
-    const devToolTabs = isObject(devTools.tabs) ? devTools.tabs : {};
-
-    const _snapshotEntry = {
-      open: typeof devTools?.open === 'boolean' ? devTools.open : false,
-      activeTab: typeof devTools.activeTab === 'string' ? devTools.activeTab : 'terminal',
-      tabs: {}
-    };
-
-    devToolKeys.forEach((key) => {
-      if (key in devToolTabs) {
-        _snapshotEntry.tabs[key] = devToolTabs[key];
-      }
-    });
-
-    return _snapshotEntry;
   }
 
   _normalizeWorkspaceList(workspaces) {
@@ -720,9 +672,7 @@ class SnapshotManager {
       'pathname',
       'pathname::exampleName',
       'pathname::exampleIndex',
-      'type',
-      'type::mockServerUid',
-      'type::mockResponseUid'
+      'type'
     ].includes(activeTab.accessor) || typeof activeTab.value !== 'string') {
       return null;
     }

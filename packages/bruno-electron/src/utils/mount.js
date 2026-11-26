@@ -1,16 +1,9 @@
 const fs = require('node:fs');
 const path = require('node:path');
-const crypto = require('node:crypto');
 const { posixifyPath } = require('./filesystem');
 
 const DENY_DIRS = new Set(['node_modules', '.git', '.svn', '.hg', '.bruno']);
 const DEFAULT_DENYLIST = ['**/.DS_Store', '**/Thumbs.db'];
-
-const sha256 = (input) => crypto.createHash('sha256').update(input).digest('hex');
-const hashFile = (absPath) => sha256(fs.readFileSync(absPath));
-const hashFileAsync = async (absPath) => sha256(await fs.promises.readFile(absPath));
-const idForAbsolutePath = (absolutePath) => sha256(posixifyPath(absolutePath)).slice(0, 21);
-const uidForSeed = (seed) => sha256(seed).slice(0, 21);
 
 const resolveDenylist = (patterns) => [...DEFAULT_DENYLIST, ...(patterns || [])];
 
@@ -121,11 +114,7 @@ module.exports = {
   FOLDER_ROOT_BASENAMES,
   BRUNO_CONFIG_BASENAME,
   ENVIRONMENTS_DIR,
-  hashFile,
-  hashFileAsync,
   posixifyPath,
-  idForAbsolutePath,
-  uidForSeed,
   resolveDenylist,
   isDenied,
   walk,

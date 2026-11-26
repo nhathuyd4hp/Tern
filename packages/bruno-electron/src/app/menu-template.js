@@ -1,8 +1,5 @@
 const { ipcMain } = require('electron');
 const os = require('os');
-const { BrowserWindow } = require('electron');
-const { version } = require('../../package.json');
-const aboutBruno = require('./about-bruno');
 
 const template = [
   {
@@ -91,26 +88,6 @@ const template = [
   {
     role: 'window',
     submenu: [{ role: 'minimize' }, { role: 'close', accelerator: 'CommandOrControl+Shift+Q' }]
-  },
-  {
-    role: 'help',
-    submenu: [
-      {
-        label: 'About Bruno',
-        click: () => {
-          const aboutWindow = new BrowserWindow({
-            width: 350,
-            height: 250,
-            webPreferences: {
-              nodeIntegration: false
-            }
-          });
-          aboutWindow.removeMenu();
-          aboutWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(aboutBruno({ version }))}`);
-        }
-      },
-      { label: 'Documentation', click: () => ipcMain.emit('main:open-docs') }
-    ]
   }
 ];
 

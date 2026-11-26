@@ -176,11 +176,6 @@ function startDevelopment() {
       prefixColor: '#FA8072'
     },
     {
-      command: 'npm run watch --workspace=packages/bruno-io',
-      name: 'io',
-      prefixColor: '#20B2AA'
-    },
-    {
       command: 'npm run dev:web',
       name: 'react',
       prefixColor: 'cyan'

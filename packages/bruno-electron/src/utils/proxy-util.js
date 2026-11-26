@@ -11,7 +11,6 @@ const {
   resolveAgentsFromPac,
   PatchedHttpsProxyAgent
 } = require('@usebruno/requests');
-const { preferencesUtil } = require('../store/preferences');
 
 const DEFAULT_PORTS = {
   ftp: 21,
@@ -95,7 +94,8 @@ async function setupProxyAgents({
   delete requestConfig.httpAgent;
   delete requestConfig.httpsAgent;
 
-  const disableCache = !preferencesUtil.isSslSessionCachingEnabled();
+  // Agents are always rebuilt per request; reusing TLS sessions across requests is not supported in the app.
+  const disableCache = true;
 
   // keepAlive defaults to true; pass false to omit Connection.
   const keepAlive = httpsAgentRequestFields?.keepAlive !== false;

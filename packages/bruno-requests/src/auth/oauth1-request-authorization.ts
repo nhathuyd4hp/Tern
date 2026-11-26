@@ -335,7 +335,7 @@ export function createOAuth1Authorizer(config: OAuth1Config) {
  * optional timestamp/nonce overrides, and placing params in header,
  * query string, or body per RFC 5849.
  *
- * Shared by bruno-electron and bruno-cli to avoid duplication.
+ * Shared helper, kept out of bruno-electron to avoid duplication.
  */
 export function applyOAuth1ToRequest(request: {
   url: string;

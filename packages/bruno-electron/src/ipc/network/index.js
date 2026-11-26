@@ -474,11 +474,6 @@ const fetchGqlSchemaHandler = async (event, endpoint, environment, _request, col
 const registerNetworkIpc = (mainWindow) => {
   const onConsoleLog = (type, args) => {
     console[type](...args);
-
-    mainWindow.webContents.send('main:console-log', {
-      type,
-      args
-    });
   };
 
   const { sendRunnerRequestSent, sendRunnerResponseReceived } = createRunnerExchangeEmitters(mainWindow);

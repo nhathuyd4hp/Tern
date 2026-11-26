@@ -24,6 +24,7 @@ const { getProcessEnvVars } = require('../store/process-env');
 const { getCertsAndProxyConfig } = require('./network/cert-utils');
 const { makeAxiosInstance } = require('./network/axios-instance');
 const jsyaml = require('js-yaml');
+const { openSpecInBrowser } = require('./openapi-spec-viewer');
 
 /**
  * Detect if a string content is YAML (not JSON).
@@ -1997,15 +1998,32 @@ const registerOpenAPISyncIpc = (mainWindow) => {
   });
 
   // Read stored OpenAPI spec file from AppData
+  const readStoredSpecContent = (collectionPath) => {
+    const entry = getSpecEntryForUrl(collectionPath);
+    if (!entry) return null;
+    const specPath = path.join(getSpecsDir(), entry.filename);
+    return fs.existsSync(specPath) ? fs.readFileSync(specPath, 'utf8') : null;
+  };
+
   ipcMain.handle('renderer:read-openapi-spec', async (event, { collectionPath }) => {
     try {
-      const entry = getSpecEntryForUrl(collectionPath);
-      if (!entry) return { error: 'Spec file not found' };
-      const specPath = path.join(getSpecsDir(), entry.filename);
-      if (!fs.existsSync(specPath)) return { error: 'Spec file not found' };
-      return { content: fs.readFileSync(specPath, 'utf8') };
+      const content = readStoredSpecContent(collectionPath);
+      return content == null ? { error: 'Spec file not found' } : { content };
     } catch (error) {
       return { error: error.message || 'Failed to read spec file' };
+    }
+  });
+
+  ipcMain.handle('renderer:open-openapi-spec-in-browser', async (event, { collectionPath }) => {
+    try {
+      // A spec fetched over http(s) is served by the API it describes, so its origin is the fallback server.
+      const getDefaultServerUrl = () => {
+        const sourceUrl = getSpecEntryForUrl(collectionPath)?.sourceUrl;
+        return isValidHttpUrl(sourceUrl) ? new URL(sourceUrl).origin : null;
+      };
+      return await openSpecInBrowser(collectionPath, () => readStoredSpecContent(collectionPath), getDefaultServerUrl);
+    } catch (error) {
+      return { error: error.message || 'Failed to open the spec in the browser' };
     }
   });
 

@@ -7,10 +7,6 @@ jest.mock('electron', () => ({
   ipcMain: { handle: jest.fn(), on: jest.fn(), emit: jest.fn() },
   app: { getPath: jest.fn(() => require('node:os').tmpdir()) }
 }));
-jest.mock('./mount', () => ({
-  unmount: jest.fn(async () => {}),
-  clearCollectionIndex: jest.fn()
-}));
 jest.mock('../app/collections', () => ({
   openCollection: jest.fn(async () => ({ opened: true }))
 }));

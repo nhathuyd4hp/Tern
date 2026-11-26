@@ -5,9 +5,7 @@ import {
   buildQueryString,
   hasExplicitScheme,
   safeDecodeURIComponent,
-  stripOrigin,
-  extractMockRoutePath,
-  getMockResponseRouteKey
+  stripOrigin
 } from './index';
 
 describe('encodeUrl', () => {
@@ -461,37 +459,6 @@ describe('hasExplicitScheme', () => {
   it('{{baseUrl}} alone — no scheme injection for template variables', async () => {
     const url = '{{baseUrl}}';
     expect(hasExplicitScheme(url)).toBe(false);
-  });
-});
-
-describe('extractMockRoutePath', () => {
-  it('strips hosts and variables from mock endpoint urls', () => {
-    expect(extractMockRoutePath('{{baseUrl}}/breeds')).toBe('/breeds');
-    expect(extractMockRoutePath('google.com/test')).toBe('/test');
-    expect(extractMockRoutePath('https://api.example.com/v1/users')).toBe('/v1/users');
-    expect(extractMockRoutePath('localhost:8080/api')).toBe('/api');
-    expect(extractMockRoutePath('pets')).toBe('/pets');
-    expect(extractMockRoutePath('{{baseUrl}}/users/:userId')).toBe('/users/:userId');
-  });
-
-  it('falls back to path when absolute URL has a templated host', () => {
-    expect(extractMockRoutePath('https://{{host}}/v1/items')).toBe('/v1/items');
-  });
-
-  it('keeps `{{var}}` intact when preserveTemplateVars is set', () => {
-    expect(extractMockRoutePath('{{baseUrl}}/users/{{userId}}', { preserveTemplateVars: true }))
-      .toBe('/users/{{userId}}');
-    expect(extractMockRoutePath('https://api.example.com/v1/{{resource}}', { preserveTemplateVars: true }))
-      .toBe('/v1/{{resource}}');
-  });
-});
-
-describe('getMockResponseRouteKey', () => {
-  it('builds method + normalized path + status keys', () => {
-    expect(getMockResponseRouteKey({
-      request: { method: 'get', url: 'https://api.example.com/users' },
-      response: { status: 200 }
-    })).toBe('GET /users::200');
   });
 });
 

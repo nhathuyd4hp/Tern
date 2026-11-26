@@ -208,8 +208,7 @@ const buildCertsAndProxyConfig = async ({
     shouldVerifyTls: preferencesUtil.shouldVerifyTls(),
     shouldUseCustomCaCertificate: preferencesUtil.shouldUseCustomCaCertificate(),
     customCaCertificateFilePath: preferencesUtil.getCustomCaCertificateFilePath(),
-    shouldKeepDefaultCaCertificates: preferencesUtil.shouldKeepDefaultCaCertificates(),
-    cacheSslSession: preferencesUtil.isSslSessionCachingEnabled()
+    shouldKeepDefaultCaCertificates: preferencesUtil.shouldKeepDefaultCaCertificates()
   };
 
   // Get client certificates from bruno config and interpolate, skipping disabled certs

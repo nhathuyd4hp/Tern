@@ -50,15 +50,10 @@ const { registerYmlMigrationIpc } = require('./ipc/yml-migration');
 const registerFilesystemIpc = require('./ipc/filesystem');
 const registerPreferencesIpc = require('./ipc/preferences');
 const registerSnapshotIpc = require('./ipc/snapshot');
-const registerSystemMonitorIpc = require('./ipc/system-monitor');
 const registerWorkspaceIpc = require('./ipc/workspace');
 const registerApiSpecIpc = require('./ipc/apiSpec');
 const registerGitIpc = require('./ipc/git');
 const registerOpenAPISyncIpc = require('./ipc/openapi-sync');
-const registerMockServerIpc = require('./ipc/mock-server');
-const registerAiIpc = require('./ipc/ai');
-const registerAiAutocompleteIpc = require('./ipc/ai/autocomplete');
-const { registerMountIpc } = require('./ipc/mount');
 const { registerSqliteIpc } = require('./ipc/sqlite');
 const sqliteService = require('./services/sqlite');
 const { clearAllRunnerResponses } = require('./services/runner-exchange');
@@ -74,16 +69,12 @@ const registerNotificationsIpc = require('./ipc/notifications');
 const registerGlobalEnvironmentsIpc = require('./ipc/global-environments');
 const registerAppDocumentIpc = require('./ipc/app-document');
 const AppDocuments = require('./app/app-documents');
-const TerminalManager = require('./ipc/terminal');
 const { safeParseJSON, safeStringifyJSON } = require('./utils/common');
 const { getDomainsWithCookies } = require('./utils/cookies');
 const { cookiesStore } = require('./store/cookies');
-const SystemMonitor = require('./app/system-monitor');
 const { getIsRunningInRosetta } = require('./utils/arch');
 const { handleAppProtocolUrl, getAppProtocolUrlFromArgv } = require('./utils/deeplink');
 
-const systemMonitor = new SystemMonitor();
-const terminalManager = new TerminalManager();
 const { startBenchmark, stopBenchmark } = require('./benchmark');
 
 const workspaceWatcher = new WorkspaceWatcher();
@@ -266,7 +257,7 @@ app.on('ready', async () => {
       preload: path.join(__dirname, 'preload.js'),
       webviewTag: true
     },
-    title: 'Bruno',
+    title: 'Kevin',
     icon: path.join(__dirname, 'about/256x256.png'),
     titleBarStyle: isMac ? 'hiddenInset' : isWindows ? 'hidden' : undefined,
     frame: isLinux ? false : true,
@@ -349,24 +340,6 @@ app.on('ready', async () => {
     mainWindow.setFullScreen(!mainWindow.isFullScreen());
   });
 
-  ipcMain.handle('renderer:open-docs', () => {
-    ipcMain.emit('main:open-docs');
-  });
-
-  ipcMain.handle('renderer:open-about', () => {
-    const { version } = require('../package.json');
-    const aboutBruno = require('./app/about-bruno');
-    const aboutWindow = new BrowserWindow({
-      width: 350,
-      height: 250,
-      webPreferences: {
-        nodeIntegration: false
-      }
-    });
-    aboutWindow.removeMenu();
-    aboutWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(aboutBruno({ version }))}`);
-  });
-
   mainWindow.once('ready-to-show', () => {
     // Apply saved zoom level from preferences before showing window
     const zoomPercentage = preferencesUtil.getZoomPercentage();
@@ -385,11 +358,6 @@ app.on('ready', async () => {
       console.error(
         'Could not connect to Next.Js dev server, is it running?'
         + ' Start the dev server using "npm run dev:web" and restart electron'
-      );
-    } else {
-      console.error(
-        'If you are using an official production build: the above error is most likely a bug! '
-        + ' Please report this under: https://github.com/usebruno/bruno/issues'
       );
     }
   });
@@ -428,7 +396,6 @@ app.on('ready', async () => {
 
   mainWindow.on('close', (e) => {
     e.preventDefault();
-    terminalManager.cleanup(mainWindow.webContents);
     ipcMain.emit('main:start-quit-flow');
   });
 
@@ -464,32 +431,7 @@ app.on('ready', async () => {
     }
   });
 
-  const AI_POPOUT_FRAME_PREFIX = 'bruno-ai-assistant';
-  const isAiPopoutFrame = (frameName) => Boolean(frameName && frameName.startsWith(AI_POPOUT_FRAME_PREFIX));
-
-  mainWindow.webContents.setWindowOpenHandler(({ url, frameName }) => {
-    if (isAiPopoutFrame(frameName) && (!url || url === 'about:blank')) {
-      return {
-        action: 'allow',
-        overrideBrowserWindowOptions: {
-          width: 480,
-          height: 640,
-          minWidth: 400,
-          minHeight: 480,
-          backgroundColor: themeBg,
-          icon: path.join(__dirname, 'about', '256x256.png'),
-          autoHideMenuBar: true,
-          // No OS title bar, the chat header is the drag region and carries
-          // its own close/dock controls.
-          frame: false,
-          webPreferences: {
-            preload: '',
-            nodeIntegration: false,
-            contextIsolation: true
-          }
-        }
-      };
-    }
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     try {
       const { protocol } = new URL(url);
       if (['https:', 'http:'].includes(protocol)) {
@@ -499,27 +441,6 @@ app.on('ready', async () => {
       console.error(e);
     }
     return { action: 'deny' };
-  });
-
-  mainWindow.webContents.on('did-create-window', (childWindow, { frameName }) => {
-    if (!isAiPopoutFrame(frameName)) return;
-    // Links inside AI responses open in the default browser and must never
-    // navigate the popout document itself (that would tear down the portal).
-    const openExternally = (url) => {
-      if (/^https?:\/\//.test(url)) {
-        shell.openExternal(url).catch((err) => {
-          console.error('Failed to open external URL from AI popout:', err);
-        });
-      }
-    };
-    childWindow.webContents.setWindowOpenHandler(({ url }) => {
-      openExternally(url);
-      return { action: 'deny' };
-    });
-    childWindow.webContents.on('will-navigate', (event, url) => {
-      event.preventDefault();
-      openExternally(url);
-    });
   });
 
   mainWindow.webContents.on('did-finish-load', async () => {
@@ -560,13 +481,8 @@ app.on('ready', async () => {
   registerApiSpecIpc(mainWindow, apiSpecWatcher);
   registerNotificationsIpc(mainWindow, collectionWatcher);
   registerFilesystemIpc(mainWindow);
-  registerSystemMonitorIpc(mainWindow, systemMonitor);
   registerGitIpc(mainWindow);
   registerOpenAPISyncIpc(mainWindow);
-  registerMockServerIpc(mainWindow);
-  registerAiIpc(mainWindow);
-  registerAiAutocompleteIpc(mainWindow);
-  registerMountIpc();
   sqliteService.openDatabase();
   clearAllRunnerResponses().catch((err) => console.warn('[runner] failed to clear stored responses', err));
   registerSqliteIpc();
@@ -608,8 +524,6 @@ app.on('before-quit', (event) => {
       ]);
     } catch {}
 
-    try { await require('./ipc/mount').shutdown({ force: true }); } catch { }
-
     try { await clearAllRunnerResponses(); } catch {}
 
     try { await sqliteService.reclaimDiskSpace(); } catch {}
@@ -624,14 +538,6 @@ app.on('before-quit', (event) => {
       cookiesStore.saveCookieJar(true);
     } catch (err) {
       console.warn('Failed to flush cookies on quit', err);
-    }
-
-    systemMonitor.stop();
-
-    try {
-      terminalManager.killAll();
-    } catch (err) {
-      console.error('Failed to kill all terminals on quit', err);
     }
 
     app.exit(0);

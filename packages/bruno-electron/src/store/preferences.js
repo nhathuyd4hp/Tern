@@ -49,13 +49,6 @@ const defaultPreferences = {
   layout: {
     responsePaneOrientation: 'horizontal'
   },
-  mockServer: {
-    mode: 'isolated',
-    instances: []
-  },
-  beta: {
-    'openapi-sync': false
-  },
   onboarding: {
     hasLaunchedBefore: false,
     hasSeenWelcomeModal: true,
@@ -74,38 +67,6 @@ const defaultPreferences = {
   },
   display: {
     zoomPercentage: 100
-  },
-  cache: {
-    sslSession: {
-      enabled: false
-    },
-    file: {
-      enabled: false
-    }
-  },
-  ai: {
-    enabled: false,
-    providers: {
-      'openai': { enabled: false },
-      'anthropic': { enabled: false },
-      'github-copilot': { enabled: false }
-    },
-    models: {},
-    defaultModel: '',
-    openaiCompatibleEndpoints: [],
-    autocomplete: {
-      enabled: true,
-      model: '',
-      triggerMode: 'debounced'
-    },
-    security: {
-      redactHeaders: true,
-      redactBody: true,
-      redactVariables: true,
-      redactResponse: true,
-      customRedactedHeaders: [],
-      customRedactedVariables: []
-    }
   }
 };
 
@@ -164,23 +125,6 @@ const preferencesSchema = Yup.object().shape({
   layout: Yup.object({
     responsePaneOrientation: Yup.string().oneOf(['horizontal', 'vertical'])
   }),
-  mockServer: Yup.object({
-    instances: Yup.array().of(Yup.object({
-      uid: Yup.string().required(),
-      name: Yup.string().required(),
-      sourceType: Yup.string().oneOf(['collection', 'spec', 'manual']).required(),
-      collectionUid: Yup.string().nullable(),
-      specUid: Yup.string().nullable(),
-      specPath: Yup.string().nullable(),
-      specName: Yup.string().nullable(),
-      port: Yup.number().min(1).max(65535).required(),
-      globalDelay: Yup.number().min(0).required(),
-      workspaceUid: Yup.string().required()
-    })).optional()
-  }),
-  beta: Yup.object({
-    'openapi-sync': Yup.boolean()
-  }),
   onboarding: Yup.object({
     hasLaunchedBefore: Yup.boolean(),
     hasSeenWelcomeModal: Yup.boolean(),
@@ -199,48 +143,7 @@ const preferencesSchema = Yup.object().shape({
   }),
   display: Yup.object({
     zoomPercentage: Yup.number().min(50).max(150)
-  }),
-  cache: Yup.object({
-    sslSession: Yup.object({
-      enabled: Yup.boolean()
-    }),
-    file: Yup.object({
-      enabled: Yup.boolean()
-    })
-  }).optional(),
-  ai: Yup.object({
-    enabled: Yup.boolean(),
-    providers: Yup.object().optional(),
-    models: Yup.object().optional(),
-    defaultModel: Yup.string().max(200).nullable(),
-    openaiCompatibleEndpoints: Yup.array().of(
-      Yup.object({
-        id: Yup.string().required(),
-        name: Yup.string().max(120).nullable(),
-        baseURL: Yup.string().max(2048).nullable(),
-        models: Yup.array().of(
-          Yup.object({
-            id: Yup.string().required(),
-            label: Yup.string().max(120).nullable(),
-            modelId: Yup.string().max(200).nullable()
-          })
-        )
-      })
-    ).optional(),
-    autocomplete: Yup.object({
-      enabled: Yup.boolean(),
-      model: Yup.string().max(200).nullable(),
-      triggerMode: Yup.string().oneOf(['aggressive', 'debounced', 'manual']).nullable()
-    }).optional(),
-    security: Yup.object({
-      redactHeaders: Yup.boolean(),
-      redactBody: Yup.boolean(),
-      redactVariables: Yup.boolean(),
-      redactResponse: Yup.boolean(),
-      customRedactedHeaders: Yup.array().of(Yup.string().max(200)).max(200),
-      customRedactedVariables: Yup.array().of(Yup.string().max(200)).max(200)
-    }).optional()
-  }).optional()
+  })
 });
 
 class PreferencesStore {
@@ -431,17 +334,8 @@ const preferencesUtil = {
   getResponsePaneOrientation: () => {
     return get(getPreferences(), 'layout.responsePaneOrientation', 'horizontal');
   },
-  isBetaFeatureEnabled: (featureName) => {
-    return get(getPreferences(), `beta.${featureName}`, false);
-  },
   getZoomPercentage: () => {
     return get(getPreferences(), 'display.zoomPercentage', 100);
-  },
-  isSslSessionCachingEnabled: () => {
-    return get(getPreferences(), 'cache.sslSession.enabled', false);
-  },
-  isFileCacheEnabled: () => {
-    return get(getPreferences(), 'cache.file.enabled', false);
   },
   hasLaunchedBefore: () => {
     return get(getPreferences(), 'onboarding.hasLaunchedBefore', false);
