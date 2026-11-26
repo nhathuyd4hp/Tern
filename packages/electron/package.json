@@ -9,7 +9,7 @@
   },
   "private": true,
   "main": "src/index.js",
-  "author": "nhathuyd4hp",
+  "author": "nhathuyd4hp <nhathuyd4hp@users.noreply.github.com>",
   "scripts": {
     "clean": "rimraf dist",
     "dev": "electron .",
