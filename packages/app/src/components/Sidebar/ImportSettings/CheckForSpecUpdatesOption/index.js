@@ -7,7 +7,7 @@ const CheckForSpecUpdatesOption = ({ checked, onChange, disabled = false, showSw
     label="Check for Spec Updates"
     description={showSwagger2Note
       ? 'OpenAPI Sync is not supported for Swagger 2.0 specs.'
-      : 'Stay notified of spec changes and sync your collection with the spec.'}
+      : 'Stay notified of spec changes and sync your application with the spec.'}
     descriptionTestId={descriptionTestId}
     disabled={disabled}
     isSwitch

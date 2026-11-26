@@ -28,18 +28,18 @@ const CollectionItemInfo = ({ item, onClose }) => {
             </tr>
             <tr className="">
               <td className="py-2 px-2 text-left text-muted flex items-center">
-                {type == 'folder' ? 'Folder Name' : 'File Name'}
+                {type == 'folder' ? 'Collection Name' : 'File Name'}
                 <small className="font-normal text-muted ml-1">(on filesystem)</small>
                 {type == 'folder' ? (
                   <Help width="300">
                     <p>
-                      The name of the folder on your filesystem.
+                      The name of the collection on your filesystem.
                     </p>
                   </Help>
                 ) : (
                   <Help width="300">
                     <p>
-                      Kevin saves each request as a file in your collection's folder.
+                      Kevin saves each request as a file in your application's folder.
                     </p>
                   </Help>
                 )}

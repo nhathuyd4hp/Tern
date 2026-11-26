@@ -119,7 +119,7 @@ describe('PostmanPackageReport', () => {
     expect(screen.getByTestId('postman-package-report-modal-submit-btn')).toHaveTextContent('Done');
   });
 
-  it('auto-dismisses when only dev-mode libs are referenced and the collection is already in Developer Mode', () => {
+  it('auto-dismisses when only dev-mode libs are referenced and the application is already in Developer Mode', () => {
     mockCollection = {
       uid: 'col-1',
       pathname: '/collections/demo',
@@ -148,7 +148,7 @@ describe('PostmanPackageReport', () => {
     expect(screen.getByText('postman-collection')).toBeInTheDocument();
   });
 
-  it('installs packages and then prompts to enable Developer Mode (Safe Mode collection)', async () => {
+  it('installs packages and then prompts to enable Developer Mode (Safe Mode application)', async () => {
     renderModal();
 
     fireEvent.click(screen.getByTestId('postman-package-report-modal-submit-btn'));
@@ -159,7 +159,7 @@ describe('PostmanPackageReport', () => {
       ['dayjs', 'zod']
     );
 
-    expect(await screen.findByText(/Installed 2 packages into this collection/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Installed 2 packages into this application/i)).toBeInTheDocument();
     expect(screen.getByText('External modules require Developer Mode')).toBeInTheDocument();
     expect(screen.getByTestId('switch-to-developer-mode')).toBeInTheDocument();
   });
@@ -175,7 +175,7 @@ describe('PostmanPackageReport', () => {
     });
   });
 
-  it('skips the Developer Mode prompt when the collection is already in Developer Mode', async () => {
+  it('skips the Developer Mode prompt when the application is already in Developer Mode', async () => {
     mockCollection = {
       uid: 'col-1',
       pathname: '/collections/demo',

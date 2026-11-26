@@ -9,8 +9,8 @@ const folderArrangementOptions = [
 const FolderArrangementOption = ({ value, onChange, disabled = false, className }) => (
   <ImportSettingRow
     className={className}
-    label="Folder arrangement"
-    description="Select whether to create folders according to the spec's paths or tags."
+    label="Collection arrangement"
+    description="Select whether to create collections according to the spec's paths or tags."
     disabled={disabled}
   >
     <ImportSettingDropdown options={folderArrangementOptions} value={value} onChange={onChange} testId="grouping" disabled={disabled} />

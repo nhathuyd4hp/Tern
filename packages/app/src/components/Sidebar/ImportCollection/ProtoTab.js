@@ -28,11 +28,11 @@ const ProtoTab = ({ setIsLoading, handleSubmit, setErrorMessage }) => {
   };
 
   return (
-    <div className="flex flex-col items-start gap-3">
-      <div className="text-sm">
-        Pick one gRPC <code>.proto</code> file. Each service becomes a folder and each method a request.
+    <div className="flex items-center gap-3">
+      <div className="text-sm flex-1 min-w-0">
+        Service → collection, method → request.
       </div>
-      <Button type="button" data-testid="choose-proto-file-btn" variant="filled" color="primary" onClick={handleChooseFile}>
+      <Button type="button" data-testid="choose-proto-file-btn" variant="filled" color="primary" className="flex-shrink-0" onClick={handleChooseFile}>
         Choose .proto file
       </Button>
     </div>

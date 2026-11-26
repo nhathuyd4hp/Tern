@@ -30,13 +30,13 @@ import { DEFAULT_COLLECTION_FORMAT } from 'utils/common/constants';
 
 // Extract collection name from raw data
 const getCollectionName = (format, rawData) => {
-  if (!rawData) return 'Collection';
+  if (!rawData) return 'Application';
 
   switch (format) {
     case 'openapi':
-      return rawData.info?.title || 'OpenAPI Collection';
+      return rawData.info?.title || 'OpenAPI Application';
     case 'postman':
-      return rawData.info?.name || rawData.collection?.info?.name || 'Postman Collection';
+      return rawData.info?.name || rawData.collection?.info?.name || 'Postman Application';
     case 'insomnia':
       // For Insomnia v4 format, name is in the workspace resource
       if (rawData.resources && Array.isArray(rawData.resources)) {
@@ -46,19 +46,19 @@ const getCollectionName = (format, rawData) => {
         }
       }
       // Fallback to root name property
-      return rawData.name || 'Insomnia Collection';
+      return rawData.name || 'Insomnia Application';
     case 'bruno':
-      return rawData.name || 'Kevin Collection';
+      return rawData.name || 'Kevin Application';
     case 'opencollection':
       return rawData.info?.name || 'OpenCollection';
     case 'wsdl':
-      return 'WSDL Collection';
+      return 'WSDL Application';
     case 'proto':
       return rawData.filePath.split(/[\\/]/).pop().replace(/\.proto$/i, '');
     case 'bruno-zip':
-      return rawData.collectionName || 'Kevin Collection';
+      return rawData.collectionName || 'Kevin Application';
     default:
-      return 'Collection';
+      return 'Application';
   }
 };
 
@@ -99,13 +99,13 @@ const convertCollection = async (format, rawData, { groupingType, collectionForm
         collection = rawData;
         break;
       default:
-        throw new Error('Unknown collection format');
+        throw new Error('Unknown application format');
     }
 
     return { collection, issues };
   } catch (err) {
     console.error('Conversion error:', err);
-    toastError(err, 'Failed to convert collection');
+    toastError(err, 'Failed to convert application');
     throw err;
   }
 };
@@ -206,7 +206,7 @@ const ImportCollectionLocation = ({ onClose, handleSubmit, rawData, format, sour
     <Portal>
       <Modal
         size="md"
-        title="Import Collection"
+        title="Import Application"
         confirmText="Import"
         handleConfirm={onSubmit}
         handleCancel={onClose}
@@ -228,8 +228,8 @@ const ImportCollectionLocation = ({ onClose, handleSubmit, rawData, format, sour
               <label htmlFor="collectionLocation" className="font-medium mt-4 flex items-center">
                 Location
                 <Help>
-                  <p>Kevin stores your collections on your computer's filesystem.</p>
-                  <p className="mt-2">Choose the location where you want to store this collection.</p>
+                  <p>Kevin stores your applications on your computer's filesystem.</p>
+                  <p className="mt-2">Choose the location where you want to store this application.</p>
                 </Help>
               </label>
               <input
@@ -267,7 +267,7 @@ const ImportCollectionLocation = ({ onClose, handleSubmit, rawData, format, sour
                 <label htmlFor="format" className="flex items-center font-medium">
                   File Format
                   <Help width="300">
-                    <p>Choose the file format for storing requests in this collection.</p>
+                    <p>Choose the file format for storing requests in this application.</p>
                     <p className="mt-2">
                       <strong>OpenCollection (YAML):</strong> Industry-standard YAML format (.yml files)
                     </p>

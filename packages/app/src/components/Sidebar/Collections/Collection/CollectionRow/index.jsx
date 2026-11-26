@@ -192,7 +192,7 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
   const handleShowInFolder = () => {
     dispatch(showInFolder(collection.pathname)).catch((error) => {
       console.error('Error opening the folder', error);
-      toast.error('Error opening the folder');
+      toast.error('Error opening the collection');
     });
   };
 
@@ -358,7 +358,7 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
     {
       id: 'new-folder',
       leftSection: IconFolderPlus,
-      label: 'New Folder',
+      label: 'New Collection',
       onClick: () => {
         ensureCollectionIsMounted();
         setShowNewFolderModal(true);

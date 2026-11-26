@@ -48,12 +48,12 @@ const ConfirmCollectionCloseDrafts = ({ onClose, collectionUids }) => {
         removedCount++;
       } catch (error) {
         console.error(`Error closing collection ${c.name}:`, error);
-        toast.error(error?.message || `Error removing collection ${c.name}`);
+        toast.error(error?.message || `Error removing application ${c.name}`);
       }
     }
 
     if (removedCount > 0) {
-      toast.success(`${removedCount} ${pluralizeWord('Collection', removedCount)} removed from workspace`);
+      toast.success(`${removedCount} ${pluralizeWord('Application', removedCount)} removed from workspace`);
     }
 
     if (removedCount === activeCollections.length) {
@@ -112,7 +112,7 @@ const ConfirmCollectionCloseDrafts = ({ onClose, collectionUids }) => {
       <StyledWrapper>
         <Modal
           size="md"
-          title={`Remove ${pluralizeWord('Collection', activeCollections.length)}`}
+          title={`Remove ${pluralizeWord('Application', activeCollections.length)}`}
           confirmText="Save and Remove"
           cancelText="Remove without saving"
           handleCancel={onClose}
@@ -161,9 +161,9 @@ const ConfirmCollectionCloseDrafts = ({ onClose, collectionUids }) => {
                 Other Changes ({otherDraftsCount})
               </p>
               <p className="ml-2 text-xs text-muted">
-                {currentFolderDrafts.length > 0 && `${currentFolderDrafts.length} ${pluralizeWord('folder', currentFolderDrafts.length)}`}
+                {currentFolderDrafts.length > 0 && `${currentFolderDrafts.length} ${pluralizeWord('collection', currentFolderDrafts.length)}`}
                 {currentFolderDrafts.length > 0 && currentCollectionDrafts.length > 0 && ' and '}
-                {currentCollectionDrafts.length > 0 && `${currentCollectionDrafts.length} ${pluralizeWord('collection', currentCollectionDrafts.length)}`}
+                {currentCollectionDrafts.length > 0 && `${currentCollectionDrafts.length} ${pluralizeWord('application', currentCollectionDrafts.length)}`}
                 {' '}with unsaved changes will also be saved.
               </p>
             </div>
@@ -176,7 +176,7 @@ const ConfirmCollectionCloseDrafts = ({ onClose, collectionUids }) => {
                 Transient {pluralizeWord('Request', currentTransientDrafts.length)} ({currentTransientDrafts.length})
               </p>
               <p className="text-xs transient-hint mb-3">
-                These requests need to be saved individually before closing the collection.
+                These requests need to be saved individually before closing the application.
               </p>
               <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
                 {currentTransientDrafts.map((item) => {

@@ -24,11 +24,11 @@ const RenameCollection = ({ collectionUid, onClose }) => {
     onSubmit: (values) => {
       dispatch(renameCollection(values.name, collection.uid))
         .then(() => {
-          toast.success('Collection renamed!');
+          toast.success('Application renamed!');
           onClose();
         })
         .catch((err) => {
-          toast.error(err ? err.message : 'An error occurred while renaming the collection');
+          toast.error(err ? err.message : 'An error occurred while renaming the application');
         });
     }
   });
@@ -42,7 +42,7 @@ const RenameCollection = ({ collectionUid, onClose }) => {
   const onSubmit = () => formik.handleSubmit();
 
   return (
-    <Modal size="md" title="Rename Collection" confirmText="Rename" handleConfirm={onSubmit} handleCancel={onClose} dataTestId="rename-collection-modal">
+    <Modal size="md" title="Rename Application" confirmText="Rename" handleConfirm={onSubmit} handleCancel={onClose} dataTestId="rename-collection-modal">
       <form className="bruno-form" onSubmit={(e) => e.preventDefault()}>
         <div>
           <label htmlFor="name" className="block font-medium">

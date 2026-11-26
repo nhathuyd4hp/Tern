@@ -32,7 +32,7 @@ const RemoveCollections = ({ onClose, collectionUid, collectionUids }) => {
 
   const onConfirm = () => {
     if (!collections.length) {
-      toast.error('Collection not found');
+      toast.error('Application not found');
       onClose();
       return;
     }
@@ -49,7 +49,7 @@ const RemoveCollections = ({ onClose, collectionUid, collectionUids }) => {
       });
 
       if (failedCollections.length === 0) {
-        toast.success(`${pluralizeWord('Collection', collections.length)} removed from workspace`);
+        toast.success(`${pluralizeWord('Application', collections.length)} removed from workspace`);
         dispatch(clearSidebarSelection());
         onClose();
       } else {
@@ -60,7 +60,7 @@ const RemoveCollections = ({ onClose, collectionUid, collectionUids }) => {
   };
 
   if (!collections.length) {
-    return <div>Collection not found</div>;
+    return <div>Application not found</div>;
   }
 
   // If there are drafts, show the draft confirmation modal
@@ -76,7 +76,7 @@ const RemoveCollections = ({ onClose, collectionUid, collectionUids }) => {
       <StyledWrapper>
         <Modal
           size="sm"
-          title={`Remove ${pluralizeWord('Collection', collections.length)}`}
+          title={`Remove ${pluralizeWord('Application', collections.length)}`}
           confirmText={isMultiple ? 'Remove All' : 'Remove'}
           confirmButtonColor="danger"
           handleConfirm={onConfirm}
@@ -84,8 +84,8 @@ const RemoveCollections = ({ onClose, collectionUid, collectionUids }) => {
         >
           <p className="mb-4">
             {isMultiple
-              ? `Are you sure you want to close all ${collections.length} collections from this workspace?`
-              : 'Are you sure you want to close the following collection in Kevin?'}
+              ? `Are you sure you want to close all ${collections.length} applications from this workspace?`
+              : 'Are you sure you want to close the following application in Kevin?'}
           </p>
 
           <div className="collections-list-container">

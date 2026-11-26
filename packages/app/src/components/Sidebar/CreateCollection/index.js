@@ -46,9 +46,9 @@ const CreateCollection = ({ onClose, defaultLocation: propDefaultLocation, initi
     validationSchema: Yup.object({
       collectionName: Yup.string()
         .trim()
-        .min(1, 'Collection name can\'t be empty')
+        .min(1, 'Application name can\'t be empty')
         .max(255, 'Must be 255 characters or less')
-        .required('Collection name is required'),
+        .required('Application name is required'),
       collectionFolderName: Yup.string()
         .min(1, 'Must be at least 1 character')
         .max(255, 'Must be 255 characters or less')
@@ -67,10 +67,10 @@ const CreateCollection = ({ onClose, defaultLocation: propDefaultLocation, initi
           values.collectionLocation,
           { format: values.format }));
 
-        toast.success('Collection created!');
+        toast.success('Application created!');
         onClose();
       } catch (e) {
-        toast.error(multiLineMsg('An error occurred while creating the collection', formatIpcError(e)));
+        toast.error(multiLineMsg('An error occurred while creating the application', formatIpcError(e)));
       }
     }
   });
@@ -114,7 +114,7 @@ const CreateCollection = ({ onClose, defaultLocation: propDefaultLocation, initi
   return (
     <Portal>
       <StyledWrapper>
-        <Modal size="md" title="Create Collection" hideFooter={true} handleCancel={onClose}>
+        <Modal size="md" title="Create Application" hideFooter={true} handleCancel={onClose}>
           <form className="bruno-form" onSubmit={formik.handleSubmit}>
             <div>
               <label htmlFor="collection-name" className="flex items-center font-medium">
@@ -153,10 +153,10 @@ const CreateCollection = ({ onClose, defaultLocation: propDefaultLocation, initi
                 Location
                 <Help>
                   <p>
-                    Kevin stores your collections on your computer's filesystem.
+                    Kevin stores your applications on your computer's filesystem.
                   </p>
                   <p className="mt-2">
-                    Choose the location where you want to store this collection.
+                    Choose the location where you want to store this application.
                   </p>
                 </Help>
               </label>
@@ -194,10 +194,10 @@ const CreateCollection = ({ onClose, defaultLocation: propDefaultLocation, initi
                       Folder Name
                       <Help width="300">
                         <p>
-                          The name of the folder used to store the collection.
+                          The name of the folder used to store the application.
                         </p>
                         <p className="mt-2">
-                          You can choose a folder name different from your collection's name or one compatible with filesystem rules.
+                          You can choose a folder name different from your application's name or one compatible with filesystem rules.
                         </p>
                       </Help>
                     </label>
@@ -249,7 +249,7 @@ const CreateCollection = ({ onClose, defaultLocation: propDefaultLocation, initi
                     File Format
                     <Help width="300">
                       <p>
-                        Choose the file format for storing requests in this collection.
+                        Choose the file format for storing requests in this application.
                       </p>
                       <p className="mt-2">
                         <strong>OpenCollection (YAML):</strong> Industry-standard YAML format (.yml files)

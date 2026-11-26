@@ -90,7 +90,7 @@ const GoldenEdition = ({ onClose }) => {
     'Inbuilt Bru File Explorer',
     'Visual Git (Like Gitlens for Vscode)',
     'GRPC, Websocket, SocketIO, MQTT',
-    'Load Data from File for Collection Run',
+    'Load Data from File for Application Run',
     'Developer Tools',
     'OpenAPI Designer',
     'Performance/Load Testing',
@@ -101,7 +101,7 @@ const GoldenEdition = ({ onClose }) => {
   const goldenEditionOrganizations = [
     'Centralized License Management',
     'Integration with Secret Managers',
-    'Private Collection Registry',
+    'Private Application Registry',
     'Request Forms',
     'Priority Support'
   ];

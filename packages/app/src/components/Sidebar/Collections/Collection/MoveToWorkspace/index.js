@@ -26,7 +26,7 @@ const MoveToWorkspace = ({ onClose, collectionUid }) => {
 
   const onConfirm = () => {
     if (!collection) {
-      toast.error('Collection not found');
+      toast.error('Application not found');
       onClose();
       return;
     }
@@ -36,17 +36,17 @@ const MoveToWorkspace = ({ onClose, collectionUid }) => {
     setIsMoving(true);
     dispatch(moveCollectionToWorkspace(collection.uid))
       .then(() => {
-        toast.success('Collection moved into app storage');
+        toast.success('Application moved into app storage');
         onClose();
       })
       .catch((err) => {
-        toast.error(err?.message || 'An error occurred while moving the collection');
+        toast.error(err?.message || 'An error occurred while moving the application');
         setIsMoving(false);
       });
   };
 
   if (!collection) {
-    return <div>Collection not found</div>;
+    return <div>Application not found</div>;
   }
 
   if (!activeWorkspace?.pathname) {
@@ -82,7 +82,7 @@ const MoveToWorkspace = ({ onClose, collectionUid }) => {
           <div className="collection-path">{targetLocation}</div>
         </div>
         <p className="mt-4 text-muted text-sm">
-          The collection reloads from its new location, so any open request tabs will close.
+          The application reloads from its new location, so any open request tabs will close.
         </p>
       </Modal>
     </StyledWrapper>

@@ -15,7 +15,7 @@ const RequestNameSourceOption = ({ value, onChange, disabled = false }) => (
   <ImportSettingRow
     label="Naming requests"
     info="If an operation doesn't have the selected option, Kevin falls back in the following order: summary, operationId, description, then path."
-    description="How requests in the generated collection are named."
+    description="How requests in the generated application are named."
     disabled={disabled}
   >
     <ImportSettingDropdown options={requestNameSourceOptions} value={value} onChange={onChange} testId="request-name-source" disabled={disabled} />

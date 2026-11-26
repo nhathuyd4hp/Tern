@@ -107,7 +107,7 @@ const PostmanPackageReport = ({ report, collectionPath, onClose }) => {
 
   const handleInstall = async () => {
     if (!collectionPath) {
-      toast.error('Cannot install: collection path not available.');
+      toast.error('Cannot install: application path not available.');
       return;
     }
     if (needsInstall.length === 0) return;
@@ -139,7 +139,7 @@ const PostmanPackageReport = ({ report, collectionPath, onClose }) => {
 
   const handleSwitchToDeveloperMode = () => {
     if (!collection?.uid) {
-      toast.error('Could not locate the imported collection to switch modes.');
+      toast.error('Could not locate the imported application to switch modes.');
       return;
     }
     setSwitchingMode(true);
@@ -195,8 +195,8 @@ const PostmanPackageReport = ({ report, collectionPath, onClose }) => {
             </div>
             {!installing && !installDone && (
               <p className="pkg-section-help">
-                These npm packages are referenced by scripts in your imported collection but aren't
-                installed in this collection's folder.
+                These npm packages are referenced by scripts in your imported application but aren't
+                installed in this application's folder.
               </p>
             )}
             <PackageList items={needsInstall} />
@@ -233,7 +233,7 @@ const PostmanPackageReport = ({ report, collectionPath, onClose }) => {
                 <IconCircleCheck size={14} strokeWidth={1.75} />
                 <span>
                   Installed {(installResult.installed || needsInstall).length} package
-                  {(installResult.installed || needsInstall).length === 1 ? '' : 's'} into this collection.
+                  {(installResult.installed || needsInstall).length === 1 ? '' : 's'} into this application.
                 </span>
               </div>
             )}
@@ -253,7 +253,7 @@ const PostmanPackageReport = ({ report, collectionPath, onClose }) => {
             <PackageList items={devMode} />
             <div className="pkg-devmode-trust">
               <IconShieldLock size={15} strokeWidth={1.75} />
-              <span>Only enable Developer Mode for collections you trust.</span>
+              <span>Only enable Developer Mode for applications you trust.</span>
             </div>
             <Button
               color="primary"
@@ -288,7 +288,7 @@ const PostmanPackageReport = ({ report, collectionPath, onClose }) => {
             <div className="pkg-status pkg-status-success">
               <IconCircleCheck size={14} strokeWidth={1.75} />
               <span>
-                This collection runs in <strong>Developer Mode</strong> - your scripts can use these
+                This application runs in <strong>Developer Mode</strong> - your scripts can use these
                 packages right away.
               </span>
             </div>
@@ -300,11 +300,11 @@ const PostmanPackageReport = ({ report, collectionPath, onClose }) => {
               </div>
               <p className="pkg-devmode-desc">
                 Custom npm packages (such as {renderPackageExamples(installResult.installed || needsInstall)})
-                {' '}are installed, but this collection is currently running in <strong>Safe Mode</strong>.
+                {' '}are installed, but this application is currently running in <strong>Safe Mode</strong>.
               </p>
               <div className="pkg-devmode-trust">
                 <IconShieldLock size={15} strokeWidth={1.75} />
-                <span>Only enable Developer Mode for collections you trust.</span>
+                <span>Only enable Developer Mode for applications you trust.</span>
               </div>
               <Button
                 color="primary"

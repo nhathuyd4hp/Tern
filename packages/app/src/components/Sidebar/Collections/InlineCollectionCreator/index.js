@@ -66,7 +66,7 @@ const InlineCollectionCreator = ({ onComplete, onCancel, onOpenAdvanced }) => {
       if (fromOutside) {
         onCancel();
       } else {
-        toast.error('Collection name is required');
+        toast.error('Application name is required');
       }
       return;
     }
@@ -89,10 +89,10 @@ const InlineCollectionCreator = ({ onComplete, onCancel, onOpenAdvanced }) => {
     try {
       const folderName = sanitizeName(name);
       await dispatch(createCollection(name, folderName, defaultLocation, { format: DEFAULT_COLLECTION_FORMAT }));
-      toast.success('Collection created!');
+      toast.success('Application created!');
       onComplete();
     } catch (e) {
-      toast.error(multiLineMsg('An error occurred while creating the collection', formatIpcError(e)));
+      toast.error(multiLineMsg('An error occurred while creating the application', formatIpcError(e)));
       setIsCreating(false);
     }
   }, [isCreating, defaultLocation, dispatch, onCancel, onComplete]);
@@ -128,7 +128,7 @@ const InlineCollectionCreator = ({ onComplete, onCancel, onOpenAdvanced }) => {
             type="text"
             className="inline-collection-input"
             data-testid="inline-collection-input"
-            defaultValue="Untitled Collection"
+            defaultValue="Untitled Application"
             onKeyDown={handleKeyDown}
             autoComplete="off"
             autoCorrect="off"

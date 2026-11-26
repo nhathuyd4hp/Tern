@@ -111,12 +111,12 @@ const CollectionsList = ({ workspace }) => {
     }
 
     if (collection.failedToOpen) {
-      toast.error(`Collection "${collection.name}" could not be opened`);
+      toast.error(`Application "${collection.name}" could not be opened`);
       return;
     }
 
     if (collection.isLoaded === false) {
-      toast.error(`Collection "${collection.name}" does not exist on disk`);
+      toast.error(`Application "${collection.name}" does not exist on disk`);
       return;
     }
 
@@ -140,7 +140,7 @@ const CollectionsList = ({ workspace }) => {
   const handleRenameCollection = (collection) => {
     dropdownRefs.current[collection.uid]?.hide();
     if (collection.isLoaded === false) {
-      toast.error('Cannot rename collections that are not loaded');
+      toast.error('Cannot rename applications that are not loaded');
       return;
     }
     setSelectedCollectionUid(collection.uid);
@@ -151,12 +151,12 @@ const CollectionsList = ({ workspace }) => {
     dropdownRefs.current[collection.uid]?.hide();
     if (collection.failedToOpen || collection.notFoundLocally) {
       dispatch(removeCollectionFromWorkspaceAction(workspace.uid, collection.pathname))
-        .then(() => toast.success('Collection removed'))
-        .catch(() => toast.error('An error occurred while removing the collection'));
+        .then(() => toast.success('Application removed'))
+        .catch(() => toast.error('An error occurred while removing the application'));
       return;
     }
     if (collection.isLoaded === false) {
-      toast.error('Cannot remove collections that are not loaded');
+      toast.error('Cannot remove applications that are not loaded');
       return;
     }
     setSelectedCollectionUid(collection.uid);
@@ -166,7 +166,7 @@ const CollectionsList = ({ workspace }) => {
   const handleDeleteCollection = (collection) => {
     dropdownRefs.current[collection.uid]?.hide();
     if (collection.isLoaded === false) {
-      toast.error('Cannot delete collections that are not loaded');
+      toast.error('Cannot delete applications that are not loaded');
       return;
     }
     setSelectedCollectionUid(collection.uid);
@@ -177,7 +177,7 @@ const CollectionsList = ({ workspace }) => {
     dropdownRefs.current[collection.uid]?.hide();
     dispatch(showInFolder(collection.pathname)).catch((error) => {
       console.error('Error opening the folder', error);
-      toast.error('Error opening the folder');
+      toast.error('Error opening the collection');
     });
   };
 
@@ -218,8 +218,8 @@ const CollectionsList = ({ workspace }) => {
         {workspaceCollections.length === 0 ? (
           <div className="empty-state">
             <IconBox size={32} strokeWidth={1.5} className="empty-icon" />
-            <h3 className="empty-title">No collections yet</h3>
-            <p className="empty-description">Create your first collection or open an existing one to get started.</p>
+            <h3 className="empty-title">No applications yet</h3>
+            <p className="empty-description">Create your first application or open an existing one to get started.</p>
           </div>
         ) : (
           workspaceCollections.map((collection, index) => (

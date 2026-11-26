@@ -419,7 +419,7 @@ const CollectionItemRow = ({
         {
           id: 'new-folder',
           leftSection: IconFolderPlus,
-          label: 'New Folder',
+          label: 'New Collection',
           onClick: () => setNewFolderModalOpen(true)
         }
       );
@@ -551,7 +551,7 @@ const CollectionItemRow = ({
   const handleShowInFolder = () => {
     dispatch(showInFolder(item.pathname)).catch((error) => {
       console.error('Error opening the folder', error);
-      toast.error('Error opening the folder');
+      toast.error('Error opening the collection');
     });
   };
 

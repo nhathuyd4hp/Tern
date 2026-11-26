@@ -17,18 +17,18 @@ const DeleteCollection = ({ onClose, collectionUid, workspaceUid }) => {
 
   const onConfirm = async () => {
     if (!collection || !workspace) {
-      toast.error('Collection not found');
+      toast.error('Application not found');
       onClose();
       return;
     }
 
     try {
       await dispatch(removeCollectionFromWorkspaceAction(workspace.uid, collection.pathname, { deleteFiles: true }));
-      toast.success(`Deleted "${collection.name}" collection`);
+      toast.success(`Deleted "${collection.name}" application`);
       onClose();
     } catch (error) {
       console.error('Error deleting collection:', error);
-      toast.error(error.message || 'An error occurred while deleting the collection');
+      toast.error(error.message || 'An error occurred while deleting the application');
     }
   };
 
@@ -40,7 +40,7 @@ const DeleteCollection = ({ onClose, collectionUid, workspaceUid }) => {
     <StyledWrapper>
       <Modal
         size="sm"
-        title="Delete Collection"
+        title="Delete Application"
         confirmText="Delete"
         cancelText="Cancel"
         confirmButtonColor="danger"
@@ -56,7 +56,7 @@ const DeleteCollection = ({ onClose, collectionUid, workspaceUid }) => {
           <div className="collection-path">{collection.pathname}</div>
         </div>
         <p className="warning-text">
-          This action cannot be undone. The collection files will be permanently deleted from disk.
+          This action cannot be undone. The application files will be permanently deleted from disk.
         </p>
         <div className="delete-confirmation">
           <label htmlFor="delete-confirm-input">

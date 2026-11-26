@@ -51,7 +51,7 @@ const WorkspaceOverview = ({ workspace }) => {
       dispatch(setIsCreatingCollection(true));
     } catch (error) {
       console.error('Error ensuring collections folder exists:', error);
-      toast.error('Error preparing storage for collection creation');
+      toast.error('Error preparing storage for application creation');
     }
   };
 
@@ -142,7 +142,7 @@ const WorkspaceOverview = ({ workspace }) => {
           <div className="stats-row">
             <div className="stat-item">
               <span className="stat-value">{workspaceCollectionsCount}</span>
-              <span className="stat-label">Collections</span>
+              <span className="stat-label">Applications</span>
             </div>
             <div className="stat-item">
               <span className="stat-value">{workspaceEnvironmentsCount}</span>
@@ -160,7 +160,7 @@ const WorkspaceOverview = ({ workspace }) => {
                 onClick={handleCreateCollection}
                 disabled={isCreatingCollection}
               >
-                Create Collection
+                Create Application
               </Button>
               <Button
                 color="light"
@@ -168,7 +168,7 @@ const WorkspaceOverview = ({ workspace }) => {
                 icon={<IconFolder size={14} strokeWidth={1.5} />}
                 onClick={handleOpenCollection}
               >
-                Open Collection
+                Open Application
               </Button>
               <Button
                 color="light"
@@ -176,13 +176,13 @@ const WorkspaceOverview = ({ workspace }) => {
                 icon={<IconDownload size={14} strokeWidth={1.5} />}
                 onClick={handleImportCollection}
               >
-                Import Collection
+                Import Application
               </Button>
             </div>
           </div>
 
           <div className="collections-section">
-            <div className="section-title">Collections</div>
+            <div className="section-title">Applications</div>
             <CollectionsList workspace={workspace} />
           </div>
         </div>

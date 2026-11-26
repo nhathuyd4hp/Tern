@@ -10,7 +10,7 @@ const SelectCollection = ({ onClose, onSelect, title }) => {
 
   return (
     <StyledWrapper>
-      <Modal size="sm" title={title || 'Select Collection'} hideFooter={true} handleCancel={onClose}>
+      <Modal size="sm" title={title || 'Select Application'} hideFooter={true} handleCancel={onClose}>
         <ul className="mb-2">
           {collections && collections.length ? (
             collections.map((c) => (
@@ -19,7 +19,7 @@ const SelectCollection = ({ onClose, onSelect, title }) => {
               </div>
             ))
           ) : (
-            <div>No collections found</div>
+            <div>No applications found</div>
           )}
         </ul>
       </Modal>

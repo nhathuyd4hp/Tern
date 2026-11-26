@@ -33,7 +33,7 @@ jest.mock('utils/importers/postman-collection', () => ({
 
 const openApiSpec = { openapi: '3.0.0', info: { title: 'Orders API' }, paths: {} };
 const swagger2Spec = { swagger: '2.0', info: { title: 'Legacy API' }, paths: {} };
-const AUTH_PLACEMENT_INFO = 'When enabled, requests inherit authentication from the collection folder. When disabled, authentication is copied to each request.';
+const AUTH_PLACEMENT_INFO = 'When enabled, requests inherit authentication from the application. When disabled, authentication is copied to each request.';
 
 const renderImport = ({ rawData = openApiSpec, format = 'openapi', sourceUrl = 'https://example.com/openapi.json' } = {}) => {
   const store = configureStore({
@@ -59,8 +59,8 @@ const renderImport = ({ rawData = openApiSpec, format = 'openapi', sourceUrl = '
 };
 
 const advancedToggle = () => screen.queryByRole('button', { name: 'Advanced' });
-const authPlacementCheckbox = () => screen.getByRole('checkbox', { name: /Inherit authentication from collection folder/ });
-const authPlacementInfoIcon = () => screen.getByText('Inherit authentication from collection folder').querySelector('svg');
+const authPlacementCheckbox = () => screen.getByRole('checkbox', { name: /Inherit authentication from application/ });
+const authPlacementInfoIcon = () => screen.getByText('Inherit authentication from application').querySelector('svg');
 
 const submitImport = async (handleSubmit) => {
   fireEvent.click(screen.getByText('Import'));
@@ -68,25 +68,25 @@ const submitImport = async (handleSubmit) => {
   return handleSubmit.mock.calls[0];
 };
 
-describe('ImportCollectionLocation collection auth placement', () => {
+describe('ImportCollectionLocation application auth placement', () => {
   it.each([
     ['an OpenAPI 3.x spec', openApiSpec],
     ['a Swagger 2.0 spec', swagger2Spec]
   ])('is offered off by default under a collapsed Advanced section for %s', (_, rawData) => {
     renderImport({ rawData });
-    expect(screen.getByText('Inherit authentication from collection folder')).not.toBeVisible();
+    expect(screen.getByText('Inherit authentication from application')).not.toBeVisible();
 
     fireEvent.click(advancedToggle());
 
     expect(authPlacementCheckbox()).not.toBeChecked();
-    expect(screen.getByText('Requests inherit auth from collection instead of getting their own copy.')).toBeInTheDocument();
+    expect(screen.getByText('Requests inherit auth from application instead of getting their own copy.')).toBeInTheDocument();
   });
 
   it('is not offered for other formats', () => {
-    renderImport({ rawData: { info: { name: 'Postman Collection' }, item: [] }, format: 'postman', sourceUrl: undefined });
+    renderImport({ rawData: { info: { name: 'Postman Application' }, item: [] }, format: 'postman', sourceUrl: undefined });
     fireEvent.click(advancedToggle());
 
-    expect(screen.queryByText('Inherit authentication from collection folder')).not.toBeInTheDocument();
+    expect(screen.queryByText('Inherit authentication from application')).not.toBeInTheDocument();
   });
 
   it('explains the setting in the info tooltip, and clicking the icon leaves the switch alone', () => {
@@ -104,7 +104,7 @@ describe('ImportCollectionLocation collection auth placement', () => {
     renderImport();
     fireEvent.click(advancedToggle());
 
-    fireEvent.click(screen.getByText('Requests inherit auth from collection instead of getting their own copy.'));
+    fireEvent.click(screen.getByText('Requests inherit auth from application instead of getting their own copy.'));
 
     expect(authPlacementCheckbox()).toBeChecked();
   });
@@ -160,7 +160,7 @@ describe('ImportCollectionLocation naming requests', () => {
 
     fireEvent.click(advancedToggle());
 
-    expect(screen.getByText('How requests in the generated collection are named.')).toBeInTheDocument();
+    expect(screen.getByText('How requests in the generated application are named.')).toBeInTheDocument();
     expect(namingDropdown()).toHaveTextContent('Summary');
   });
 
@@ -229,7 +229,7 @@ describe('ImportCollectionLocation naming requests', () => {
 });
 
 describe('ImportCollectionLocation settings layout', () => {
-  const postmanCollection = { info: { name: 'Postman Collection' }, item: [] };
+  const postmanCollection = { info: { name: 'Postman Application' }, item: [] };
   const optionsButton = () => screen.queryByRole('button', { name: 'Options' });
   const formatSelect = () => screen.queryByRole('combobox', { name: 'File Format' });
   const openOptionsMenu = () => {
@@ -269,7 +269,7 @@ describe('ImportCollectionLocation settings layout', () => {
     expect(options.format).toBe('bru');
   });
 
-  it('converts with the chosen folder arrangement and saves it in the sync config', async () => {
+  it('converts with the chosen collection arrangement and saves it in the sync config', async () => {
     const handleSubmit = renderImport();
     fireEvent.click(screen.getByTestId('grouping-dropdown'));
     fireEvent.click(await screen.findByTestId('grouping-option-path'));
@@ -289,7 +289,7 @@ describe('ImportCollectionLocation settings layout', () => {
   });
 
   it('shows the Options menu without an Advanced section for a format that has no advanced setting', () => {
-    renderImport({ rawData: { name: 'Insomnia Collection', resources: [] }, format: 'insomnia', sourceUrl: undefined });
+    renderImport({ rawData: { name: 'Insomnia Application', resources: [] }, format: 'insomnia', sourceUrl: undefined });
 
     expect(optionsButton()).toBeInTheDocument();
     expect(advancedToggle()).not.toBeInTheDocument();

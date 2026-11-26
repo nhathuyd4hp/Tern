@@ -45,7 +45,7 @@ const NewFolder = ({ collectionUid, item, onClose }) => {
         })
         .test({
           name: 'folderName',
-          message: 'The folder name "environments" at the root of the collection is reserved in bruno',
+          message: 'The collection name "environments" at the root of the application is reserved in bruno',
           test: (value) => {
             if (item?.uid) return true;
             return value && !value.trim().toLowerCase().includes('environments');
@@ -55,10 +55,10 @@ const NewFolder = ({ collectionUid, item, onClose }) => {
     onSubmit: (values) => {
       dispatch(newFolder(values.folderName, values.directoryName, collectionUid, item ? item.uid : null))
         .then(() => {
-          toast.success('New folder created!');
+          toast.success('New collection created!');
           onClose();
         })
-        .catch((err) => toast.error(err ? err.message : 'An error occurred while adding the folder'));
+        .catch((err) => toast.error(err ? err.message : 'An error occurred while adding the collection'));
     }
   });
 
@@ -85,10 +85,10 @@ const NewFolder = ({ collectionUid, item, onClose }) => {
   return (
     <Portal>
       <StyledWrapper>
-        <Modal size="md" title="New Folder" hideFooter={true} handleCancel={onClose}>
+        <Modal size="md" title="New Collection" hideFooter={true} handleCancel={onClose}>
           <form className="bruno-form" onSubmit={formik.handleSubmit}>
             <label htmlFor="folderName" className="block font-medium">
-              Folder Name
+              Collection Name
             </label>
             <input
               id="folder-name"
@@ -115,10 +115,10 @@ const NewFolder = ({ collectionUid, item, onClose }) => {
               <div className="mt-4">
                 <div className="flex items-center justify-between">
                   <label htmlFor="directoryName" className="flex items-center font-medium">
-                    Folder Name <small className="font-normal text-muted ml-1">(on filesystem)</small>
+                    Collection Name <small className="font-normal text-muted ml-1">(on filesystem)</small>
                     <Help width="300">
                       <p>
-                        You can choose to save the folder as a different name on your file system versus what is displayed in the app.
+                        You can choose to save the collection as a different name on your file system versus what is displayed in the app.
                       </p>
                     </Help>
                   </label>
@@ -144,7 +144,7 @@ const NewFolder = ({ collectionUid, item, onClose }) => {
                       id="file-name"
                       type="text"
                       name="directoryName"
-                      placeholder="Folder Name"
+                      placeholder="Collection Name"
                       className="block textbox mt-2 w-full"
                       autoComplete="off"
                       autoCorrect="off"

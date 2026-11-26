@@ -4,7 +4,7 @@ import StyledWrapper from './StyledWrapper';
 
 const GetStartedStep = ({ onCreateCollection, onImportCollection, onOpenCollection, onStartRequest }) => (
   <StyledWrapper className="step-body">
-    <div className="step-label">Your first collection</div>
+    <div className="step-label">Your first application</div>
     <div className="step-title">You're all set! What's next?</div>
     <div className="step-description">
       Create a new collection to start building requests, or import one you already have.
@@ -15,15 +15,15 @@ const GetStartedStep = ({ onCreateCollection, onImportCollection, onOpenCollecti
         <div className="card-icon">
           <IconPlus size={20} stroke={1.5} />
         </div>
-        <div className="card-title">Create Collection</div>
-        <div className="card-desc">Start fresh with a new API collection</div>
+        <div className="card-title">Create Application</div>
+        <div className="card-desc">Start fresh with a new API application</div>
       </button>
 
       <button className="primary-action-card" onClick={onImportCollection}>
         <div className="card-icon">
           <IconDownload size={20} stroke={1.5} />
         </div>
-        <div className="card-title">Import Collection</div>
+        <div className="card-title">Import Application</div>
         <div className="card-desc">Bring in Postman, OpenAPI/Swagger, or Insomnia</div>
       </button>
     </div>
@@ -34,8 +34,8 @@ const GetStartedStep = ({ onCreateCollection, onImportCollection, onOpenCollecti
           <IconFileImport size={16} stroke={1.5} />
         </span>
         <div>
-          <div className="secondary-label">Open existing collection</div>
-          <div className="secondary-desc">Open a Kevin collection from your filesystem</div>
+          <div className="secondary-label">Open existing application</div>
+          <div className="secondary-desc">Open a Kevin application from your filesystem</div>
         </div>
       </button>
       <button className="secondary-action" onClick={onStartRequest}>

@@ -27,10 +27,10 @@ const OpenCollectionModal = ({ onClose }) => {
     const openedCount = result?.opened?.length || 0;
     const failedCount = (result?.failed?.length || 0) + (result?.invalid?.length || 0);
     if (openedCount > 0) {
-      toast.success(`${openedCount === 1 ? 'Collection' : 'Collections'} added to workspace`);
+      toast.success(`${openedCount === 1 ? 'Application' : 'Applications'} added to workspace`);
     }
     if (failedCount > 0) {
-      toast.error(`Failed to open ${failedCount} collection${failedCount === 1 ? '' : 's'}`);
+      toast.error(`Failed to open ${failedCount} application${failedCount === 1 ? '' : 's'}`);
     }
   };
 
@@ -73,18 +73,18 @@ const OpenCollectionModal = ({ onClose }) => {
 
         if (items.length === 0) {
           if (failedScans.length) {
-            toast.error(`Failed to scan ${failedScans.length} folder${failedScans.length === 1 ? '' : 's'} for collections`);
+            toast.error(`Failed to scan ${failedScans.length} folder${failedScans.length === 1 ? '' : 's'} for applications`);
           } else if (skippedItems.length) {
-            toast.error(`No Kevin collections found. ${skippedItems.length} skipped, config could not be read`);
+            toast.error(`No Kevin applications found. ${skippedItems.length} skipped, config could not be read`);
           } else {
-            toast.error('No Kevin collections found. Couldn\'t find a bruno.json or opencollection.yml');
+            toast.error('No Kevin applications found. Couldn\'t find a bruno.json or opencollection.yml');
           }
           onClose();
           return;
         }
 
         if (failedScans.length) {
-          toast.error(`Failed to scan ${failedScans.length} folder${failedScans.length === 1 ? '' : 's'} for collections`);
+          toast.error(`Failed to scan ${failedScans.length} folder${failedScans.length === 1 ? '' : 's'} for applications`);
         }
 
         // If all selected folders are collections, open them directly
@@ -100,7 +100,7 @@ const OpenCollectionModal = ({ onClose }) => {
             const result = await dispatch(openMultipleCollections(items.map((item) => item.pathname), { silent: true }));
             notifyOpenResult(result);
           } catch {
-            toast.error('An error occurred while opening the collections');
+            toast.error('An error occurred while opening the applications');
           }
           onClose();
           return;
@@ -112,7 +112,7 @@ const OpenCollectionModal = ({ onClose }) => {
         setShowSelection(true);
       } catch (err) {
         console.error(err);
-        toast.error('An error occurred while scanning for collections');
+        toast.error('An error occurred while scanning for applications');
         onClose();
       }
     })();
@@ -145,7 +145,7 @@ const OpenCollectionModal = ({ onClose }) => {
         onClose();
       }
     } catch {
-      toast.error('An error occurred while opening the collections');
+      toast.error('An error occurred while opening the applications');
     }
   };
 
@@ -164,7 +164,7 @@ const OpenCollectionModal = ({ onClose }) => {
     <Portal id="open-collection-portal">
       <Modal
         size="md"
-        title="Open Collection"
+        title="Open Application"
         confirmText="Open"
         handleConfirm={handleConfirm}
         handleCancel={onClose}
@@ -177,13 +177,13 @@ const OpenCollectionModal = ({ onClose }) => {
       >
         <StyledWrapper>
           <p className="modal-description">
-            These collections were found inside your selection. Choose which ones to open.
+            These applications were found inside your selection. Choose which ones to open.
           </p>
           <div className="w-full min-w-0 flex flex-col gap-3">
             <SkippedPathsWarning paths={skippedCollectionPaths} itemNoun="collections" />
             <SelectionList
-              title="Collections"
-              searchPlaceholder="Search Collections"
+              title="Applications"
+              searchPlaceholder="Search Applications"
               items={collectionPaths}
               selectedItems={selectedCollectionPaths}
               onSelectAll={handleSelectAllCollections}

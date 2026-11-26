@@ -121,17 +121,17 @@ const CloneCollectionItem = ({ collectionUid, item, onClose }) => {
               <div className="mt-4">
                 <div className="flex items-center justify-between">
                   <label htmlFor="filename" className="flex items-center font-medium">
-                    {isFolder ? 'Folder' : 'File'} Name <small className="font-normal text-muted ml-1">(on filesystem)</small>
+                    {isFolder ? 'Collection' : 'File'} Name <small className="font-normal text-muted ml-1">(on filesystem)</small>
                     { isFolder ? (
                       <Help width="300">
                         <p>
-                          You can choose to save the folder as a different name on your file system versus what is displayed in the app.
+                          You can choose to save the collection as a different name on your file system versus what is displayed in the app.
                         </p>
                       </Help>
                     ) : (
                       <Help width="300">
                         <p>
-                          Kevin saves each request as a file in your collection's folder.
+                          Kevin saves each request as a file in your application's folder.
                         </p>
                         <p className="mt-2">
                           You can choose a file name different from your request's name or one compatible with filesystem rules.
@@ -161,7 +161,7 @@ const CloneCollectionItem = ({ collectionUid, item, onClose }) => {
                       id="file-name"
                       type="text"
                       name="filename"
-                      placeholder={isFolder ? 'Folder Name' : 'File Name'}
+                      placeholder={isFolder ? 'Collection Name' : 'File Name'}
                       className="!pr-10 block textbox mt-2 w-full"
                       autoComplete="off"
                       autoCorrect="off"

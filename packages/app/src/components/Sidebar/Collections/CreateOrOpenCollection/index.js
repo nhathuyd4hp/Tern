@@ -34,9 +34,9 @@ const CreateOrOpenCollection = ({ onCreateClick }) => {
   return (
     <StyledWrapper className="px-2 mt-4">
       <div className="text-xs text-center">
-        <div>No collections found.</div>
+        <div>No applications found.</div>
         <div className="mt-2">
-          <CreateLink /> or <OpenLink /> Collection.
+          <CreateLink /> or <OpenLink /> Application.
         </div>
       </div>
     </StyledWrapper>

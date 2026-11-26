@@ -24,7 +24,7 @@ const DeleteCollectionItems = ({ entries, onClose }) => {
     else if (isItemARequest(entry.item)) requestCount++;
   }
 
-  const folderDescription = folderCount > 0 ? `${folderCount} ${pluralizeWord('folder', folderCount)}` : null;
+  const folderDescription = folderCount > 0 ? `${folderCount} ${pluralizeWord('collection', folderCount)}` : null;
   const requestDescription = requestCount > 0 ? `${requestCount} ${pluralizeWord('request', requestCount)}` : null;
   const exampleDescription = exampleCount > 0 ? `${exampleCount} ${pluralizeWord('example', exampleCount)}` : null;
 
@@ -41,7 +41,7 @@ const DeleteCollectionItems = ({ entries, onClose }) => {
     if (types.length > 1) {
       return 'Delete Items';
     } else if (folderCount > 0) {
-      return `Delete ${pluralizeWord('Folder', folderCount)}`;
+      return `Delete ${pluralizeWord('Collection', folderCount)}`;
     } else if (exampleCount > 0) {
       return `Delete ${pluralizeWord('Example', exampleCount)}`;
     }

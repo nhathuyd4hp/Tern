@@ -238,7 +238,7 @@ const CollectionsSection = () => {
     {
       id: 'create',
       leftSection: IconPlus,
-      label: 'Create collection',
+      label: 'Create application',
       onClick: () => {
         dispatch(setIsCreatingCollection(true));
       }
@@ -246,7 +246,7 @@ const CollectionsSection = () => {
     {
       id: 'open',
       leftSection: IconFolder,
-      label: 'Open collection',
+      label: 'Open application',
       onClick: () => {
         handleOpenCollection();
       }
@@ -254,7 +254,7 @@ const CollectionsSection = () => {
     {
       id: 'import',
       leftSection: IconDownload,
-      label: 'Import collection',
+      label: 'Import application',
       shortcut: getKeybindingDisplayText('importCollection'),
       onClick: () => {
         setImportCollectionModalOpen(true);
@@ -297,7 +297,7 @@ const CollectionsSection = () => {
         placement="bottom-end"
       >
         <ActionIcon
-          label="Add new collection"
+          label="Add new application"
         >
           <IconPlus size={14} stroke={1.5} aria-hidden="true" />
         </ActionIcon>
@@ -394,7 +394,7 @@ const CollectionsSection = () => {
       )}
       <SidebarSection
         id="collections"
-        title="Collections"
+        title="Applications"
         icon={IconBox}
         actions={sectionActions}
       >

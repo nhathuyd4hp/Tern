@@ -11,7 +11,7 @@ const highlights = [
   {
     icon: IconFolderTabler,
     title: 'Filesystem only',
-    desc: 'Collections are plain files on your disk. No cloud sync, no proprietary lock-in.'
+    desc: 'Applications are plain files on your disk. No cloud sync, no proprietary lock-in.'
   },
   {
     icon: IconGitFork,

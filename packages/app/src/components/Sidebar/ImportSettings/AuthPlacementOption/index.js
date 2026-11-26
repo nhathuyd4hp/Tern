@@ -6,9 +6,9 @@ const AuthPlacementOption = ({ value, onChange, disabled = false }) => {
 
   return (
     <ImportSettingRow
-      label="Inherit authentication from collection folder"
-      info="When enabled, requests inherit authentication from the collection folder. When disabled, authentication is copied to each request."
-      description="Requests inherit auth from collection instead of getting their own copy."
+      label="Inherit authentication from application"
+      info="When enabled, requests inherit authentication from the application. When disabled, authentication is copied to each request."
+      description="Requests inherit auth from application instead of getting their own copy."
       disabled={disabled}
       isSwitch
     >

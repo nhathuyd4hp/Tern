@@ -70,7 +70,7 @@ describe('DeleteCollectionItems', () => {
     render(<DeleteCollectionItems entries={entries} onClose={jest.fn()} />);
 
     expect(screen.getByTestId('modal-title')).toHaveTextContent('Delete Items');
-    expect(screen.getByTestId('modal-description')).toHaveTextContent('Are you sure you want to delete 1 folder and 1 request?');
+    expect(screen.getByTestId('modal-description')).toHaveTextContent('Are you sure you want to delete 1 collection and 1 request?');
   });
 
   it('deletes every entry, closes the tabs of a deleted folder and its descendants, then clears selection and closes', async () => {

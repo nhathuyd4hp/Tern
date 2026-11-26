@@ -4,9 +4,9 @@ import StyledWrapper from './StyledWrapper';
 const StorageStep = ({ collectionLocation, onBrowse }) => (
   <StyledWrapper className="step-body">
     <div className="step-label">Storage</div>
-    <div className="step-title">Where should we store your collections?</div>
+    <div className="step-title">Where should we store your applications?</div>
     <div className="step-description">
-      Kevin saves collections as plain files on your filesystem, perfect for version control with Git.
+      Kevin saves applications as plain files on your filesystem, perfect for version control with Git.
     </div>
 
     <div className="location-input-group">
@@ -31,7 +31,7 @@ const StorageStep = ({ collectionLocation, onBrowse }) => (
       </div>
     </div>
     <div className="location-hint">
-      Each collection gets its own folder inside this directory. You can change this later.
+      Each application gets its own folder inside this directory. You can change this later.
     </div>
   </StyledWrapper>
 );

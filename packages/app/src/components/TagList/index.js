@@ -37,7 +37,7 @@ const TagList = ({ tagsHintList = [], handleAddTag, tags, handleRemoveTag, onSav
     }
     const inherited = inheritedTags.find(({ tag }) => tag === text);
     if (inherited) {
-      setError(`Tag "${text}" is already inherited from folder "${inherited.folder.name}"`);
+      setError(`Tag "${text}" is already inherited from collection "${inherited.folder.name}"`);
       return;
     }
     if (handleValidation) {
@@ -113,7 +113,7 @@ const TagList = ({ tagsHintList = [], handleAddTag, tags, handleRemoveTag, onSav
               {inheritedTags.map(({ tag, folder }, index) => (
                 <li key={`inherited-${tag}`}>
                   <ToolHint
-                    text={`Inherited from folder "${folder.name}"`}
+                    text={`Inherited from collection "${folder.name}"`}
                     toolhintId={`inherited-tag-${folder.uid}-${index}`}
                     className="tag-item inherited"
                     dataTestId="inherited-tag"

@@ -53,11 +53,11 @@ const ConfirmMoveDrafts = ({ onClose, collection, collectionUid }) => {
   const moveAndClose = () => {
     dispatch(moveCollectionToWorkspace(collectionUid))
       .then(() => {
-        toast.success('Collection moved into app storage');
+        toast.success('Application moved into app storage');
         onClose();
       })
       .catch((err) => {
-        toast.error(err?.message || 'An error occurred while moving the collection');
+        toast.error(err?.message || 'An error occurred while moving the application');
         setIsMoving(false);
       });
   };
@@ -160,7 +160,7 @@ const ConfirmMoveDrafts = ({ onClose, collection, collectionUid }) => {
               Transient {pluralizeWord('Request', currentTransientDrafts.length)} ({currentTransientDrafts.length})
             </p>
             <p className="text-xs transient-hint mb-3">
-              These requests need to be saved individually before moving the collection.
+              These requests need to be saved individually before moving the application.
             </p>
             <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
               {currentTransientDrafts.map((item) => {

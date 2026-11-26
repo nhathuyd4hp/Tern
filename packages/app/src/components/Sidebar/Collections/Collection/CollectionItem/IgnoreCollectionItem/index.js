@@ -16,11 +16,11 @@ const IgnoreCollectionItem = ({ onClose, item, collectionUid }) => {
       .then(() => {
         const tabUids = [...recursivelyGetAllItemUids(item.items), item.uid];
         dispatch(closeTabs({ tabUids }));
-        toast.success('Folder ignored');
+        toast.success('Collection ignored');
       })
       .catch((error) => {
         console.error('Error ignoring folder', error);
-        toast.error(error?.message || 'Error ignoring folder');
+        toast.error(error?.message || 'Error ignoring collection');
       });
     onClose();
   };
@@ -28,7 +28,7 @@ const IgnoreCollectionItem = ({ onClose, item, collectionUid }) => {
   return (
     <Modal
       size="md"
-      title="Ignore Folder"
+      title="Ignore Collection"
       confirmText="Ignore"
       dataTestId="ignore-folder-modal"
       handleConfirm={onConfirm}
@@ -38,7 +38,7 @@ const IgnoreCollectionItem = ({ onClose, item, collectionUid }) => {
       {' '}
       {isYamlCollection ? 'opencollection (YAML)' : 'Kevin (JSON)'}
       {' '}
-      collection by adding it to the
+      application by adding it to the
       {' '}
       <span className="font-medium">ignore</span>
       {' '}

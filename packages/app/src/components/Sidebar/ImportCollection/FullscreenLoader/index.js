@@ -3,10 +3,10 @@ import { IconLoader2 } from '@tabler/icons';
 
 // Messages to cycle through while loading
 const loadingMessages = [
-  'Processing collection...',
+  'Processing application...',
   'Analyzing requests...',
   'Translating scripts...',
-  'Preparing collection...',
+  'Preparing application...',
   'Almost done...'
 ];
 
@@ -33,7 +33,7 @@ const FullscreenLoader = ({ isLoading }) => {
         <IconLoader2 className="animate-spin h-12 w-12 mb-4" strokeWidth={1.5} />
         <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-50 mb-2">{loadingMessage}</h3>
         <p className="text-zinc-500 dark:text-zinc-400">
-          This may take a moment depending on the collection size
+          This may take a moment depending on the application size
         </p>
       </div>
     </div>
