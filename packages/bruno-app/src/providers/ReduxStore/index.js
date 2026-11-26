@@ -4,7 +4,6 @@ import debugMiddleware from './middlewares/debug/middleware';
 import appReducer from './slices/app';
 import collectionsReducer from './slices/collections';
 import tabsReducer from './slices/tabs';
-import notificationsReducer from './slices/notifications';
 import globalEnvironmentsReducer from './slices/global-environments';
 import workspacesReducer from './slices/workspaces';
 import apiSpecReducer from './slices/apiSpec';
@@ -30,7 +29,6 @@ export const store = configureStore({
     app: appReducer,
     collections: collectionsReducer,
     tabs: tabsReducer,
-    notifications: notificationsReducer,
     globalEnvironments: globalEnvironmentsReducer,
     workspaces: workspacesReducer,
     apiSpec: apiSpecReducer,

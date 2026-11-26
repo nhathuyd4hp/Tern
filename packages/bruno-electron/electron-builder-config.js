@@ -3,7 +3,7 @@ require('dotenv').config({ path: process.env.DOTENV_PATH });
 const isBenchmark = process.env.BRUNO_BENCHMARK === 'true';
 
 const config = {
-  appId: 'com.usebruno.app',
+  appId: 'com.nhathuyd4hp.kevin',
   productName: isBenchmark ? 'Kevin Benchmark' : 'Kevin',
   extraMetadata: {
     brunoBuild: {
@@ -121,7 +121,7 @@ const config = {
       }
     ],
     signtoolOptions: {
-      publisherName: 'Bruno Software Inc'
+      publisherName: 'nhathuyd4hp'
     }
   },
   nsis: {
