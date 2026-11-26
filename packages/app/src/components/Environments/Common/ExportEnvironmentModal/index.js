@@ -200,7 +200,7 @@ const ExportEnvironmentModal = ({ onClose, environments = [], environmentType, p
                 <div className="flex flex-col h-full">
                   <div className="flex justify-between items-center mb-2 pb-1">
                     <h3 className="font-medium text-theme">
-                      {environmentType === 'global' ? 'Global Environments' : 'Collection Environments'}
+                      {environmentType === 'global' ? 'Global Environments' : 'Application Environments'}
                     </h3>
                     <button
                       type="button"
@@ -244,7 +244,7 @@ const ExportEnvironmentModal = ({ onClose, environments = [], environmentType, p
                 <div className="flex flex-col h-full">
                   <div className="flex justify-between items-center mb-2 pb-1">
                     <h3 className="font-medium text-theme">
-                      {environmentType === 'global' ? 'Global Environments' : 'Collection Environments'}
+                      {environmentType === 'global' ? 'Global Environments' : 'Application Environments'}
                     </h3>
                   </div>
                   <div className="flex items-center justify-center flex-1 p-4 text-center">

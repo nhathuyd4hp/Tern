@@ -129,7 +129,7 @@ const Headers = ({ collection }) => {
     return (
       <StyledWrapper className="h-full w-full">
         <div className="text-xs mb-4 text-muted">
-          Add request headers that will be sent with every request in this collection.
+          Add request headers that will be sent with every request in this application.
         </div>
         <BulkEditor
           params={headers}
@@ -144,7 +144,7 @@ const Headers = ({ collection }) => {
   return (
     <StyledWrapper className="h-full w-full" ref={wrapperRef}>
       <div className="text-xs mb-4 text-muted">
-        Add request headers that will be sent with every request in this collection.
+        Add request headers that will be sent with every request in this application.
       </div>
       <EditableTable
         tableId="collection-headers"

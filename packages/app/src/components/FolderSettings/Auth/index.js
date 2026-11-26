@@ -200,7 +200,7 @@ const Auth = ({ collection, folder }) => {
   return (
     <StyledWrapper className="w-full">
       <div className="text-xs mb-4 text-muted">
-        Configures authentication for the entire folder. This applies to all requests using the{' '}
+        Configures authentication for the entire collection. This applies to all requests using the{' '}
         <span className="font-medium">Inherit</span> option in the <span className="font-medium">Auth</span> tab.
       </div>
       <div className="flex flex-col items-start gap-2 mb-4 min-w-0">

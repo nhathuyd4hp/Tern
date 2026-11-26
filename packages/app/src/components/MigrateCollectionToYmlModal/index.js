@@ -156,7 +156,7 @@ const MigrateCollectionToYmlModal = () => {
         migration.collectionName
       );
       if (result?.success) {
-        toast.success('Collection backup exported');
+        toast.success('Application backup exported');
       }
     } catch (error) {
       toast.error('Failed to export backup: ' + error.message);
@@ -265,9 +265,9 @@ const MigrateCollectionToYmlModal = () => {
   const renderDraftLabel = (draft) => {
     switch (draft.type) {
       case 'collection':
-        return `Collection: ${draft.name}`;
+        return `Application: ${draft.name}`;
       case 'folder':
-        return `Folder: ${draft.name}`;
+        return `Collection: ${draft.name}`;
       case 'collection-environment':
         return `Environment: ${draft.name}`;
       default:
@@ -413,7 +413,7 @@ const MigrateCollectionToYmlModal = () => {
               aria-valuenow={progressPercent}
               aria-valuemin={0}
               aria-valuemax={100}
-              aria-label={isCancelling ? 'Cancelling and restoring the collection' : progressLabel}
+              aria-label={isCancelling ? 'Cancelling and restoring the application' : progressLabel}
             >
               <div className="migration-progress-track">
                 <div
@@ -423,7 +423,7 @@ const MigrateCollectionToYmlModal = () => {
                 />
               </div>
               <div className="migration-progress-label" data-testid="migration-progress-label">
-                {isCancelling ? 'Cancelling and restoring the collection…' : progressLabel}
+                {isCancelling ? 'Cancelling and restoring the application…' : progressLabel}
               </div>
             </div>
           ) : (
@@ -434,10 +434,10 @@ const MigrateCollectionToYmlModal = () => {
                   <li>All <code>.bru</code> request files will be converted to <code>.yml</code></li>
                   <li>Environment files will be converted to YML format</li>
                   <li><code>bruno.json</code> will be replaced with <code>opencollection.yml</code></li>
-                  <li>Open tabs will be closed and the collection will be reloaded</li>
+                  <li>Open tabs will be closed and the application will be reloaded</li>
                 </ul>
                 {!isCollectionMounted && (
-                  <p className="mt-3">Waiting for the collection to finish loading before migration can start…</p>
+                  <p className="mt-3">Waiting for the application to finish loading before migration can start…</p>
                 )}
               </div>
               <div className="backup-section mt-4">
@@ -445,7 +445,7 @@ const MigrateCollectionToYmlModal = () => {
                   <span className="backup-section-title">Backup</span>
                 </div>
                 <p className="backup-section-help">
-                  Export this collection as a ZIP archive before migrating, in case you want to restore it later.
+                  Export this application as a ZIP archive before migrating, in case you want to restore it later.
                 </p>
                 <div className="backup-section-action">
                   <Button
@@ -456,7 +456,7 @@ const MigrateCollectionToYmlModal = () => {
                     onClick={handleExportBackup}
                     disabled={isExporting}
                   >
-                    {isExporting ? 'Exporting…' : 'Export Collection'}
+                    {isExporting ? 'Exporting…' : 'Export Application'}
                   </Button>
                 </div>
               </div>

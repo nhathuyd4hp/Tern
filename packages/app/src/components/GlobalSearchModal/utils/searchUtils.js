@@ -60,8 +60,8 @@ export const sortResults = (results) => {
 
 export const getTypeLabel = (type) => {
   const baseLabels = {
-    [SEARCH_TYPES.COLLECTION]: 'Collection',
-    [SEARCH_TYPES.FOLDER]: 'Folder'
+    [SEARCH_TYPES.COLLECTION]: 'Application',
+    [SEARCH_TYPES.FOLDER]: 'Collection'
   };
 
   return baseLabels[type] || '';

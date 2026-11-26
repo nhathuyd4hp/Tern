@@ -12,7 +12,7 @@ const DisconnectSyncModal = ({ onConfirm, onClose }) => {
       <div className="disconnect-modal">
         <p className="disconnect-message">
           <>Are you sure you want to disconnect OpenAPI sync? </> <br /> <br />
-          <>This will only disconnect the sync configuration. Your collection will remain intact.</>
+          <>This will only disconnect the sync configuration. Your application will remain intact.</>
         </p>
         <div className="disconnect-actions">
           <Button variant="ghost" color="secondary" onClick={onClose}>

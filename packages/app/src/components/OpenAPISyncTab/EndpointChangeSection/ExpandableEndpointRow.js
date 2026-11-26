@@ -125,7 +125,7 @@ const ExpandableEndpointRow = ({ endpoint, decision, onDecisionChange, collectio
             status="danger"
             rightSection={(
               <Help icon="info" size={11} placement="top" width={250}>
-                This endpoint was modified in both the spec and your collection. Choose which version to keep.
+                This endpoint was modified in both the spec and your application. Choose which version to keep.
               </Help>
             )}
           >
@@ -175,7 +175,7 @@ const ExpandableEndpointRow = ({ endpoint, decision, onDecisionChange, collectio
             <EndpointVisualDiff
               oldData={diffData.oldData}
               newData={diffData.newData}
-              leftLabel={diffLeftLabel || 'Current (in collection)'}
+              leftLabel={diffLeftLabel || 'Current (in application)'}
               rightLabel={diffRightLabel || 'Expected (from spec)'}
               swapSides={swapDiffSides}
             />

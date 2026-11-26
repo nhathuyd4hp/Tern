@@ -113,7 +113,7 @@ const SpecStatusSection = ({
         <div className="sync-review-empty-state mt-5">
           <IconCheck size={40} className="empty-state-icon" />
           <h4>No updates from the spec</h4>
-          <p>The spec endpoints have not been updated since the last sync. You can restore the spec file to track local collection changes.</p>
+          <p>The spec endpoints have not been updated since the last sync. You can restore the spec file to track local application changes.</p>
           <Button className="mt-4" color="warning" onClick={handleRestoreSpec} loading={isSyncing}>
             Restore Spec File
           </Button>

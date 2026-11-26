@@ -118,11 +118,11 @@ const AppTitleBar = () => {
     <StyledWrapper data-testid="app-titlebar" className={`app-titlebar ${osClass} ${isFullScreen ? 'fullscreen' : ''}`}>
       <div className="titlebar-content">
         <div className="titlebar-left">
-          {showWindowControls && <AppMenu />}
-
           <ActionIcon onClick={handleHomeClick} label="Home" size="lg" className="home-button">
             <IconHome size={16} stroke={1.5} />
           </ActionIcon>
+
+          {showWindowControls && <AppMenu />}
         </div>
 
         {/* Center section: Bruno logo + text */}

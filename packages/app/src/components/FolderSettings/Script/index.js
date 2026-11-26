@@ -108,7 +108,7 @@ const Script = ({ collection, folder }) => {
   return (
     <StyledWrapper className="w-full flex flex-col h-full">
       <div className="text-xs mb-4 text-muted">
-        Pre and post-request scripts that will run before and after any request inside this folder is sent.
+        Pre and post-request scripts that will run before and after any request inside this collection is sent.
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>

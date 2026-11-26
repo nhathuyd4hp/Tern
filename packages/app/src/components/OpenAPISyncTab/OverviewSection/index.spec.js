@@ -34,7 +34,7 @@ describe('OverviewSection', () => {
 
   it.each([
     ['request', 'Request'],
-    ['collection', 'Collection']
+    ['collection', 'Application']
   ])('shows the %s auth placement as %s', (authPlacement, label) => {
     const { getByText } = renderOverview({ authPlacement });
 
@@ -50,7 +50,7 @@ describe('OverviewSection', () => {
   });
 
   it.each([
-    ['collection', 'Authentication is set at the collection level and inherited by each request.'],
+    ['collection', 'Authentication is set at the application level and inherited by each request.'],
     ['request', 'Authentication is set separately on each request.']
   ])('explains the %s auth placement in a tooltip next to its value, not on the heading', (authPlacement, explanation) => {
     const { getByText } = renderOverview({ authPlacement });
@@ -95,7 +95,7 @@ describe('OverviewSection', () => {
     const { getByText } = renderOverview({ requestNameSource: 'title', authPlacement: 'folder' });
 
     expect(detailValue(getByText, 'Request Naming')).toBe('title');
-    expect(detailValue(getByText, 'Auth Placement')).toBe('Folder');
+    expect(detailValue(getByText, 'Auth Placement')).toBe('Collection');
     expect(detailItem(getByText, 'Auth Placement').querySelector('svg')).toBeNull();
   });
 });

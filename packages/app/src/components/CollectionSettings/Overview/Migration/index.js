@@ -38,7 +38,7 @@ const Migration = ({ collection }) => {
           <div className="ml-4">
             <div className="font-medium">Migrate to YML file format</div>
             <div className="my-1 text-muted text-sm">
-              This collection is stored in BRU format.{' '}
+              This application is stored in BRU format.{' '}
               Switch to YML.{' '}
               <a
                 href="https://blog.usebruno.com/making-yaml-the-default-in-bruno-v3.1"

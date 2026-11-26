@@ -224,7 +224,7 @@ const ProxySettings = ({ collection }) => {
   return (
     <StyledWrapper className="h-full w-full">
       <FieldList className="proxy-settings bruno-form">
-        <SettingsHeader title="Proxy Settings" description="Configure proxy settings for this collection." />
+        <SettingsHeader title="Proxy Settings" description="Configure proxy settings for this application." />
 
         {/* Lines only between the settings sections, not around the intro or the Save button */}
         <FieldList dividers>
@@ -238,9 +238,9 @@ const ProxySettings = ({ collection }) => {
                     <dt className="font-medium">Inherit</dt>
                     <dd className="m-0">Inherit from global preferences</dd>
                     <dt className="font-medium">Custom</dt>
-                    <dd className="m-0">Use collection-specific proxy config</dd>
+                    <dd className="m-0">Use application-specific proxy config</dd>
                     <dt className="font-medium">Off</dt>
-                    <dd className="m-0">Disable proxy for this collection</dd>
+                    <dd className="m-0">Disable proxy for this application</dd>
                   </dl>
                 </InfoTip>
               </span>

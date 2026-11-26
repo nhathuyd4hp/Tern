@@ -16,13 +16,13 @@ import StyledWrapper from './StyledWrapper';
 import { transparentize } from 'polished';
 
 const TABS = [
-  { id: 'collection', label: 'Collection', icon: <IconDatabase size={16} strokeWidth={1.5} /> },
+  { id: 'collection', label: 'Application', icon: <IconDatabase size={16} strokeWidth={1.5} /> },
   { id: 'global', label: 'Global', icon: <IconWorld size={16} strokeWidth={1.5} /> }
 ];
 
 const EMPTY_STATE_DESCRIPTIONS = {
-  collection: 'Create your first environment to begin working with your collection.',
-  global: 'Create your first global environment to begin working across collections.'
+  collection: 'Create your first environment to begin working with your application.',
+  global: 'Create your first global environment to begin working across applications.'
 };
 
 /**

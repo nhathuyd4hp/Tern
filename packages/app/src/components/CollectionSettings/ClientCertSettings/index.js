@@ -330,7 +330,7 @@ const ClientCertSettings = ({ collection }) => {
           handleCancel={() => setShowAddCertModal(false)}
         >
           <div className="text-xs mb-4 text-muted">
-            The certificate and key files are stored as paths relative to the collection.
+            The certificate and key files are stored as paths relative to the application.
           </div>
           {/* Submission is driven by the Modal's confirm button/Enter (handleConfirm); prevent the form's own submit to avoid firing twice */}
           <form className="bruno-form" onSubmit={(e) => e.preventDefault()}>

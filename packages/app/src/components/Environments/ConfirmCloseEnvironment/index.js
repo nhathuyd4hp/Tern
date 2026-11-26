@@ -5,7 +5,7 @@ import Portal from 'components/Portal';
 import Button from 'ui/Button';
 
 const ConfirmCloseEnvironment = ({ onCancel, onCloseWithoutSave, onSaveAndClose, isGlobal, isDotEnv }) => {
-  let settingsLabel = 'collection environment settings';
+  let settingsLabel = 'application environment settings';
   if (isDotEnv) {
     settingsLabel = '.env file';
   } else if (isGlobal) {

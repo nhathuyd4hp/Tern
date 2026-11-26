@@ -10,18 +10,19 @@ import Help from 'components/Help';
 import { requestNameSourceLabels } from 'components/Sidebar/ImportSettings/RequestNameSourceOption';
 
 const capitalize = (str) => str ? str.charAt(0).toUpperCase() + str.slice(1) : str;
+const authPlacementLabels = { collection: 'Application', folder: 'Collection' };
 
 const authPlacementInfo = {
-  collection: 'Authentication is set at the collection level and inherited by each request.',
+  collection: 'Authentication is set at the application level and inherited by each request.',
   request: 'Authentication is set separately on each request.'
 };
 
 const SUMMARY_CARDS = [
   {
     key: 'total',
-    label: 'Total in Collection',
+    label: 'Total in Application',
     color: 'blue',
-    tooltip: 'Total endpoints in your collection'
+    tooltip: 'Total endpoints in your application'
   },
   {
     key: 'inSync',
@@ -31,7 +32,7 @@ const SUMMARY_CARDS = [
   },
   {
     key: 'changed',
-    label: 'Changed in Collection',
+    label: 'Changed in Application',
     color: 'muted',
     tooltip: 'Endpoints modified, deleted, or added locally since last sync',
     tab: 'collection-changes'
@@ -40,7 +41,7 @@ const SUMMARY_CARDS = [
     key: 'pending',
     label: 'Spec Updates Pending',
     color: 'amber',
-    tooltip: 'Spec changes available to sync to your collection',
+    tooltip: 'Spec changes available to sync to your application',
     tab: 'spec-updates'
   }
 ];
@@ -117,7 +118,7 @@ const OverviewSection = ({ collection, storedSpec, collectionDrift, specDrift, r
         </StatusBadge>
       )
     },
-    { label: 'Folder Grouping', value: capitalize(groupBy) },
+    { label: 'Collection Grouping', value: capitalize(groupBy) },
     requestNameSource && {
       label: 'Request Naming',
       labelTooltip: 'Determines how requests are named using fields from the OpenAPI spec with fallback options when unavailable.',
@@ -125,7 +126,7 @@ const OverviewSection = ({ collection, storedSpec, collectionDrift, specDrift, r
     },
     authPlacement && {
       label: 'Auth Placement',
-      value: capitalize(authPlacement),
+      value: authPlacementLabels[authPlacement] || capitalize(authPlacement),
       tooltip: authPlacementInfo[authPlacement]
     }
   ].filter(Boolean);
@@ -149,16 +150,16 @@ const OverviewSection = ({ collection, storedSpec, collectionDrift, specDrift, r
     if (specDrift?.storedSpecMissing && !lastSyncDate) {
       return {
         variant: 'warning',
-        title: 'Initial sync required — your collection differs from the spec',
-        subtitle: 'Review the changes and sync to bring your collection up to date.',
+        title: 'Initial sync required — your application differs from the spec',
+        subtitle: 'Review the changes and sync to bring your application up to date.',
         buttons: ['review']
       };
     }
     if (hasSpecUpdates && hasCollectionChanges) {
       return {
         variant: 'warning',
-        title: `OpenAPI spec has new updates${versionInfo} and the collection has changes`,
-        subtitle: 'New or changed requests are available. Some collection changes may be overwritten.',
+        title: `OpenAPI spec has new updates${versionInfo} and the application has changes`,
+        subtitle: 'New or changed requests are available. Some application changes may be overwritten.',
         buttons: ['sync', 'changes']
       };
     }
@@ -174,7 +175,7 @@ const OverviewSection = ({ collection, storedSpec, collectionDrift, specDrift, r
       return {
         variant: 'warning',
         title: 'Last synced spec not found',
-        subtitle: 'The last synced spec is missing in the storage. Restore the latest spec from the source to track collection changes.',
+        subtitle: 'The last synced spec is missing in the storage. Restore the latest spec from the source to track application changes.',
         buttons: ['spec-details']
       };
     }
@@ -182,7 +183,7 @@ const OverviewSection = ({ collection, storedSpec, collectionDrift, specDrift, r
     if (hasCollectionChanges) {
       return {
         variant: 'muted',
-        title: 'Collection has changes not in the spec',
+        title: 'Application has changes not in the spec',
         subtitle: 'Some requests have been modified or removed and no longer match the spec.',
         buttons: ['changes']
       };
@@ -214,12 +215,12 @@ const OverviewSection = ({ collection, storedSpec, collectionDrift, specDrift, r
                   color={bannerState.buttons.includes('sync') ? 'secondary' : 'primary'}
                   onClick={() => onTabSelect('collection-changes')}
                 >
-                  View Collection Changes
+                  View Application Changes
                 </Button>
               )}
               {(bannerState.buttons.includes('sync') || bannerState.buttons.includes('review')) && (
                 <Button size="sm" onClick={() => onTabSelect('spec-updates')}>
-                  Review and Sync Collection
+                  Review and Sync Application
                 </Button>
               )}
               {bannerState.buttons.includes('spec-details') && (

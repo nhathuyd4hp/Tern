@@ -35,7 +35,7 @@ const CreateEnvironment = ({ collection, onClose, onEnvironmentCreated }) => {
     onSubmit: (values) => {
       dispatch(addEnvironment(values.name, collection.uid))
         .then(() => {
-          toast.success('Environment created in collection');
+          toast.success('Environment created in application');
           onClose();
           // Call the callback if provided
           if (onEnvironmentCreated) {

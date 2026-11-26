@@ -24,7 +24,7 @@ const CopyEnvironment = ({ collection, environment, onClose }) => {
     onSubmit: (values) => {
       dispatch(copyEnvironment(values.name, environment.uid, collection.uid))
         .then(() => {
-          toast.success('Environment created in collection');
+          toast.success('Environment created in application');
           onClose();
         })
         .catch(() => toast.error('An error occurred while created the environment'));

@@ -102,7 +102,7 @@ const OpenAPISpecTab = ({ collection, tabUid }) => {
   if (error || !specContent) {
     return (
       <div className="flex items-center justify-center h-full opacity-50">
-        <span>{error || 'No spec file found. Sync your collection first.'}</span>
+        <span>{error || 'No spec file found. Sync your application first.'}</span>
       </div>
     );
   }

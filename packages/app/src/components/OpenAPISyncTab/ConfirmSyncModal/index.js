@@ -57,12 +57,12 @@ const ConfirmSyncModal = ({ groups, onCancel, onSync, isSyncing }) => {
       <div className="sync-confirm-modal">
         {hasNoChanges ? (
           <p className="sync-confirm-description">
-            Your collection is already in sync with the remote spec. Syncing will update the local spec file to match the latest remote version.
+            Your application is already in sync with the remote spec. Syncing will update the local spec file to match the latest remote version.
           </p>
         ) : (
           <>
             <p className="sync-confirm-description">
-              The following changes will be applied to your collection. This action cannot be undone. Are you sure you want to proceed?
+              The following changes will be applied to your application. This action cannot be undone. Are you sure you want to proceed?
             </p>
 
             <div className="sync-confirm-groups">
@@ -78,7 +78,7 @@ const ConfirmSyncModal = ({ groups, onCancel, onSync, isSyncing }) => {
             Cancel
           </Button>
           <Button onClick={onSync} loading={isSyncing} disabled={isSyncing}>
-            {hasNoChanges ? 'Restore Spec File' : 'Confirm & Sync Collection'}
+            {hasNoChanges ? 'Restore Spec File' : 'Confirm & Sync Application'}
           </Button>
         </div>
       </div>

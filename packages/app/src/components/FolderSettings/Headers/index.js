@@ -135,7 +135,7 @@ const Headers = ({ collection, folder }) => {
     return (
       <StyledWrapper className="w-full">
         <div className="text-xs mb-4 text-muted">
-          Request headers that will be sent with every request inside this folder.
+          Request headers that will be sent with every request inside this collection.
         </div>
         <BulkEditor
           params={headers}
@@ -150,7 +150,7 @@ const Headers = ({ collection, folder }) => {
   return (
     <StyledWrapper className="w-full" ref={wrapperRef}>
       <div className="text-xs mb-4 text-muted">
-        Request headers that will be sent with every request inside this folder.
+        Request headers that will be sent with every request inside this collection.
       </div>
       <EditableTable
         tableId="folder-headers"

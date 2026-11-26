@@ -14,6 +14,7 @@ import Button from 'ui/Button';
 import StatusBadge from 'ui/StatusBadge';
 import Modal from 'components/Modal';
 import EndpointChangeSection from '../EndpointChangeSection';
+import SyncEmptyStatus from '../SyncEmptyStatus';
 import ExpandableEndpointRow from '../EndpointChangeSection/ExpandableEndpointRow';
 import useEndpointActions from '../hooks/useEndpointActions';
 
@@ -54,7 +55,7 @@ const CollectionStatusSection = ({
       newSpec={spec}
       showDecisions={false}
       diffLeftLabel="Last Synced Spec"
-      diffRightLabel="Current (in collection)"
+      diffRightLabel="Current (in application)"
       swapDiffSides
       collectionUid={collection.uid}
       actions={actions}
@@ -70,7 +71,7 @@ const CollectionStatusSection = ({
     if (hasDrift) {
       return {
         variant: 'muted',
-        message: 'Collection has changes since last sync',
+        message: 'Application has changes since last sync',
         badges: { modifiedCount, missingCount, localOnlyCount },
         actions: ['revert-all']
       };
@@ -118,7 +119,7 @@ const CollectionStatusSection = ({
         <div className="mt-5">
           {/* Modified in Collection */}
           <EndpointChangeSection
-            title="Modified in Collection"
+            title="Modified in Application"
             type="modified"
             endpoints={collectionDrift.modified || []}
             expandableLayout
@@ -150,7 +151,7 @@ const CollectionStatusSection = ({
 
           {/* Deleted from Collection */}
           <EndpointChangeSection
-            title="Deleted from Collection"
+            title="Deleted from Application"
             type="missing"
             endpoints={collectionDrift.missing || []}
             expandableLayout
@@ -158,7 +159,7 @@ const CollectionStatusSection = ({
             sectionKey="drift-missing"
             renderItem={(endpoint, idx) =>
               renderDriftRow(endpoint, idx, (
-                <Button size="xs" variant="ghost" onClick={() => handleAddMissingEndpoint(endpoint)} title="Restore to collection" icon={<IconPlus size={14} />}>
+                <Button size="xs" variant="ghost" onClick={() => handleAddMissingEndpoint(endpoint)} title="Restore to application" icon={<IconPlus size={14} />}>
                   Restore
                 </Button>
               ))}
@@ -167,7 +168,7 @@ const CollectionStatusSection = ({
                 size="xs"
                 variant="outline"
                 onClick={handleAddAllMissing}
-                title="Add all deleted endpoints back to collection"
+                title="Add all deleted endpoints back to application"
                 icon={<IconPlus size={14} />}
               >
                 Restore All
@@ -177,7 +178,7 @@ const CollectionStatusSection = ({
 
           {/* Added to Collection */}
           <EndpointChangeSection
-            title="Added to Collection"
+            title="Added to Application"
             type="local-only"
             endpoints={collectionDrift.localOnly || []}
             expandableLayout
@@ -212,24 +213,23 @@ const CollectionStatusSection = ({
         <div className="sync-review-empty-state mt-5">
           <IconLoader2 size={40} className="empty-state-icon animate-spin" />
           <h4>Checking for updates</h4>
-          <p>Comparing your collection with the last synced spec...</p>
+          <p>Comparing your application with the last synced spec...</p>
         </div>
       ) : !hasStoredSpec ? (
         <div className="sync-review-empty-state mt-5">
           <IconAlertTriangle size={40} className="empty-state-icon" />
-          <h4>{lastSyncDate ? 'Cannot track collection changes' : 'Waiting for initial sync'}</h4>
+          <h4>{lastSyncDate ? 'Cannot track application changes' : 'Waiting for initial sync'}</h4>
           <p>{lastSyncDate
-            ? 'The last synced spec is missing. Go to the \'Spec Updates\' tab to restore it, or sync the collection if updates are available to track future changes.'
-            : 'Once you sync your collection with the spec, local changes will appear here.'}
+            ? 'The last synced spec is missing. Go to the \'Spec Updates\' tab to restore it, or sync the application if updates are available to track future changes.'
+            : 'Once you sync your application with the spec, local changes will appear here.'}
           </p>
           <Button variant="outline" size="sm" className="mt-4" onClick={() => onTabSelect('spec-updates')}>Go to Spec Updates</Button>
         </div>
       ) : (
-        <div className="sync-review-empty-state mt-5">
-          <IconCheck size={40} className="empty-state-icon" />
-          <h4>No changes in collection</h4>
-          <p>The collection endpoints match the last synced spec. Nothing to review.</p>
-        </div>
+        <SyncEmptyStatus
+          title="No changes in application"
+          description="Application endpoints match the last synced spec."
+        />
       )}
       {/* Action confirmation modal */}
       {pendingAction && (

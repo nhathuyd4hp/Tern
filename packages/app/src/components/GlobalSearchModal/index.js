@@ -364,7 +364,7 @@ const GlobalSearchModal = ({ isOpen, onClose }) => {
         <div className="command-k-modal" onClick={(e) => e.stopPropagation()}>
           <h1 id="search-modal-title" className="sr-only">Global Search</h1>
           <p id="search-modal-description" className="sr-only">
-            Search through collections, requests, folders. Use arrow keys to navigate results and Enter to select.
+            Search through applications, requests, collections. Use arrow keys to navigate results and Enter to select.
           </p>
           <div aria-live="polite" aria-atomic="true" className="sr-only">
             {results.length > 0 && query
@@ -379,7 +379,7 @@ const GlobalSearchModal = ({ isOpen, onClose }) => {
               <input
                 ref={inputRef}
                 type="text"
-                placeholder="Search collections, or requests..."
+                placeholder="Search applications, or requests..."
                 value={query}
                 onChange={handleQueryChange}
                 onKeyDown={handleKeyNavigation}
@@ -388,7 +388,7 @@ const GlobalSearchModal = ({ isOpen, onClose }) => {
                 autoCorrect="off"
                 autoCapitalize="off"
                 spellCheck="false"
-                aria-label="Search collections, or requests"
+                aria-label="Search applications, or requests"
                 aria-expanded={results.length > 0}
                 aria-controls="search-results"
                 aria-activedescendant={results.length > 0 ? `search-result-${selectedIndex}` : undefined}
@@ -422,17 +422,17 @@ const GlobalSearchModal = ({ isOpen, onClose }) => {
                   No results found for "{query}".
                   <br />
                   <span className="block mt-2">
-                    The item might not exist yet, or its collection isn’t mounted. Press <strong>Enter</strong> here (or open it from the sidebar) to mount the collection automatically.
+                    The item might not exist yet, or its application isn’t mounted. Press <strong>Enter</strong> here (or open it from the sidebar) to mount the application automatically.
                   </span>
                 </p>
               </div>
             ) : results.length === 0 ? (
               <div className="empty-state">
                 <p>
-                  No collections are currently mounted or visible.
+                  No applications are currently mounted or visible.
                   <br />
                   <span className="block mt-2">
-                    Mount a collection via the sidebar or this search modal, then try again.
+                    Mount an application via the sidebar or this search modal, then try again.
                   </span>
                 </p>
               </div>

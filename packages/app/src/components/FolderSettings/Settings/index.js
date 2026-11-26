@@ -5,7 +5,7 @@ import Tags from './Tags/index';
 const Settings = ({ folder, collection }) => {
   return (
     <div className="h-full w-full">
-      <div className="text-xs mb-4 text-muted">Configure settings for this folder.</div>
+      <div className="text-xs mb-4 text-muted">Configure settings for this collection.</div>
       <div className="bruno-form">
         <div className="mb-6">
           <h3 className="text-xs font-medium flex items-center gap-1 mb-4">

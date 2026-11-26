@@ -94,10 +94,10 @@ const Docs = ({ collection }) => {
 export default Docs;
 
 const documentationPlaceholder = `
-Welcome to your collection documentation! This space is designed to help you document your API collection effectively.
+Welcome to your application documentation! This space is designed to help you document your API application effectively.
 
 ## Overview
-Use this section to provide a high-level overview of your collection. You can describe:
+Use this section to provide a high-level overview of your application. You can describe:
 - The purpose of these API endpoints
 - Key features and functionalities
 - Target audience or users

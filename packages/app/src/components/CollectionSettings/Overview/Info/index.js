@@ -109,7 +109,7 @@ const Info = ({ collection }) => {
                     );
                   }}
                 >
-                  {collectionEnvironmentCount} collection environment{collectionEnvironmentCount !== 1 ? 's' : ''}
+                  {collectionEnvironmentCount} application environment{collectionEnvironmentCount !== 1 ? 's' : ''}
                 </button>
                 <button
                   type="button"
@@ -140,7 +140,7 @@ const Info = ({ collection }) => {
               <div className="font-medium" data-testid="info-requests-label">Requests</div>
               <div className="mt-1 text-muted" data-testid="info-request-count">
                 {
-                  isCollectionLoading ? `${totalItems - itemsLoadingCount} out of ${totalItems} requests in the collection loaded` : `${totalRequestsInCollection} request${totalRequestsInCollection !== 1 ? 's' : ''} in collection`
+                  isCollectionLoading ? `${totalItems - itemsLoadingCount} out of ${totalItems} requests in the application loaded` : `${totalRequestsInCollection} request${totalRequestsInCollection !== 1 ? 's' : ''} in application`
                 }
                 {invalidItemCount > 0 ? (
                   <span data-testid="info-invalid-files-count">

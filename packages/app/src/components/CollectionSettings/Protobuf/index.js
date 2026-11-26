@@ -123,7 +123,7 @@ const ProtobufSettings = ({ collection }) => {
               <Tooltip
                 anchorId="proto-files-tooltip"
                 className="tooltip-mod font-normal"
-                html="Keep your proto files within the collection folder or the corresponding git repository to ensure paths remain valid when sharing the collection."
+                html="Keep your proto files within the application folder or the corresponding git repository to ensure paths remain valid when sharing the application."
               />
             </label>
           </div>

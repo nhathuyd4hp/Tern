@@ -73,7 +73,7 @@ const PresetsSettings = ({ collection }) => {
       <FieldList className="presets-settings bruno-form">
         <SettingsHeader
           title="Presets"
-          description="Set defaults for new requests and the environment this collection opens with."
+          description="Set defaults for new requests and the environment this application opens with."
         />
         <FieldList gap="lg" className="presets-fields">
           <FormField
@@ -115,7 +115,7 @@ const PresetsSettings = ({ collection }) => {
 
           <FormField
             label="Default Environment"
-            description="Selected when this collection is shared and first opened."
+            description="Selected when this application is shared and first opened."
             htmlFor="default-environment"
             descriptionId="default-environment-description"
           >

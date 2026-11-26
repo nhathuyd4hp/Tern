@@ -135,7 +135,7 @@ const OpenAPISyncHeader = ({
                 width={240}
                 iconComponent={() => <IconCircleCheck size={14} className="sync-status-icon in-sync" />}
               >
-                Collection is up to date with the spec
+                Application is up to date with the spec
               </Help>
             )}
             {syncStatus === 'not-in-sync' && (
@@ -144,7 +144,7 @@ const OpenAPISyncHeader = ({
                 width={260}
                 iconComponent={() => <IconAlertTriangle size={14} className="sync-status-icon not-in-sync" />}
               >
-                Collection is not up to date with the spec
+                Application is not up to date with the spec
               </Help>
             )}
           </div>

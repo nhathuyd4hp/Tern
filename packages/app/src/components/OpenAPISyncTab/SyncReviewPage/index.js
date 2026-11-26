@@ -13,6 +13,7 @@ import StatusBadge from 'ui/StatusBadge';
 import EndpointChangeSection from '../EndpointChangeSection';
 import ExpandableEndpointRow from '../EndpointChangeSection/ExpandableEndpointRow';
 import ConfirmSyncModal from '../ConfirmSyncModal';
+import SyncEmptyStatus from '../SyncEmptyStatus';
 import SpecDiffModal from '../SpecDiffModal';
 import Help from 'components/Help';
 import { setReviewDecision, setReviewDecisions } from 'providers/ReduxStore/slices/openapi-sync';
@@ -223,7 +224,7 @@ const SyncReviewPage = ({
     ? `Resolve ${unresolvedConflicts} conflict${unresolvedConflicts !== 1 ? 's and sync' : ' and sync'}`
     : !hasRemoteUpdates && specDrift?.storedSpecMissing
         ? 'Restore Spec File'
-        : 'Sync Collection';
+        : 'Sync Application';
 
   return (
     <div className="sync-review-page sync-mode">
@@ -293,21 +294,18 @@ const SyncReviewPage = ({
 
       <div className="sync-review-body">
         {!hasRemoteUpdates ? (
-          <div className="sync-review-empty-state">
-            {isLoading ? (
-              <>
-                <IconLoader2 size={40} className="empty-state-icon animate-spin" />
-                <h4>Checking for updates</h4>
-                <p>Comparing your last synced spec with the latest spec...</p>
-              </>
-            ) : (
-              <>
-                <IconCheck size={40} className="empty-state-icon" />
-                <h4>No updates from the spec</h4>
-                <p>The spec endpoints have not been updated since the last sync.</p>
-              </>
-            )}
-          </div>
+          isLoading ? (
+            <div className="sync-review-empty-state">
+              <IconLoader2 size={40} className="empty-state-icon animate-spin" />
+              <h4>Checking for updates</h4>
+              <p>Comparing your last synced spec with the latest spec...</p>
+            </div>
+          ) : (
+            <SyncEmptyStatus
+              title="No updates from the spec"
+              description="The spec has not changed since the last sync."
+            />
+          )
         ) : (
           <div className="endpoints-review-sections">
             {/* === Updates from Spec === */}
@@ -326,7 +324,7 @@ const SyncReviewPage = ({
                       status="danger"
                       rightSection={(
                         <Help icon="info" size={11} placement="top" width={250}>
-                          {`This section has ${conflictCount} endpoint${conflictCount === 1 ? '' : 's'} modified in both the spec and your collection. Expand to review and resolve.`}
+                          {`This section has ${conflictCount} endpoint${conflictCount === 1 ? '' : 's'} modified in both the spec and your application. Expand to review and resolve.`}
                         </Help>
                       )}
                     >
@@ -382,7 +380,7 @@ const SyncReviewPage = ({
                   endpoints={specRemovedEndpoints}
                   defaultExpanded={true}
                   expandableLayout
-                  subtitle="These endpoints are in your collection but not in the spec"
+                  subtitle="These endpoints are in your application but not in the spec"
                   collectionUid={collectionUid}
                   sectionKey="review-removed"
                   renderItem={(endpoint, idx) => (

@@ -9,7 +9,7 @@ import StyledWrapper from './StyledWrapper';
 const FEATURES = [
   'Detect new, modified, and removed endpoints',
   'Track local changes against the spec',
-  'Sync collection with a single click',
+  'Sync application with a single click',
   'Your tests, assertions, and scripts are preserved during sync'
 ];
 
@@ -39,7 +39,7 @@ const ConnectSpecForm = ({ sourceUrl, setSourceUrl, isLoading, error, setError, 
         <OpenAPISyncIcon size={56} className="setup-icon" data-testid="openapi-connect-icon" />
         <h2 className="setup-title">Connect to OpenAPI Spec</h2>
         <p className="setup-description">
-          Keep your collection synchronized with an OpenAPI specification.
+          Keep your application synchronized with an OpenAPI specification.
           <br />
           Changes in the spec will be detected automatically.
         </p>

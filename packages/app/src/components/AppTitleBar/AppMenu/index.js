@@ -13,7 +13,7 @@ const AppMenu = () => {
       submenu: [
         {
           id: 'open-collection',
-          label: 'Open Collection',
+          label: 'Open Application',
           onClick: () => ipcRenderer?.send('renderer:open-collection')
         },
         { type: 'divider', id: 'file-div-1' },
