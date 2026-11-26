@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
-import { IconMenu2 } from '@tabler/icons';
 import MenuDropdown from 'ui/MenuDropdown';
-import ActionIcon from 'ui/ActionIcon';
 import StyledWrapper from './StyledWrapper';
 
 const AppMenu = () => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState(null);
   const { ipcRenderer } = window;
 
   const menuItems = [
@@ -115,38 +113,35 @@ const AppMenu = () => {
           onClick: () => ipcRenderer?.invoke('renderer:toggle-fullscreen')
         }
       ]
-    },
-    {
-      id: 'help',
-      label: 'Help',
-      submenu: [
-        {
-          id: 'about',
-          label: 'About Bruno',
-          onClick: () => ipcRenderer?.invoke('renderer:open-about')
-        },
-        {
-          id: 'documentation',
-          label: 'Documentation',
-          onClick: () => ipcRenderer?.invoke('renderer:open-docs')
-        }
-      ]
     }
   ];
 
+  const handleOpenChange = (menuId) => (opened) => {
+    setOpenMenuId((current) => (opened ? menuId : current === menuId ? null : current));
+  };
+
   return (
-    <StyledWrapper>
-      <MenuDropdown
-        opened={isOpen}
-        onChange={setIsOpen}
-        placement="bottom-start"
-        showTickMark={false}
-        items={menuItems}
-      >
-        <ActionIcon label="Menu" size="lg">
-          <IconMenu2 size={16} stroke={1.5} />
-        </ActionIcon>
-      </MenuDropdown>
+    <StyledWrapper role="menubar" data-testid="app-menu-bar">
+      {menuItems.map((menu) => (
+        <MenuDropdown
+          key={menu.id}
+          opened={openMenuId === menu.id}
+          onChange={handleOpenChange(menu.id)}
+          placement="bottom-start"
+          showTickMark={false}
+          items={menu.submenu}
+        >
+          <button
+            type="button"
+            className="menu-bar-item"
+            data-testid={`app-menu-${menu.id}`}
+            // While one menu is open, hovering another switches to it, as in a desktop menu bar.
+            onMouseEnter={() => openMenuId && setOpenMenuId(menu.id)}
+          >
+            {menu.label}
+          </button>
+        </MenuDropdown>
+      ))}
     </StyledWrapper>
   );
 };

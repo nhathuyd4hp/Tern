@@ -7,12 +7,9 @@
 
 import 'utils/codemirror/setup';
 import React, { createRef } from 'react';
-import { useSelector } from 'react-redux';
 import { debounce, isEqual } from 'lodash';
 import { defineCodeMirrorBrunoVariablesMode } from 'utils/common/codemirror';
 import { setupAutoComplete, showRootHints } from 'utils/codemirror/autocomplete';
-import { setupAiAutocomplete } from 'utils/codemirror/aiGhostText';
-import { buildAutocompleteContext } from 'utils/ai';
 import StyledWrapper from './StyledWrapper';
 import StatusBar from './StatusBar';
 import * as jsonlint from '@prantlf/jsonlint';
@@ -383,22 +380,6 @@ class CodeEditor extends React.Component {
       getAllVariables: () => getVariableNamesWithScope(this.props.collection, this.props.item)
     });
 
-    if (this.props.scriptType) {
-      this.aiAutocompleteCleanup = setupAiAutocomplete(editor, {
-        scriptType: this.props.scriptType,
-        isEnabled: () => {
-          const ai = this.props.aiPreferences;
-          return Boolean(ai?.enabled) && ai?.autocomplete?.enabled !== false;
-        },
-        getTriggerMode: () => this.props.aiPreferences?.autocomplete?.triggerMode || 'debounced',
-        getContext: () => buildAutocompleteContext({
-          item: this.props.item,
-          collection: this.props.collection,
-          scriptType: this.props.scriptType
-        })
-      });
-    }
-
     setupLinkAware(editor, {
       onLinkClick: this._resolveOnLinkClick() ? this.handleLinkClick : undefined
     });
@@ -407,10 +388,8 @@ class CodeEditor extends React.Component {
 
   _disableEnhancedFeatures = () => {
     this.brunoAutoCompleteCleanup?.();
-    this.aiAutocompleteCleanup?.();
     this.editor?._destroyLinkAware?.();
     this.brunoAutoCompleteCleanup = null;
-    this.aiAutocompleteCleanup = null;
   };
 
   _setLongLineMode = (value, { deferRestore = false } = {}) => {
@@ -740,12 +719,10 @@ class CodeEditor extends React.Component {
 
 const CodeEditorWithPersistenceScope = React.forwardRef((props, ref) => {
   const persistenceScope = usePersistenceScope();
-  const aiPreferences = useSelector((state) => state.app.preferences?.ai);
   return (
     <CodeEditor
       {...props}
       persistenceScope={persistenceScope}
-      aiPreferences={aiPreferences}
       ref={ref}
     />
   );

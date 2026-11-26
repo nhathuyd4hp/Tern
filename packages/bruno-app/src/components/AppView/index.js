@@ -10,7 +10,6 @@ import {
   initRunRequestEvent
 } from 'providers/ReduxStore/slices/collections';
 import { updateRequestPaneTab, setTabAppPreview } from 'providers/ReduxStore/slices/tabs';
-import { addLog } from 'providers/ReduxStore/slices/logs';
 import { uuid } from 'utils/common';
 import { useTheme } from 'providers/Theme';
 import AppWebviewPane from 'components/AppWebviewPane';
@@ -252,7 +251,6 @@ const AppView = ({ item, collection, code }) => {
           break;
         case 'log':
           console.log('[app]', ...(data.args || []));
-          dispatch(addLog({ type: 'log', args: ['[app]', ...(data.args || [])], timestamp: new Date().toISOString() }));
           break;
         default:
           break;

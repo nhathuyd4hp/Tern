@@ -38,8 +38,8 @@ const StyledWrapper = styled.div`
         }
 
         .title {
-          font-size: 16px;
-          font-weight: 600;
+          font-size: 22px;
+          font-weight: 700;
           color: ${(props) => props.theme.text};
 
           small {
@@ -98,9 +98,10 @@ const StyledWrapper = styled.div`
       .opblock-tag-section {
         .opblock-tag {
           font-size: ${(props) => props.theme.font.size.md};
+          font-weight: 600;
           color: ${(props) => props.theme.text};
           border-bottom: none;
-          padding: 0;
+          padding: 8px 0;
 
           &:hover {
             background: ${(props) => props.theme.background.mantle};
@@ -119,24 +120,26 @@ const StyledWrapper = styled.div`
       }
 
       .opblock {
-        margin: 0 0 8px;
-        border-radius: 4px;
+        margin: 0 0 10px;
+        border-radius: 8px;
         border: 1px solid ${(props) => props.theme.border.border1} !important;
         background: ${(props) => props.theme.bg} !important;
         box-shadow: none !important;
+        overflow: hidden;
 
         .opblock-summary {
-          padding: 6px 10px;
+          padding: 10px 14px;
           border: none !important;
           background: transparent !important;
 
           .opblock-summary-method {
-            font-size: 10px;
+            font-size: 11px;
             font-weight: 700;
-            padding: 3px 8px;
-            min-width: 50px;
+            letter-spacing: 0.03em;
+            padding: 5px 10px;
+            min-width: 64px;
             text-align: center;
-            border-radius: 3px;
+            border-radius: 5px;
           }
 
           .opblock-summary-path {
@@ -169,7 +172,7 @@ const StyledWrapper = styled.div`
         .opblock-body {
           font-size: ${(props) => props.theme.font.size.sm};
           color: ${(props) => props.theme.text};
-          background: ${(props) => props.theme.bg};
+          background: transparent;
           border-top: 1px solid ${(props) => props.theme.border.border1};
 
           .opblock-description-wrapper,
@@ -206,6 +209,13 @@ const StyledWrapper = styled.div`
           }
         }
       }
+
+      /* Each method tints its whole block (hex + alpha) so endpoints are easy to scan. */
+      .opblock.opblock-get { background: #61affe0f !important; border-color: #61affe66 !important; }
+      .opblock.opblock-post { background: #49cc900f !important; border-color: #49cc9066 !important; }
+      .opblock.opblock-put { background: #fca1300f !important; border-color: #fca13066 !important; }
+      .opblock.opblock-delete { background: #f93e3e0f !important; border-color: #f93e3e66 !important; }
+      .opblock.opblock-patch { background: #50e3c20f !important; border-color: #50e3c266 !important; }
 
       .opblock.opblock-get .opblock-summary-method { background: #61affe; color: #fff; }
       .opblock.opblock-post .opblock-summary-method { background: #49cc90; color: #fff; }

@@ -199,7 +199,7 @@ describe('ModalShell', () => {
       expect(queryOverlay()).toBeInTheDocument();
     });
 
-    it('hides the overlay on drop and goes to Import when only files were dropped', async () => {
+    it('hides the overlay on drop and stays on the page when only files were dropped', async () => {
       window.ipcRenderer = { getFilePath: jest.fn(), send: jest.fn() };
       const store = renderShell();
       const file = { name: 'notes.json', text: () => Promise.resolve('{}') };
@@ -209,22 +209,9 @@ describe('ModalShell', () => {
       fireEvent.drop(dialog(), { dataTransfer: { ...fileDrag, items: [item] } });
 
       expect(queryOverlay()).not.toBeInTheDocument();
-      expect(store.getState().openCollectionModal.page).toBe('import');
-      await waitFor(() => expect(store.getState().openCollectionModal.importLoadId).toBeNull());
+      expect(store.getState().openCollectionModal.page).toBe('choose-folder');
       delete window.ipcRenderer;
     });
-  });
-
-  it('offers to import the file a note names', async () => {
-    const importFile = { path: '/work/notes.json', name: 'notes.json', format: 'postman' };
-    const result = { id: 'search-1', type: 'message', note: { tone: 'info', text: 'Needs importing.', importFile } };
-    const store = createStore({ isOpen: true, page: 'choose-folder', chooseFolder: { ...closedState.chooseFolder, result } });
-    renderWithStore(<ModalShell />, store);
-
-    fireEvent.click(screen.getByTestId('open-collection-note-action'));
-
-    expect(store.getState().openCollectionModal.page).toBe('import');
-    await waitFor(() => expect(store.getState().openCollectionModal.importLoadId).toBeNull());
   });
 
   it('leaves the note without an action when it names no file', () => {

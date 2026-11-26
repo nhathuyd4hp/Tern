@@ -8,6 +8,11 @@ import { findApiSpecByPathname } from 'utils/api-specs';
 import useWorkspaceApiSpecs from 'hooks/useWorkspaceApiSpecs';
 import SpecSourcePicker from 'components/OpenAPISyncTab/SpecSourcePicker';
 import { isSpecSourceReady } from 'components/OpenAPISyncTab/SpecSourcePicker/utils';
+import { MIN_CHECK_INTERVAL_MINUTES } from 'components/OpenAPISyncTab/utils';
+
+const PRESET_INTERVALS = [5, 10, 15, 30, 60];
+
+const toMinutes = (amount, unit) => (unit === 'sec' ? Number((Number(amount) / 60).toFixed(4)) : Number(amount));
 
 const resolveInitialSource = (sourceUrl, collectionPath, workspaceSpecs) => {
   const source = (sourceUrl || '').trim();
@@ -31,18 +36,21 @@ const ConnectionSettingsModal = ({ collection, sourceUrl, onSave, onDisconnect, 
   const { mode, sources } = editedSource || initialSource;
   const editSource = (update) => setEditedSource((current) => update(current || initialSource));
   const [autoCheck, setAutoCheck] = useState(openApiSyncConfig?.autoCheck !== false);
-  const [checkInterval, setCheckInterval] = useState(openApiSyncConfig?.autoCheckInterval || 5);
+  const initialInterval = openApiSyncConfig?.autoCheckInterval || 5;
+  const [unit, setUnit] = useState(initialInterval < 1 ? 'sec' : 'min');
+  const [amount, setAmount] = useState(String(initialInterval < 1 ? Math.round(initialInterval * 60) : initialInterval));
   const [isSaving, setIsSaving] = useState(false);
 
-  const intervals = [5, 15, 30, 60];
+  const effectiveInterval = toMinutes(amount, unit);
+  const isIntervalValid = !autoCheck || effectiveInterval >= MIN_CHECK_INTERVAL_MINUTES;
 
   const effectiveSource = sources[mode].trim();
-  const canSave = isSpecSourceReady(mode, effectiveSource, workspaceSpecs);
+  const canSave = isSpecSourceReady(mode, effectiveSource, workspaceSpecs) && isIntervalValid;
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      await onSave({ sourceUrl: effectiveSource, autoCheck, autoCheckInterval: checkInterval });
+      await onSave({ sourceUrl: effectiveSource, autoCheck, autoCheckInterval: effectiveInterval });
       onClose();
     } catch (_) {
       // caller (handleSaveSettings) already shows a toast on failure
@@ -97,18 +105,45 @@ const ConnectionSettingsModal = ({ collection, sourceUrl, onSave, onDisconnect, 
           {autoCheck && (
             <div className="settings-field">
               <label className="settings-label">Check interval</label>
+              <div className="interval-row">
+                <span className="interval-prefix">Every</span>
+                <input
+                  type="number"
+                  min="1"
+                  data-testid="check-interval-input"
+                  className={isIntervalValid ? '' : 'invalid'}
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                />
+                <div className="interval-unit" role="group" aria-label="Interval unit">
+                  {['sec', 'min'].map((option) => (
+                    <button
+                      key={option}
+                      type="button"
+                      className={unit === option ? 'active' : ''}
+                      onClick={() => setUnit(option)}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <div className="interval-buttons">
-                {intervals.map((mins) => (
+                {PRESET_INTERVALS.map((mins) => (
                   <button
                     key={mins}
                     type="button"
-                    className={checkInterval === mins ? 'active' : ''}
-                    onClick={() => setCheckInterval(mins)}
+                    className={unit === 'min' && Number(amount) === mins ? 'active' : ''}
+                    onClick={() => {
+                      setUnit('min');
+                      setAmount(String(mins));
+                    }}
                   >
                     {mins} min
                   </button>
                 ))}
               </div>
+              {!isIntervalValid && <div className="interval-error">Minimum interval is 10 seconds</div>}
             </div>
           )}
         </div>

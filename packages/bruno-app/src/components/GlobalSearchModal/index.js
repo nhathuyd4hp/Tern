@@ -7,8 +7,7 @@ import {
   IconX,
   IconFolder,
   IconBox,
-  IconFileText,
-  IconBook
+  IconFileText
 } from '@tabler/icons';
 import { flattenItems, isItemARequest, isItemAFolder, findParentItemInCollection } from 'utils/collections';
 import { addTab, focusTab } from 'providers/ReduxStore/slices/tabs';
@@ -17,7 +16,7 @@ import { mountCollection, revealItemInSidebar, revealTabInSidebar } from 'provid
 import { getDefaultRequestPaneTab } from 'utils/collections';
 import { normalizePath } from 'utils/common/path';
 import { normalizeQuery, isValidQuery, highlightText, sortResults, getTypeLabel, getItemPath } from './utils/searchUtils';
-import { SEARCH_TYPES, MATCH_TYPES, SEARCH_CONFIG, DOCUMENTATION_RESULT } from './constants';
+import { SEARCH_TYPES, MATCH_TYPES, SEARCH_CONFIG } from './constants';
 import StyledWrapper from './StyledWrapper';
 
 const GlobalSearchModal = ({ isOpen, onClose }) => {
@@ -57,17 +56,11 @@ const GlobalSearchModal = ({ isOpen, onClose }) => {
     }));
 
     collectionResults.sort((a, b) => a.name.localeCompare(b.name));
-    return [DOCUMENTATION_RESULT, ...collectionResults];
+    return collectionResults;
   };
 
   const searchInCollections = (searchTerms, enablePathMatch) => {
     const results = [];
-
-    // Check for documentation match
-    const queryLower = searchTerms.join(' ');
-    if (['documentation', 'docs', 'bruno docs'].some((term) => term.includes(queryLower))) {
-      results.push(DOCUMENTATION_RESULT);
-    }
 
     collections.forEach((collection) => {
       // Search collection name
@@ -250,12 +243,6 @@ const GlobalSearchModal = ({ isOpen, onClose }) => {
     const targetCollection = collections.find((c) => c.uid === result.collectionUid);
     ensureCollectionIsMounted(targetCollection);
 
-    if (result.type === SEARCH_TYPES.DOCUMENTATION) {
-      window.open('https://docs.usebruno.com/', '_blank');
-      onClose();
-      return;
-    }
-
     expandItemPath(result);
 
     if (result.type === SEARCH_TYPES.REQUEST) {
@@ -354,7 +341,6 @@ const GlobalSearchModal = ({ isOpen, onClose }) => {
 
   const getResultIcon = (type) => {
     const iconMap = {
-      [SEARCH_TYPES.DOCUMENTATION]: IconBook,
       [SEARCH_TYPES.COLLECTION]: IconBox,
       [SEARCH_TYPES.FOLDER]: IconFolder,
       [SEARCH_TYPES.REQUEST]: IconFileText
@@ -378,7 +364,7 @@ const GlobalSearchModal = ({ isOpen, onClose }) => {
         <div className="command-k-modal" onClick={(e) => e.stopPropagation()}>
           <h1 id="search-modal-title" className="sr-only">Global Search</h1>
           <p id="search-modal-description" className="sr-only">
-            Search through collections, requests, folders, and documentation. Use arrow keys to navigate results and Enter to select.
+            Search through collections, requests, folders. Use arrow keys to navigate results and Enter to select.
           </p>
           <div aria-live="polite" aria-atomic="true" className="sr-only">
             {results.length > 0 && query
@@ -393,7 +379,7 @@ const GlobalSearchModal = ({ isOpen, onClose }) => {
               <input
                 ref={inputRef}
                 type="text"
-                placeholder="Search collections, requests, or documentation..."
+                placeholder="Search collections, or requests..."
                 value={query}
                 onChange={handleQueryChange}
                 onKeyDown={handleKeyNavigation}
@@ -402,7 +388,7 @@ const GlobalSearchModal = ({ isOpen, onClose }) => {
                 autoCorrect="off"
                 autoCapitalize="off"
                 spellCheck="false"
-                aria-label="Search collections, requests, or documentation"
+                aria-label="Search collections, or requests"
                 aria-expanded={results.length > 0}
                 aria-controls="search-results"
                 aria-activedescendant={results.length > 0 ? `search-result-${selectedIndex}` : undefined}
@@ -477,11 +463,9 @@ const GlobalSearchModal = ({ isOpen, onClose }) => {
                           {highlightText(result.name, query)}
                         </div>
                         <div className="result-path">
-                          {result.type === SEARCH_TYPES.DOCUMENTATION
-                            ? result.description
-                            : result.type === SEARCH_TYPES.REQUEST
-                              ? highlightText(result.item.request?.url || '', query)
-                              : highlightText(result.path, query)}
+                          {result.type === SEARCH_TYPES.REQUEST
+                            ? highlightText(result.item.request?.url || '', query)
+                            : highlightText(result.path, query)}
                         </div>
                       </div>
                       <div className="result-badges">

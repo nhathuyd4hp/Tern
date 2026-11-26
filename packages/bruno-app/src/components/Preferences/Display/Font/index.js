@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import get from 'lodash/get';
 import debounce from 'lodash/debounce';
 import { useSelector, useDispatch } from 'react-redux';
 import { savePreferences } from 'providers/ReduxStore/slices/app';
 import StyledWrapper from './StyledWrapper';
 import toast from 'react-hot-toast';
+import { getInstalledCodeFonts } from './utils';
 
 const Font = () => {
   const dispatch = useDispatch();
@@ -13,6 +14,12 @@ const Font = () => {
 
   const [codeFont, setCodeFont] = useState(get(preferences, 'font.codeFont', 'default'));
   const [codeFontSize, setCodeFontSize] = useState(get(preferences, 'font.codeFontSize', '13'));
+
+  // A saved font that is not installed (or was typed by hand before this was a list) stays selectable.
+  const fontOptions = useMemo(() => {
+    const installedFonts = getInstalledCodeFonts();
+    return codeFont === 'default' || installedFonts.includes(codeFont) ? installedFonts : [codeFont, ...installedFonts];
+  }, []);
 
   const handleCodeFontChange = (event) => {
     setCodeFont(event.target.value);
@@ -64,16 +71,19 @@ const Font = () => {
       <div className="flex flex-row gap-2 w-full">
         <div className="w-4/5">
           <label className="block">Code Editor Font</label>
-          <input
-            type="text"
+          <select
             className="block textbox mt-2 w-full"
-            autoComplete="off"
-            autoCorrect="off"
-            autoCapitalize="off"
-            spellCheck="false"
+            data-testid="code-font-select"
             onChange={handleCodeFontChange}
-            defaultValue={codeFont}
-          />
+            value={codeFont}
+          >
+            <option value="default">Default</option>
+            {fontOptions.map((fontName) => (
+              <option key={fontName} value={fontName} style={{ fontFamily: `"${fontName}"` }}>
+                {fontName}
+              </option>
+            ))}
+          </select>
         </div>
         <div className="w-1/5">
           <label className="block">Font Size</label>

@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import {
   IconCopy,
   IconDotsVertical,
+  IconExternalLink,
   IconUnlink,
   IconSettings,
   IconRefresh,
@@ -66,6 +67,18 @@ const OpenAPISyncHeader = ({
     }
   };
 
+  const openInBrowser = async () => {
+    try {
+      const { error } = await window.ipcRenderer.invoke('renderer:open-openapi-spec-in-browser', {
+        collectionPath: collection.pathname
+      });
+      if (error) toast.error(error);
+    } catch (err) {
+      console.error('Error opening the spec in the browser:', err);
+      toast.error('Failed to open the spec in the browser');
+    }
+  };
+
   const menuItems = [
     {
       id: 'settings',
@@ -89,6 +102,54 @@ const OpenAPISyncHeader = ({
           <div className="spec-title-row">
             <span className="spec-title">{title}</span>
           </div>
+          <div className="spec-url-row">
+            <span className="spec-url-label">{sourceIsLocal ? 'Source File:' : 'Source URL:'}</span>
+            {sourceIsLocal ? (
+              <button
+                className="spec-url-value spec-file-reveal"
+                title="Reveal in file manager"
+                type="button"
+                onClick={revealInFolder}
+              >
+                {displayPath}
+              </button>
+            ) : (
+              <a
+                className="spec-url-value"
+                href={sourceUrl}
+                title={sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {sourceUrl}
+              </a>
+            )}
+            <button className="copy-btn" onClick={copyUrl} title={sourceIsLocal ? 'Copy path' : 'Copy URL'} type="button">
+              <IconCopy size={12} />
+            </button>
+          </div>
+          <div className="linked-collection-row">
+            <span className="spec-url-label">Linked Collection:</span>
+            <span className="linked-collection-name">{collection.name}</span>
+            {syncStatus === 'in-sync' && (
+              <Help
+                placement="bottom"
+                width={240}
+                iconComponent={() => <IconCircleCheck size={14} className="sync-status-icon in-sync" />}
+              >
+                Collection is up to date with the spec
+              </Help>
+            )}
+            {syncStatus === 'not-in-sync' && (
+              <Help
+                placement="bottom"
+                width={260}
+                iconComponent={() => <IconAlertTriangle size={14} className="sync-status-icon not-in-sync" />}
+              >
+                Collection is not up to date with the spec
+              </Help>
+            )}
+          </div>
         </div>
         <div className="spec-header-actions">
           <Button
@@ -109,60 +170,21 @@ const OpenAPISyncHeader = ({
           >
             View spec
           </Button>
+          <Button
+            color="secondary"
+            size="sm"
+            onClick={openInBrowser}
+            data-testid="openapi-sync-open-in-browser"
+            icon={<IconExternalLink size={14} />}
+          >
+            Open in browser
+          </Button>
           <MenuDropdown items={menuItems} placement="bottom-end" data-testid="openapi-sync-header-menu">
             <ActionIcon label="More options">
               <IconDotsVertical size={16} strokeWidth={2} />
             </ActionIcon>
           </MenuDropdown>
         </div>
-      </div>
-      <div className="spec-url-row">
-        <span className="spec-url-label">{sourceIsLocal ? 'Source File:' : 'Source URL:'}</span>
-        {sourceIsLocal ? (
-          <button
-            className="spec-url-value spec-file-reveal"
-            title="Reveal in file manager"
-            type="button"
-            onClick={revealInFolder}
-          >
-            {displayPath}
-          </button>
-        ) : (
-          <a
-            className="spec-url-value"
-            href={sourceUrl}
-            title={sourceUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {sourceUrl}
-          </a>
-        )}
-        <button className="copy-btn" onClick={copyUrl} title={sourceIsLocal ? 'Copy path' : 'Copy URL'} type="button">
-          <IconCopy size={12} />
-        </button>
-      </div>
-      <div className="linked-collection-row mt-1">
-        <span className="spec-url-label">Linked Collection:</span>
-        <span className="linked-collection-name">{collection.name}</span>
-        {syncStatus === 'in-sync' && (
-          <Help
-            placement="bottom"
-            width={240}
-            iconComponent={() => <IconCircleCheck size={14} className="sync-status-icon in-sync" />}
-          >
-            Collection is up to date with the spec
-          </Help>
-        )}
-        {syncStatus === 'not-in-sync' && (
-          <Help
-            placement="bottom"
-            width={260}
-            iconComponent={() => <IconAlertTriangle size={14} className="sync-status-icon not-in-sync" />}
-          >
-            Collection is not up to date with the spec
-          </Help>
-        )}
       </div>
     </div>
   );

@@ -141,7 +141,6 @@ const Script = ({ collection, folder }) => {
               font={get(preferences, 'font.codeFont', 'default')}
               fontSize={get(preferences, 'font.codeFontSize')}
               showHintsFor={['req', 'bru']}
-              scriptType="pre-request"
               initialScroll={preReqScroll}
               onScroll={setPreReqScroll}
             />
@@ -162,7 +161,6 @@ const Script = ({ collection, folder }) => {
               font={get(preferences, 'font.codeFont', 'default')}
               fontSize={get(preferences, 'font.codeFontSize')}
               showHintsFor={['req', 'res', 'bru']}
-              scriptType="post-response"
               initialScroll={postResScroll}
               onScroll={setPostResScroll}
             />

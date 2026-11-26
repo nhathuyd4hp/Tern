@@ -32,10 +32,6 @@ jest.mock('utils/codemirror/autocomplete', () => ({
   showRootHints: jest.fn()
 }));
 
-jest.mock('utils/codemirror/aiGhostText', () => ({
-  setupAiAutocomplete: jest.fn(() => jest.fn())
-}));
-
 jest.mock('utils/codemirror/lint-errors', () => ({
   setupLintErrorTooltip: jest.fn(() => jest.fn())
 }));

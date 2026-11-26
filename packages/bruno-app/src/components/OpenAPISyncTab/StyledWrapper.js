@@ -16,8 +16,10 @@ const StyledWrapper = styled.div`
     .spec-title-section {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 20px;
       min-width: 0;
+      flex: 1;
+      margin-right: 12px;
     }
 
     .spec-title-row {
@@ -27,6 +29,7 @@ const StyledWrapper = styled.div`
     }
 
     .spec-title {
+      flex-shrink: 0;
       font-weight: 600;
       font-size: 13px;
       color: ${(props) => props.theme.text};
@@ -53,7 +56,7 @@ const StyledWrapper = styled.div`
       align-items: center;
       gap: 6px;
       font-size: 11px;
-      margin-top: 0.35rem;
+      min-width: 0;
 
       .spec-url-value {
         font-family: monospace;
@@ -90,6 +93,7 @@ const StyledWrapper = styled.div`
       align-items: center;
       gap: 6px;
       font-size: 11px;
+      flex-shrink: 0;
 
       .linked-collection-name {
         color: ${(props) => props.theme.colors.text.subtext0};
@@ -642,6 +646,67 @@ const StyledWrapper = styled.div`
           color: ${(props) => props.theme.accents.primary};
         }
       }
+    }
+
+    .interval-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+
+      .interval-prefix {
+        font-size: 12px;
+        color: ${(props) => props.theme.colors.text.subtext0};
+      }
+
+      input {
+        width: 72px;
+        padding: 5px 8px;
+        font-size: 12px;
+        border-radius: 5px;
+        border: 1px solid ${(props) => props.theme.border.border1};
+        background: ${(props) => props.theme.background.default};
+        color: ${(props) => props.theme.colors.text.subtext0};
+
+        &.invalid {
+          border-color: ${(props) => props.theme.colors.text.danger};
+        }
+      }
+
+      .interval-unit {
+        display: flex;
+
+        button {
+          padding: 5px 12px;
+          font-size: 12px;
+          font-weight: 500;
+          cursor: pointer;
+          border: 1px solid ${(props) => props.theme.border.border1};
+          background: ${(props) => props.theme.background.default};
+          color: ${(props) => props.theme.colors.text.subtext0};
+
+          &:first-child {
+            border-radius: 5px 0 0 5px;
+          }
+
+          &:last-child {
+            border-radius: 0 5px 5px 0;
+            border-left: none;
+          }
+
+          &.active {
+            border-color: ${(props) => props.theme.accents.primary};
+            background: ${(props) => rgba(props.theme.accents.primary, 0.07)};
+            color: ${(props) => props.theme.accents.primary};
+          }
+        }
+      }
+    }
+
+    .interval-error {
+      margin-top: 6px;
+      font-size: 12px;
+      color: ${(props) => props.theme.colors.text.danger};
     }
 
     .settings-footer {

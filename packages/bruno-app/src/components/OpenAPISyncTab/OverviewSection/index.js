@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { getTotalRequestCountInCollection } from 'utils/collections/';
-import { countEndpoints } from '../utils';
+import { countEndpoints, formatCheckInterval } from '../utils';
 import moment from 'moment';
 import { IconCheck } from '@tabler/icons';
 import Button from 'ui/Button';
@@ -108,12 +108,12 @@ const OverviewSection = ({ collection, storedSpec, collectionDrift, specDrift, r
           rightSection={(
             <Help icon="info" size={11} placement="left" width={220}>
               {autoCheckEnabled
-                ? `Bruno checks the spec for changes every ${autoCheckInterval} minutes. You can change this in Edit connection settings.`
+                ? `Bruno checks the spec for changes every ${formatCheckInterval(autoCheckInterval, { long: true })}. You can change this in Edit connection settings.`
                 : 'Bruno does not check the spec for changes on its own. Use Check for updates, or turn it on in Edit connection settings.'}
             </Help>
           )}
         >
-          {autoCheckEnabled ? `Auto-check every ${autoCheckInterval} min` : 'Auto-check off'}
+          {autoCheckEnabled ? `Auto-check every ${formatCheckInterval(autoCheckInterval)}` : 'Auto-check off'}
         </StatusBadge>
       )
     },

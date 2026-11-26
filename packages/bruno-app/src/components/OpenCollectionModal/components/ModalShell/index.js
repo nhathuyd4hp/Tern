@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Portal from 'components/Portal';
 import { folderNoteDismissed } from 'providers/ReduxStore/slices/open-collection-modal';
-import { closeOpenCollectionModal, loadImportableFile, openDroppedItems } from 'providers/ReduxStore/slices/open-collection-modal/actions';
+import { closeOpenCollectionModal, openDroppedItems } from 'providers/ReduxStore/slices/open-collection-modal/actions';
 import { OPEN_COLLECTION_PAGES } from '../../sidebar/pages';
 import BusyOverlay from '../BusyOverlay';
 import DropOverlay from '../DropOverlay';
@@ -140,7 +140,6 @@ const ModalShell = () => {
             {note && (
               <Note
                 tone={note.tone}
-                action={note.importFile ? { label: 'Import it', onClick: () => importFrom(loadImportableFile(note.importFile)) } : null}
                 onDismiss={() => dispatch(folderNoteDismissed())}
               >
                 {note.text}

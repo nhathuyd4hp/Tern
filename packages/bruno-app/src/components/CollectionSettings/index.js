@@ -13,12 +13,9 @@ import StyledWrapper from './StyledWrapper';
 import Vars from './Vars/index';
 import StatusDot from 'components/StatusDot';
 import Overview from './Overview/index';
-import SettingsAiAssist from 'components/SettingsAiAssist';
 import DocsAction from 'components/Documentation/DocsAction';
 import { useDocsEditingState } from 'components/Documentation/useDocsEditingState';
 import { DEFAULT_PRESET_REQUEST_TYPE } from 'utils/common/constants';
-
-const AI_TABS = ['overview', 'script', 'tests'];
 
 const CollectionSettings = ({ collection }) => {
   const dispatch = useDispatch();
@@ -150,10 +147,9 @@ const CollectionSettings = ({ collection }) => {
             {(hasPresets || hasProxy || hasClientCerts) && <StatusDot />}
           </div>
         </div>
-        {AI_TABS.includes(tab) && (
+        {tab === 'overview' && !isEditing && (
           <div className="flex items-center gap-2 flex-shrink-0">
-            {tab === 'overview' && !isEditing && <DocsAction />}
-            <SettingsAiAssist collection={collection} activeTab={tab} />
+            <DocsAction />
           </div>
         )}
       </div>

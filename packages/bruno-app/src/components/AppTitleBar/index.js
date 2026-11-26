@@ -6,7 +6,6 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { savePreferences, showManageWorkspacePage, toggleSidebarCollapse } from 'providers/ReduxStore/slices/app';
 import { setLocalStorageValue, SIDEBAR_COLLAPSED_KEY } from 'utils/common/localStorage';
-import { closeConsole, openConsole } from 'providers/ReduxStore/slices/logs';
 import { createWorkspaceWithUniqueName, openWorkspaceDialog, switchWorkspace } from 'providers/ReduxStore/slices/workspaces/actions';
 import { sortWorkspaces, toggleWorkspacePin } from 'utils/workspaces';
 import { focusTab } from 'providers/ReduxStore/slices/tabs';
@@ -19,7 +18,6 @@ import IconSidebarToggle from 'components/Icons/IconSidebarToggle';
 import CreateWorkspace from 'components/WorkspaceSidebar/CreateWorkspace';
 import ImportWorkspace from 'components/WorkspaceSidebar/ImportWorkspace';
 
-import IconBottombarToggle from 'components/Icons/IconBottombarToggle/index';
 import AppMenu from './AppMenu';
 import StyledWrapper from './StyledWrapper';
 import ResponseLayoutToggle from 'components/ResponsePane/ResponseLayoutToggle';
@@ -119,7 +117,6 @@ const AppTitleBar = () => {
   const { workspaces, activeWorkspaceUid } = useSelector((state) => state.workspaces);
   const preferences = useSelector((state) => state.app.preferences);
   const sidebarCollapsed = useSelector((state) => state.app.sidebarCollapsed);
-  const isConsoleOpen = useSelector((state) => state.logs.isConsoleOpen);
   const activeWorkspace = workspaces.find((w) => w.uid === activeWorkspaceUid);
 
   // Sort workspaces according to preferences
@@ -196,14 +193,6 @@ const AppTitleBar = () => {
   const handleToggleSidebar = () => {
     dispatch(toggleSidebarCollapse());
     setLocalStorageValue(SIDEBAR_COLLAPSED_KEY, !sidebarCollapsed);
-  };
-
-  const handleToggleDevtools = () => {
-    if (isConsoleOpen) {
-      dispatch(closeConsole());
-    } else {
-      dispatch(openConsole());
-    }
   };
 
   // Build workspace menu items
@@ -298,7 +287,7 @@ const AppTitleBar = () => {
         {/* Center section: Bruno logo + text */}
         <div className="titlebar-center">
           <Bruno width={18} />
-          <span className="bruno-text">Bruno</span>
+          <span className="bruno-text">Kevin</span>
         </div>
 
         {/* Right section: Action buttons */}
@@ -312,16 +301,6 @@ const AppTitleBar = () => {
               data-testid="toggle-sidebar-button"
             >
               <IconSidebarToggle collapsed={sidebarCollapsed} size={16} strokeWidth={1.5} />
-            </ActionIcon>
-
-            {/* Toggle devtools */}
-            <ActionIcon
-              onClick={handleToggleDevtools}
-              label={isConsoleOpen ? 'Hide devtools' : 'Show devtools'}
-              size="lg"
-              data-testid="toggle-devtools-button"
-            >
-              <IconBottombarToggle collapsed={!isConsoleOpen} size={16} strokeWidth={1.5} />
             </ActionIcon>
 
             <ResponseLayoutToggle />

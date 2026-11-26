@@ -103,7 +103,7 @@ const DocsEditor = ({
     // `docs` echoing our own last edit (e.g. a table resize that leaves the
     // serialized markdown unchanged) shouldn't reset editor content — but
     // unlike a one-shot skip flag, this comparison never gets stuck, so a
-    // later *external* docs change (AI Assist, file-watcher reload) still syncs.
+    // later *external* docs change (e.g. file-watcher reload) still syncs.
     if (docs === lastEmittedDocsRef.current) return;
 
     if (isEditing && isMarkdownMode) return;

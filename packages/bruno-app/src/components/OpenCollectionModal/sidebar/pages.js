@@ -3,11 +3,9 @@ import {
   IconClock,
   IconDatabase,
   IconDeviceLaptop,
-  IconDownload,
   IconFolder
 } from '@tabler/icons';
 import ChooseFolderPage from './ChooseFolderPage';
-import ImportPage from './ImportPage';
 import RecentsPage from './RecentsPage';
 import MyComputerPage from './MyComputerPage';
 import RegistryPage from './RegistryPage';
@@ -35,14 +33,6 @@ export const OPEN_COLLECTION_PAGES = [
     description: 'Pick one or more collection folders to open them in the current workspace.',
     icon: IconFolder,
     component: ChooseFolderPage
-  },
-  {
-    id: 'import',
-    label: 'Import file or URL',
-    title: 'Import',
-    description: 'From Postman, Insomnia, OpenAPI, WSDL or a Bruno export file',
-    icon: IconDownload,
-    component: ImportPage
   },
   {
     id: 'recents',
