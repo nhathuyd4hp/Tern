@@ -15,15 +15,15 @@ const matchesCallbackUrl = (url, callbackUrl) => {
 const authorizeUserInWindow = ({ authorizeUrl, callbackUrl, session, additionalHeaders = {}, grantType = 'authorization_code', expectedState = null }) => {
   return new Promise(async (resolve, reject) => {
     let finalUrl = null;
-    let debugInfo = {
+    const debugInfo = {
       data: []
     };
     let currentMainRequest = null;
 
-    let allOpenWindows = BrowserWindow.getAllWindows();
+    const allOpenWindows = BrowserWindow.getAllWindows();
 
     // Close all windows except the main window (assumed to have id 1)
-    let windowsExcludingMain = allOpenWindows.filter((w) => w.id !== 1);
+    const windowsExcludingMain = allOpenWindows.filter((w) => w.id !== 1);
     windowsExcludingMain.forEach((w) => {
       w.close();
     });
@@ -158,7 +158,7 @@ const authorizeUserInWindow = ({ authorizeUrl, callbackUrl, session, additionalH
         const error = urlObj.searchParams.get('error');
         const errorDescription = urlObj.searchParams.get('error_description');
         const errorUri = urlObj.searchParams.get('error_uri');
-        let errorData = {
+        const errorData = {
           message: 'Authorization Failed!',
           error,
           errorDescription,

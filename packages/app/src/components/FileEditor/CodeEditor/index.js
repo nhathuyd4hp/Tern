@@ -128,7 +128,7 @@ export default class CodeEditor extends React.Component {
     }
 
     if (this.editor) {
-      let variables = getEnvironmentVariables(this.props.collection);
+      const variables = getEnvironmentVariables(this.props.collection);
       if (!isEqual(variables, this.variables)) {
         this.addOverlay();
       }
@@ -189,7 +189,7 @@ export default class CodeEditor extends React.Component {
 
   addOverlay = () => {
     const mode = this.props.mode || 'application/ld+json';
-    let variables = getEnvironmentVariables(this.props.collection);
+    const variables = getEnvironmentVariables(this.props.collection);
     this.variables = variables;
 
     defineCodeMirrorBrunoVariablesMode(variables, mode);

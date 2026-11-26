@@ -129,7 +129,7 @@ class GlobalEnvironmentsStore {
   }
 
   addGlobalEnvironment({ uid, name, variables = [], color, extends: inheritedGlobalEnvironmentName }) {
-    let globalEnvironments = this.getGlobalEnvironments();
+    const globalEnvironments = this.getGlobalEnvironments();
     const existingEnvironment = globalEnvironments.find((env) => env?.name == name);
     if (existingEnvironment) {
       throw new Error('Environment with the same name already exists');
@@ -179,7 +179,7 @@ class GlobalEnvironmentsStore {
   }
 
   copyGlobalEnvironment({ uid, name, variables }) {
-    let globalEnvironments = this.getGlobalEnvironments();
+    const globalEnvironments = this.getGlobalEnvironments();
     globalEnvironments.push({
       uid,
       name,
@@ -189,7 +189,7 @@ class GlobalEnvironmentsStore {
   }
 
   selectGlobalEnvironment({ environmentUid: globalEnvironmentUid }) {
-    let globalEnvironments = this.getGlobalEnvironments();
+    const globalEnvironments = this.getGlobalEnvironments();
     const environment = globalEnvironments.find((env) => env?.uid == globalEnvironmentUid);
     if (environment) {
       this.setActiveGlobalEnvironmentUid(globalEnvironmentUid);
@@ -200,7 +200,7 @@ class GlobalEnvironmentsStore {
 
   deleteGlobalEnvironment({ environmentUid }) {
     let globalEnvironments = this.getGlobalEnvironments();
-    let activeGlobalEnvironmentUid = this.getActiveGlobalEnvironmentUid();
+    const activeGlobalEnvironmentUid = this.getActiveGlobalEnvironmentUid();
     globalEnvironments = globalEnvironments.filter((env) => env?.uid !== environmentUid);
     if (environmentUid == activeGlobalEnvironmentUid) {
       this.setActiveGlobalEnvironmentUid(null);
@@ -209,7 +209,7 @@ class GlobalEnvironmentsStore {
   }
 
   saveGlobalEnvironmentExtends({ environmentUid, extends: inheritedGlobalEnvironmentName }) {
-    let globalEnvironments = this.getGlobalEnvironments();
+    const globalEnvironments = this.getGlobalEnvironments();
     const environment = globalEnvironments.find((env) => env?.uid == environmentUid);
     if (environment) {
       if (inheritedGlobalEnvironmentName) {
@@ -222,7 +222,7 @@ class GlobalEnvironmentsStore {
   }
 
   updateGlobalEnvironmentColor({ environmentUid, color }) {
-    let globalEnvironments = this.getGlobalEnvironments();
+    const globalEnvironments = this.getGlobalEnvironments();
     const environment = globalEnvironments.find((env) => env?.uid == environmentUid);
     if (environment) {
       environment.color = color;

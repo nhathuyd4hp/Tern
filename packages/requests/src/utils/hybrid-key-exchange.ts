@@ -91,7 +91,7 @@ const watchRequestCancellation = (request: any, onCancel: () => void): (() => vo
 
   // ClientRequest destroyed before it has a socket emits neither close nor error.
   const previousDestroy = request.destroy;
-  let cancelOnDestroy = typeof previousDestroy === 'function';
+  const cancelOnDestroy = typeof previousDestroy === 'function';
   if (cancelOnDestroy) {
     request.destroy = ((...args: unknown[]) => {
       const result = previousDestroy.apply(request, args);

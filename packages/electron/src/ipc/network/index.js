@@ -53,7 +53,7 @@ const saveCookies = (url, headers) => {
       setCookieHeaders = Array.isArray(headers['set-cookie'])
         ? headers['set-cookie']
         : [headers['set-cookie']];
-      for (let setCookieHeader of setCookieHeaders) {
+      for (const setCookieHeader of setCookieHeaders) {
         if (typeof setCookieHeader === 'string' && setCookieHeader.length) {
           addCookieToJar(setCookieHeader, url);
         }
@@ -159,7 +159,7 @@ const configureRequest = async (
   request.maxRedirects = 0;
 
   const { promptVariables = {} } = collection;
-  let { proxyMode, proxyModeReason, proxyConfig, httpsAgentRequestFields, interpolationOptions } = certsAndProxyConfig;
+  const { proxyMode, proxyModeReason, proxyConfig, httpsAgentRequestFields, interpolationOptions } = certsAndProxyConfig;
   const axiosInstance = makeAxiosInstance({
     proxyMode,
     proxyModeReason,
@@ -186,7 +186,7 @@ const configureRequest = async (
   }
 
   if (request.oauth2) {
-    let requestCopy = cloneDeep(request);
+    const requestCopy = cloneDeep(request);
     const { oauth2: { grantType, tokenPlacement, tokenHeaderPrefix, tokenQueryKey, tokenSource, accessTokenUrl, refreshTokenUrl } = {}, collectionVariables, folderVariables, requestVariables } = requestCopy || {};
 
     // Get cert/proxy configs for token and refresh URLs
@@ -661,7 +661,7 @@ const registerNetworkIpc = (mainWindow) => {
         request._originalMultipartData = request.data;
         request.collectionPath = collectionPath;
         const existingBoundary = extractBoundaryFromContentType(contentType);
-        let form = createFormData(request.data, collectionPath, existingBoundary);
+        const form = createFormData(request.data, collectionPath, existingBoundary);
         request.data = form;
         if (contentType !== 'multipart/form-data') {
           // Patch: Axios leverages getHeaders method to get the headers so FormData should be monkey patched

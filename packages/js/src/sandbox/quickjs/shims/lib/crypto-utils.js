@@ -7,7 +7,7 @@ const { serializeTypedArray, deserializeTypedArray } = require('./utils');
  * Implements crypto.randomBytes and crypto.getRandomValues functions
  */
 const addCryptoUtilsShimToContext = async (vm) => {
-  let randomBytesHandle = vm.newFunction('randomBytes', function (sizeHandle) {
+  const randomBytesHandle = vm.newFunction('randomBytes', function (sizeHandle) {
     try {
       let size = vm.dump(sizeHandle);
 
@@ -42,7 +42,7 @@ const addCryptoUtilsShimToContext = async (vm) => {
     }
   });
 
-  let getRandomValuesHandle = vm.newFunction('getRandomValues', function (arrayHandle) {
+  const getRandomValuesHandle = vm.newFunction('getRandomValues', function (arrayHandle) {
     try {
       // Receive the serialized array data directly
       const serializedArray = vm.dump(arrayHandle);

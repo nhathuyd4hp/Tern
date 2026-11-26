@@ -14,7 +14,7 @@ const ResponseExampleBodyMode = ({ item, collection, exampleUid, body, bodyMode,
   const onModeChange = (value) => {
     if (item && collection && exampleUid) {
       // Initialize the new body structure based on the selected mode
-      let newBody = { mode: value };
+      const newBody = { mode: value };
 
       // Initialize body content based on selected mode
       switch (value) {

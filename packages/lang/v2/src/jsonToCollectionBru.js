@@ -393,8 +393,8 @@ ${indentString(
     }
   }
 
-  let reqvars = _.get(vars, 'req');
-  let resvars = _.get(vars, 'res');
+  const reqvars = _.get(vars, 'req');
+  const resvars = _.get(vars, 'res');
   if (reqvars && reqvars.length) {
     const varsEnabled = _.filter(reqvars, (v) => v.enabled && !v.local);
     const varsDisabled = _.filter(reqvars, (v) => !v.enabled && !v.local);

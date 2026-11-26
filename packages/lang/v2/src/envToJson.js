@@ -101,7 +101,7 @@ const mapPairListToKeyValPairs = (pairList = []) => {
 
   return _.flatMap(pairList[0], (pair) => {
     let name = _.keys(pair)[0];
-    let value = pair[name];
+    const value = pair[name];
     const rawAnnotations = pair[ANNOTATIONS_KEY];
     let enabled = true;
     if (name && name.length && name.charAt(0) === '~') {
@@ -258,7 +258,7 @@ const sem = grammar.createSemantics().addAttribute('ast', {
     return value.ast;
   },
   pair(_1, annotations, _2, key, _3, _4, _5, value, _6) {
-    let res = {};
+    const res = {};
     res[key.ast] = value.ast ? value.ast.trim() : '';
     const annotationList = annotations.ast;
     if (annotationList && annotationList.length > 0) {

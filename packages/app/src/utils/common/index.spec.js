@@ -87,31 +87,31 @@ describe('common utils', () => {
     });
 
     it('should return minutes ago', () => {
-      let date = new Date();
+      const date = new Date();
       date.setMinutes(date.getMinutes() - 30);
       expect(relativeDate(date)).toBe('30 minutes ago');
     });
 
     it('should return hours ago', () => {
-      let date = new Date();
+      const date = new Date();
       date.setHours(date.getHours() - 10);
       expect(relativeDate(date)).toBe('10 hours ago');
     });
 
     it('should return days ago', () => {
-      let date = new Date();
+      const date = new Date();
       date.setDate(date.getDate() - 5);
       expect(relativeDate(date)).toBe('5 days ago');
     });
 
     it('should return weeks ago', () => {
-      let date = new Date();
+      const date = new Date();
       date.setDate(date.getDate() - 8);
       expect(relativeDate(date)).toBe('1 week ago');
     });
 
     it('should return months ago', () => {
-      let date = new Date();
+      const date = new Date();
       date.setDate(date.getDate() - 60);
       expect(relativeDate(date)).toBe('2 months ago');
     });

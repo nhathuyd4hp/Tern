@@ -88,7 +88,7 @@ const getParameterEntries = (param) => {
   }
 
   // Single value
-  let value = getParameterValue(param);
+  const value = getParameterValue(param);
   let enabled = param.required || false;
 
   if (value !== '') {
@@ -150,7 +150,7 @@ const transformSwaggerRequestItem = (request, usedNames = new Set(), options = {
   // Determine operation name
   const { name: operationName, filename } = getRequestName(request, options.requestNameSource, usedNames);
 
-  let path = request.path;
+  const path = request.path;
 
   const brunoRequestItem = {
     uid: uuid(),
@@ -638,7 +638,7 @@ export const parseSwagger2Collection = (data, options = {}) => {
       return [...inherited, ...operationParams];
     };
 
-    let allRequests = Object.entries(collectionData.paths || {})
+    const allRequests = Object.entries(collectionData.paths || {})
       .map(([path, pathItemObject]) => {
         const pathItemParams = pathItemObject.parameters || [];
         return Object.entries(pathItemObject)
@@ -671,9 +671,9 @@ export const parseSwagger2Collection = (data, options = {}) => {
     if (groupingType === 'path') {
       brunoCollection.items = groupRequestsByPath(allRequests, transformSwaggerRequestItem, requestOptions);
     } else {
-      let [groups, ungroupedRequests] = groupRequestsByTags(allRequests, options);
+      const [groups, ungroupedRequests] = groupRequestsByTags(allRequests, options);
       const tagDescriptions = getTagDescriptions(collectionData.tags, options);
-      let brunoFolders = groups.map((group) => {
+      const brunoFolders = groups.map((group) => {
         const folder = {
           uid: uuid(),
           name: group.name,

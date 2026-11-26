@@ -92,7 +92,7 @@ function getNodeExtraCACerts(): string[] {
 const getCACertificates = ({ caCertFilePath, shouldKeepDefaultCerts = true }: T_CACertificatesOptions): T_CACertificatesResult => {
   try {
     let caCertificates = '';
-    let caCertificatesCount = {
+    const caCertificatesCount = {
       system: 0,
       root: 0,
       custom: 0,
@@ -101,7 +101,7 @@ const getCACertificates = ({ caCertFilePath, shouldKeepDefaultCerts = true }: T_
 
     let systemCerts: string[] = [];
     let rootCerts: string[] = [];
-    let customCerts: string[] = [];
+    const customCerts: string[] = [];
     let nodeExtraCerts: string[] = [];
 
     // handle user-provided custom CA certificate file with optional default certificates

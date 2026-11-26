@@ -172,7 +172,7 @@ export const interpolateUrlPathParams = (url, params, variables = {}, options = 
   };
 
   const getInterpolatedBasePath = (pathname, params) => {
-    let replacedPathname = pathname
+    const replacedPathname = pathname
       .split('/')
       .map((segment) => {
         // traditional path parameters

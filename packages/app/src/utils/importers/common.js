@@ -128,7 +128,7 @@ export const transformItemsInCollection = (collection) => {
         // from 5 feb 2024, multipartFormData needs to have a type
         // this was introduced when we added support for file uploads
         // below logic is to make older collection exports backward compatible
-        let multipartFormData = get(item, 'request.body.multipartForm');
+        const multipartFormData = get(item, 'request.body.multipartForm');
         if (multipartFormData) {
           each(multipartFormData, (form) => {
             if (!form.type) {
@@ -170,7 +170,7 @@ export const transformItemsInCollection = (collection) => {
             }
 
             // Handle multipartFormData for examples
-            let exampleMultipartFormData = get(example, 'request.body.multipartForm');
+            const exampleMultipartFormData = get(example, 'request.body.multipartForm');
             if (exampleMultipartFormData) {
               each(exampleMultipartFormData, (form) => {
                 if (!form.type) {

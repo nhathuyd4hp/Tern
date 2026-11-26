@@ -37,7 +37,7 @@ const useGraphqlSchema = (endpoint, environment, request, collection) => {
       if (!saved) {
         return null;
       }
-      let parsedData = safeParseJSON(saved);
+      const parsedData = safeParseJSON(saved);
       const { schema } = buildAndValidateSchema(parsedData);
       return schema;
     } catch (err) {

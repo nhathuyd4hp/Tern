@@ -16,7 +16,7 @@ const CodeView = ({ language, item }) => {
   const { globalEnvironments, activeGlobalEnvironmentUid } = useSelector((state) => state.globalEnvironments);
   const generateCodePrefs = useSelector((state) => state.app.generateCode);
 
-  let collectionOriginal = findCollectionByItemUid(
+  const collectionOriginal = findCollectionByItemUid(
     useSelector((state) => state.collections.collections),
     item.uid
   );

@@ -165,7 +165,7 @@ function getTransitiveDependents(pkgName, visited = new Set()) {
   visited.add(pkgName);
 
   const directDependents = Array.from(dependentsMap[pkgName] || []);
-  let result = [];
+  const result = [];
 
   directDependents.forEach((dependent) => {
     if (changedPackageNames.includes(dependent)) {
@@ -179,7 +179,7 @@ function getTransitiveDependents(pkgName, visited = new Set()) {
 
 function buildUpdateOrder(changedPackages) {
   const levels = [];
-  let remaining = new Set(changedPackages);
+  const remaining = new Set(changedPackages);
 
   while (remaining.size > 0) {
     const currentLevel = [];

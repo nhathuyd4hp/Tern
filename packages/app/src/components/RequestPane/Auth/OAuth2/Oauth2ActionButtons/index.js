@@ -62,7 +62,7 @@ const Oauth2ActionButtons = ({ item, request, collection, url: accessTokenUrl, c
   };
 
   const handleFetchOauth2Credentials = async () => {
-    let requestCopy = cloneDeep(request);
+    const requestCopy = cloneDeep(request);
     requestCopy.oauth2 = requestCopy?.auth.oauth2;
     requestCopy.headers = {};
     toggleFetchingToken(true);
@@ -101,7 +101,7 @@ const Oauth2ActionButtons = ({ item, request, collection, url: accessTokenUrl, c
   };
 
   const handleRefreshAccessToken = async () => {
-    let requestCopy = cloneDeep(request);
+    const requestCopy = cloneDeep(request);
     requestCopy.oauth2 = requestCopy?.auth.oauth2;
     requestCopy.headers = {};
     toggleRefreshingToken(true);

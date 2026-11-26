@@ -94,7 +94,7 @@ describe('IPC collection handlers', () => {
     it('calls moveRequestUid before copyPathTo to prevent observed uid mismatches', async () => {
       const moveItemHandler = ipcMain._getHandler('renderer:move-item');
 
-      let callOrder = [];
+      const callOrder = [];
       moveRequestUid.mockImplementation(() => callOrder.push('moveRequestUid'));
       copyPathTo.mockImplementation(async () => callOrder.push('copyPathTo'));
 
@@ -119,7 +119,7 @@ describe('IPC collection handlers', () => {
     it('calls moveRequestUid before writing the target file', async () => {
       const moveItemCrossFormatHandler = ipcMain._getHandler('renderer:move-item-cross-format');
 
-      let callOrder = [];
+      const callOrder = [];
       moveRequestUid.mockImplementation(() => callOrder.push('moveRequestUid'));
       fsPromises.writeFile.mockImplementation(async () => callOrder.push('writeFile'));
 

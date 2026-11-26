@@ -17,7 +17,7 @@ const GrantTypeComponentMap = ({ collection }) => {
     dispatch(saveCollectionSettings(collection.uid));
   };
 
-  let request = collection.draft?.root ? get(collection, 'draft.root.request', {}) : get(collection, 'root.request', {});
+  const request = collection.draft?.root ? get(collection, 'draft.root.request', {}) : get(collection, 'root.request', {});
   const grantType = get(request, 'auth.oauth2.grantType', {});
 
   switch (grantType) {
@@ -40,7 +40,7 @@ const GrantTypeComponentMap = ({ collection }) => {
 };
 
 const OAuth2 = ({ collection }) => {
-  let request = collection.draft?.root ? get(collection, 'draft.root.request', {}) : get(collection, 'root.request', {});
+  const request = collection.draft?.root ? get(collection, 'draft.root.request', {}) : get(collection, 'root.request', {});
 
   return (
     <StyledWrapper className="mt-2 w-full">

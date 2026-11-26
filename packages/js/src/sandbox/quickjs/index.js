@@ -136,15 +136,15 @@ const executeQuickJsVm = ({ script: externalScript, context: externalContext, sc
     const templateLiteralText = `\`${externalScript}\``;
     const jsExpressionText = `${externalScript}`;
 
-    let scriptText = scriptType === 'template-literal' ? templateLiteralText : jsExpressionText;
+    const scriptText = scriptType === 'template-literal' ? templateLiteralText : jsExpressionText;
 
     const result = vm.evalCodeRetained(scriptText);
     if (result.error) {
-      let e = vm.dump(result.error);
+      const e = vm.dump(result.error);
       result.error.dispose();
       return e;
     } else {
-      let v = vm.dump(result.value);
+      const v = vm.dump(result.value);
       result.value.dispose();
       return v;
     }

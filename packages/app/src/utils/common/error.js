@@ -18,7 +18,7 @@ export const parseError = (error, defaultErrorMsg = 'An error occurred') => {
 };
 
 export const toastError = (error, defaultErrorMsg = 'An error occurred') => {
-  let errorMsg = parseError(error, defaultErrorMsg);
+  const errorMsg = parseError(error, defaultErrorMsg);
 
   if (error instanceof BrunoError) {
     if (error.level === 'warning') {

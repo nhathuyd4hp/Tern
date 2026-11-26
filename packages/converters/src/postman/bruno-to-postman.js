@@ -144,7 +144,7 @@ const collapseDuplicateSlashes = (url) => {
  *
  */
 export const sanitizeUrl = (url) => {
-  let sanitizedUrl = collapseDuplicateSlashes(url.replace(/\\/g, '//'));
+  const sanitizedUrl = collapseDuplicateSlashes(url.replace(/\\/g, '//'));
   return sanitizedUrl;
 };
 
@@ -165,7 +165,7 @@ export const brunoToPostman = (collection, { preserveScripts = false } = {}) => 
 
   const generateCollectionVars = (collection) => {
     const pattern = /{{[^{}]+}}/g;
-    let collectionVars = [];
+    const collectionVars = [];
 
     const findOccurrences = (obj, results) => {
       if (typeof obj === 'object') {

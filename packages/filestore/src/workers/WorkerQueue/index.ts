@@ -68,7 +68,7 @@ class WorkerQueue {
 
   async runWorker({ scriptPath, data, taskType }: { scriptPath: string; data: any; taskType: WorkerTaskType }) {
     return new Promise(async (resolve, reject) => {
-      let worker = await this.getWorkerForScriptPath(scriptPath);
+      const worker = await this.getWorkerForScriptPath(scriptPath);
 
       const messageHandler = (data: any) => {
         worker.off('message', messageHandler);

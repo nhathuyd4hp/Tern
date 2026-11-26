@@ -172,10 +172,10 @@ const createCookieString = (cookieObj: any): string => {
 
 const saveCookies = (url: string, headers: any) => {
   if (headers['set-cookie']) {
-    let setCookieHeaders = Array.isArray(headers['set-cookie'])
+    const setCookieHeaders = Array.isArray(headers['set-cookie'])
       ? headers['set-cookie']
       : [headers['set-cookie']];
-    for (let setCookieHeader of setCookieHeaders) {
+    for (const setCookieHeader of setCookieHeaders) {
       if (typeof setCookieHeader === 'string' && setCookieHeader.length) {
         addCookieToJar(setCookieHeader, url);
       }

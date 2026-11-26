@@ -159,7 +159,7 @@ const ClientCertSettings = ({ collection }) => {
   const getFile = (e) => {
     const filePath = window?.ipcRenderer?.getFilePath(e?.files?.[0]);
     if (filePath) {
-      let relativePath = path.relative(collection.pathname, filePath);
+      const relativePath = path.relative(collection.pathname, filePath);
       formik.setFieldValue(e.name, relativePath);
     }
   };

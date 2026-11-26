@@ -5,7 +5,7 @@ const fns = ['resolve'];
 
 const addPathShimToContext = async (vm) => {
   fns.forEach((fn) => {
-    let fnHandle = vm.newFunction(fn, function (...args) {
+    const fnHandle = vm.newFunction(fn, function (...args) {
       const nativeArgs = args.map(vm.dump);
       return marshallToVm(path[fn](...nativeArgs), vm);
     });

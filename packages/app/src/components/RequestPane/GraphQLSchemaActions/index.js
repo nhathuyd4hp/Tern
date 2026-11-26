@@ -20,7 +20,7 @@ const GraphQLSchemaActions = ({ item, collection, onSchemaLoad, toggleDocs }) =>
   );
   const request = item.draft ? { ...item.draft.request, pathname, uid } : { ...item.request, pathname, uid };
 
-  let {
+  const {
     schema,
     schemaSource,
     loadSchema,

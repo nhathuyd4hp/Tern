@@ -69,7 +69,7 @@ function aes256Decrypt(data, passkey = null) {
 
 // electron safe storage encryption and decryption functions
 function safeStorageEncrypt(str) {
-  let encryptedStringBuffer = safeStorage.encryptString(str);
+  const encryptedStringBuffer = safeStorage.encryptString(str);
 
   // Convert the encrypted buffer to a hexadecimal string
   const encryptedString = encryptedStringBuffer.toString('hex');

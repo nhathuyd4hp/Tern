@@ -187,7 +187,7 @@ class SingleLineEditor extends Component {
     // event loop.
     this.ignoreChangeEvent = true;
 
-    let variables = getAllVariables(this.props.collection, this.props.item);
+    const variables = getAllVariables(this.props.collection, this.props.item);
     if (!isEqual(variables, this.variables)) {
       if (this.props.enableBrunoVarInfo !== false && this.editor.options.brunoVarInfo) {
         this.editor.options.brunoVarInfo.variables = variables;

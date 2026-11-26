@@ -352,7 +352,7 @@ const bruSendRequestTransformer = (path) => {
   }
 
   // Transform callback if present
-  let transformedArgs = [requestOptions];
+  const transformedArgs = [requestOptions];
   if (callback) {
     const transformedCallback = transformCallback(callback);
     if (transformedCallback) {

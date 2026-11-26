@@ -165,7 +165,7 @@ const shouldUseProxy = (url: string | undefined, proxyBypass: string | undefined
   const urlObj = parsedUrl as Url;
   let proto = urlObj.protocol;
   let hostname = urlObj.host;
-  let port: string | null = urlObj.port;
+  const port: string | null = urlObj.port;
   if (typeof hostname !== 'string' || !hostname || typeof proto !== 'string') {
     return false; // Don't proxy URLs without a valid scheme or host.
   }

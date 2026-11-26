@@ -634,7 +634,7 @@ ${indentString(body.sparql)}
         bru += `${indentString(`name: ${getValueString(name)}`)}\n`;
 
         // Convert content to JSON string if it's an object
-        let jsonValue = typeof content === 'object' ? JSON.stringify(content, null, 2) : content || '{}';
+        const jsonValue = typeof content === 'object' ? JSON.stringify(content, null, 2) : content || '{}';
 
         // Wrap content with triple quotes for multiline support, without extra indentation
         bru += `${indentString(`content: '''\n${indentString(jsonValue)}\n'''`)}\n`;
@@ -660,7 +660,7 @@ ${indentString(body.sparql)}
         }
 
         // Convert content to JSON string if it's an object
-        let contentValue = typeof content === 'object' ? JSON.stringify(content, null, 2) : content || '';
+        const contentValue = typeof content === 'object' ? JSON.stringify(content, null, 2) : content || '';
 
         // Wrap content with triple quotes for multiline support, without extra indentation
         bru += `${indentString(`content: '''\n${indentString(contentValue)}\n'''`)}\n`;
@@ -669,8 +669,8 @@ ${indentString(body.sparql)}
     }
   }
 
-  let reqvars = _.get(vars, 'req');
-  let resvars = _.get(vars, 'res');
+  const reqvars = _.get(vars, 'req');
+  const resvars = _.get(vars, 'res');
   if (reqvars && reqvars.length) {
     const varsEnabled = _.filter(reqvars, (v) => v.enabled && !v.local);
     const varsDisabled = _.filter(reqvars, (v) => !v.enabled && !v.local);

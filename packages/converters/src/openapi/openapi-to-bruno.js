@@ -275,12 +275,12 @@ const objectValueFromSchema = (param, schema) => {
 };
 
 const transformOpenapiRequestItem = (request, usedNames = new Set(), options = {}) => {
-  let _operationObject = request.operationObject;
+  const _operationObject = request.operationObject;
 
   const { name: operationName, filename } = getRequestName(request, options.requestNameSource, usedNames);
 
   // replace OpenAPI links in path by Bruno variables
-  let path = request.path.replace(/{([a-zA-Z]+)}/g, `{{${_operationObject.operationId}_$1}}`);
+  const path = request.path.replace(/{([a-zA-Z]+)}/g, `{{${_operationObject.operationId}_$1}}`);
 
   const brunoRequestItem = {
     uid: uuid(),
@@ -480,7 +480,7 @@ const transformOpenapiRequestItem = (request, usedNames = new Set(), options = {
       }
     } else if (auth.type === 'oauth2') {
       // Determine flow (grant type)
-      let flows = auth.flows || {};
+      const flows = auth.flows || {};
       let grantType = 'client_credentials';
       if (flows.authorizationCode) {
         grantType = 'authorization_code';
@@ -555,14 +555,14 @@ const transformOpenapiRequestItem = (request, usedNames = new Set(), options = {
 
   // build the extraction scripts from responses that have links
   // https://swagger.io/docs/specification/links/
-  let script = [];
+  const script = [];
   each(_operationObject.responses || [], (response, responseStatus) => {
     if (Object.hasOwn(response, 'links')) {
       // only extract if the status code matches the response
       script.push(`if (res.status === ${responseStatus}) {`);
       each(response.links, (link) => {
         each(link.parameters || [], (expression, parameter) => {
-          let value = openAPIRuntimeExpressionToScript(expression);
+          const value = openAPIRuntimeExpressionToScript(expression);
           script.push(`  bru.setVar('${link.operationId}_${parameter}', ${value});`);
         });
       });
@@ -915,7 +915,7 @@ const getDefaultUrl = (serverObject) => {
   let url = serverObject.url;
   if (serverObject.variables) {
     each(serverObject.variables, (variable, variableName) => {
-      let sub = variable.default !== undefined ? variable.default : (variable.enum ? variable.enum[0] : `{{${variableName}}}`);
+      const sub = variable.default !== undefined ? variable.default : (variable.enum ? variable.enum[0] : `{{${variableName}}}`);
       url = url.replaceAll(`{${variableName}}`, sub);
     });
   }
@@ -940,7 +940,7 @@ const extractServerVars = (server) => {
       vars.push({ name: 'baseUrl', value: baseUrlTemplate });
     }
     each(server.variables, (variable, variableName) => {
-      let value = variable.default !== undefined ? variable.default : (variable.enum ? variable.enum[0] : '');
+      const value = variable.default !== undefined ? variable.default : (variable.enum ? variable.enum[0] : '');
       // Bruno exports secrets and variables without a value with their own placeholder as the default,
       // so import them as empty secrets
       const isPlaceholder = value === `{{${variableName}}}`;
@@ -954,8 +954,8 @@ const extractServerVars = (server) => {
 };
 
 const getSecurity = (apiSpec) => {
-  let defaultSchemes = apiSpec.security || [];
-  let securitySchemes = get(apiSpec, 'components.securitySchemes', {});
+  const defaultSchemes = apiSpec.security || [];
+  const securitySchemes = get(apiSpec, 'components.securitySchemes', {});
 
   const hasSchemes = Object.keys(securitySchemes).length > 0;
 
@@ -1019,7 +1019,7 @@ const buildCollectionAuth = (scheme) => {
       }
     };
   } else if (scheme.type === 'oauth2') {
-    let flows = scheme.flows || {};
+    const flows = scheme.flows || {};
     let grantType = 'client_credentials';
     if (flows.authorizationCode) {
       grantType = 'authorization_code';
@@ -1059,7 +1059,7 @@ const openAPIRuntimeExpressionToScript = (expression) => {
   if (expression === '$response.body') {
     return 'res.body';
   } else if (expression.startsWith('$response.body#')) {
-    let pointer = expression.substring(15);
+    const pointer = expression.substring(15);
     // could use https://www.npmjs.com/package/json-pointer for better support
     return `res.body${pointer.replace('/', '.')}`;
   }
@@ -1089,7 +1089,7 @@ export const parseOpenApiCollection = (data, options = {}) => {
 
     brunoCollection.name = collectionData.info?.title?.trim() || 'Untitled Collection';
 
-    let servers = collectionData.servers || [];
+    const servers = collectionData.servers || [];
 
     // Create environments based on the servers. A server's name or description is free text
     // that becomes the environment's filename, so it needs the same normalization as an
@@ -1129,7 +1129,7 @@ export const parseOpenApiCollection = (data, options = {}) => {
       });
     });
 
-    let securityConfig = getSecurity(collectionData);
+    const securityConfig = getSecurity(collectionData);
 
     // Merge path-item parameters with operation parameters.
     // Operation parameters override path-item parameters with the same name+in combination.
@@ -1139,7 +1139,7 @@ export const parseOpenApiCollection = (data, options = {}) => {
       return [...inheritedParams, ...operationParams];
     };
 
-    let allRequests = Object.entries(collectionData.paths)
+    const allRequests = Object.entries(collectionData.paths)
       .map(([path, pathItemObject]) => {
         // Extract path-item level parameters (per OpenAPI spec, these apply to all operations under this path)
         const pathItemParams = pathItemObject.parameters || [];
@@ -1211,9 +1211,9 @@ export const parseOpenApiCollection = (data, options = {}) => {
       brunoCollection.items = groupRequestsByPath(allRequests, transformOpenapiRequestItem, requestOptions);
     } else {
       // Default tag-based grouping
-      let [groups, ungroupedRequests] = groupRequestsByTags(allRequests, options);
+      const [groups, ungroupedRequests] = groupRequestsByTags(allRequests, options);
       const tagDescriptions = getTagDescriptions(collectionData.tags, options);
-      let brunoFolders = groups.map((group) => {
+      const brunoFolders = groups.map((group) => {
         const folder = {
           uid: uuid(),
           name: group.name,
@@ -1243,7 +1243,7 @@ export const parseOpenApiCollection = (data, options = {}) => {
       });
 
       const ungroupedItems = ungroupedRequests.map((req) => transformOpenapiRequestItem(req, usedNames, requestOptions));
-      let brunoCollectionItems = brunoFolders.concat(ungroupedItems);
+      const brunoCollectionItems = brunoFolders.concat(ungroupedItems);
       brunoCollection.items = brunoCollectionItems;
     }
 

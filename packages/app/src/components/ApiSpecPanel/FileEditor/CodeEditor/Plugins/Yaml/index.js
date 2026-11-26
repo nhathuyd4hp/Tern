@@ -1,12 +1,12 @@
 const yamlPlugin = (cm) => {
   cm.defineMode('yaml', function () {
-    let cons = ['true', 'false', 'on', 'off', 'yes', 'no'];
-    let keywordRegex = new RegExp('\\b((' + cons.join(')|(') + '))$', 'i');
+    const cons = ['true', 'false', 'on', 'off', 'yes', 'no'];
+    const keywordRegex = new RegExp('\\b((' + cons.join(')|(') + '))$', 'i');
 
     return {
       token: function (stream, state) {
-        let ch = stream.peek();
-        let esc = state.escaped;
+        const ch = stream.peek();
+        const esc = state.escaped;
         state.escaped = false;
         /* comments */
         if (ch == '#' && (stream.pos == 0 || /\s/.test(stream.string.charAt(stream.pos - 1)))) {

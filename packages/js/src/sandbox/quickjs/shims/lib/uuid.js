@@ -5,7 +5,7 @@ const fns = ['version', 'parse', 'stringify', 'v1', 'v1ToV6', 'v3', 'v4', 'v5', 
 
 const addUuidShimToContext = async (vm) => {
   fns.forEach((fn) => {
-    let fnHandle = vm.newFunction(fn, function (...args) {
+    const fnHandle = vm.newFunction(fn, function (...args) {
       const nativeArgs = args.map(vm.dump);
       return marshallToVm(uuid[fn](...nativeArgs), vm);
     });

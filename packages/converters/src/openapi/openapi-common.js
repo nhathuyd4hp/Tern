@@ -681,12 +681,12 @@ export const createBrunoExample = ({ brunoRequestItem, exampleValue, exampleName
  * @returns {Array} Tuple of [tagGroups, ungroupedRequests]
  */
 export const groupRequestsByTags = (requests, options = {}) => {
-  let _groups = {};
-  let ungrouped = [];
+  const _groups = {};
+  const ungrouped = [];
   each(requests, (request) => {
-    let tags = request.operationObject.tags || [];
+    const tags = request.operationObject.tags || [];
     if (tags.length > 0) {
-      let tag = sanitizeTag(tags[0].trim(), options); // take first tag, trim whitespace, and sanitize
+      const tag = sanitizeTag(tags[0].trim(), options); // take first tag, trim whitespace, and sanitize
 
       if (tag) {
         if (!_groups[tag]) {
@@ -701,7 +701,7 @@ export const groupRequestsByTags = (requests, options = {}) => {
     }
   });
 
-  let groups = Object.keys(_groups).map((groupName) => {
+  const groups = Object.keys(_groups).map((groupName) => {
     return {
       name: groupName,
       requests: _groups[groupName]
@@ -974,7 +974,7 @@ export const groupRequestsByPath = (requests, transformFn, options = {}) => {
     }
 
     // Use the first segment as the main group
-    let groupName = pathSegments[0];
+    const groupName = pathSegments[0];
 
     if (!pathGroups[groupName]) {
       pathGroups[groupName] = {
@@ -991,7 +991,7 @@ export const groupRequestsByPath = (requests, transformFn, options = {}) => {
       // For deeper paths, create sub-groups
       let currentGroup = pathGroups[groupName];
       for (let i = 1; i < pathSegments.length; i++) {
-        let subGroupName = pathSegments[i];
+        const subGroupName = pathSegments[i];
 
         if (!currentGroup.subGroups[subGroupName]) {
           currentGroup.subGroups[subGroupName] = {

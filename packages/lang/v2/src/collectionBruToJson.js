@@ -123,7 +123,7 @@ const mapPairListToKeyValPairs = (pairList = [], parseEnabled = true, extractTyp
   }
   return _.map(pairList[0], (pair) => {
     let name = _.keys(pair)[0];
-    let value = pair[name];
+    const value = pair[name];
     const rawAnnotations = pair[ANNOTATIONS_KEY];
 
     if (!parseEnabled) {
@@ -222,7 +222,7 @@ const sem = grammar.createSemantics().addAttribute('ast', {
     return value.ast;
   },
   pair(_1, annotations, _2, key, _3, _4, _5, value, _6) {
-    let res = {};
+    const res = {};
     if (Array.isArray(value.ast)) {
       res[key.ast] = value.ast;
     } else {
@@ -254,7 +254,7 @@ const sem = grammar.createSemantics().addAttribute('ast', {
       return chars.ast;
     }
     try {
-      let isMultiline = chars.sourceString?.startsWith(`'''`) && chars.sourceString?.endsWith(`'''`);
+      const isMultiline = chars.sourceString?.startsWith(`'''`) && chars.sourceString?.endsWith(`'''`);
       if (isMultiline) {
         const multilineString = chars.sourceString?.replace(/^'''|'''$/g, '');
         return multilineString
@@ -309,7 +309,7 @@ const sem = grammar.createSemantics().addAttribute('ast', {
     return elements.map((e) => e.ast);
   },
   meta(_1, dictionary) {
-    let meta = mapPairListToKeyValPair(dictionary.ast) || {};
+    const meta = mapPairListToKeyValPair(dictionary.ast) || {};
 
     meta.type = 'collection';
 
@@ -318,7 +318,7 @@ const sem = grammar.createSemantics().addAttribute('ast', {
     };
   },
   auth(_1, dictionary) {
-    let auth = mapPairListToKeyValPair(dictionary.ast) || {};
+    const auth = mapPairListToKeyValPair(dictionary.ast) || {};
 
     return {
       auth: {
@@ -673,7 +673,7 @@ const sem = grammar.createSemantics().addAttribute('ast', {
   varsreq(_1, dictionary) {
     const vars = mapPairListToKeyValPairs(dictionary.ast, true, true);
     _.each(vars, (v) => {
-      let name = v.name;
+      const name = v.name;
       if (name && name.length && name.charAt(0) === '@') {
         v.name = name.slice(1);
         v.local = true;
@@ -694,7 +694,7 @@ const sem = grammar.createSemantics().addAttribute('ast', {
     // annotations only (preserved on round-trip) without populating `dataType`.
     const vars = mapPairListToKeyValPairs(dictionary.ast, true, false);
     _.each(vars, (v) => {
-      let name = v.name;
+      const name = v.name;
       if (name && name.length && name.charAt(0) === '@') {
         v.name = name.slice(1);
         v.local = true;
@@ -739,7 +739,7 @@ const parser = (input) => {
   const match = grammar.match(input);
 
   if (match.succeeded()) {
-    let ast = sem(match).ast;
+    const ast = sem(match).ast;
 
     return ast;
   } else {

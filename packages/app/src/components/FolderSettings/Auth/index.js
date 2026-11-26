@@ -31,7 +31,7 @@ const GrantTypeComponentMap = ({ collection, folder, updateFolderAuth }) => {
   };
 
   const folderRoot = folder?.draft || folder?.root;
-  let request = get(folderRoot, 'request', {});
+  const request = get(folderRoot, 'request', {});
   const grantType = get(request, 'auth.oauth2.grantType', 'authorization_code');
 
   switch (grantType) {
@@ -51,7 +51,7 @@ const GrantTypeComponentMap = ({ collection, folder, updateFolderAuth }) => {
 const Auth = ({ collection, folder }) => {
   const dispatch = useDispatch();
   const folderRoot = folder?.draft || folder?.root;
-  let request = get(folderRoot, 'request', {});
+  const request = get(folderRoot, 'request', {});
   const authMode = get(folderRoot, 'request.auth.mode');
 
   const handleSave = () => {

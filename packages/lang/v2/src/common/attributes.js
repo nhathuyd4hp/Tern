@@ -10,7 +10,7 @@ const astBaseAttribute = {
     return [pair.ast, ...rest.ast];
   },
   pair(_1, key, _2, _3, _4, value, _5) {
-    let res = {};
+    const res = {};
     if (Array.isArray(value.ast)) {
       res[key.ast] = value.ast;
       return res;

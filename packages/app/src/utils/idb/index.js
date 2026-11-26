@@ -2,8 +2,8 @@ export const saveCollectionToIdb = (connection, collection) => {
   return new Promise((resolve, reject) => {
     connection
       .then((db) => {
-        let tx = db.transaction(`collection`, 'readwrite');
-        let collectionStore = tx.objectStore('collection');
+        const tx = db.transaction(`collection`, 'readwrite');
+        const collectionStore = tx.objectStore('collection');
 
         collectionStore.put(collection);
 
@@ -17,8 +17,8 @@ export const getCollectionsFromIdb = (connection) => {
   return new Promise((resolve, reject) => {
     connection
       .then((db) => {
-        let tx = db.transaction('collection');
-        let collectionStore = tx.objectStore('collection');
+        const tx = db.transaction('collection');
+        const collectionStore = tx.objectStore('collection');
         return collectionStore.getAll();
       })
       .then((collections) => {

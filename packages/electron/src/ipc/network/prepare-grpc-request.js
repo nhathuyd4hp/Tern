@@ -42,7 +42,7 @@ const placeOAuth2Token = (grpcRequest, credentials, tokenPlacement, tokenHeaderP
 
 const configureRequest = async (grpcRequest, request, collection, envVars, runtimeVariables, processEnvVars, promptVariables, certsAndProxyConfig) => {
   if (grpcRequest.oauth2) {
-    let requestCopy = cloneDeep(grpcRequest);
+    const requestCopy = cloneDeep(grpcRequest);
     const { uid: collectionUid, pathname: collectionPath, globalEnvironmentVariables } = collection;
     const { oauth2: { grantType, tokenPlacement, tokenHeaderPrefix, tokenQueryKey, accessTokenUrl, refreshTokenUrl } = {}, collectionVariables, folderVariables, requestVariables } = requestCopy || {};
     let credentials, credentialsId, oauth2Url, debugInfo;

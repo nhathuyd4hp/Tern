@@ -434,7 +434,7 @@ app.on('ready', async () => {
 
   mainWindow.webContents.on('did-finish-load', async () => {
     try {
-      let ogSend = mainWindow.webContents.send;
+      const ogSend = mainWindow.webContents.send;
       mainWindow.webContents.send = function (channel, ...args) {
         return ogSend.apply(this, [channel, ...args.map((_) => {
           // todo: replace this with @msgpack/msgpack encode/decode

@@ -76,7 +76,7 @@ const generateUidBasedOnHash = (str) => {
 };
 
 const flattenDataForDotNotation = (data) => {
-  let result = {};
+  const result = {};
   function recurse(current, prop) {
     if (Object(current) !== current) {
       result[prop] = current;
@@ -89,7 +89,7 @@ const flattenDataForDotNotation = (data) => {
       }
     } else {
       let isEmpty = true;
-      for (let p in current) {
+      for (const p in current) {
         isEmpty = false;
         recurse(current[p], prop ? prop + '.' + p : p);
       }

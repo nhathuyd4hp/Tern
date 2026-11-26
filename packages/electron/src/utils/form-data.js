@@ -68,7 +68,7 @@ const createFormData = (data, collectionPath, boundary) => {
   }
   forEach(data, (datum) => {
     const { name, type, value, contentType } = datum;
-    let options = {};
+    const options = {};
     if (contentType) {
       options.contentType = contentType;
     }

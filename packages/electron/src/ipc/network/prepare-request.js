@@ -383,7 +383,7 @@ const prepareRequest = async (item, collection = {}, abortController) => {
   const collectionRoot = collection?.draft?.root ? get(collection, 'draft.root', {}) : get(collection, 'root', {});
   const collectionPath = collection?.pathname;
   let contentTypeDefined = false;
-  let url = request.url;
+  const url = request.url;
 
   each(get(collectionRoot, 'request.headers', []), (h) => {
     if (h.enabled && h.name?.toLowerCase() === 'content-type') {

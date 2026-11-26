@@ -16,7 +16,7 @@ const GrantTypeSelector = ({ item = {}, request, updateAuth, collection, readOnl
   });
 
   const onGrantTypeChange = (grantType) => {
-    let updatedValues = {
+    const updatedValues = {
       ...valuesCache,
       ...oAuth,
       grantType

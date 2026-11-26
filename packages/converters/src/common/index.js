@@ -58,9 +58,9 @@ export const sanitizeTag = (tag, options = {}) => {
     return null;
   }
 
-  let usableTagString = typeof tag == 'string' ? tag : 'name' in tag ? tag.name : '';
+  const usableTagString = typeof tag == 'string' ? tag : 'name' in tag ? tag.name : '';
 
-  let trimmed = usableTagString.trim();
+  const trimmed = usableTagString.trim();
 
   // OpenCollection (yml) schema imposes no character restriction on tags.
   // Preserve the source value verbatim so folder names round-trip (BRU-3175).
@@ -179,7 +179,7 @@ export const transformItemsInCollection = (collection) => {
         // from 5 feb 2024, multipartFormData needs to have a type
         // this was introduced when we added support for file uploads
         // below logic is to make older collection exports backward compatible
-        let multipartFormData = get(item, 'request.body.multipartForm');
+        const multipartFormData = get(item, 'request.body.multipartForm');
         if (multipartFormData) {
           each(multipartFormData, (form) => {
             if (!form.type) {

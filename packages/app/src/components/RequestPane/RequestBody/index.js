@@ -35,14 +35,14 @@ const RequestBody = ({ item, collection }) => {
   const onSave = () => dispatch(saveRequest(item.uid, collection.uid));
 
   if (['json', 'xml', 'text', 'sparql'].includes(bodyMode)) {
-    let codeMirrorMode = {
+    const codeMirrorMode = {
       json: 'application/ld+json',
       text: 'application/text',
       xml: 'application/xml',
       sparql: 'application/sparql-query'
     };
 
-    let bodyContent = {
+    const bodyContent = {
       json: body.json,
       text: body.text,
       xml: body.xml,

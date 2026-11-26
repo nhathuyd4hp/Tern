@@ -10,9 +10,9 @@ describe('matchesCallbackUrl', () => {
   ];
 
   it.each(testCases)('$url - should be $expected', ({ url, expected }) => {
-    let callBackUrl = 'https://callback.url/endpoint';
+    const callBackUrl = 'https://callback.url/endpoint';
 
-    let actual = matchesCallbackUrl(new URL(url), new URL(callBackUrl));
+    const actual = matchesCallbackUrl(new URL(url), new URL(callBackUrl));
 
     expect(actual).toBe(expected);
   });
@@ -29,9 +29,9 @@ describe('matchesCallbackUrl', () => {
     ];
 
     it.each(rootPathCases)('$desc ($url) - should be $expected', ({ url, expected }) => {
-      let callBackUrl = 'https://hostname/';
+      const callBackUrl = 'https://hostname/';
 
-      let actual = matchesCallbackUrl(new URL(url), new URL(callBackUrl));
+      const actual = matchesCallbackUrl(new URL(url), new URL(callBackUrl));
 
       expect(actual).toBe(expected);
     });
@@ -45,16 +45,16 @@ describe('matchesCallbackUrl', () => {
     ];
 
     it.each(implicitCases)('$desc ($url) - should be $expected', ({ url, expected }) => {
-      let callBackUrl = 'https://callback.url/endpoint';
+      const callBackUrl = 'https://callback.url/endpoint';
 
-      let actual = matchesCallbackUrl(new URL(url), new URL(callBackUrl));
+      const actual = matchesCallbackUrl(new URL(url), new URL(callBackUrl));
 
       expect(actual).toBe(expected);
     });
   });
 
   it('should return false for null url', () => {
-    let callBackUrl = 'https://callback.url/endpoint';
+    const callBackUrl = 'https://callback.url/endpoint';
     expect(matchesCallbackUrl(null, new URL(callBackUrl))).toBe(false);
   });
 });

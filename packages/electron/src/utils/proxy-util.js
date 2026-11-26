@@ -124,7 +124,7 @@ async function setupProxyAgents({
       const proxyAuthEnabled = !get(proxyConfig, 'auth.disabled', false);
       const socksEnabled = proxyProtocol.includes('socks');
 
-      let uriPort = isUndefined(proxyPort) || isNull(proxyPort) ? '' : `:${proxyPort}`;
+      const uriPort = isUndefined(proxyPort) || isNull(proxyPort) ? '' : `:${proxyPort}`;
       let proxyUri;
       if (proxyAuthEnabled) {
         const proxyAuthUsername = encodeURIComponent(interpolateString(get(proxyConfig, 'auth.username'), interpolationOptions));

@@ -5,7 +5,7 @@ const path = require('path');
 const { exec } = require('child_process');
 const { parseRequest } = require('@usebruno/filestore');
 
-let collectionPathToGitRootPathMap = new Map();
+const collectionPathToGitRootPathMap = new Map();
 
 const simpleGitInstances = new Map();
 
@@ -70,11 +70,11 @@ const findGitRootPath = (collectionPath) => {
 };
 
 const getCollectionGitRootPath = (collectionPath) => {
-  let savedGitRootPath = collectionPathToGitRootPathMap.get(collectionPath);
+  const savedGitRootPath = collectionPathToGitRootPathMap.get(collectionPath);
   if (savedGitRootPath) {
     return savedGitRootPath;
   }
-  let gitRootPath = findGitRootPath(collectionPath);
+  const gitRootPath = findGitRootPath(collectionPath);
   collectionPathToGitRootPathMap.set(collectionPath, gitRootPath);
   return gitRootPath;
 };
@@ -324,7 +324,7 @@ const getUnstagedFileDiff = async (gitRootPath, filePath) => {
           const lineCount = prefixedLines.length;
           const lines = prefixedLines.join('\n');
 
-          let diff
+          const diff
             = [
               `diff --git a/${filePath} b/${filePath}`,
               `new file mode 100644`,

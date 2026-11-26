@@ -44,7 +44,7 @@ export const transformItemsInCollection = (collection) => {
           }));
         }
         delete item.request.query;
-        let multipartFormData = get(item, 'request.body.multipartForm');
+        const multipartFormData = get(item, 'request.body.multipartForm');
         if (multipartFormData) {
           each(multipartFormData, (form) => {
             if (!form.type) {
@@ -63,7 +63,7 @@ export const transformItemsInCollection = (collection) => {
           }));
         }
         delete item.request.query;
-        let multipartFormData = get(item, 'request.body.multipartForm');
+        const multipartFormData = get(item, 'request.body.multipartForm');
         if (multipartFormData) {
           each(multipartFormData, (form) => {
             if (!form.type) {

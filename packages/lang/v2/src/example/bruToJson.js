@@ -134,7 +134,7 @@ const parseExample = (input) => {
   const match = exampleGrammar.match(input);
 
   if (match.succeeded()) {
-    let ast = grammarSemantics(match).ast;
+    const ast = grammarSemantics(match).ast;
     return ast;
   } else {
     console.log('match failed', match);

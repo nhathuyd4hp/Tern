@@ -37,7 +37,7 @@ const saveCookies = (url, headers) => {
       setCookieHeaders = Array.isArray(headers['set-cookie'])
         ? headers['set-cookie']
         : [headers['set-cookie']];
-      for (let setCookieHeader of setCookieHeaders) {
+      for (const setCookieHeader of setCookieHeaders) {
         if (typeof setCookieHeader === 'string' && setCookieHeader.length) {
           addCookieToJar(setCookieHeader, url);
         }
@@ -177,7 +177,7 @@ function makeAxiosInstance({
 
     // Add request data if available
     if (config.data) {
-      let requestData = typeof config.data === 'string' ? config.data : JSON.stringify(config.data, null, 2);
+      const requestData = typeof config.data === 'string' ? config.data : JSON.stringify(config.data, null, 2);
       timeline.push({
         timestamp: new Date(),
         type: 'requestData',

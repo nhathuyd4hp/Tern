@@ -102,7 +102,7 @@ if (!SERVER_RENDERED) {
 
   function parseErrors(errors, output) {
     for (let i = 0; i < errors.length; i++) {
-      let error = errors[i];
+      const error = errors[i];
       if (error) {
         if (error.line <= 0) {
           if (window.console) {
@@ -114,14 +114,14 @@ if (!SERVER_RENDERED) {
         let start = error.character - 1,
           end = start + 1;
         if (error.evidence) {
-          let index = error.evidence.substring(start).search(/.\b/);
+          const index = error.evidence.substring(start).search(/.\b/);
           if (index > -1) {
             end += index;
           }
         }
 
         // Convert to format expected by validation service
-        let hint = {
+        const hint = {
           message: error.reason,
           severity: error.code ? (error.code.startsWith('W') ? 'warning' : 'error') : 'error',
           from: CodeMirror.Pos(error.line - 1, start),

@@ -271,7 +271,7 @@ export default function useQueryBuilder(schema, onQueryChange, editorValue, onVa
           }
         }
         const queryParts = [];
-        let allVariables = {};
+        const allVariables = {};
         for (const rootType of availableRootTypes) {
           const result = generateQueryString(selections, argValues, schema, rootType, enabledArgs, existingNames[rootType]);
           if (result.query) {

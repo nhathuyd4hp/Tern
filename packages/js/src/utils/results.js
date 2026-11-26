@@ -57,7 +57,7 @@ const createBruTestResultMethods = (bru, assertionResults, chai) => {
 
 const setupBruTestMethods = (bru, __brunoTestResults, assertionResults) => {
   const getTestResults = async () => {
-    let results = await __brunoTestResults.getResults();
+    const results = await __brunoTestResults.getResults();
     const summary = getResultsSummary(results);
     return {
       summary,
@@ -72,7 +72,7 @@ const setupBruTestMethods = (bru, __brunoTestResults, assertionResults) => {
   };
 
   const getAssertionResults = async () => {
-    let results = assertionResults;
+    const results = assertionResults;
     const summary = getResultsSummary(results);
     return {
       summary,

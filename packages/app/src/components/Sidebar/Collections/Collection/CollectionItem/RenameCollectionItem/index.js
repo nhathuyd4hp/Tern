@@ -64,7 +64,7 @@ const RenameCollectionItem = ({ collectionUid, item, onClose }) => {
       }
       const { name: newName, filename: newFilename } = values;
       try {
-        let renameConfig = {
+        const renameConfig = {
           itemUid: item.uid,
           collectionUid
         };

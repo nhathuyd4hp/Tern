@@ -324,7 +324,7 @@ describe('interpolate-vars: interpolateVars', () => {
       });
 
       it('If there are no variables (multiple)', async () => {
-        let gqlBody = `{"query":"mutation {\\n  test(input: { native: { firstElem: \\"{should-not-get-interpolated}\\", secondElem: \\"{should-not-get-interpolated}}"}}) {\\n    __typename\\n    ... on TestType {\\n      id\\n      identifier\\n    }\\n  }\\n}","variables":"{}"}`;
+        const gqlBody = `{"query":"mutation {\\n  test(input: { native: { firstElem: \\"{should-not-get-interpolated}\\", secondElem: \\"{should-not-get-interpolated}}"}}) {\\n    __typename\\n    ... on TestType {\\n      id\\n      identifier\\n    }\\n  }\\n}","variables":"{}"}`;
 
         const request = { method: 'POST', url: 'test', data: gqlBody };
         const result = interpolateVars(request, { 'should-not-get-interpolated': 'ERROR' }, null, null);

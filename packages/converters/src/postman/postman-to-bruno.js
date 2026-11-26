@@ -30,7 +30,7 @@ const AUTH_TYPES = Object.freeze({
 
 const parseGraphQLRequest = (graphqlSource) => {
   try {
-    let queryResultObject = {
+    const queryResultObject = {
       query: '',
       variables: ''
     };
@@ -1224,9 +1224,9 @@ const parsePostmanCollection = async (collection, { useWorkers = false, preserve
     // Newer Postman exports wrap the collection in a { collection: { ... } } envelope
     const parsedCollection = collection.collection?.info ? collection.collection : collection;
 
-    let schema = get(parsedCollection, 'info.schema');
+    const schema = get(parsedCollection, 'info.schema');
 
-    let v2Schemas = [
+    const v2Schemas = [
       'https://schema.getpostman.com/json/collection/v2.0.0/collection.json',
       'https://schema.getpostman.com/json/collection/v2.1.0/collection.json',
       'https://schema.postman.com/json/collection/v2.0.0/collection.json',

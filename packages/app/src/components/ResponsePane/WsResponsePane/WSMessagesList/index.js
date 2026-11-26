@@ -28,7 +28,7 @@ const getContentMeta = (content) => {
 };
 
 const parseContent = (content) => {
-  let contentMeta = getContentMeta(content);
+  const contentMeta = getContentMeta(content);
   return {
     type: contentMeta.isJSON ? 'application/json' : 'text/plain',
     content: contentMeta.isJSON ? JSON.stringify(JSON.parse(contentMeta.content), null, 2) : contentMeta.content
@@ -70,8 +70,8 @@ const WSMessageItem = memo(({ message, isOpen, onToggle, item, collection }) => 
   const isInfo = message.type === 'info';
   const isError = message.type === 'error';
   const isOutgoing = message.type === 'outgoing';
-  let contentHexdump = message.messageHexdump;
-  let parsedContent = parseContent(message.message);
+  const contentHexdump = message.messageHexdump;
+  const parsedContent = parseContent(message.message);
   const dataType = getDataTypeText(parsedContent.type);
 
   useEffect(() => {
