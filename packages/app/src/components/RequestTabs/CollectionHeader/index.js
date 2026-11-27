@@ -19,7 +19,7 @@ import { showMigrateToYmlModal } from 'providers/ReduxStore/slices/collection-mi
 import { getWorkspaceCollections } from 'utils/collections';
 import isEqual from 'lodash/isEqual';
 import { selectCollections, selectActiveWorkspace } from 'src/selectors/collections';
-import { selectTabCountsByCollection, selectFirstTabUidByCollection } from 'src/selectors/tab';
+import { selectFirstTabUidByCollection } from 'src/selectors/tab';
 import { addTab, focusTab } from 'providers/ReduxStore/slices/tabs';
 import { uuid } from 'utils/common';
 import Dropdown from 'components/Dropdown';
@@ -57,9 +57,7 @@ const CollectionHeader = ({ collection, isScratchCollection }) => {
       .filter((c) => c.mountStatus === 'mounted')
       .map((c) => ({ uid: c.uid, name: c.name })), isEqual);
 
-  // Per-collection tab counts (switcher badges) and first open tab (focused
-  // when switching to that collection).
-  const tabCountsByCollection = useSelector(selectTabCountsByCollection);
+  // First open tab per collection (focused when switching to that collection).
   const firstTabUidByCollection = useSelector(selectFirstTabUidByCollection);
 
   const [migratePillDismissed, setMigratePillDismissed] = useState(true);
@@ -107,14 +105,7 @@ const CollectionHeader = ({ collection, isScratchCollection }) => {
   const hasOpenApiUpdates = hasOpenApiSyncConfigured && collectionUpdates[collection.uid]?.hasUpdates;
   const hasOpenApiError = hasOpenApiSyncConfigured && collectionUpdates[collection.uid]?.error;
 
-  // Count tabs for the current collection
-  const tabCount = tabCountsByCollection[collection.uid] || 0;
-
-  // Get tab count for a given collection uid
-  const getTabCount = (collectionUid) => tabCountsByCollection[collectionUid] || 0;
-
   const scratchCollectionUid = currentWorkspace?.scratchCollectionUid;
-  const homeTabCount = scratchCollectionUid ? getTabCount(scratchCollectionUid) : 0;
 
   // Display name and icon based on context
   const displayName = isScratchCollection
@@ -243,9 +234,6 @@ const CollectionHeader = ({ collection, isScratchCollection }) => {
                       <span className="dropdown-label collection-header-dropdown-label">
                         Home
                       </span>
-                      {homeTabCount > 0 && (
-                        <span className="dropdown-tab-count">{homeTabCount}</span>
-                      )}
                     </div>
                   </>
                 )}
@@ -255,7 +243,6 @@ const CollectionHeader = ({ collection, isScratchCollection }) => {
                     <div className="dropdown-separator" />
                     <div className="label-item">Applications</div>
                     {mountedCollections.map((col) => {
-                      const colTabCount = getTabCount(col.uid);
                       return (
                         <div
                           key={col.uid}
@@ -268,9 +255,6 @@ const CollectionHeader = ({ collection, isScratchCollection }) => {
                             <IconBox size={16} strokeWidth={1.5} />
                           </div>
                           <span className="dropdown-label collection-header-dropdown-label">{col.name || 'Untitled Application'}</span>
-                          {colTabCount > 0 && (
-                            <span className="dropdown-tab-count">{colTabCount}</span>
-                          )}
                         </div>
                       );
                     })}

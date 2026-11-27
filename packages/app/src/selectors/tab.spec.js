@@ -6,7 +6,6 @@ import {
   selectActiveTabUid,
   selectTabByUid,
   selectActiveTab,
-  selectTabCountsByCollection,
   selectFirstTabUidByCollection,
   makeSelectTabsForCollection
 } from './tab';
@@ -128,23 +127,6 @@ describe('tab field selectors', () => {
     const state = buildState();
     expect(selectActiveTab(state)).toBe(state.tabs.tabs[1]);
     expect(selectActiveTab(buildTestState())).toBeUndefined();
-  });
-
-  describe('selectTabCountsByCollection', () => {
-    it('counts open tabs per collection', () => {
-      expect(selectTabCountsByCollection(buildState())).toEqual({ 'col-a': 2, 'col-b': 1 });
-      expect(selectTabCountsByCollection(buildTestState())).toEqual({});
-    });
-
-    it('returns the same object until the tabs array changes', () => {
-      const state = buildState();
-      const first = selectTabCountsByCollection(state);
-      const unrelated = { ...state, app: { ...state.app, isDragging: true } };
-      expect(selectTabCountsByCollection(unrelated)).toBe(first);
-
-      const changed = { ...state, tabs: { ...state.tabs, tabs: [...state.tabs.tabs, tab('t4', 'col-b')] } };
-      expect(selectTabCountsByCollection(changed)).toEqual({ 'col-a': 2, 'col-b': 2 });
-    });
   });
 
   describe('selectFirstTabUidByCollection', () => {
