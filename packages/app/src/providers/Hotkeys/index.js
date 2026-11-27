@@ -3,7 +3,6 @@ import find from 'lodash/find';
 import Mousetrap from 'mousetrap';
 import { useSelector, useDispatch } from 'react-redux';
 import NewRequest from 'components/Sidebar/NewRequest';
-import GlobalSearchModal from 'components/GlobalSearchModal';
 import SaveRequestsModal from 'providers/App/ConfirmAppClose/SaveRequestsModal';
 import filter from 'lodash/filter';
 import each from 'lodash/each';
@@ -26,7 +25,6 @@ export const HotkeysProvider = (props) => {
   const userKeyBindings = useSelector((state) => state.app.preferences?.keyBindings);
   const keybindingsEnabled = useSelector((state) => state.app.preferences?.keybindingsEnabled !== false);
   const [showNewRequestModal, setShowNewRequestModal] = useState(false);
-  const [showGlobalSearchModal, setShowGlobalSearchModal] = useState(false);
   const [showSaveRequestsModal, setShowSaveRequestsModal] = useState(false);
   const [tabUidsToClose, setTabUidsToClose] = useState([]);
   const preferences = useSelector((state) => state.app.preferences);
@@ -90,19 +88,6 @@ export const HotkeysProvider = (props) => {
       unbindAction('editEnvironment');
     };
   }, [activeTabUid, tabs, collections, dispatch, userKeyBindings, keybindingsEnabled]);
-
-  // global search
-  useEffect(() => {
-    bindAction('globalSearch', (e) => {
-      setShowGlobalSearchModal(true);
-
-      return false; // stop bubbling
-    });
-
-    return () => {
-      unbindAction('globalSearch');
-    };
-  }, [userKeyBindings, keybindingsEnabled]);
 
   // Switch to the previous tab (active-collection-tabs-only)
   useEffect(() => {
@@ -426,9 +411,6 @@ export const HotkeysProvider = (props) => {
     <HotkeysContext.Provider {...props} value="hotkey">
       {showNewRequestModal && (
         <NewRequest collectionUid={currentCollection?.uid} onClose={() => setShowNewRequestModal(false)} />
-      )}
-      {showGlobalSearchModal && (
-        <GlobalSearchModal isOpen={showGlobalSearchModal} onClose={() => setShowGlobalSearchModal(false)} />
       )}
       {showSaveRequestsModal && (
         <SaveRequestsModal

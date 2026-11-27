@@ -20,7 +20,6 @@ import RequestTabLoading from './RequestTabLoading';
 import SpecialTab from './SpecialTab';
 import StyledWrapper from './StyledWrapper';
 import MenuDropdown from 'ui/MenuDropdown';
-import CloneCollectionItem from 'components/Sidebar/Collections/Collection/CollectionItem/CloneCollectionItem/index';
 import NewRequest from 'components/Sidebar/NewRequest/index';
 import GradientCloseButton from './GradientCloseButton';
 import { flattenItems } from 'utils/collections/index';
@@ -669,7 +668,6 @@ const RequestTab = ({ tab, collection, tabIndex, collectionRequestTabs, folderUi
 };
 
 function RequestTabMenu({ menuDropdownRef, tabLabelRef, collectionRequestTabs, tabIndex, isActive, showNewRequestShortcut, onNewRequest, collection, dispatch, dropdownContainerRef }) {
-  const [showCloneRequestModal, setShowCloneRequestModal] = useState(false);
   const [tabUidsToClose, setTabUidsToClose] = useState([]);
   const getKeybindingDisplayText = useKeybindingDisplayText();
 
@@ -765,11 +763,6 @@ function RequestTabMenu({ menuDropdownRef, tabLabelRef, collectionRequestTabs, t
       onClick: onNewRequest
     },
     {
-      id: 'clone-request',
-      label: 'Clone Request',
-      onClick: () => setShowCloneRequestModal(true)
-    },
-    {
       id: 'revert-changes',
       label: 'Revert Changes',
       onClick: handleRevertChanges,
@@ -827,14 +820,6 @@ function RequestTabMenu({ menuDropdownRef, tabLabelRef, collectionRequestTabs, t
 
   return (
     <Fragment>
-      {showCloneRequestModal && (
-        <CloneCollectionItem
-          item={currentTabItem}
-          collectionUid={collection.uid}
-          onClose={() => setShowCloneRequestModal(false)}
-        />
-      )}
-
       {tabUidsToClose.length > 0 && (
         <Portal>
           <SaveRequestsModal

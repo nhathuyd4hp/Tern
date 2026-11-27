@@ -18,8 +18,7 @@ import {
   isCollectionItemCollapsed,
   getVariableNamesWithScope,
   getWorkspaceCollections,
-  getTreePathFromCollectionToItem,
-  getCloneDisplayName
+  getTreePathFromCollectionToItem
 } from './index';
 import * as platformUtils from 'utils/common/platform';
 
@@ -647,7 +646,7 @@ describe('getVisibleSidebarUidsInOrder', () => {
       { kind: 'loaded', collection: buildCollectionB() }
     ];
 
-    expect(getVisibleSidebarUidsInOrder({ sidebarEntries, searchText: '' }))
+    expect(getVisibleSidebarUidsInOrder({ sidebarEntries }))
       .toEqual(['colA', 'folderA', 'reqA1', 'reqRoot', 'colB']);
   });
 
@@ -656,18 +655,8 @@ describe('getVisibleSidebarUidsInOrder', () => {
       { kind: 'loaded', collection: buildCollectionA({ folderA: { collapsed: true } }) }
     ];
 
-    expect(getVisibleSidebarUidsInOrder({ sidebarEntries, searchText: '' }))
+    expect(getVisibleSidebarUidsInOrder({ sidebarEntries }))
       .toEqual(['colA', 'folderA', 'reqRoot']);
-  });
-
-  it('while searching, only includes matching requests and force-expands folders that contain a match', () => {
-    const sidebarEntries = [
-      { kind: 'loaded', collection: buildCollectionA({ folderA: { collapsed: true } }) },
-      { kind: 'loaded', collection: buildCollectionB() }
-    ];
-
-    expect(getVisibleSidebarUidsInOrder({ sidebarEntries, searchText: 'alpha' }))
-      .toEqual(['colA', 'folderA', 'reqA1']);
   });
 
   const buildRequestWithExample = (overrides = {}) => ({
@@ -689,7 +678,7 @@ describe('getVisibleSidebarUidsInOrder', () => {
       }
     ];
 
-    expect(getVisibleSidebarUidsInOrder({ sidebarEntries, searchText: '' }))
+    expect(getVisibleSidebarUidsInOrder({ sidebarEntries }))
       .toEqual(['colA', 'folderA', 'reqA1', 'reqRoot', 'ex1']);
   });
 
@@ -701,20 +690,8 @@ describe('getVisibleSidebarUidsInOrder', () => {
       }
     ];
 
-    expect(getVisibleSidebarUidsInOrder({ sidebarEntries, searchText: '' }))
+    expect(getVisibleSidebarUidsInOrder({ sidebarEntries }))
       .toEqual(['colA', 'folderA', 'reqA1', 'reqRoot']);
-  });
-
-  it('includes examples while searching even though examples are otherwise collapsed', () => {
-    const sidebarEntries = [
-      {
-        kind: 'loaded',
-        collection: buildCollectionA({ collection: { items: [buildFolderA(), buildRequestWithExample()] } })
-      }
-    ];
-
-    expect(getVisibleSidebarUidsInOrder({ sidebarEntries, searchText: 'root' }))
-      .toEqual(['colA', 'reqRoot', 'ex1']);
   });
 });
 
@@ -1165,51 +1142,5 @@ describe('getTreePathFromCollectionToItem', () => {
     expect(getTreePathFromCollectionToItem(collection, { uid: 'nope' })).toEqual([]);
     expect(getTreePathFromCollectionToItem(collection, {})).toEqual([]);
     expect(getTreePathFromCollectionToItem({ uid: 'empty' }, { uid: 'deep-req' })).toEqual([]);
-  });
-});
-
-describe('getCloneDisplayName', () => {
-  const collection = {
-    uid: 'c1',
-    items: [
-      { uid: 'req-1', name: 'login', type: 'http-request' },
-      { uid: 'req-2', name: 'login copy', type: 'http-request' },
-      {
-        uid: 'folder-1',
-        name: 'Users',
-        type: 'folder',
-        items: [
-          { uid: 'nested-1', name: 'profile', type: 'http-request' },
-          { uid: 'nested-2', name: 'profile copy', type: 'http-request' }
-        ]
-      }
-    ]
-  };
-
-  it('takes the next free slot among root-level siblings', () => {
-    expect(getCloneDisplayName(collection, collection.items[0])).toBe('login copy 2');
-  });
-
-  it('gives a clone of a copy the same base name as a clone of the original', () => {
-    expect(getCloneDisplayName(collection, collection.items[1])).toBe('login copy 2');
-  });
-
-  it('scopes the counter to the item\'s own folder', () => {
-    const nested = collection.items[2].items[0];
-    expect(getCloneDisplayName(collection, nested)).toBe('profile copy 2');
-  });
-
-  it('counts folders and requests alike as siblings', () => {
-    expect(getCloneDisplayName(collection, collection.items[2])).toBe('Users copy');
-  });
-
-  it('ignores copies of the same name outside the item\'s folder', () => {
-    const collectionWithRootCopy = {
-      ...collection,
-      items: [...collection.items, { uid: 'req-3', name: 'profile copy 2', type: 'http-request' }]
-    };
-    const nested = collectionWithRootCopy.items[2].items[0];
-
-    expect(getCloneDisplayName(collectionWithRootCopy, nested)).toBe('profile copy 2');
   });
 });

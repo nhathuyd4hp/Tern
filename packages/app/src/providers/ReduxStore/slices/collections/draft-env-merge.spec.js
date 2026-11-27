@@ -49,7 +49,6 @@ const makeInitialState = (envVars = [], opts = {}) => ({
       ]
     }
   ],
-  collectionSortOrder: 'default',
   activeWorkspaceUid: null
 });
 

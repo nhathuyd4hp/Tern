@@ -13,7 +13,6 @@
 const defaults = () => ({
   collections: {
     collections: [],
-    collectionSortOrder: 'default',
     activeConnections: [],
     selectedSidebarUids: [],
     lastClickedSidebarUid: null,
@@ -37,7 +36,6 @@ const defaults = () => ({
   },
   app: {
     isDragging: false,
-    clipboard: { hasCopiedItems: false },
     preferences: {},
     leftSidebarWidth: 222,
     sidebarCollapsed: false,

@@ -68,7 +68,6 @@ const createStore = ({ rootVars = [], rootHeaders = [], rootAuth, draft } = {}) 
           items: []
         }
       ],
-      collectionSortOrder: 'default',
       activeWorkspaceUid: null
     }
   };

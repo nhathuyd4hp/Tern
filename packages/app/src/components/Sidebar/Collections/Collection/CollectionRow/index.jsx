@@ -11,14 +11,14 @@ import {
   IconLoader2,
   IconFilePlus,
   IconStack2,
-  IconClipboard,
   IconEdit,
   IconFoldDown,
   IconX,
-  IconFolder
+  IconFolder,
+  IconFileExport
 } from '@tabler/icons';
 import { toggleCollection, collapseFullCollection, clearSidebarSelection } from 'providers/ReduxStore/slices/collections';
-import { mountCollection, moveCollectionAndPersist, handleMultipleCollectionItemsDrop, pasteItem, showInFolder, saveCollectionSecurityConfig } from 'providers/ReduxStore/slices/collections/actions';
+import { mountCollection, moveCollectionAndPersist, handleMultipleCollectionItemsDrop, showInFolder, saveCollectionSecurityConfig } from 'providers/ReduxStore/slices/collections/actions';
 import { useDispatch, useSelector, useStore } from 'react-redux';
 import { addTab, makeTabPermanent } from 'providers/ReduxStore/slices/tabs';
 import { setFocusedSidebarPath } from 'providers/ReduxStore/slices/app';
@@ -26,7 +26,6 @@ import toast from 'react-hot-toast';
 import NewRequest from 'components/Sidebar/NewRequest';
 import NewFolder from 'components/Sidebar/NewFolder';
 import RemoveCollections from '../RemoveCollections';
-import { doesCollectionHaveItemsMatchingSearchText } from 'utils/collections/search';
 import { getSortedDraggedItems } from 'utils/collections';
 import { isTabForItemActive } from 'src/selectors/tab';
 import { makeSelectInvalidItemCountForCollection } from 'src/selectors/collections';
@@ -35,6 +34,7 @@ import RenameCollection from '../RenameCollection';
 import StyledWrapper from './StyledWrapper';
 import InvalidFilesBadge from '../InvalidFilesBadge';
 import { getRevealInFolderLabel } from 'utils/common/platform';
+import { exportApplication } from 'utils/application-archive';
 import ActionIcon from 'ui/ActionIcon';
 import MenuDropdown from 'ui/MenuDropdown';
 import { useSidebarAccordion } from 'components/Sidebar/SidebarAccordionContext';
@@ -45,7 +45,7 @@ import { startBlockedDragTracking } from 'utils/dragBlockedCursor';
 import { useApplicationColor } from 'utils/application-color';
 import ApplicationColor from '../ApplicationColor';
 
-const CollectionRow = ({ collection, searchText, openBulkMenu, children, isCollectionMultiDragDisabled, multiDragCollections }) => {
+const CollectionRow = ({ collection, openBulkMenu, children, isCollectionMultiDragDisabled, multiDragCollections }) => {
   const { dropdownContainerRef } = useSidebarAccordion();
   const [showNewFolderModal, setShowNewFolderModal] = useState(false);
   const [showNewRequestModal, setShowNewRequestModal] = useState(false);
@@ -63,18 +63,16 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
 
   const selectIsCollectionFocused = useMemo(() => isTabForItemActive({ itemUid: collection.uid }), [collection.uid]);
   const isCollectionFocused = useSelector(selectIsCollectionFocused);
-  const { hasCopiedItems } = useSelector((state) => state.app.clipboard);
   const selectedSidebarUids = useSelector((state) => state.collections.selectedSidebarUids);
   const isSelected = selectedSidebarUids.includes(collection.uid);
   const isMultiSelected = isSelected && selectedSidebarUids.length > 1;
-  const handleSelectionClick = useSidebarSelectionClick({ uid: collection.uid, searchText });
+  const handleSelectionClick = useSidebarSelectionClick({ uid: collection.uid });
   const menuDropdownRef = useRef(null);
 
   const activeWorkspace = useSelector((state) =>
     state.workspaces.workspaces.find((w) => w.uid === state.workspaces.activeWorkspaceUid)
   );
   const workspaces = useSelector((state) => state.workspaces.workspaces);
-  const collectionSortOrder = useSelector((state) => state.collections.collectionSortOrder);
   const store = useStore();
 
   const isDragDisabled = isMultiSelected && isCollectionMultiDragDisabled;
@@ -91,8 +89,7 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
     }));
   };
 
-  const hasSearchText = searchText && searchText?.trim()?.length;
-  const collectionIsCollapsed = hasSearchText ? false : collection.collapsed;
+  const collectionIsCollapsed = collection.collapsed;
 
   const iconClassName = classnames({
     'rotate-90': !collectionIsCollapsed
@@ -167,26 +164,11 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
     });
   };
 
-  const handlePasteItem = () => {
-    dispatch(pasteItem(collection.uid, null))
-      .then(() => {
-        toast.success('Item pasted successfully');
-      })
-      .catch((err) => {
-        toast.error(err ? err.message : 'An error occurred while pasting the item');
-      });
-  };
-
   const getKeybindingDisplayText = useKeybindingDisplayText();
 
   // Sidebar shortcuts — only active when this collection has keyboard focus
   useKeybinding('renameItem', () => {
     setShowRenameCollectionModal(true);
-    return false;
-  }, { enabled: isKeyboardFocused, deps: [isKeyboardFocused] });
-
-  useKeybinding('pasteItem', () => {
-    handlePasteItem();
     return false;
   }, { enabled: isKeyboardFocused, deps: [isKeyboardFocused] });
 
@@ -255,9 +237,7 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
           draggedItem,
           allCollections: store.getState().collections.collections,
           workspaces,
-          activeWorkspace,
-          collectionSortOrder,
-          searchText
+          activeWorkspace
         });
 
         const validDraggedItems = draggedItems.filter((dragged) => dragged.uid !== collection.uid);
@@ -274,9 +254,7 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
           draggedItem,
           allCollections: store.getState().collections.collections,
           workspaces,
-          activeWorkspace,
-          collectionSortOrder,
-          searchText
+          activeWorkspace
         });
 
         const validDraggedItems = draggedItems.filter((dragged) => dragged.uid !== collection.uid);
@@ -336,17 +314,6 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
         setShowNewFolderModal(true);
       }
     },
-    ...(hasCopiedItems
-      ? [
-          {
-            id: 'paste',
-            leftSection: IconClipboard,
-            label: 'Paste',
-            shortcut: getKeybindingDisplayText('pasteItem'),
-            onClick: handlePasteItem
-          }
-        ]
-      : []),
     { id: 'divider-edit', type: 'divider' },
     {
       id: 'rename',
@@ -363,6 +330,7 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
       label: 'Change color',
       onClick: () => setShowColorModal(true)
     },
+    { id: 'divider-flows', type: 'divider' },
     {
       id: 'flows',
       leftSection: IconRoute,
@@ -385,6 +353,12 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
       label: getRevealInFolderLabel(),
       onClick: handleShowInFolder
     },
+    {
+      id: 'export',
+      leftSection: IconFileExport,
+      label: 'Export',
+      onClick: () => exportApplication(collection)
+    },
     { id: 'divider-remove', type: 'divider' },
     {
       id: 'remove',
@@ -395,12 +369,6 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
       }
     }
   ];
-
-  if (searchText && searchText.length) {
-    if (!doesCollectionHaveItemsMatchingSearchText(collection, searchText)) {
-      return null;
-    }
-  }
 
   return (
     <StyledWrapper className="flex flex-col">

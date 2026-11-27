@@ -21,7 +21,7 @@ const resolveRowObject = ({ row, itemsByUid, collectionsByUid }) => {
 };
 
 const renderRow = (props) => {
-  const { row, searchText, openBulkMenu, collectionsByUid, isCollectionMultiDragDisabled, isItemMultiDragDisabled, multiDragCollections, multiDragItems } = props;
+  const { row, openBulkMenu, collectionsByUid, isCollectionMultiDragDisabled, isItemMultiDragDisabled, multiDragCollections, multiDragItems } = props;
   const resolved = resolveRowObject(props);
 
   switch (row.kind) {
@@ -30,7 +30,6 @@ const renderRow = (props) => {
       return (
         <CollectionRow
           collection={resolved}
-          searchText={searchText}
           openBulkMenu={openBulkMenu}
           isCollectionMultiDragDisabled={isCollectionMultiDragDisabled}
           multiDragCollections={multiDragCollections}
@@ -46,7 +45,6 @@ const renderRow = (props) => {
           depth={row.depth}
           collectionUid={row.collectionUid}
           collectionPathname={row.collectionPathname}
-          searchText={searchText}
           openBulkMenu={openBulkMenu}
           isItemMultiDragDisabled={isItemMultiDragDisabled}
           multiDragCollections={multiDragCollections}
@@ -69,7 +67,6 @@ const renderRow = (props) => {
           item={item}
           collection={collection}
           depth={row.depth}
-          searchText={searchText}
           openBulkMenu={openBulkMenu}
           isItemMultiDragDisabled={isItemMultiDragDisabled}
           multiDragCollections={multiDragCollections}
@@ -114,7 +111,6 @@ const areEqual = (prev, next) => {
     && a.parentName === b.parentName
     && a.collectionPathname === b.collectionPathname
     && a.exampleIndex === b.exampleIndex
-    && prev.searchText === next.searchText
     && prev.isCollectionMultiDragDisabled === next.isCollectionMultiDragDisabled
     && prev.isItemMultiDragDisabled === next.isItemMultiDragDisabled
     && prev.multiDragCollections === next.multiDragCollections

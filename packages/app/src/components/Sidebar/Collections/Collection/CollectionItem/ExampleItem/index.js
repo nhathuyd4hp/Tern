@@ -24,7 +24,7 @@ import { useSidebarAccordion } from 'components/Sidebar/SidebarAccordionContext'
 import useSidebarSelectionClick from 'hooks/useSidebarSelectionClick';
 import { startBlockedDragTracking } from 'utils/dragBlockedCursor';
 
-const ExampleItem = ({ example, item, collection, depth, searchText, openBulkMenu, isItemMultiDragDisabled, multiDragCollections, multiDragItems }) => {
+const ExampleItem = ({ example, item, collection, depth, openBulkMenu, isItemMultiDragDisabled, multiDragCollections, multiDragItems }) => {
   const { dropdownContainerRef } = useSidebarAccordion();
   const dispatch = useDispatch();
   const activeTabUid = useSelector((state) => state.tabs?.activeTabUid);
@@ -39,7 +39,7 @@ const ExampleItem = ({ example, item, collection, depth, searchText, openBulkMen
   const selectedSidebarUids = useSelector((state) => state.collections.selectedSidebarUids);
   const isSelected = selectedSidebarUids.includes(example.uid);
   const isMultiSelected = isSelected && selectedSidebarUids.length > 1;
-  const handleSelectionClick = useSidebarSelectionClick({ uid: example.uid, searchText });
+  const handleSelectionClick = useSidebarSelectionClick({ uid: example.uid });
 
   // In the flat/virtualized sidebar an example row is a sibling of its parent request,
   // not a child, so we derive the parent request's multi-drag state here rather than

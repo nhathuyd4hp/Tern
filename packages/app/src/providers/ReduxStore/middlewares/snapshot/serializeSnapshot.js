@@ -10,20 +10,6 @@ import { normalizePath } from 'utils/common/path';
 
 const { ipcRenderer } = window;
 
-const COLLECTION_SORT_ORDER_BY_WORKSPACE_SORTING = {
-  default: 'default',
-  alphabetical: 'alphabetical',
-  reverseAlphabetical: 'reverseAlphabetical'
-};
-
-const normalizeCollectionSortOrder = (sortOrder) => {
-  return COLLECTION_SORT_ORDER_BY_WORKSPACE_SORTING[sortOrder] || 'default';
-};
-
-const normalizeWorkspaceSorting = (sorting) => {
-  return COLLECTION_SORT_ORDER_BY_WORKSPACE_SORTING[sorting] || 'default';
-};
-
 const getWorkspaceCollectionSnapshotKey = (workspacePathname, collectionPathname) => {
   const normalizedCollectionPathname = normalizePath(collectionPathname);
   if (!normalizedCollectionPathname) {
@@ -71,7 +57,6 @@ export const serializeSnapshot = async (state, options = {}) => {
   const { getExistingSnapshot } = options;
   const { workspaces, collections, tabs, globalEnvironments } = state;
   const snapshotHydration = state.app?.snapshotHydration;
-  const activeWorkspaceCollectionSortOrder = normalizeCollectionSortOrder(collections.collectionSortOrder);
 
   let existingSnapshot = null;
   try {
@@ -152,15 +137,10 @@ export const serializeSnapshot = async (state, options = {}) => {
       activeWorkspaceTabType = existingWorkspace?.activeWorkspaceTabType || null;
     }
 
-    const workspaceSorting = isActiveWorkspace
-      ? activeWorkspaceCollectionSortOrder
-      : normalizeWorkspaceSorting(existingWorkspace?.sorting);
-
     snapshot.workspaces.push({
       pathname: workspace.pathname,
       environment: '',
       lastActiveCollectionPathname,
-      sorting: workspaceSorting,
       activeWorkspaceTabType,
       collections: [...workspaceCollectionPaths]
     });

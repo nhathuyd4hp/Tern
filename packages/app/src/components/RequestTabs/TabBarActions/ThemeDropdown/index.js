@@ -95,10 +95,10 @@ const ThemeDropdown = ({ children }) => {
   );
 
   return (
-    <ToolHint text="Theme" toolhintId="ThemeDropdown" place="top" offset={10} hidden={!tooltipEnabled}>
+    <ToolHint text="Theme" toolhintId="ThemeDropdown" place="bottom" offset={10} hidden={!tooltipEnabled}>
       <Tippy
         content={menuContent}
-        placement="top-start"
+        placement="bottom-end"
         interactive
         arrow={false}
         animation={false}

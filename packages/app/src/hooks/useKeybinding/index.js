@@ -10,7 +10,7 @@ import { getKeyBindingsForActionAllOS } from 'providers/Hotkeys/keyMappings';
  * Use this for COMPONENT-LEVEL shortcuts (e.g. clone, rename) where the handler
  * lives inside the component, not in HotkeysProvider.
  *
- * @param {string} action - The action ID from KEY_BINDING_SECTIONS (e.g. 'cloneItem')
+ * @param {string} action - The action ID from KEY_BINDING_SECTIONS (e.g. 'renameItem')
  * @param {Function} handler - Callback to run when the shortcut is pressed. Should return false to stop bubbling.
  * @param {Object} [options]
  * @param {boolean} [options.enabled=true] - Whether the binding is active. Pass false to skip binding.

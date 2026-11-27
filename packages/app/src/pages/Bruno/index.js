@@ -5,7 +5,6 @@ import RequestTabPanel from 'components/RequestTabPanel';
 import Sidebar from 'components/Sidebar';
 import OpenCollection from 'components/Sidebar/OpenCollection';
 import OpenCollectionModal from 'components/OpenCollectionModal';
-import StatusBar from 'components/StatusBar';
 import AppTitleBar from 'components/AppTitleBar';
 import TabPanelErrorBoundary from 'components/RequestTabPanel/TabPanelErrorBoundary';
 import { useSelector } from 'react-redux';
@@ -107,7 +106,6 @@ export default function Main() {
         </StyledWrapper>
       </div>
 
-      <StatusBar />
       <TransientRequestModalsRenderer modals={saveTransientRequestModals} />
       <OpenCollection />
       <OpenCollectionModal />

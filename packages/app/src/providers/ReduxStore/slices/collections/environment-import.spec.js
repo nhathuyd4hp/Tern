@@ -26,7 +26,6 @@ const importIntoCollection = async (environment) => {
     reducer: { collections: collectionsReducer },
     preloadedState: {
       collections: {
-        collectionSortOrder: 'default',
         collections: [{
           uid: COLLECTION_UID,
           pathname: COLLECTION_PATH,

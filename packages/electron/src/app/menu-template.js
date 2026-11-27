@@ -38,21 +38,6 @@ const template = [
     ]
   },
   {
-    label: 'Edit',
-    submenu: [
-      { role: 'undo' },
-      { role: 'redo' },
-      { type: 'separator' },
-      { role: 'cut' },
-      { role: 'copy' },
-      { role: 'paste' },
-      { role: 'selectAll' },
-      { type: 'separator' },
-      { role: 'hide' },
-      { role: 'hideOthers' }
-    ]
-  },
-  {
     label: 'View',
     submenu: [
       { role: 'toggledevtools' },

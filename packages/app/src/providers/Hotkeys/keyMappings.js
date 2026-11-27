@@ -28,10 +28,6 @@ export const KEY_BINDING_SECTIONS = [
   {
     heading: 'Sidebar',
     bindings: {
-      sidebarSearch: { mac: 'command+bind+f', windows: 'ctrl+bind+f', name: 'Search Sidebar' }, // D
-      copyItem: { mac: 'command+bind+c', windows: 'ctrl+bind+c', name: 'Copy Item' }, // D
-      pasteItem: { mac: 'command+bind+v', windows: 'ctrl+bind+v', name: 'Paste Item' }, // D
-      cloneItem: { mac: 'command+bind+d', windows: 'ctrl+bind+d', name: 'Clone Item' }, // D
       renameItem: { mac: 'f2', windows: 'f2', name: 'Rename Item' }, // D
       collapseSidebar: { mac: 'command+bind+\\', windows: 'ctrl+bind+\\', name: 'Collapse Sidebar' } // D
     }
@@ -55,12 +51,6 @@ export const KEY_BINDING_SECTIONS = [
     bindings: {
       editEnvironment: { mac: 'command+bind+e', windows: 'ctrl+bind+e', name: 'Edit Environment' }, // D
       newRequest: { mac: 'command+bind+n', windows: 'ctrl+bind+n', name: 'New Request' } // D
-    }
-  },
-  {
-    heading: 'Search',
-    bindings: {
-      globalSearch: { mac: 'command+bind+k', windows: 'ctrl+bind+k', name: 'Global Search' } // D
     }
   },
   {

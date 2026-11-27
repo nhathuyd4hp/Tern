@@ -46,32 +46,6 @@ describe('flattenSidebarTree', () => {
     });
   });
 
-  describe('search', () => {
-    it('includes only matching requests, force-expanded', () => {
-      const c = collection('C', [folder('f1', [request('login'), request('logout')], { collapsed: true }), request('health')]);
-      const r = names(flatten([loaded(c)], { searchText: 'log' }).filter((x) => x.kind === 'request'));
-      expect(r).toEqual(expect.arrayContaining(['login', 'logout']));
-      expect(r).not.toContain('health');
-    });
-    it('drops a collection with no matching request', () => {
-      expect(flatten([loaded(collection('C', [request('health')]))], { searchText: 'zzz' })).toHaveLength(0);
-    });
-    it('includes a folder only if it has a matching descendant', () => {
-      const c = collection('C', [folder('match', [request('login')]), folder('nomatch', [request('health')])]);
-      expect(names(flatten([loaded(c)], { searchText: 'login' }).filter((x) => x.kind === 'folder'))).toEqual(['match']);
-    });
-    it('hides empty-cta while searching', () => {
-      const k = kinds(flatten([loaded(collection('C', [request('login')]))], { searchText: 'login' }));
-      expect(k).not.toContain('empty-cta');
-    });
-    it('reveals a matching request\'s examples during search, even when collapsed', () => {
-      const c = collection('C', [request('login', { collapsed: true, examples: [{ uid: 'ex1', name: 'ok' }] })]);
-      const rows = flatten([loaded(c)], { searchText: 'login' });
-      expect(kinds(rows)).toContain('example');
-      expect(names(rows.filter((r) => r.kind === 'example'))).toEqual(['ok']);
-    });
-  });
-
   describe('empty-cta', () => {
     it('collection cta when mounted, empty, expanded', () => {
       const rows = flatten([loaded(collection('C', []))]);

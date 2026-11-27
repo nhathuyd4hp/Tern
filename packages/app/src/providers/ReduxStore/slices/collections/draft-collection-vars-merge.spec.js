@@ -56,7 +56,6 @@ const createStore = (rootVars = [], opts = {}) => {
           ]
         }
       ],
-      collectionSortOrder: 'default',
       activeWorkspaceUid: null
     }
   };

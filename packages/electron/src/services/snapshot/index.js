@@ -89,7 +89,6 @@ const workspaceSchema = yup.object({
   environment: yup.string().defined(),
   lastActiveCollectionPathname: yup.string().nullable(),
   activeWorkspaceTabType: yup.string().oneOf([...WORKSPACE_TAB_TYPES, null]).nullable(),
-  sorting: yup.mixed().oneOf(['alphabetical', 'reverseAlphabetical', 'default']),
   collections: yup.array().of(yup.string()).optional()
 });
 
@@ -393,7 +392,6 @@ class SnapshotManager {
       activeWorkspaceTabType: WORKSPACE_TAB_TYPES.includes(workspace.activeWorkspaceTabType)
         ? workspace.activeWorkspaceTabType
         : null,
-      sorting: typeof workspace.sorting === 'string' ? workspace.sorting : 'default',
       collections
     };
   }

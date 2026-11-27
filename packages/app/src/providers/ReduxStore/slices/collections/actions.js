@@ -1,13 +1,11 @@
 import { collectionSchema, environmentSchema, itemSchema } from '@tern/schema';
-import { parseQueryParams, extractPromptVariables, getDataTypeFromValue, nextCopyName, resolveEnvironmentInheritance } from '@tern/common/utils';
+import { parseQueryParams, extractPromptVariables, getDataTypeFromValue, resolveEnvironmentInheritance } from '@tern/common/utils';
 import { DEFAULT_HTTP_ITEM_SETTINGS } from '@tern/common';
 import { REQUEST_TYPES, VARIABLE_ADD_SCOPES } from 'utils/common/constants';
 import cloneDeep from 'lodash/cloneDeep';
 import filter from 'lodash/filter';
 import find from 'lodash/find';
 import get from 'lodash/get';
-import map from 'lodash/map';
-import set from 'lodash/set';
 import trim from 'lodash/trim';
 import path, { normalizePath, isPathExternalToBasePath } from 'utils/common/path';
 import { insertTaskIntoQueue } from 'providers/ReduxStore/slices/app';
@@ -20,7 +18,6 @@ import {
   findItemInCollection,
   findParentItemInCollection,
   isItemAFolder,
-  refreshUidsInItem,
   isItemARequest,
   getAllVariables,
   transformRequestToSaveToFilesystem,
@@ -34,7 +31,6 @@ import {
 import { uuid, waitForNextTick } from 'utils/common';
 import { cancelNetworkRequest, connectWS, sendGrpcRequest, sendNetworkRequest, sendWsRequest } from 'utils/network/index';
 import { callIpc } from 'utils/common/ipc';
-import brunoClipboard from 'utils/bruno-clipboard';
 
 import {
   collectionAddEnvFileEvent as _collectionAddEnvFileEvent,
@@ -42,7 +38,6 @@ import {
   removeCollection as _removeCollection,
   selectEnvironment as _selectEnvironment,
   applyDefaultEnvironment as _applyDefaultEnvironment,
-  sortCollections as _sortCollections,
   updateCollectionMountStatus,
   moveCollection,
   workspaceEnvUpdateEvent,
@@ -835,179 +830,6 @@ export const renameItem
       });
     };
 
-export const cloneItem = (newName, newFilename, itemUid, collectionUid) => (dispatch, getState) => {
-  const state = getState();
-  const collection = findCollectionByUid(state.collections.collections, collectionUid);
-
-  return new Promise((resolve, reject) => {
-    if (!collection) {
-      throw new Error('Application not found');
-    }
-    const collectionCopy = cloneDeep(collection);
-    const item = findItemInCollection(collectionCopy, itemUid);
-    if (!item) {
-      throw new Error('Unable to locate item');
-    }
-
-    if (isItemAFolder(item)) {
-      const parentFolder = findParentItemInCollection(collection, item.uid) || collection;
-
-      // Filename uniqueness is resolved silently by electron; no pre-check.
-      set(item, 'name', newName);
-      set(item, 'filename', newFilename);
-      set(item, 'root.meta.name', newName);
-      set(item, 'root.meta.seq', parentFolder?.items?.length + 1);
-
-      const collectionPath = path.join(parentFolder.pathname, newFilename);
-
-      const { ipcRenderer } = window;
-      ipcRenderer.invoke('renderer:clone-folder', item, collectionPath, collection.pathname).then(resolve).catch(reject);
-      return;
-    }
-
-    const parentItem = findParentItemInCollection(collectionCopy, itemUid);
-    const filename = resolveRequestFilename(newFilename);
-    const itemToSave = refreshUidsInItem(transformRequestToSaveToFilesystem(item));
-    set(itemToSave, 'name', trim(newName));
-    set(itemToSave, 'filename', trim(filename));
-    // Filename uniqueness is resolved silently by electron; no pre-check.
-    // The OPEN_REQUEST task uses the path electron actually created.
-    if (!parentItem) {
-      const fullPathname = path.join(collection.pathname, filename);
-      const { ipcRenderer } = window;
-      const requestItems = filter(collection.items, (i) => i.type !== 'folder');
-      itemToSave.seq = requestItems ? requestItems.length + 1 : 1;
-
-      itemSchema
-        .validate(itemToSave)
-        .then((validatedItem) => ipcRenderer.invoke('renderer:new-request', fullPathname, validatedItem))
-        .then((result) => {
-          dispatch(
-            insertTaskIntoQueue({
-              uid: uuid(),
-              type: 'OPEN_REQUEST',
-              collectionUid,
-              itemPathname: result?.pathname || fullPathname
-            })
-          );
-          resolve();
-        })
-        .catch(reject);
-    } else {
-      const dirname = path.dirname(item.pathname);
-      const fullName = path.join(dirname, filename);
-      const { ipcRenderer } = window;
-      const requestItems = filter(parentItem.items, (i) => i.type !== 'folder');
-      itemToSave.seq = requestItems ? requestItems.length + 1 : 1;
-
-      itemSchema
-        .validate(itemToSave)
-        .then((validatedItem) => ipcRenderer.invoke('renderer:new-request', fullName, validatedItem))
-        .then((result) => {
-          dispatch(
-            insertTaskIntoQueue({
-              uid: uuid(),
-              type: 'OPEN_REQUEST',
-              collectionUid,
-              itemPathname: result?.pathname || fullName
-            })
-          );
-          resolve();
-        })
-        .catch(reject);
-    }
-  });
-};
-
-export const pasteItem = (targetCollectionUid, targetItemUid = null) => (dispatch, getState) => {
-  const state = getState();
-
-  const clipboardResult = brunoClipboard.read();
-
-  if (!clipboardResult.hasData) {
-    return Promise.reject(new Error('No item in clipboard'));
-  }
-
-  const targetCollection = findCollectionByUid(state.collections.collections, targetCollectionUid);
-
-  if (!targetCollection) {
-    return Promise.reject(new Error('Target application not found'));
-  }
-
-  return new Promise(async (resolve, reject) => {
-    try {
-      for (const clipboardItem of clipboardResult.items) {
-        const copiedItem = cloneDeep(clipboardItem);
-
-        const targetCollectionCopy = cloneDeep(targetCollection);
-        let targetItem = null;
-        let targetParentPathname = targetCollection.pathname;
-
-        // If targetItemUid is provided, we're pasting into a folder
-        if (targetItemUid) {
-          targetItem = findItemInCollection(targetCollectionCopy, targetItemUid);
-          if (!targetItem) {
-            return reject(new Error('Target collection not found'));
-          }
-          if (!isItemAFolder(targetItem)) {
-            return reject(new Error('Target must be a collection or application'));
-          }
-          targetParentPathname = targetItem.pathname;
-        }
-
-        const existingItems = targetItem ? targetItem.items : targetCollection.items;
-
-        // Handle folder pasting
-        if (isItemAFolder(copiedItem)) {
-          // Display name takes the next free copy slot in the destination; electron resolves the
-          // filesystem name uniqueness silently.
-          const newName = nextCopyName(copiedItem.name, map(existingItems, (i) => i.name));
-          const newFilename = sanitizeName(newName);
-
-          set(copiedItem, 'name', newName);
-          set(copiedItem, 'filename', newFilename);
-          set(copiedItem, 'root.meta.name', newName);
-          set(copiedItem, 'root.meta.seq', (existingItems?.length ?? 0) + 1);
-
-          const fullPathname = path.join(targetParentPathname, newFilename);
-          const { ipcRenderer } = window;
-
-          await ipcRenderer.invoke('renderer:clone-folder', copiedItem, fullPathname, targetCollection.pathname);
-        } else {
-          // Handle request pasting — display name takes the next free copy slot in the destination;
-          // electron resolves the filename uniqueness and returns the path actually used.
-          const newName = nextCopyName(copiedItem.name, map(existingItems, (i) => i.name));
-          const newFilename = sanitizeName(newName);
-
-          const filename = resolveRequestFilename(newFilename);
-          const itemToSave = refreshUidsInItem(transformRequestToSaveToFilesystem(copiedItem));
-          set(itemToSave, 'name', trim(newName));
-          set(itemToSave, 'filename', trim(filename));
-
-          const fullPathname = path.join(targetParentPathname, filename);
-          const { ipcRenderer } = window;
-          const requestItems = filter(existingItems, (i) => i.type !== 'folder');
-          itemToSave.seq = requestItems ? requestItems.length + 1 : 1;
-
-          const validatedItem = await itemSchema.validate(itemToSave);
-          const result = await ipcRenderer.invoke('renderer:new-request', fullPathname, validatedItem);
-
-          dispatch(insertTaskIntoQueue({
-            uid: uuid(),
-            type: 'OPEN_REQUEST',
-            collectionUid: targetCollectionUid,
-            itemPathname: result?.pathname || fullPathname
-          }));
-        }
-      }
-
-      resolve();
-    } catch (error) {
-      reject(error);
-    }
-  });
-};
-
 export const deleteItem = (itemUid, collectionUid) => (dispatch, getState) => {
   const state = getState();
   const collection = findCollectionByUid(state.collections.collections, collectionUid);
@@ -1044,10 +866,6 @@ export const deleteItem = (itemUid, collectionUid) => (dispatch, getState) => {
       return reject(new Error('Unable to locate item'));
     }
   });
-};
-
-export const sortCollections = (payload) => (dispatch) => {
-  dispatch(_sortCollections(payload));
 };
 
 export const moveItem
@@ -2585,14 +2403,14 @@ export const selectEnvironment = (environmentUid, collectionUid) => (dispatch, g
   });
 };
 
-export const selectSidebarRange = ({ uid, searchText }) => (dispatch, getState) => {
+export const selectSidebarRange = ({ uid }) => (dispatch, getState) => {
   const state = getState();
-  const { collections, collectionSortOrder, lastClickedSidebarUid } = state.collections;
+  const { collections, lastClickedSidebarUid } = state.collections;
   const { workspaces, activeWorkspaceUid } = state.workspaces;
   const activeWorkspace = workspaces.find((w) => w.uid === activeWorkspaceUid) || workspaces.find((w) => w.type === 'default');
 
-  const sidebarEntries = buildSidebarEntries({ collections, workspaces, activeWorkspace, collectionSortOrder });
-  const visibleUids = getVisibleSidebarUidsInOrder({ sidebarEntries, searchText });
+  const sidebarEntries = buildSidebarEntries({ collections, workspaces, activeWorkspace });
+  const visibleUids = getVisibleSidebarUidsInOrder({ sidebarEntries });
 
   const clickedIndex = visibleUids.indexOf(uid);
   if (clickedIndex === -1) return;

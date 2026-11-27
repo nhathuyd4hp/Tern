@@ -5,12 +5,14 @@ import {
   IconEdit,
   IconDots,
   IconX,
-  IconFolder
+  IconFolder,
+  IconFileExport
 } from '@tabler/icons';
 import { addTab } from 'providers/ReduxStore/slices/tabs';
 import { mountCollection, showInFolder } from 'providers/ReduxStore/slices/collections/actions';
 import { removeCollectionFromWorkspaceAction } from 'providers/ReduxStore/slices/workspaces/actions';
 import { getRevealInFolderLabel } from 'utils/common/platform';
+import { exportApplication } from 'utils/application-archive';
 import { normalizePath } from 'utils/common/path';
 import toast from 'react-hot-toast';
 import RenameCollection from 'components/Sidebar/Collections/Collection/RenameCollection';
@@ -224,6 +226,16 @@ const CollectionsList = ({ workspace, viewMode = 'card' }) => {
               >
                 <IconFolder size={16} strokeWidth={1.5} />
                 <span>{getRevealInFolderLabel()}</span>
+              </div>
+              <div
+                className="dropdown-item"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  exportApplication(collection);
+                }}
+              >
+                <IconFileExport size={16} strokeWidth={1.5} />
+                <span>Export</span>
               </div>
             </>
           )}

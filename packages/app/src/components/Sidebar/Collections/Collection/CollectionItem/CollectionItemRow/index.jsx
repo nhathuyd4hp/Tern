@@ -10,8 +10,6 @@ import {
   IconStack2,
   IconPlayerPlay,
   IconEdit,
-  IconCopy,
-  IconClipboard,
   IconCode,
   IconFolder,
   IconExternalLink,
@@ -21,11 +19,9 @@ import {
 } from '@tabler/icons';
 import { useSelector, useDispatch, useStore } from 'react-redux';
 import { addTab, focusTab, makeTabPermanent } from 'providers/ReduxStore/slices/tabs';
-import { handleMultipleCollectionItemsDrop, sendRequest, showInFolder, pasteItem, cloneItem } from 'providers/ReduxStore/slices/collections/actions';
-import { sanitizeName } from 'utils/common/regex';
-import { formatIpcError } from 'utils/common/error';
+import { handleMultipleCollectionItemsDrop, sendRequest, showInFolder } from 'providers/ReduxStore/slices/collections/actions';
 import { toggleCollectionItem, expandItem, collapseItem } from 'providers/ReduxStore/slices/collections';
-import { copyRequest, setFocusedSidebarPath } from 'providers/ReduxStore/slices/app';
+import { setFocusedSidebarPath } from 'providers/ReduxStore/slices/app';
 import NewRequest from 'components/Sidebar/NewRequest';
 import NewFolder from 'components/Sidebar/NewFolder';
 import OpenAPISyncIcon from 'components/Icons/OpenAPISync';
@@ -34,8 +30,7 @@ import RenameCollectionItem from '../RenameCollectionItem';
 import DeleteCollectionItems from '../DeleteCollectionItems';
 import GenerateCodeItem from '../GenerateCodeItem';
 import { isItemARequest, isItemAFolder } from 'utils/tabs';
-import { doesRequestMatchSearchText, doesFolderHaveItemsMatchSearchText } from 'utils/collections/search';
-import { getDefaultRequestPaneTab, getItemTypeLabel } from 'utils/collections';
+import { getDefaultRequestPaneTab } from 'utils/collections';
 import toast from 'react-hot-toast';
 import StyledWrapper from './StyledWrapper';
 import NetworkError from 'components/ResponsePane/NetworkError/index';
@@ -50,8 +45,6 @@ import { makeSelectInvalidItemCountForFolder, selectCollectionByUid } from 'src/
 import {
   canCollectionItemBeDropped,
   determineCollectionItemDrop,
-  getCloneDisplayName,
-  findParentItemInCollection,
   getSortedDraggedItems,
   isCollectionItemCollapsed
 } from 'utils/collections/index';
@@ -71,7 +64,6 @@ const CollectionItemRow = ({
   depth,
   collectionUid,
   collectionPathname,
-  searchText,
   openBulkMenu,
   children,
   isItemMultiDragDisabled,
@@ -91,15 +83,13 @@ const CollectionItemRow = ({
 
   const isSidebarDragging = useSelector((state) => state.app.isDragging);
   const store = useStore();
-  const { hasCopiedItems } = useSelector((state) => state.app.clipboard);
   const selectedSidebarUids = useSelector((state) => state.collections.selectedSidebarUids);
   const isSelected = selectedSidebarUids.includes(item.uid);
   const isMultiSelected = isSelected && selectedSidebarUids.length > 1;
-  const handleSelectionClick = useSidebarSelectionClick({ uid: item.uid, searchText });
+  const handleSelectionClick = useSidebarSelectionClick({ uid: item.uid });
   const workspaces = useSelector((state) => state.workspaces.workspaces);
   const activeWorkspaceUid = useSelector((state) => state.workspaces.activeWorkspaceUid);
   const activeWorkspace = workspaces?.find((w) => w.uid === activeWorkspaceUid);
-  const collectionSortOrder = useSelector((state) => state.collections.collectionSortOrder);
   const dispatch = useDispatch();
 
   const multiDragItems = isMultiSelected ? multiDragItemsForSelection : null;
@@ -118,8 +108,7 @@ const CollectionItemRow = ({
   const [itemInfoModalOpen, setItemInfoModalOpen] = useState(false);
   const examplesExpanded = !isCollectionItemCollapsed(item);
   const [isKeyboardFocused, setIsKeyboardFocused] = useState(false);
-  const hasSearchText = searchText && searchText?.trim()?.length;
-  const itemIsCollapsed = hasSearchText ? false : isCollectionItemCollapsed(item);
+  const itemIsCollapsed = isCollectionItemCollapsed(item);
   const isFolder = isItemAFolder(item);
   const CollectionIcon = depth > 1 ? IconFolder : IconStack2;
   const applicationColor = useApplicationColor({ pathname: collectionPathname });
@@ -133,29 +122,12 @@ const CollectionItemRow = ({
     isFolder ? selectFolderInvalidItemCount(state, collectionUid, item.items) : 0
   );
 
-  const isCloneable = isFolder || isItemARequest(item);
-
   // Check if request has examples (only for HTTP requests)
   const hasExamples = isItemARequest(item) && item.type === 'http-request' && item.examples && item.examples.length > 0;
 
   const getKeybindingDisplayText = useKeybindingDisplayText();
 
   // Sidebar shortcuts — only active when this sidebar item has keyboard focus
-  useKeybinding('cloneItem', () => {
-    handleCloneItem();
-    return false;
-  }, { enabled: isKeyboardFocused, deps: [isKeyboardFocused] });
-
-  useKeybinding('copyItem', () => {
-    handleCopyItem();
-    return false;
-  }, { enabled: isKeyboardFocused, deps: [isKeyboardFocused] });
-
-  useKeybinding('pasteItem', () => {
-    handlePasteItem();
-    return false;
-  }, { enabled: isKeyboardFocused, deps: [isKeyboardFocused] });
-
   useKeybinding('renameItem', () => {
     setRenameItemModalOpen(true);
     return false;
@@ -244,9 +216,7 @@ const CollectionItemRow = ({
         draggedItem,
         allCollections: store.getState().collections.collections,
         workspaces,
-        activeWorkspace,
-        collectionSortOrder,
-        searchText
+        activeWorkspace
       });
 
       // Filter out items that can't be dropped on this target
@@ -433,34 +403,6 @@ const CollectionItemRow = ({
       );
     }
 
-    if (isCloneable) {
-      items.push({
-        id: 'clone',
-        leftSection: IconCopy,
-        label: 'Clone',
-        shortcut: getKeybindingDisplayText('cloneItem'),
-        onClick: handleCloneItem
-      });
-    }
-
-    items.push({
-      id: 'copy',
-      leftSection: IconCopy,
-      label: 'Copy',
-      shortcut: getKeybindingDisplayText('copyItem'),
-      onClick: handleCopyItem
-    });
-
-    if (isFolder && hasCopiedItems) {
-      items.push({
-        id: 'paste',
-        leftSection: IconClipboard,
-        label: 'Paste',
-        shortcut: getKeybindingDisplayText('pasteItem'),
-        onClick: handlePasteItem
-      });
-    }
-
     items.push(
       {
         id: 'rename',
@@ -609,39 +551,6 @@ const CollectionItemRow = ({
     }
   };
 
-  const handleCopyItem = () => {
-    dispatch(copyRequest(item));
-    toast.success(`${getItemTypeLabel(item)} copied`);
-  };
-
-  // One-click clone: display name takes the next free copy slot among siblings; the filesystem
-  // name uniqueness is resolved silently by electron.
-  const handleCloneItem = () => {
-    if (!isCloneable) return;
-    const newName = getCloneDisplayName(selectCollectionByUid(store.getState(), collectionUid), item);
-    dispatch(cloneItem(newName, sanitizeName(newName), item.uid, collectionUid))
-      .then(() => toast.success(`${getItemTypeLabel(item)} cloned!`))
-      .catch((err) => toast.error(formatIpcError(err) || `An error occurred while cloning the ${getItemTypeLabel(item).toLowerCase()}`));
-  };
-
-  const handlePasteItem = () => {
-    // Determine target folder: if item is a folder, paste into it; otherwise paste into parent folder
-    let targetFolderUid = item.uid;
-    if (!isFolder) {
-      const collection = selectCollectionByUid(store.getState(), collectionUid);
-      const parentFolder = findParentItemInCollection(collection, item.uid);
-      targetFolderUid = parentFolder ? parentFolder.uid : null;
-    }
-
-    dispatch(pasteItem(collectionUid, targetFolderUid))
-      .then(() => {
-        toast.success('Item pasted successfully');
-      })
-      .catch((err) => {
-        toast.error(formatIpcError(err) || 'An error occurred while pasting the item');
-      });
-  };
-
   const handleFocus = () => {
     setIsKeyboardFocused(true);
     // For folders, set the folder path; for requests, set empty string (no terminal)
@@ -652,18 +561,6 @@ const CollectionItemRow = ({
     setIsKeyboardFocused(false);
     dispatch(setFocusedSidebarPath(null));
   };
-
-  if (searchText && searchText.length) {
-    if (isItemARequest(item)) {
-      if (!doesRequestMatchSearchText(item, searchText)) {
-        return null;
-      }
-    } else {
-      if (!doesFolderHaveItemsMatchSearchText(item, searchText)) {
-        return null;
-      }
-    }
-  }
 
   return (
     <StyledWrapper className={className}>
@@ -732,7 +629,7 @@ const CollectionItemRow = ({
                   data-testid="folder-chevron"
                 />
               </ActionIcon>
-            ) : hasExamples && !hasSearchText ? (
+            ) : hasExamples ? (
               <ActionIcon style={{ width: 16, minWidth: 16 }}>
                 <IconChevronRight
                   size={16}

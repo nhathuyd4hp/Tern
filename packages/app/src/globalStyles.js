@@ -891,7 +891,7 @@ const GlobalStyle = createGlobalStyle`
   }
 
   /* Currently selected scope in the "Add to" list — matches the selected-item treatment used by
-     the app's other dropdowns (see components/Dropdown, StatusBar/ThemeDropdown). */
+     the app's other dropdowns (see components/Dropdown, RequestTabs/TabBarActions/ThemeDropdown). */
   .var-add-to-option-active {
     background: ${(props) => rgba(props.theme.dropdown.selectedColor, 0.07)};
   }

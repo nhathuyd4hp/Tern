@@ -33,7 +33,6 @@ describe('mountCollection skipTabRestore behavior', () => {
       preloadedState: {
         app: { preferences: { cache: { file: { enabled: false } } } },
         collections: {
-          collectionSortOrder: 'default',
           collections: [{
             uid: 'col-yamlbased',
             pathname: COLLECTION_PATH,
@@ -99,7 +98,6 @@ describe('mountCollection skipTabRestore behavior', () => {
       preloadedState: {
         app: { preferences: { cache: { file: { enabled: false } } } },
         collections: {
-          collectionSortOrder: 'default',
           collections: [{
             uid: 'col-yamlbased',
             pathname: COLLECTION_PATH,

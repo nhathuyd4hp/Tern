@@ -1,9 +1,8 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Virtuoso } from 'react-virtuoso';
 import StyledWrapper from './StyledWrapper';
 import CreateOrOpenCollection from './CreateOrOpenCollection';
-import CollectionSearch from './CollectionSearch/index';
 import InlineCollectionCreator from './InlineCollectionCreator';
 import SidebarRow from './SidebarRow';
 import { clearSidebarSelection } from 'providers/ReduxStore/slices/collections';
@@ -11,19 +10,12 @@ import { buildSidebarEntries, getSelectionInfo } from 'utils/collections/index';
 import { flattenSidebarTree } from 'utils/collections/flattenSidebarTree';
 import { CollectionItemDragPreview } from './Collection/CollectionItem/CollectionItemDragPreview';
 import useBulkActionsMenu from 'hooks/useBulkActionsMenu';
-import useDebounce from 'hooks/useDebounce';
 import useSidebarAutoReveal from 'hooks/useSidebarAutoReveal';
 import BulkActionsMenu from 'components/Sidebar/Collections/BulkActionsMenu';
-import { selectCollections, selectCollectionSortOrder, selectSelectedSidebarUids } from 'src/selectors/collections';
+import { selectCollections, selectSelectedSidebarUids } from 'src/selectors/collections';
 
-const isEmptyQuery = (value) => typeof value === 'string' && value.trim() === '';
-
-const Collections = ({ showSearch, isCreatingCollection, onCreateClick, onDismissCreate, onOpenAdvancedCreate }) => {
-  const [searchText, setSearchText] = useState('');
-  const trimmedSearchText = searchText.trim();
-  const debouncedSearchText = useDebounce(trimmedSearchText, 300, { shouldSkipDebounce: isEmptyQuery });
+const Collections = ({ isCreatingCollection, onCreateClick, onDismissCreate, onOpenAdvancedCreate }) => {
   const collections = useSelector(selectCollections);
-  const collectionSortOrder = useSelector(selectCollectionSortOrder);
   const selectedSidebarUids = useSelector(selectSelectedSidebarUids);
   const workspaces = useSelector((state) => state.workspaces.workspaces);
   const activeWorkspaceUid = useSelector((state) => state.workspaces.activeWorkspaceUid);
@@ -37,14 +29,14 @@ const Collections = ({ showSearch, isCreatingCollection, onCreateClick, onDismis
 
   // Build the sidebar list in workspace.yml order.
   const sidebarEntries = useMemo(
-    () => buildSidebarEntries({ collections, workspaces, activeWorkspace, collectionSortOrder }),
-    [activeWorkspace, collections, workspaces, collectionSortOrder]
+    () => buildSidebarEntries({ collections, workspaces, activeWorkspace }),
+    [activeWorkspace, collections, workspaces]
   );
 
   // Flatten the tree into ordered rows. itemsByUid / collectionsByUid resolve a row's live object.
   const { rows, itemsByUid, collectionsByUid, rowIndexByItemUid, rowIndexByCollectionUid } = useMemo(
-    () => flattenSidebarTree(sidebarEntries, { searchText: debouncedSearchText }),
-    [sidebarEntries, debouncedSearchText]
+    () => flattenSidebarTree(sidebarEntries),
+    [sidebarEntries]
   );
 
   // Multi-select drag context, computed once for the whole list and threaded to rows via SidebarRow.
@@ -103,10 +95,6 @@ const Collections = ({ showSearch, isCreatingCollection, onCreateClick, onDismis
 
   return (
     <StyledWrapper data-testid="collections">
-      {showSearch && (
-        <CollectionSearch searchText={searchText} setSearchText={setSearchText} />
-      )}
-
       {isCreatingCollection && (
         <InlineCollectionCreator
           onComplete={onDismissCreate}
@@ -131,7 +119,6 @@ const Collections = ({ showSearch, isCreatingCollection, onCreateClick, onDismis
           itemContent={(_, row) => (
             <SidebarRow
               row={row}
-              searchText={debouncedSearchText}
               openBulkMenu={openBulkMenu}
               itemsByUid={itemsByUid}
               collectionsByUid={collectionsByUid}

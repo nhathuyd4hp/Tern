@@ -45,7 +45,6 @@ const makeInitialState = ({ fileMode = false, item = {} } = {}) => ({
       ]
     }
   ],
-  collectionSortOrder: 'default',
   activeWorkspaceUid: null
 });
 

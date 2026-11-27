@@ -9,12 +9,7 @@ import {
   mockDataFunctions
 } from '@tern/common';
 import { VARIABLE_ADD_SCOPES, AUTOCOMPLETE_SCOPES } from 'utils/common/constants';
-import {
-  doesRequestMatchSearchText,
-  doesFolderHaveItemsMatchSearchText,
-  doesCollectionHaveItemsMatchingSearchText
-} from 'utils/collections/search';
-import { nextCopyName, resolveEnvironmentInheritance, toVariablesMap } from '@tern/common/utils';
+import { resolveEnvironmentInheritance, toVariablesMap } from '@tern/common/utils';
 
 const replaceTabsWithSpaces = (str, numSpaces = 2) => {
   if (!str || !str.length || !isString(str)) {
@@ -125,16 +120,6 @@ export const findParentItemInCollection = (collection, itemUid) => {
   return find(flattenedItems, (item) => {
     return item.items && find(item.items, (i) => i.uid === itemUid);
   });
-};
-
-/**
- * Display name for a clone of `item`: the source name with any trailing copy token stripped, then
- * the next free slot among its siblings. The filesystem name is still resolved by electron.
- */
-export const getCloneDisplayName = (collection, item) => {
-  const parent = findParentItemInCollection(collection, item.uid) || collection;
-
-  return nextCopyName(item.name, map(parent.items, (i) => i.name));
 };
 
 export const recursivelyGetAllItemUids = (items = []) => {
@@ -1992,16 +1977,12 @@ export const getVariableNamesWithScope = (collection, item) => {
   return Object.entries(scopeByName).map(([name, scope]) => ({ name, scope }));
 };
 
-const sidebarEntryCollator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
-
-const getSidebarEntryName = (entry) => entry.collection?.name || '';
-
 /**
  * The sidebar list in workspace.yml order: one entry per loaded collection. Shared
  * between Collections/index.js's render and the shift-select range thunk so both agree on
  * ordering — see Collections/index.js for the rendering this mirrors.
  */
-export const buildSidebarEntries = ({ collections = [], workspaces = [], activeWorkspace, collectionSortOrder }) => {
+export const buildSidebarEntries = ({ collections = [], workspaces = [], activeWorkspace }) => {
   if (!activeWorkspace?.collections?.length) return [];
 
   const loadedByPath = new Map();
@@ -2026,27 +2007,17 @@ export const buildSidebarEntries = ({ collections = [], workspaces = [], activeW
     }
   }
 
-  if (collectionSortOrder === 'alphabetical') {
-    return [...entries].sort((a, b) => sidebarEntryCollator.compare(getSidebarEntryName(a), getSidebarEntryName(b)));
-  }
-
-  if (collectionSortOrder === 'reverseAlphabetical') {
-    return [...entries].sort((a, b) => -sidebarEntryCollator.compare(getSidebarEntryName(a), getSidebarEntryName(b)));
-  }
-
   return entries;
 };
 
 /**
- * Returns an ordered list of all currently visible sidebar item UIDs, reflecting collapse state and search filters.
+ * Returns an ordered list of all currently visible sidebar item UIDs, reflecting collapse state.
  *
  * @param {Object} options
  * @param {Array} options.sidebarEntries
- * @param {string} options.searchText
  * @returns {string[]}
  */
-export const getVisibleSidebarUidsInOrder = ({ sidebarEntries = [], searchText = '' }) => {
-  const hasSearchText = Boolean(searchText && searchText.trim().length);
+export const getVisibleSidebarUidsInOrder = ({ sidebarEntries = [] }) => {
   const uids = [];
 
   const visitItems = (items = []) => {
@@ -2054,18 +2025,16 @@ export const getVisibleSidebarUidsInOrder = ({ sidebarEntries = [], searchText =
     const requestItems = [...filter(items, (i) => isItemARequest(i) && !i.isTransient)].sort((a, b) => a.seq - b.seq);
 
     folderItems.forEach((folder) => {
-      if (hasSearchText && !doesFolderHaveItemsMatchSearchText(folder, searchText)) return;
       uids.push(folder.uid);
-      if (hasSearchText || !folder.collapsed) {
+      if (!folder.collapsed) {
         visitItems(folder.items);
       }
     });
 
     requestItems.forEach((request) => {
-      if (hasSearchText && !doesRequestMatchSearchText(request, searchText)) return;
       uids.push(request.uid);
 
-      const examplesVisible = request.type === 'http-request' && (hasSearchText || !isCollectionItemCollapsed(request));
+      const examplesVisible = request.type === 'http-request' && !isCollectionItemCollapsed(request);
       if (examplesVisible && request.examples?.length) {
         request.examples.forEach((example) => uids.push(example.uid));
       }
@@ -2075,9 +2044,8 @@ export const getVisibleSidebarUidsInOrder = ({ sidebarEntries = [], searchText =
   sidebarEntries.forEach((entry) => {
     if (entry.kind !== 'loaded') return;
     const { collection } = entry;
-    if (hasSearchText && !doesCollectionHaveItemsMatchingSearchText(collection, searchText)) return;
     uids.push(collection.uid);
-    if (hasSearchText || !collection.collapsed) {
+    if (!collection.collapsed) {
       visitItems(collection.items);
     }
   });
@@ -2555,17 +2523,13 @@ export const getOtherCollections = (allCollections, uids) => {
  * @param {Array} allCollections - Array of all collections
  * @param {Array} workspaces - Array of workspaces
  * @param {Object} activeWorkspace - The active workspace
- * @param {string} collectionSortOrder - The collection sort order
- * @param {string} searchText - The search text
  * @returns {Array} Array of sorted dragged items
  */
 export const getSortedDraggedItems = ({
   draggedItem,
   allCollections,
   workspaces,
-  activeWorkspace,
-  collectionSortOrder,
-  searchText
+  activeWorkspace
 }) => {
   let draggedItems = [];
   if (draggedItem.multiSelectedItems && draggedItem.multiSelectedItems.length > 0) {
@@ -2581,11 +2545,10 @@ export const getSortedDraggedItems = ({
   const sidebarEntries = buildSidebarEntries({
     collections: allCollections,
     workspaces,
-    activeWorkspace,
-    collectionSortOrder
+    activeWorkspace
   });
 
-  const visibleUids = getVisibleSidebarUidsInOrder({ sidebarEntries, searchText });
+  const visibleUids = getVisibleSidebarUidsInOrder({ sidebarEntries });
   const visibleUidsIndex = new Map(visibleUids.map((uid, idx) => [uid, idx]));
 
   draggedItems.sort((a, b) => {

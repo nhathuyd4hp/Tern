@@ -1,11 +1,6 @@
 import { isItemAFolder, isItemARequest, isCollectionItemCollapsed } from './index';
 import { collectionSlug } from './collectionSlug';
 import { sortByNameThenSequence } from 'utils/common/index';
-import {
-  doesRequestMatchSearchText,
-  doesFolderHaveItemsMatchSearchText,
-  doesCollectionHaveItemsMatchingSearchText
-} from './search';
 
 const groupCollectionItems = (collectionItems) => {
   const folders = [];
@@ -42,8 +37,6 @@ const walkChildren = (
     collectionUid,
     collectionPathname,
     collectionId,
-    hasSearch,
-    searchText,
     appendRow,
     addItemToIndex
   } = collectionContext;
@@ -58,10 +51,6 @@ const walkChildren = (
   const { folders, requests } = groupCollectionItems(collectionItems);
 
   for (const folder of folders) {
-    if (hasSearch && !doesFolderHaveItemsMatchSearchText(folder, searchText)) {
-      continue;
-    }
-
     visibleChildCount++;
 
     appendRow({
@@ -78,10 +67,7 @@ const walkChildren = (
 
     addItemToIndex(folder.uid, folder);
 
-    // Search reveals matching descendants regardless of the collapsed state.
-    const isExpanded = hasSearch || !folder.collapsed;
-
-    if (!isExpanded) continue;
+    if (folder.collapsed) continue;
 
     const childCount = walkChildren(collectionContext, {
       collectionItems: folder.items,
@@ -90,7 +76,7 @@ const walkChildren = (
       ancestorPath: [...ancestorPath, folder.uid]
     });
 
-    if (!hasSearch && childCount === 0) {
+    if (childCount === 0) {
       appendRow({
         id: `${collectionUid}:${ancestorKey}:${folder.uid}:cta`,
         kind: 'empty-cta',
@@ -106,10 +92,6 @@ const walkChildren = (
   }
 
   for (const request of requests) {
-    if (hasSearch && !doesRequestMatchSearchText(request, searchText)) {
-      continue;
-    }
-
     visibleChildCount++;
 
     appendRow({
@@ -129,7 +111,7 @@ const walkChildren = (
     const hasExamples
       = request.type === 'http-request' && Array.isArray(request.examples);
 
-    if (hasExamples && (hasSearch || !isCollectionItemCollapsed(request))) {
+    if (hasExamples && !isCollectionItemCollapsed(request)) {
       request.examples.forEach((example, index) => {
         appendRow({
           id: `${collectionUid}:${ancestorKey}:${request.uid}:ex:${example.uid || index}`,
@@ -156,19 +138,10 @@ const walkChildren = (
  */
 const flattenCollection = ({
   collection,
-  hasSearch,
-  searchText,
   appendRow,
   addItemToIndex,
   addCollectionToIndex
 }) => {
-  if (
-    hasSearch
-    && !doesCollectionHaveItemsMatchingSearchText(collection, searchText)
-  ) {
-    return;
-  }
-
   // Used for readable test selectors. collectionUid remains the unique identity.
   const collectionId = collectionSlug(collection.name);
 
@@ -186,17 +159,12 @@ const flattenCollection = ({
 
   addCollectionToIndex(collection.uid, collection);
 
-  // Search reveals matching descendants regardless of the collapsed state.
-  const isExpanded = hasSearch || !collection.collapsed;
-
-  if (!isExpanded) return;
+  if (collection.collapsed) return;
 
   const collectionContext = {
     collectionUid: collection.uid,
     collectionPathname: collection.pathname || null,
     collectionId,
-    hasSearch,
-    searchText,
     appendRow,
     addItemToIndex
   };
@@ -209,8 +177,7 @@ const flattenCollection = ({
 
   // Append the collection-root empty-state CTA row.
   if (
-    !hasSearch
-    && visibleChildCount === 0
+    visibleChildCount === 0
     && collection.mountStatus === 'mounted'
     && !collection.isLoading
   ) {
@@ -233,17 +200,13 @@ const flattenCollection = ({
  * each row carry only structural data.
  *
  * @param {Array} sidebarEntries
- * @param {{ searchText?: string }} options
  * @returns {{
  *   rows: Array<Object>,
  *   itemsByUid: Map,
  *   collectionsByUid: Map
  * }}
  */
-export const flattenSidebarTree = (sidebarEntries = [], options = {}) => {
-  const { searchText = '' } = options;
-  const hasSearch = Boolean(searchText.trim());
-
+export const flattenSidebarTree = (sidebarEntries = []) => {
   const rows = [];
   const itemsByUid = new Map();
   const collectionsByUid = new Map();
@@ -272,8 +235,6 @@ export const flattenSidebarTree = (sidebarEntries = [], options = {}) => {
 
     flattenCollection({
       collection: entry.collection,
-      hasSearch,
-      searchText,
       appendRow,
       addItemToIndex,
       addCollectionToIndex

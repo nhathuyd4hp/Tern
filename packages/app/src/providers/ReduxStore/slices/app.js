@@ -1,6 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
 import filter from 'lodash/filter';
-import brunoClipboard from 'utils/bruno-clipboard';
 import { normalizePath } from 'utils/common/path';
 import { addTab, focusTab } from './tabs';
 import { clearPersistedScope } from 'hooks/usePersistedState/PersistedScopeProvider';
@@ -27,7 +26,6 @@ const initialState = {
   },
   leftSidebarWidth: null,
   sidebarCollapsed: null,
-  showSidebarSearch: false,
   focusedSidebarPath: null,
   screenWidth: 500,
   showHomePage: false,
@@ -77,9 +75,6 @@ const initialState = {
   taskQueue: [],
   gitOperationProgress: {},
   gitVersion: null,
-  clipboard: {
-    hasCopiedItems: false // Whether clipboard has Tern data (for UI)
-  },
   systemProxyVariables: {},
   systemProxyLastRefreshedAt: null,
   envVarSearch: {
@@ -201,9 +196,6 @@ export const appSlice = createSlice({
     toggleSidebarCollapse: (state) => {
       state.sidebarCollapsed = !state.sidebarCollapsed;
     },
-    toggleSidebarSearch: (state) => {
-      state.showSidebarSearch = !state.showSidebarSearch;
-    },
     setFocusedSidebarPath: (state, action) => {
       state.focusedSidebarPath = action.payload;
     },
@@ -219,10 +211,6 @@ export const appSlice = createSlice({
     },
     setGitVersion: (state, action) => {
       state.gitVersion = action.payload;
-    },
-    setClipboard: (state, action) => {
-      // Update clipboard UI state
-      state.clipboard.hasCopiedItems = action.payload.hasCopiedItems;
     },
     setEnvVarSearchQuery: (state, { payload: { context, tab = 'variables', query } }) => {
       if (!state.envVarSearch[context]?.[tab]) return;
@@ -273,12 +261,10 @@ export const {
   updateSystemProxyLastRefreshedAt,
   updateGenerateCode,
   toggleSidebarCollapse,
-  toggleSidebarSearch,
   setFocusedSidebarPath,
   updateGitOperationProgress,
   removeGitOperationProgress,
   setGitVersion,
-  setClipboard,
   setEnvVarSearchQuery,
   setEnvVarSearchExpanded,
   setIsCreatingCollection,
@@ -399,12 +385,6 @@ export const completeQuitFlow = () => (dispatch, getState) => {
   // Wipe all `persisted::*` keys from localStorage before quitting
   clearPersistedScope();
   return ipcRenderer.invoke('main:complete-quit-flow');
-};
-
-export const copyRequest = (item) => (dispatch, getState) => {
-  brunoClipboard.write(item);
-  dispatch(setClipboard({ hasCopiedItems: true }));
-  return Promise.resolve();
 };
 
 export const getSystemProxyVariables = () => (dispatch, getState) => {

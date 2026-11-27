@@ -8,7 +8,7 @@ import {
   setWorkspaceScratchCollection
 } from '../workspaces';
 import { openMultipleCollections, openScratchCollectionEvent, mountCollection, hydrateCollectionWithUiStateSnapshot } from '../collections/actions';
-import { removeCollection, addTransientDirectory, updateCollectionMountStatus, expandCollection, sortCollections } from '../collections';
+import { removeCollection, addTransientDirectory, updateCollectionMountStatus, expandCollection } from '../collections';
 import { clearCollectionState } from '../openapi-sync';
 import { updateGlobalEnvironments } from '../global-environments';
 import { addTab, restoreTabs } from '../tabs';
@@ -26,16 +26,6 @@ const { ipcRenderer } = window;
 let snapshotHydrationTimer = null;
 let startupWorkspaceRestorePending = true;
 const SNAPSHOT_HYDRATION_LONG_STOP_GUARD_MS = 5 * 60 * 1000;
-
-const COLLECTION_SORT_ORDER_BY_WORKSPACE_SORTING = {
-  default: 'default',
-  alphabetical: 'alphabetical',
-  reverseAlphabetical: 'reverseAlphabetical'
-};
-
-const normalizeCollectionSortOrder = (sorting) => {
-  return COLLECTION_SORT_ORDER_BY_WORKSPACE_SORTING[sorting] || 'default';
-};
 
 const clearSnapshotHydrationTimeout = () => {
   if (snapshotHydrationTimer) {
@@ -347,9 +337,6 @@ export const activateWorkspace = (workspaceUid) => {
       const workspaceSnapshot = workspace.pathname
         ? snapshotLookups.workspacesByPath[normalizePath(workspace.pathname)] || null
         : null;
-      const snapshotCollectionSortOrder = normalizeCollectionSortOrder(workspaceSnapshot?.sorting);
-      dispatch(sortCollections({ order: snapshotCollectionSortOrder }));
-
       // Load global environments
       const envResult = await ipcRenderer.invoke('renderer:get-global-environments', {
         workspaceUid,

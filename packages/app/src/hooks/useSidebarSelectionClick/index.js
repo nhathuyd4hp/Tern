@@ -5,7 +5,7 @@ import { isMacOS } from 'utils/common/platform';
 
 const isSelectionModifierPressed = (event) => (isMacOS() ? event.metaKey : event.ctrlKey);
 
-const useSidebarSelectionClick = ({ uid, searchText }) => {
+const useSidebarSelectionClick = ({ uid }) => {
   const dispatch = useDispatch();
   const selectedSidebarUids = useSelector((state) => state.collections.selectedSidebarUids);
 
@@ -22,7 +22,7 @@ const useSidebarSelectionClick = ({ uid, searchText }) => {
     if (event.shiftKey) {
       event.preventDefault();
       event.stopPropagation();
-      dispatch(selectSidebarRange({ uid, searchText }));
+      dispatch(selectSidebarRange({ uid }));
       return true;
     }
 

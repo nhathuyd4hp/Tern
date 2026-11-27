@@ -69,7 +69,6 @@ describe('hydrateSnapshotLookups', () => {
 
     expect(workspace).toMatchObject({
       pathname: '/workspaces/main',
-      sorting: 'default',
       collections: ['/collections/a']
     });
 
@@ -122,7 +121,6 @@ describe('hydrateSnapshotLookups', () => {
 
     expect(workspace).toMatchObject({
       pathname: '/workspaces/main',
-      sorting: 'default',
       collections: ['/collections/a']
     });
 

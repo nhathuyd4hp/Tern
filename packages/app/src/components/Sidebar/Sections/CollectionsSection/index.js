@@ -3,28 +3,23 @@ import toast from 'react-hot-toast';
 import get from 'lodash/get';
 import { useDispatch, useSelector, useStore } from 'react-redux';
 import {
-  IconArrowsSort,
-  IconDotsVertical,
+  IconFileZip,
   IconFolder,
   IconPlus,
-  IconSearch,
-  IconSortAscendingLetters,
-  IconSortDescendingLetters,
-  IconSquareX,
   IconBox
 } from '@tabler/icons';
 
 import { newHttpRequest } from 'providers/ReduxStore/slices/collections/actions';
-import { sortCollections } from 'providers/ReduxStore/slices/collections/index';
-import { savePreferences, setIsCreatingCollection, setIsOpeningCollection, toggleSidebarSearch } from 'providers/ReduxStore/slices/app';
-import { flattenItems, isItemTransientRequest, getWorkspaceCollections } from 'utils/collections';
-import { selectCollections, selectCollectionSortOrder, selectActiveWorkspace } from 'src/selectors/collections';
+import { pickApplicationZip } from 'providers/ReduxStore/slices/open-collection-modal/actions';
+import { savePreferences, setIsCreatingCollection, setIsOpeningCollection } from 'providers/ReduxStore/slices/app';
+import { flattenItems, isItemTransientRequest } from 'utils/collections';
+import { selectCollections, selectActiveWorkspace } from 'src/selectors/collections';
 import { sanitizeName } from 'utils/common/regex';
+import { useHostname } from 'utils/hostname';
 import filter from 'lodash/filter';
 
 import MenuDropdown from 'ui/MenuDropdown';
 import ActionIcon from 'ui/ActionIcon';
-import RemoveCollections from 'components/Sidebar/Collections/Collection/RemoveCollections/index';
 import CreateCollection from 'components/Sidebar/CreateCollection';
 import WelcomeModal from 'components/WelcomeModal';
 import Collections from 'components/Sidebar/Collections';
@@ -32,15 +27,12 @@ import SidebarSection from 'components/Sidebar/SidebarSection';
 
 const CollectionsSection = () => {
   const dispatch = useDispatch();
-  const showSearch = useSelector((state) => state.app.showSidebarSearch);
-
   const activeWorkspace = useSelector(selectActiveWorkspace);
+  const hostname = useHostname();
 
   const store = useStore();
-  const collectionSortOrder = useSelector(selectCollectionSortOrder);
   const isCreatingCollection = useSelector((state) => state.app.isCreatingCollection);
   const preferences = useSelector((state) => state.app.preferences);
-  const [collectionsToClose, setCollectionsToClose] = useState([]);
 
   const [createCollectionModalOpen, setCreateCollectionModalOpen] = useState(false);
   const [advancedCreateName, setAdvancedCreateName] = useState('');
@@ -63,68 +55,6 @@ const CollectionsSection = () => {
     dispatch(savePreferences(updatedPreferences)).catch(() => {
       toast.error('Failed to save preferences');
     });
-  };
-
-  const getActiveWorkspaceCollections = () => {
-    const state = store.getState();
-    return getWorkspaceCollections({
-      collections: selectCollections(state),
-      workspaces: state.workspaces.workspaces,
-      activeWorkspace
-    });
-  };
-
-  const handleToggleSearch = () => {
-    dispatch(toggleSidebarSearch());
-  };
-
-  const handleSortCollections = () => {
-    let order;
-    switch (collectionSortOrder) {
-      case 'default':
-        order = 'alphabetical';
-        break;
-      case 'alphabetical':
-        order = 'reverseAlphabetical';
-        break;
-      case 'reverseAlphabetical':
-        order = 'default';
-        break;
-      default:
-        order = 'default';
-        break;
-    }
-    dispatch(sortCollections({ order }));
-  };
-
-  const getSortIcon = () => {
-    switch (collectionSortOrder) {
-      case 'alphabetical':
-        return IconSortDescendingLetters;
-      case 'reverseAlphabetical':
-        return IconArrowsSort;
-      default:
-        return IconSortAscendingLetters;
-    }
-  };
-
-  const getSortLabel = () => {
-    switch (collectionSortOrder) {
-      case 'alphabetical':
-        return 'Sort Z-A';
-      case 'reverseAlphabetical':
-        return 'Clear sort';
-      default:
-        return 'Sort A-Z';
-    }
-  };
-
-  const selectAllCollectionsToClose = () => {
-    setCollectionsToClose(getActiveWorkspaceCollections().map((c) => c.uid));
-  };
-
-  const clearCollectionsToClose = () => {
-    setCollectionsToClose([]);
   };
 
   const handleOpenCollection = () => {
@@ -197,38 +127,17 @@ const CollectionsSection = () => {
       onClick: () => {
         handleOpenCollection();
       }
-    }
-  ];
-
-  const actionsDropdownItems = [
-    {
-      id: 'sort',
-      leftSection: getSortIcon(),
-      label: getSortLabel(),
-      onClick: () => {
-        handleSortCollections();
-      }
     },
     {
-      id: 'close-all',
-      leftSection: IconSquareX,
-      label: 'Close all',
-      onClick: () => {
-        selectAllCollectionsToClose();
-      }
+      id: 'import-zip',
+      leftSection: IconFileZip,
+      label: 'Import application from .zip',
+      onClick: () => dispatch(pickApplicationZip())
     }
   ];
 
   const sectionActions = (
     <>
-      <ActionIcon
-        onClick={handleToggleSearch}
-        label="Search requests"
-        data-testid="sidebar-search-toggle"
-      >
-        <IconSearch size={14} stroke={1.5} aria-hidden="true" />
-      </ActionIcon>
-
       <MenuDropdown
         data-testid="collections-header-add-menu"
         items={addDropdownItems}
@@ -240,22 +149,6 @@ const CollectionsSection = () => {
           <IconPlus size={14} stroke={1.5} aria-hidden="true" />
         </ActionIcon>
       </MenuDropdown>
-
-      <MenuDropdown
-        data-testid="collections-header-actions-menu"
-        items={actionsDropdownItems}
-        placement="bottom-end"
-      >
-        <ActionIcon
-          label="More actions"
-        >
-          <IconDotsVertical size={14} stroke={1.5} aria-hidden="true" />
-        </ActionIcon>
-      </MenuDropdown>
-
-      {collectionsToClose.length > 0 && (
-        <RemoveCollections collectionUids={collectionsToClose} onClose={clearCollectionsToClose} />
-      )}
     </>
   );
 
@@ -289,12 +182,11 @@ const CollectionsSection = () => {
       )}
       <SidebarSection
         id="collections"
-        title="Applications"
+        title={hostname || 'Applications'}
         icon={IconBox}
         actions={sectionActions}
       >
         <Collections
-          showSearch={showSearch}
           isCreatingCollection={isCreatingCollection}
           onCreateClick={() => dispatch(setIsCreatingCollection(true))}
           onDismissCreate={() => dispatch(setIsCreatingCollection(false))}

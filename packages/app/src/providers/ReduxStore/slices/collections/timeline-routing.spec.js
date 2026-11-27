@@ -23,7 +23,6 @@ const makeInitialState = () => ({
       ]
     }
   ],
-  collectionSortOrder: 'default',
   activeWorkspaceUid: null
 });
 

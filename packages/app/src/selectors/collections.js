@@ -30,8 +30,6 @@ export const selectCollectionByUid = (state, collectionUid) =>
 const selectCollectionItemsByUid = (state, collectionUid) =>
   selectCollectionByUid(state, collectionUid)?.items;
 
-export const selectCollectionSortOrder = (state) => state.collections.collectionSortOrder;
-
 export const selectSelectedSidebarUids = (state) => state.collections.selectedSidebarUids;
 
 export const selectActiveWorkspace = (state) => {

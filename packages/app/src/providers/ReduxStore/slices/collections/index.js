@@ -141,7 +141,6 @@ const mergeRootWithPreservedUids = (existingRoot, newRoot) =>
 
 const initialState = {
   collections: [],
-  collectionSortOrder: 'default',
   activeConnections: [],
   selectedSidebarUids: [],
   lastClickedSidebarUid: null,
@@ -290,21 +289,6 @@ export const collectionsSlice = createSlice({
     },
     removeCollection: (state, action) => {
       state.collections = filter(state.collections, (c) => c.uid !== action.payload.collectionUid);
-    },
-    sortCollections: (state, action) => {
-      state.collectionSortOrder = action.payload.order;
-      const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
-      switch (action.payload.order) {
-        case 'default':
-          state.collections = state.collections.sort((a, b) => a.importedAt - b.importedAt);
-          break;
-        case 'alphabetical':
-          state.collections = state.collections.sort((a, b) => collator.compare(a.name, b.name));
-          break;
-        case 'reverseAlphabetical':
-          state.collections = state.collections.sort((a, b) => -collator.compare(a.name, b.name));
-          break;
-      }
     },
     moveCollection: (state, action) => {
       const { draggedItem, targetItem } = action.payload;
@@ -472,21 +456,6 @@ export const collectionsSlice = createSlice({
 
         if (item) {
           item.name = action.payload.newName;
-        }
-      }
-    },
-    cloneItem: (state, action) => {
-      const collectionUid = action.payload.collectionUid;
-      const clonedItem = action.payload.clonedItem;
-      const parentItemUid = action.payload.parentItemUid;
-      const collection = findCollectionByUid(state.collections, collectionUid);
-
-      if (collection) {
-        if (parentItemUid) {
-          const parentItem = findItemInCollection(collection, parentItemUid);
-          parentItem.items.push(clonedItem);
-        } else {
-          collection.items.push(clonedItem);
         }
       }
     },
@@ -3990,7 +3959,6 @@ export const {
   brunoConfigUpdateEvent,
   renameCollection,
   removeCollection,
-  sortCollections,
   updateLastAction,
   updateSettingsSelectedTab,
   updateSettingsSection,
@@ -4004,7 +3972,6 @@ export const {
   newItem,
   deleteItem,
   renameItem,
-  cloneItem,
   scriptEnvironmentUpdateEvent,
   runtimeVariablesUpdateEvent,
   processEnvUpdateEvent,

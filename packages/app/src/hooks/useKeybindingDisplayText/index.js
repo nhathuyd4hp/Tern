@@ -5,7 +5,7 @@ import { getKeyBindingDisplayTextByOS, getKeyBindingDisplayOS } from 'providers/
 const MENU_SHORTCUT_SEPARATORS = { mac: ' ', windows: '+', linux: '+' };
 
 /**
- * Returns a function that maps an action ID (e.g. 'cloneItem') to its shortcut text for the current OS.
+ * Returns a function that maps an action ID (e.g. 'renameItem') to its shortcut text for the current OS.
  * The text is '' while keybindings are disabled, so menus never show a shortcut that won't fire.
  */
 function useKeybindingDisplayText() {

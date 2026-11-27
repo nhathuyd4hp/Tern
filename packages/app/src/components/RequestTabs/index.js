@@ -7,6 +7,7 @@ import { revealTabInSidebar } from 'providers/ReduxStore/slices/collections/acti
 import NewRequest from 'components/Sidebar/NewRequest';
 import CollectionHeader from './CollectionHeader';
 import RequestTab from './RequestTab';
+import TabBarActions from './TabBarActions';
 import StyledWrapper from './StyledWrapper';
 import DraggableTab from './DraggableTab';
 import CreateTransientRequest from 'components/CreateTransientRequest';
@@ -188,6 +189,7 @@ const RequestTabs = () => {
                 <IconChevronRight size={18} strokeWidth={1.5} />
               </ActionIcon>
             </div>
+            <TabBarActions />
             {/* Moved to post mvp */}
             {/* <li className="select-none new-tab choose-request">
                 <div className="flex items-center">
@@ -198,7 +200,9 @@ const RequestTabs = () => {
               </li> */}
           </div>
         </>
-      ) : null}
+      ) : (
+        <div className="flex items-center pl-2"><TabBarActions /></div>
+      )}
     </StyledWrapper>
   );
 };

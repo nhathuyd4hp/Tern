@@ -53,7 +53,6 @@ const makeState = (collectionOverrides = {}) => ({
     ]
   },
   collections: {
-    collectionSortOrder: 'default',
     collections: [
       {
         uid: 'col-1',

@@ -77,6 +77,8 @@ const registerPreferencesIpc = (mainWindow) => {
     }
   });
 
+  ipcMain.handle('renderer:get-hostname', () => require('node:os').hostname());
+
   ipcMain.handle('renderer:get-system-proxy-variables', async () => {
     return await getCachedSystemProxy();
   });

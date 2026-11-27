@@ -46,7 +46,6 @@ const createStore = ({ envVars = [], environmentsDraft = null, globalVars = [], 
     },
     preloadedState: {
       collections: {
-        collectionSortOrder: 'default',
         collections: [{
           uid: COLLECTION_UID,
           pathname: '/collections/col-1',

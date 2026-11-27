@@ -66,7 +66,6 @@ const createStore = ({ activeWorkspaceUid = WS_A } = {}) => {
     },
     collections: {
       collections: [makeScratchCollection(SCRATCH_A), makeScratchCollection(SCRATCH_B)],
-      collectionSortOrder: 'default',
       activeConnections: [],
       tempDirectories: {},
       saveTransientRequestModals: []
