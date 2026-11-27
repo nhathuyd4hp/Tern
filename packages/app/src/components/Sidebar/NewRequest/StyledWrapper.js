@@ -33,23 +33,6 @@ const StyledWrapper = styled.div`
     height: 2.1rem;
   }
 
-  textarea.curl-command {
-    min-height: 150px;
-  }
-  .dropdown {
-    width: fit-content;
-
-    .dropdown-item {
-      padding: 0.2rem 0.6rem !important;
-    }
-  }
-
-  .advanced-options {
-    .caret {
-      color: ${(props) => props.theme.textLink};
-      fill: ${(props) => props.theme.textLink};
-    }
-  }
 `;
 
 export default StyledWrapper;

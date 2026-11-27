@@ -12,7 +12,7 @@ import Portal from 'components/Portal';
 import Modal from 'components/Modal';
 import { sanitizeName, validateName, validateNameError } from 'utils/common/regex';
 import PathDisplay from 'components/PathDisplay/index';
-import { IconArrowBackUp, IconEdit } from '@tabler/icons';
+import { IconArrowBackUp, IconEdit, IconPlus } from '@tabler/icons';
 import Help from 'components/Help';
 import { multiLineMsg } from 'utils/common';
 import { formatIpcError } from 'utils/common/error';
@@ -163,7 +163,7 @@ const CreateCollection = ({ onClose, defaultLocation: propDefaultLocation, initi
   return (
     <Portal>
       <StyledWrapper>
-        <Modal size="md" title="Create Application" hideFooter={true} handleCancel={onClose}>
+        <Modal size="md" title={<span className="inline-flex items-center gap-2"><IconPlus size={18} strokeWidth={1.5} />Create Application</span>} hideFooter={true} handleCancel={onClose}>
           <form className="bruno-form" onSubmit={formik.handleSubmit}>
             <div>
               <label htmlFor="collection-name" className="flex items-center font-medium">
@@ -226,7 +226,7 @@ const CreateCollection = ({ onClose, defaultLocation: propDefaultLocation, initi
                     formik.setFieldValue('collectionLocation', e.target.value);
                   }}
                 />
-                <Button type="button" color="secondary" variant="outline" className="location-browse" onClick={browse}>
+                <Button type="button" className="location-browse" onClick={browse}>
                   Browse
                 </Button>
               </div>
@@ -320,7 +320,7 @@ const CreateCollection = ({ onClose, defaultLocation: propDefaultLocation, initi
               <Button type="button" color="secondary" variant="ghost" onClick={onClose} className="mr-2">
                 Cancel
               </Button>
-              <Button type="submit" loading={isSubmitting}>
+              <Button type="submit" loading={isSubmitting} icon={<IconPlus size={16} strokeWidth={1.5} />}>
                 Create
               </Button>
             </div>

@@ -28,6 +28,7 @@ import ActionIcon from 'ui/ActionIcon';
 import classNames from 'classnames';
 import StyledWrapper from './StyledWrapper';
 import { useTheme } from 'providers/Theme';
+import { getApplicationColor } from 'utils/application-color';
 
 const CollectionHeader = ({ collection, isScratchCollection }) => {
   const dispatch = useDispatch();
@@ -163,7 +164,13 @@ const CollectionHeader = ({ collection, isScratchCollection }) => {
         {/* Left side: Switcher dropdown or rename input */}
         <div className="collection-switcher">
           <div className="flex flex-row justify-center items-center gap-x-1">
-            <DisplayIcon size={18} strokeWidth={1.5} className="cursor-pointer display-icon" onClick={handleDisplayIconClick} />
+            <DisplayIcon
+              size={18}
+              strokeWidth={1.5}
+              className="cursor-pointer display-icon"
+              style={isScratchCollection ? undefined : { color: getApplicationColor(collection) }}
+              onClick={handleDisplayIconClick}
+            />
             <Dropdown
               placement="bottom-start"
               onCreate={onSwitcherCreate}

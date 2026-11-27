@@ -1,6 +1,5 @@
 import React, { useState, useRef, useMemo } from 'react';
 import classnames from 'classnames';
-import { uuid } from 'utils/common';
 import { useDrop, useDrag } from 'react-dnd';
 import { getEmptyImage } from 'react-dnd-html5-backend';
 import {
@@ -9,13 +8,12 @@ import {
   IconDots,
   IconLoader2,
   IconFilePlus,
-  IconFolderPlus,
+  IconStack2,
   IconClipboard,
   IconEdit,
   IconFoldDown,
   IconX,
-  IconFolder,
-  IconExternalLink
+  IconFolder
 } from '@tabler/icons';
 import { toggleCollection, collapseFullCollection, clearSidebarSelection } from 'providers/ReduxStore/slices/collections';
 import { mountCollection, moveCollectionAndPersist, handleMultipleCollectionItemsDrop, pasteItem, showInFolder, saveCollectionSecurityConfig } from 'providers/ReduxStore/slices/collections/actions';
@@ -42,6 +40,7 @@ import useKeybinding from 'hooks/useKeybinding';
 import useKeybindingDisplayText from 'hooks/useKeybindingDisplayText';
 import useSidebarSelectionClick from 'hooks/useSidebarSelectionClick';
 import { startBlockedDragTracking } from 'utils/dragBlockedCursor';
+import { getApplicationColor } from 'utils/application-color';
 
 const CollectionRow = ({ collection, searchText, openBulkMenu, children, isCollectionMultiDragDisabled, multiDragCollections }) => {
   const { dropdownContainerRef } = useSidebarAccordion();
@@ -114,13 +113,8 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
     }
 
     if (!isChevronClick) {
-      // A collection connected to an OpenAPI spec opens its sync tab; the others keep opening settings.
-      const hasOpenApiSyncConfigured = !!collection.brunoConfig?.openapi?.[0]?.sourceUrl;
-      dispatch(
-        addTab(hasOpenApiSyncConfigured
-          ? { uid: uuid(), collectionUid: collection.uid, type: 'openapi-sync' }
-          : { uid: collection.uid, collectionUid: collection.uid, type: 'collection-settings' })
-      );
+      // An application opens its overview, where one of its collections can be picked.
+      dispatch(addTab({ uid: collection.uid, collectionUid: collection.uid, type: 'collection-settings' }));
     }
   };
 
@@ -316,17 +310,6 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
     }
   );
 
-  const legacyOpenApiEntry = collection.brunoConfig?.openapi?.find((entry) => !entry.folder && entry.sourceUrl);
-
-  const openSpecInBrowser = async () => {
-    try {
-      const { error } = await window.ipcRenderer.invoke('renderer:open-openapi-spec-in-browser', { collectionPath: collection.pathname });
-      if (error) toast.error(error);
-    } catch (err) {
-      toast.error('Failed to open the spec in the browser');
-    }
-  };
-
   // Grouped by function: create, edit, view/navigate, remove.
   const menuItems = [
     {
@@ -341,7 +324,7 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
     },
     {
       id: 'new-folder',
-      leftSection: IconFolderPlus,
+      leftSection: IconStack2,
       label: 'New Collection',
       onClick: () => {
         ensureCollectionIsMounted();
@@ -376,16 +359,6 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
       label: 'Collapse',
       onClick: handleCollapseFullCollection
     },
-    ...(legacyOpenApiEntry
-      ? [
-          {
-            id: 'open-spec-in-browser',
-            leftSection: IconExternalLink,
-            label: 'Open in browser',
-            onClick: openSpecInBrowser
-          }
-        ]
-      : []),
     {
       id: 'show-in-folder',
       leftSection: IconFolder,
@@ -446,7 +419,7 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
               onDoubleClick={handleCollectionDoubleClick}
             />
           </ActionIcon>
-          <IconBox size={16} strokeWidth={2} className="ml-1 flex-shrink-0" style={{ color: '#3b82f6' }} />
+          <IconBox size={16} strokeWidth={2} className="ml-1 flex-shrink-0" style={{ color: getApplicationColor(collection) }} />
           <div className="ml-1 min-w-0" id="sidebar-collection-name" title={collection.name}>
             {collection.name}
           </div>

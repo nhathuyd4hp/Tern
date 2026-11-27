@@ -7,13 +7,14 @@ import {
   IconChevronRight,
   IconDots,
   IconFilePlus,
-  IconFolderPlus,
+  IconStack2,
   IconPlayerPlay,
   IconEdit,
   IconCopy,
   IconClipboard,
   IconCode,
   IconFolder,
+  IconExternalLink,
   IconTrash,
   IconSettings,
   IconInfoCircle,
@@ -69,6 +70,7 @@ import useKeybindingDisplayText from 'hooks/useKeybindingDisplayText';
 import useSidebarSelectionClick from 'hooks/useSidebarSelectionClick';
 import { startBlockedDragTracking } from 'utils/dragBlockedCursor';
 import { clearSidebarSelection } from 'providers/ReduxStore/slices/collections/index';
+import { getApplicationColor } from 'utils/application-color';
 
 const CollectionItemRow = ({
   item,
@@ -127,6 +129,7 @@ const CollectionItemRow = ({
   const hasSearchText = searchText && searchText?.trim()?.length;
   const itemIsCollapsed = hasSearchText ? false : isCollectionItemCollapsed(item);
   const isFolder = isItemAFolder(item);
+  const CollectionIcon = depth > 1 ? IconFolder : IconStack2;
   const syncFolder = useSelector((state) => {
     const application = isFolder ? selectCollectionByUid(state, collectionUid) : null;
     return application ? getFolderSyncPath(application, item) : '';
@@ -347,14 +350,19 @@ const CollectionItemRow = ({
         })
       );
     } else {
-      dispatch(
-        addTab({
-          uid: item.uid,
-          collectionUid: collectionUid,
-          type: 'folder-settings',
-          pathname: item.pathname
-        })
-      );
+      // A collection connected to an OpenAPI spec opens its sync page; folder settings stay in the menu.
+      if (hasFolderSync) {
+        viewOpenApiSync();
+      } else {
+        dispatch(
+          addTab({
+            uid: item.uid,
+            collectionUid: collectionUid,
+            type: 'folder-settings',
+            pathname: item.pathname
+          })
+        );
+      }
       if (item.collapsed) {
         dispatch(
           toggleCollectionItem({
@@ -425,7 +433,7 @@ const CollectionItemRow = ({
         },
         {
           id: 'new-folder',
-          leftSection: IconFolderPlus,
+          leftSection: IconStack2,
           label: 'New Collection',
           onClick: () => setNewFolderModalOpen(true)
         }
@@ -532,6 +540,14 @@ const CollectionItemRow = ({
         label: hasFolderSync ? 'OpenAPI Sync' : 'Connect OpenAPI spec',
         onClick: viewOpenApiSync
       });
+      if (hasFolderSync) {
+        items.push({
+          id: 'open-spec-in-browser',
+          leftSection: IconExternalLink,
+          label: 'Open in browser',
+          onClick: openSpecInBrowser
+        });
+      }
     }
 
     if (isFolder) {
@@ -624,6 +640,15 @@ const CollectionItemRow = ({
       setGenerateCodeItemModalOpen(true);
     } else {
       toast.error('URL is required');
+    }
+  };
+
+  const openSpecInBrowser = async () => {
+    try {
+      const { error } = await window.ipcRenderer.invoke('renderer:open-openapi-spec-in-browser', { collectionPath: collectionPathname, folder: syncFolder });
+      if (error) toast.error(error);
+    } catch (err) {
+      toast.error('Failed to open the spec in the browser');
     }
   };
 
@@ -802,7 +827,7 @@ const CollectionItemRow = ({
             ) : null}
 
             <div className="ml-1 flex w-full h-full items-center overflow-hidden">
-              {isFolder ? <IconFolder size={16} strokeWidth={2} className="mr-1.5 flex-shrink-0" style={{ color: '#f59e0b' }} /> : null}
+              {isFolder ? <CollectionIcon size={16} strokeWidth={2} className="mr-1.5 flex-shrink-0" style={{ color: getApplicationColor({ pathname: collectionPathname }) }} /> : null}
               <CollectionItemIcon item={item} />
               <span className="item-name" title={item.name}>
                 {item.name}

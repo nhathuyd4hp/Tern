@@ -1,7 +1,7 @@
 import { useDragLayer } from 'react-dnd';
 import {
   IconFile,
-  IconFolder,
+  IconStack2,
   IconBook
 } from '@tabler/icons';
 import StyledWrapper from './StyledWrapper';
@@ -51,7 +51,7 @@ function getMultiDragLabel(multiSelectedItems) {
 
 function getSingleDragIcon(itemType, itemData) {
   if (itemType === 'collection' || (!itemData.type && itemData.pathname)) return IconBook;
-  if (itemData.type === 'folder') return IconFolder;
+  if (itemData.type === 'folder') return IconStack2;
   return IconFile;
 }
 
