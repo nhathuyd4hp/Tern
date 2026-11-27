@@ -1,4 +1,4 @@
-jest.mock('@usebruno/schema', () => ({
+jest.mock('@tern/schema', () => ({
   collectionSchema: { validate: () => Promise.resolve() },
   environmentSchema: { validate: () => Promise.resolve() },
   itemSchema: { validate: () => Promise.resolve() }

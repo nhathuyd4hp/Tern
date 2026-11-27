@@ -1,4 +1,4 @@
-import { interpolate } from '@usebruno/common';
+import { interpolate } from '@tern/common';
 import { within } from '@testing-library/dom';
 import RealCodeMirror from 'codemirror';
 import store from 'providers/ReduxStore';
@@ -15,7 +15,7 @@ import { updateVariableInScope, addEnvironment, selectEnvironment } from 'provid
 import { COPY_SUCCESS_TIMEOUT, extractVariableInfo, renderVarInfo } from './brunoVarInfo';
 
 // Mock the dependencies
-jest.mock('@usebruno/common', () => ({
+jest.mock('@tern/common', () => ({
   interpolate: jest.fn(),
   mockDataFunctions: {
     randomFirstName: jest.fn(() => 'John'),

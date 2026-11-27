@@ -1,5 +1,5 @@
 import path from 'utils/common/path';
-import { getFolderTags } from '@usebruno/common';
+import { getFolderTags } from '@tern/common';
 import reducer, {
   addFolderTag,
   deleteFolderTag,

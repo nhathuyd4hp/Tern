@@ -1,6 +1,6 @@
-// Name/filename helpers are the single shared implementation in @usebruno/common.
+// Name/filename helpers are the single shared implementation in @tern/common.
 // Re-exported here so existing `utils/common/regex` import paths keep working.
-export { sanitizeName, validateName, validateNameError } from '@usebruno/common/utils';
+export { sanitizeName, validateName, validateNameError } from '@tern/common/utils';
 
 export const variableNameRegex = /^[\w-.]*$/;
 

@@ -1,6 +1,6 @@
 import { BrunoError } from 'utils/common/error';
 import { validateSchema, transformItemsInCollection, updateUidsInCollection, hydrateSeqInCollection } from './common';
-import { transformExampleStatusInCollection } from '@usebruno/common';
+import { transformExampleStatusInCollection } from '@tern/common';
 
 const stripExportMetadata = (collection) => {
   delete collection.exportedAt;
@@ -18,7 +18,7 @@ export const processBrunoCollection = async (jsonData) => {
     await validateSchema(collection);
     return collection;
   } catch (err) {
-    console.error('Error processing Kevin collection:', err);
+    console.error('Error processing Tern collection:', err);
     throw new BrunoError('Import application failed');
   }
 };

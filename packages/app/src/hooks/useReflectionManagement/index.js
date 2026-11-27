@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { debounce } from 'lodash';
-import { interpolate } from '@usebruno/common';
+import { interpolate } from '@tern/common';
 import { loadGrpcMethodsFromReflection } from 'providers/ReduxStore/slices/collections/actions';
 import useLocalStorage from 'hooks/useLocalStorage/index';
 import { getAllVariables } from 'utils/collections';

@@ -3,7 +3,7 @@ const os = require('os');
 const { describe, it, expect } = require('@jest/globals');
 const { configureStore } = require('@reduxjs/toolkit');
 
-jest.mock('@usebruno/schema', () => ({
+jest.mock('@tern/schema', () => ({
   collectionSchema: { validate: () => Promise.resolve() },
   environmentSchema: { validate: () => Promise.resolve() },
   itemSchema: { validate: () => Promise.resolve() }
@@ -17,7 +17,7 @@ jest.mock('react-hot-toast', () => ({
 const collectionsReducer = require('providers/ReduxStore/slices/collections').default;
 const { mountCollection } = require('providers/ReduxStore/slices/collections/actions');
 
-const WORKSPACE_PATH = path.join(os.homedir(), 'Documents', 'Kevin', 'workspace');
+const WORKSPACE_PATH = path.join(os.homedir(), 'Documents', 'Tern', 'workspace');
 const COLLECTION_PATH = path.join(WORKSPACE_PATH, 'collections', 'YamlBased');
 const ENV_PATH = path.join(COLLECTION_PATH, 'environments', 'local.yml');
 const ENV_UID = 'env-local-uid';

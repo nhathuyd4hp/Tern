@@ -2,7 +2,7 @@ jest.mock('nanoid', () => ({
   customAlphabet: () => () => 'mock-uid'
 }));
 
-jest.mock('@usebruno/schema', () => ({
+jest.mock('@tern/schema', () => ({
   environmentSchema: { validate: () => Promise.resolve() }
 }));
 

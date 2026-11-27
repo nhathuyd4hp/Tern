@@ -32,7 +32,7 @@ import {
 } from './autocomplete';
 import { AUTOCOMPLETE_TRIGGER } from 'utils/common/constants';
 
-describe('Kevin Autocomplete', () => {
+describe('Tern Autocomplete', () => {
   let mockedCodemirror;
 
   beforeEach(() => {

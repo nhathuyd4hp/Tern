@@ -1,6 +1,6 @@
-import { collectionSchema, environmentSchema, itemSchema } from '@usebruno/schema';
-import { parseQueryParams, extractPromptVariables, getDataTypeFromValue, nextCopyName, resolveEnvironmentInheritance } from '@usebruno/common/utils';
-import { DEFAULT_HTTP_ITEM_SETTINGS } from '@usebruno/common';
+import { collectionSchema, environmentSchema, itemSchema } from '@tern/schema';
+import { parseQueryParams, extractPromptVariables, getDataTypeFromValue, nextCopyName, resolveEnvironmentInheritance } from '@tern/common/utils';
+import { DEFAULT_HTTP_ITEM_SETTINGS } from '@tern/common';
 import { REQUEST_TYPES, VARIABLE_ADD_SCOPES } from 'utils/common/constants';
 import cloneDeep from 'lodash/cloneDeep';
 import filter from 'lodash/filter';

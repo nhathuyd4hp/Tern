@@ -78,7 +78,7 @@ const initialState = {
   gitOperationProgress: {},
   gitVersion: null,
   clipboard: {
-    hasCopiedItems: false // Whether clipboard has Kevin data (for UI)
+    hasCopiedItems: false // Whether clipboard has Tern data (for UI)
   },
   systemProxyVariables: {},
   systemProxyLastRefreshedAt: null,

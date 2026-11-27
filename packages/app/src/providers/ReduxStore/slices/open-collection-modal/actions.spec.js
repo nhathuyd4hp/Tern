@@ -184,7 +184,7 @@ describe('open collection modal actions', () => {
 
     it('starts Choose folder afresh instead of showing an earlier message', async () => {
       pickerReturns(Promise.resolve([]));
-      const messageResult = { id: 'search-0', type: 'message', note: { tone: 'info', text: 'notes isn’t a Kevin application.' } };
+      const messageResult = { id: 'search-0', type: 'message', note: { tone: 'info', text: 'notes isn’t a Tern application.' } };
       const { store } = createStore({ modal: openOn('recents', { ...closedModal.chooseFolder, result: messageResult }) });
 
       store.dispatch(openCollectionModal('choose-folder'));
@@ -287,7 +287,7 @@ describe('open collection modal actions', () => {
     it('does not leave the last search’s note on screen when the next pick opens straight away and fails', async () => {
       searchReturns(Promise.resolve(pickedCollection));
       openingReturns(Promise.resolve({ opened: [], failed: [{ path: '/work/api', error: 'Unable to parse bruno.json' }], invalid: [] }));
-      const lastResult = { id: 'search-0', type: 'message', note: { tone: 'info', text: 'docs isn’t a Kevin application.' } };
+      const lastResult = { id: 'search-0', type: 'message', note: { tone: 'info', text: 'docs isn’t a Tern application.' } };
       const { store } = createStore({ modal: openOn('choose-folder', { ...closedModal.chooseFolder, result: lastResult }) });
 
       await store.dispatch(findCollectionsInFolders(['/work/api']));

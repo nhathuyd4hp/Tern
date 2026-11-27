@@ -7,14 +7,14 @@ import {
   getFolderTags,
   getInheritedTagSourcesFromTreePath,
   mockDataFunctions
-} from '@usebruno/common';
+} from '@tern/common';
 import { VARIABLE_ADD_SCOPES, AUTOCOMPLETE_SCOPES } from 'utils/common/constants';
 import {
   doesRequestMatchSearchText,
   doesFolderHaveItemsMatchSearchText,
   doesCollectionHaveItemsMatchingSearchText
 } from 'utils/collections/search';
-import { nextCopyName, resolveEnvironmentInheritance, toVariablesMap } from '@usebruno/common/utils';
+import { nextCopyName, resolveEnvironmentInheritance, toVariablesMap } from '@tern/common/utils';
 
 const replaceTabsWithSpaces = (str, numSpaces = 2) => {
   if (!str || !str.length || !isString(str)) {

@@ -1,7 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { uuid } from 'utils/common/index';
-import { environmentSchema } from '@usebruno/schema';
-import { getDataTypeFromValue, parseValueByDataType, resolveEnvironmentInheritance } from '@usebruno/common/utils';
+import { environmentSchema } from '@tern/schema';
+import { getDataTypeFromValue, parseValueByDataType, resolveEnvironmentInheritance } from '@tern/common/utils';
 import { cloneDeep, isEqual } from 'lodash';
 import { applyScriptEnvVars, getScriptModifiedKeys, preserveVariableUids, writesCollidingSecrets, DUPLICATE_SECRET_NAMES_ERROR } from 'utils/environments';
 import { getInvalidVariableNames, invalidVariableNamesError } from 'utils/common/variables';

@@ -3,7 +3,7 @@ import xmlFormat from 'xml-formatter';
 import { JSONPath } from 'jsonpath-plus';
 import fastJsonFormat from 'fast-json-format';
 import { format, applyEdits } from 'jsonc-parser';
-import { patternHasher } from '@usebruno/common/utils';
+import { patternHasher } from '@tern/common/utils';
 import { hasLongLine } from './long-lines';
 import prettierFormat from 'prettier/standalone';
 import parserBabel from 'prettier/parser-babel';
@@ -232,7 +232,7 @@ export const formatDuration = (durationMs) => {
   return `${(roundedDurationMs / ONE_SECOND_MS).toFixed(2)}s`;
 };
 
-export { sortByNameThenSequence } from '@usebruno/common';
+export { sortByNameThenSequence } from '@tern/common';
 
 // Memory threshold to prevent crashes when decoding large buffers
 const LARGE_BUFFER_THRESHOLD = 50 * 1024 * 1024; // 50 MB

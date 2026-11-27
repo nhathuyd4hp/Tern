@@ -6,8 +6,8 @@
  *  LICENSE file at https://github.com/graphql/codemirror-graphql/tree/v0.8.3
  */
 
-import { interpolate, mockDataFunctions, timeBasedDynamicVars } from '@usebruno/common';
-import { toDisplayString } from '@usebruno/common/utils';
+import { interpolate, mockDataFunctions, timeBasedDynamicVars } from '@tern/common';
+import { toDisplayString } from '@tern/common/utils';
 import toast from 'react-hot-toast';
 import {
   getVariableScope,

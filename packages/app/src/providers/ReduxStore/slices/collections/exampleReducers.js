@@ -1,5 +1,5 @@
 import { find, map, filter, cloneDeep, each, concat } from 'lodash';
-import { parseQueryParams, buildQueryString as stringifyQueryParams, nextCopyName } from '@usebruno/common/utils';
+import { parseQueryParams, buildQueryString as stringifyQueryParams, nextCopyName } from '@tern/common/utils';
 import { uuid } from 'utils/common';
 import { findCollectionByUid, findItemInCollection } from 'utils/collections';
 import { parsePathParams, splitOnFirst } from 'utils/url';

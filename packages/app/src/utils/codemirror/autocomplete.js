@@ -1,4 +1,4 @@
-import { mockDataFunctions } from '@usebruno/common';
+import { mockDataFunctions } from '@tern/common';
 import { GRPC_API_HINTS } from 'utils/codemirror/grpcAutocompleteHints';
 import { AUTOCOMPLETE_SCOPES, AUTOCOMPLETE_TRIGGER, SCOPE_LABEL } from 'utils/common/constants';
 import { SCOPE_ICON } from 'utils/codemirror/scopeIcons';

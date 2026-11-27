@@ -212,14 +212,14 @@ describe('common utils', () => {
       expect(prettifyJsonString(true)).toBe(true);
     });
 
-    test('should format valid JSON without Kevin variables', () => {
+    test('should format valid JSON without Tern variables', () => {
       const input = '{"name":"John","age":30}';
       const expected = `{\n  "name": "John",\n  "age": 30\n}`;
       console.log(prettifyJsonString(input));
       expect(prettifyJsonString(input)).toBe(expected);
     });
 
-    test('should format valid JSON with Kevin variables', () => {
+    test('should format valid JSON with Tern variables', () => {
       const input = '{"name": {{userName}}}';
       const expected = `{\n  "name": {{userName}}\n}`;
       console.log(prettifyJsonString(input));
