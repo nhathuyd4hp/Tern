@@ -126,14 +126,48 @@ const scopeRootOf = (collectionPath, folder) => {
 const getSpecsDir = () => path.join(app.getPath('userData'), 'specs');
 
 /**
+ * The same application can reach the main process spelled with either slash (and, on Windows, in either
+ * case), so the metadata is keyed by one canonical spelling; otherwise a spec saved under one spelling is
+ * "missing" when read under the other.
+ */
+const specKey = (collectionPath) => {
+  const key = posixifyPath(collectionPath || '').replace(/\/+$/, '');
+  return process.platform === 'win32' ? key.toLowerCase() : key;
+};
+
+const specFileMtime = (entry) => {
+  try {
+    return fs.statSync(path.join(getSpecsDir(), entry.filename)).mtimeMs;
+  } catch {
+    return 0;
+  }
+};
+
+// Entries stored under different spellings of one path are merged; for the same folder the copy written last wins.
+const canonicalizeSpecMetadata = (raw) => {
+  const result = {};
+  for (const [rawKey, entries] of Object.entries(raw)) {
+    const key = specKey(rawKey);
+    const merged = result[key] || [];
+    for (const entry of entries) {
+      const index = merged.findIndex((other) => normalizeFolder(other.folder) === normalizeFolder(entry.folder));
+      if (index < 0) merged.push(entry);
+      else if (specFileMtime(entry) > specFileMtime(merged[index])) merged[index] = entry;
+    }
+    result[key] = merged;
+  }
+  return result;
+};
+
+/**
  * Load the spec metadata file from AppData.
- * Returns an object mapping collectionPath → array of { filename, sourceUrl } entries.
+ * Returns an object mapping specKey(collectionPath) → array of { filename, sourceUrl } entries.
  */
 const loadSpecMetadata = () => {
   const metadataPath = path.join(getSpecsDir(), 'metadata.json');
   try {
     if (fs.existsSync(metadataPath)) {
-      return JSON.parse(fs.readFileSync(metadataPath, 'utf8'));
+      return canonicalizeSpecMetadata(JSON.parse(fs.readFileSync(metadataPath, 'utf8')));
     }
   } catch {
     // ignore parse errors, return empty
@@ -157,7 +191,7 @@ const saveSpecMetadata = (metadata) => {
  * Get all spec entries for a collection.
  */
 const getSpecEntriesForCollection = (collectionPath) => {
-  return loadSpecMetadata()[collectionPath] || [];
+  return loadSpecMetadata()[specKey(collectionPath)] || [];
 };
 
 /**
@@ -414,7 +448,7 @@ const saveOpenApiSpecFile = async ({ collectionPath, content, sourceUrl, folder 
   const resolvedUrl = resolveSourceUrl(collectionPath, sourceUrl);
   const meta = loadSpecMetadata();
   const folderKey = normalizeFolder(folder);
-  const entries = meta[collectionPath] || [];
+  const entries = meta[specKey(collectionPath)] || [];
   const existingEntry = entries.find((entry) => normalizeFolder(entry.folder) === folderKey);
 
   let filename;
@@ -429,7 +463,7 @@ const saveOpenApiSpecFile = async ({ collectionPath, content, sourceUrl, folder 
 
   // One stored spec per sync entry: replace this entry's record and keep the others
   const record = { filename, sourceUrl: resolvedUrl, ...(folderKey && { folder: folderKey }) };
-  meta[collectionPath] = existingEntry ? entries.map((entry) => (entry === existingEntry ? record : entry)) : [...entries, record];
+  meta[specKey(collectionPath)] = existingEntry ? entries.map((entry) => (entry === existingEntry ? record : entry)) : [...entries, record];
   saveSpecMetadata(meta);
 
   await writeFile(path.join(specsDir, filename), content);
@@ -481,13 +515,13 @@ const addFolderSyncEntry = async ({ collectionPath, folder, entry, specContent }
  */
 const cleanupSpecFilesForCollection = (collectionPath) => {
   const meta = loadSpecMetadata();
-  const entries = meta[collectionPath] || [];
+  const entries = meta[specKey(collectionPath)] || [];
   for (const entry of entries) {
     const specPath = path.join(getSpecsDir(), entry.filename);
     if (fs.existsSync(specPath)) fs.unlinkSync(specPath);
   }
   if (entries.length > 0) {
-    delete meta[collectionPath];
+    delete meta[specKey(collectionPath)];
     saveSpecMetadata(meta);
   }
 };
@@ -2060,9 +2094,9 @@ const registerOpenAPISyncIpc = (mainWindow) => {
         const specPath = path.join(getSpecsDir(), entry.filename);
         if (fs.existsSync(specPath)) fs.unlinkSync(specPath);
       }
-      const keptEntries = (meta[collectionPath] || []).filter((item) => normalizeFolder(item.folder) !== normalizeFolder(folder));
-      if (keptEntries.length) meta[collectionPath] = keptEntries;
-      else delete meta[collectionPath];
+      const keptEntries = (meta[specKey(collectionPath)] || []).filter((item) => normalizeFolder(item.folder) !== normalizeFolder(folder));
+      if (keptEntries.length) meta[specKey(collectionPath)] = keptEntries;
+      else delete meta[specKey(collectionPath)];
       saveSpecMetadata(meta);
 
       return { success: true };
@@ -2193,6 +2227,8 @@ if (process.env.NODE_ENV === 'test') {
     ensureTagFolder,
     normalizeFolder,
     entryIndexFor,
-    scopeRootOf
+    scopeRootOf,
+    specKey,
+    canonicalizeSpecMetadata
   };
 }
