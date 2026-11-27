@@ -35,4 +35,3 @@ runs:
         npm run build:requests
         npm run build:schema-types
         npm run build:filestore
-        npm run build:sqlite

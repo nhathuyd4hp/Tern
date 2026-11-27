@@ -3,7 +3,6 @@ import { useSelector, useDispatch } from 'react-redux';
 import Modal from 'components/Modal';
 import SearchInput from 'components/SearchInput';
 import Button from 'ui/Button';
-import Select from 'ui/Select';
 import { IconFolder, IconChevronRight, IconCheck, IconX, IconEye, IconEyeOff, IconEdit, IconArrowBackUp } from '@tabler/icons';
 import PathDisplay from 'components/PathDisplay/index';
 import Help from 'components/Help';
@@ -20,16 +19,10 @@ import { sanitizeName, validateName, validateNameError } from 'utils/common/rege
 import { resolveRequestFilename } from 'utils/common/platform';
 import path, { normalizePath } from 'utils/common/path';
 import { transformRequestToSaveToFilesystem, findCollectionByUid, findItemInCollection, areItemsLoading } from 'utils/collections';
-import { DEFAULT_COLLECTION_FORMAT } from 'utils/common/constants';
 import { itemSchema } from '@tern/schema';
 import { uuid } from 'utils/common';
 import { formatIpcError } from 'utils/common/error';
 import get from 'lodash/get';
-
-const COLLECTION_FORMAT_OPTIONS = [
-  { value: 'yml', label: 'OpenCollection (YAML)' },
-  { value: 'bru', label: 'BRU Format (.bru)' }
-];
 
 const SaveTransientRequest = ({ item: itemProp, collection: collectionProp, isOpen = false, onClose, closeAfterSave = false }) => {
   const dispatch = useDispatch();
@@ -80,7 +73,7 @@ const SaveTransientRequest = ({ item: itemProp, collection: collectionProp, isOp
   const [pendingFolderNavigation, setPendingFolderNavigation] = useState(null);
 
   // State for new collection creation
-  const [newCollection, setNewCollection] = useState({ show: false, name: '', location: '', format: DEFAULT_COLLECTION_FORMAT });
+  const [newCollection, setNewCollection] = useState({ show: false, name: '', location: '' });
 
   const [selectedTargetCollectionPath, setSelectedTargetCollectionPath] = useState(null);
   const [isSelectingCollection, setIsSelectingCollection] = useState(isScratchCollection);
@@ -126,7 +119,7 @@ const SaveTransientRequest = ({ item: itemProp, collection: collectionProp, isOp
     setSelectedTargetCollectionPath(null);
     setIsSelectingCollection(isScratchCollection);
     // Reset new collection state
-    setNewCollection({ show: false, name: '', location: '', format: DEFAULT_COLLECTION_FORMAT });
+    setNewCollection({ show: false, name: '', location: '' });
   }, [item?.name, isScratchCollection, reset]);
 
   useEffect(() => {
@@ -210,13 +203,11 @@ const SaveTransientRequest = ({ item: itemProp, collection: collectionProp, isOp
       const hasFileModeEdit = latestItem.draft?.raw != null && latestItem.draft.raw !== latestItem.raw;
       let baseItem;
       if (hasFileModeEdit) {
-        const rawSourceFormat = collection.format || DEFAULT_COLLECTION_FORMAT;
         try {
           const parsed = await ipcRenderer.invoke(
             'renderer:convert-to-json',
             latestItem,
-            latestItem.draft.raw,
-            rawSourceFormat
+            latestItem.draft.raw
           );
           baseItem = { ...latestItem, ...parsed, uid: latestItem.uid, pathname: latestItem.pathname };
         } catch (err) {
@@ -235,18 +226,14 @@ const SaveTransientRequest = ({ item: itemProp, collection: collectionProp, isOp
       const transformedItem = transformRequestToSaveToFilesystem(itemToSave);
       const validatedItem = await itemSchema.validate(transformedItem);
 
-      const targetFormat = targetCollection.format || DEFAULT_COLLECTION_FORMAT;
-      const sourceFormat = collection.format || DEFAULT_COLLECTION_FORMAT;
-      const targetFilename = resolveRequestFilename(sanitizedFilename, targetFormat);
+      const targetFilename = resolveRequestFilename(sanitizedFilename);
       const targetPathname = path.join(targetDirname, targetFilename);
 
       const saveResult = await ipcRenderer.invoke('renderer:save-transient-request', {
         sourcePathname: item.pathname,
         targetDirname,
         targetFilename,
-        request: validatedItem,
-        format: targetFormat,
-        sourceFormat
+        request: validatedItem
       });
 
       // use the path resolved by the handler.
@@ -336,11 +323,11 @@ const SaveTransientRequest = ({ item: itemProp, collection: collectionProp, isOp
 
   // New Collection handlers
   const handleShowNewCollection = () => {
-    setNewCollection({ show: true, name: '', location: defaultCollectionLocation, format: DEFAULT_COLLECTION_FORMAT });
+    setNewCollection({ show: true, name: '', location: defaultCollectionLocation });
   };
 
   const handleCancelNewCollection = () => {
-    setNewCollection({ show: false, name: '', location: '', format: DEFAULT_COLLECTION_FORMAT });
+    setNewCollection({ show: false, name: '', location: '' });
   };
 
   const handleBrowseCollectionLocation = () => {
@@ -368,7 +355,7 @@ const SaveTransientRequest = ({ item: itemProp, collection: collectionProp, isOp
       return;
     }
     try {
-      await dispatch(createCollection(trimmedName, sanitizeName(trimmedName), newCollection.location, { format: newCollection.format, source: 'save-transient-request', entryPoint: 'save-transient-request' }));
+      await dispatch(createCollection(trimmedName, sanitizeName(trimmedName), newCollection.location, { source: 'save-transient-request', entryPoint: 'save-transient-request' }));
       toast.success('Application created!');
       handleCancelNewCollection();
     } catch (err) {
@@ -532,29 +519,6 @@ const SaveTransientRequest = ({ item: itemProp, collection: collectionProp, isOp
                               Browse
                             </Button>
                           </div>
-                        </div>
-
-                        <div className="new-collection-field">
-                          <label className="new-collection-label flex items-center">
-                            File Format
-                            <Help width={300} placement="top">
-                              <p>
-                                Choose the file format for storing requests in this application.
-                              </p>
-                              <p className="mt-2">
-                                <strong>OpenCollection (YAML):</strong> Industry-standard YAML format (.yml files)
-                              </p>
-                              <p className="mt-1">
-                                <strong>BRU:</strong> Tern's native file format (.bru files)
-                              </p>
-                            </Help>
-                          </label>
-                          <Select
-                            data={COLLECTION_FORMAT_OPTIONS}
-                            value={newCollection.format}
-                            onChange={(format) => setNewCollection((prev) => ({ ...prev, format }))}
-                            allowDeselect={false}
-                          />
                         </div>
 
                         <div className="new-collection-actions-footer">

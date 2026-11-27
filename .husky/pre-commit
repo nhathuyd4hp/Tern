@@ -1,6 +1,1 @@
 npx nano-staged
-
-if git diff --cached --name-only | grep -q '^packages/sqlite/migrations/'; then
-  npm run schema --workspace=packages/sqlite --silent
-  git add packages/sqlite/SCHEMA.md
-fi

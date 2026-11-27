@@ -9,7 +9,6 @@ import ChangeCollectionVersion from 'components/Sidebar/Collections/Collection/C
 import ToolHint from 'components/ToolHint';
 import { addTab } from 'providers/ReduxStore/slices/tabs';
 import StyledWrapper from './StyledWrapper';
-import Migration from '../Migration';
 
 const Info = ({ collection }) => {
   const dispatch = useDispatch();
@@ -150,8 +149,6 @@ const Info = ({ collection }) => {
               </div>
             </div>
           </div>
-
-          <Migration collection={collection} />
         </div>
       </div>
     </StyledWrapper>

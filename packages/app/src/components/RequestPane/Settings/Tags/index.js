@@ -64,7 +64,6 @@ const Tags = ({ item, collection }) => {
         tags={tags}
         inheritedTags={inheritedTags}
         onSave={handleRequestSave}
-        collectionFormat={collection.format}
       />
     </div>
   );

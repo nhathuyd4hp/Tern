@@ -79,9 +79,8 @@ const TimelineItem = ({
 
   const isMainOrOauth = !source || source === 'main' || isOauth2;
   const scopeType = scope?.type || (isMainOrOauth ? null : 'request');
-  const requestExt = collection?.format === 'yml' ? '.yml' : '.bru';
   const scopeFile = scope?.sourceFile
-    || (scopeType === 'request' ? (item?.filename || (item?.name ? `${item.name}${requestExt}` : null)) : null);
+    || (scopeType === 'request' ? (item?.filename || (item?.name ? `${item.name}.yml` : null)) : null);
   const sourceFile = isMainOrOauth ? null : scopeFile;
 
   const folderForScope = scopeType === 'folder'

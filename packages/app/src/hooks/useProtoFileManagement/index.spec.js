@@ -36,7 +36,6 @@ const createStore = () => configureStore({
       collections: [{
         uid: COLLECTION_UID,
         pathname: COLLECTION_PATH,
-        format: 'yml',
         root: { request: { script: { req: '', res: '' } } },
         brunoConfig: {
           protobuf: { protoFiles: [EXISTING_PROTO], importPaths: [EXISTING_IMPORT_PATH] }

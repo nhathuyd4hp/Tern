@@ -24,8 +24,7 @@ const mainLintFiles = [
   'packages/schema-types/**/*.ts',
   'packages/js/**/*.js',
   'packages/requests/**/*.ts',
-  'packages/requests/**/*.js',
-  'packages/sqlite/**/*.{js,ts}'
+  'packages/requests/**/*.js'
 ];
 
 module.exports = runESMImports().then(() => defineConfig([

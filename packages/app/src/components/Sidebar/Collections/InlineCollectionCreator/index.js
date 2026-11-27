@@ -6,7 +6,6 @@ import path from 'utils/common/path';
 import toast from 'react-hot-toast';
 import { createCollection } from 'providers/ReduxStore/slices/collections/actions';
 import { sanitizeName, validateName, validateNameError } from 'utils/common/regex';
-import { DEFAULT_COLLECTION_FORMAT } from 'utils/common/constants';
 import { multiLineMsg } from 'utils/common';
 import { formatIpcError } from 'utils/common/error';
 import StyledWrapper from './StyledWrapper';
@@ -88,7 +87,7 @@ const InlineCollectionCreator = ({ onComplete, onCancel, onOpenAdvanced }) => {
     setIsCreating(true);
     try {
       const folderName = sanitizeName(name);
-      await dispatch(createCollection(name, folderName, defaultLocation, { format: DEFAULT_COLLECTION_FORMAT }));
+      await dispatch(createCollection(name, folderName, defaultLocation));
       toast.success('Application created!');
       onComplete();
     } catch (e) {

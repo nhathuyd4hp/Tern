@@ -18,7 +18,6 @@ packages/
   converters/   Import/export (Postman, Insomnia, OpenAPI, …) (rollup)
   requests/     Shared HTTP/gRPC/WS request building blocks (rollup)
   filestore/    .yml serialization (rollup + tsc --emitDeclarationOnly)
-  sqlite/       Local SQLite SDK — main-process only (codegen + rollup)
   query/        JSONPath-style query engine (rollup)
   schema/       Yup runtime validation of collections/requests
   schema-types/ TypeScript type definitions only (tsc, types-only)
@@ -28,16 +27,14 @@ packages/
 Build tool per package (matters for the "rebuild shared packages" step in `.claude/CLAUDE.md`):
 - **rollup** (emits `dist/cjs` + `dist/esm`): common, converters, requests,
   query, graphql-docs; **filestore** additionally runs
-  `tsc --emitDeclarationOnly`;
-  **sqlite** additionally runs a codegen prepass (`npm run generate`) that compiles
-  `migrations/*.ts` + `statements/*.sql` into the gitignored `src/generated/`.
+  `tsc --emitDeclarationOnly`.
 - **tsc only**: schema-types.
 - **rsbuild**: app.
 - **no build step (consumed straight from `src/`)**: js, schema,
   electron.
 
-The 8 packages that must be rebuilt after editing (they emit `dist/`): common,
-requests, filestore, sqlite, converters, query,
+The 7 packages that must be rebuilt after editing (they emit `dist/`): common,
+requests, filestore, converters, query,
 graphql-docs, schema-types. Editing js / schema
 needs no rebuild.
 
@@ -87,13 +84,8 @@ Any on-disk shape change → follow `.claude/rules/dsl-changes.md`.
 
 ## Local persistence (not collection files)
 
-Two distinct mechanisms — pick by what the data is:
+App state lives in electron-store JSON files:
 
-- **`@tern/sqlite`** (`bruno.db` under `userData`) — the SDK for derived/bulky secondary state.
-  Migrations (`migrations/*.ts`) and statements (`statements/*.sql`) are authored and compiled into
-  a typed layer for the main process. `services/sqlite` owns the DB, and `ipc/sqlite.js` exposes
-  selected statements to the renderer, one hand-written handler per statement on
-  `datastore:<statement_file>:<statement_name>`. Full guide: `.claude/rules/sqlite.md`.
 - **electron-store JSON** (`electron/src/store/`) — preferences and small keyed app state;
   see `.claude/rules/electron-ipc.md`.
 
@@ -127,8 +119,6 @@ Several are pinned to majors below the latest — do **not** assume the newest A
 - Desktop (`electron`): **electron ~43.8**, **electron-builder ^26.18**, **chokidar ^3.5**,
   **@grpc/grpc-js ^1.13**, **js-yaml ^4.1**, **electron-store ^8.1**. (`ws` is a dep of
   requests, **not** electron.)
-- Storage (`sqlite`): no runtime dependencies — the driver is Node's built-in **`node:sqlite`**
-  (synchronous `DatabaseSync`); **tsx** is build-time (codegen) only.
 - **Hard pins in root `package.json` `overrides`: axios `1.16.0`, rollup `3.30.0`.** Bumping these
   in a leaf package has no effect — change the root override.
 - **TypeScript is not uniform**: common `^5.8`, schema-types `^5.0`, but

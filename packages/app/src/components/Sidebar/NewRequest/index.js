@@ -476,12 +476,12 @@ const NewRequest = ({ collectionUid, item, isEphemeral, onClose }) => {
                       value={formik.values.filename || ''}
                       data-testid="file-name"
                     />
-                    <span className="absolute right-2 top-4 flex justify-center items-center file-extension">.{collection.format}</span>
+                    <span className="absolute right-2 top-4 flex justify-center items-center file-extension">.yml</span>
                   </div>
                 ) : (
                   <div className="relative flex flex-row gap-1 items-center justify-between">
                     <PathDisplay
-                      baseName={formik.values.filename ? `${formik.values.filename}.${collection.format}` : ''}
+                      baseName={formik.values.filename ? `${formik.values.filename}.yml` : ''}
                     />
                   </div>
                 )}

@@ -28,12 +28,12 @@ Prefer the smallest scope — one workspace, one spec — over `--workspaces`.
 ### Building shared packages
 
 `npm run dev` does **not** rebuild the shared packages (common, requests,
-filestore, sqlite, converters, query, schema-types,
+filestore, converters, query, schema-types,
 graphql-docs).
 After editing one, rebuild it or run its watcher, or the app won't pick up changes:
 
 ```bash
-npm run build:common      # also :requests, :filestore, :sqlite, etc.
+npm run build:common      # also :requests, :filestore, etc.
 npm run watch:common            # also watch:requests, watch:converters
 ```
 
@@ -62,7 +62,7 @@ Non-obvious project rules worth holding:
 Path-scoped rules in `.claude/rules/` auto-attach when you touch matching files:
 `architecture.md` (`@tern/*` dependency boundaries, manifests), `app-layout.md` (app
 module layout), `electron-ipc.md` (IPC handlers + startup), `redux-store.md` (slices/middleware),
-`sqlite.md` (`@tern/sqlite` — migrations, statements, per-statement IPC), `cross-platform.md` (Windows file/process/path pitfalls), `dsl-changes.md`
+`cross-platform.md` (Windows file/process/path pitfalls), `dsl-changes.md`
 (on-disk `.yml` format & backward compat), `feature-parity.md` (co-related features —
 converter/shim/level/protocol pairs), `conventions.md` (readability, reuse,
 replacement & pre-submit hygiene).

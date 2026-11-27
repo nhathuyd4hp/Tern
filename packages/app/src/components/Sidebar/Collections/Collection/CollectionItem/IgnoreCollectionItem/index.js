@@ -1,15 +1,12 @@
 import React from 'react';
 import Modal from 'components/Modal';
-import { useSelector, useDispatch } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { ignoreFolder, closeTabs } from 'providers/ReduxStore/slices/collections/actions';
 import { recursivelyGetAllItemUids } from 'utils/collections';
 import toast from 'react-hot-toast';
 
 const IgnoreCollectionItem = ({ onClose, item, collectionUid }) => {
   const dispatch = useDispatch();
-  const collection = useSelector((state) => state.collections.collections?.find((c) => c.uid === collectionUid));
-  const isYamlCollection = collection?.format === 'yml' || Boolean(collection?.brunoConfig?.opencollection);
-  const configFileName = isYamlCollection ? 'opencollection.yml' : 'bruno.json';
 
   const onConfirm = () => {
     dispatch(ignoreFolder(item.uid, collectionUid))
@@ -36,22 +33,20 @@ const IgnoreCollectionItem = ({ onClose, item, collectionUid }) => {
     >
       Ignoring <span className="font-medium">{item.name}</span> will hide it from this
       {' '}
-      {isYamlCollection ? 'opencollection (YAML)' : 'Tern (JSON)'}
-      {' '}
       application by adding it to the
       {' '}
       <span className="font-medium">ignore</span>
       {' '}
       list in
       {' '}
-      <span className="font-medium">{configFileName}</span>
+      <span className="font-medium">opencollection.yml</span>
       . The folder and its files are not deleted. To restore it later, remove the entry from the
       {' '}
       <span className="font-medium">ignore</span>
       {' '}
       list in
       {' '}
-      <span className="font-medium">{configFileName}</span>
+      <span className="font-medium">opencollection.yml</span>
       .
     </Modal>
   );

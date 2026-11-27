@@ -4,7 +4,7 @@ import { IconArrowRight, IconAlertTriangle } from '@tabler/icons';
 
 import Modal from 'components/Modal';
 import Portal from 'components/Portal';
-import { findCollectionByUid, getCollectionVersion, isOpenCollectionFormat } from 'utils/collections/index';
+import { findCollectionByUid, getCollectionVersion } from 'utils/collections/index';
 import { saveCollectionVersion } from 'providers/ReduxStore/slices/collections/actions';
 import StyledWrapper, { ModalTitle } from './StyledWrapper';
 
@@ -27,9 +27,6 @@ const ChangeCollectionVersion = ({ collectionUid, onClose }) => {
   const collection = useSelector((state) => findCollectionByUid(state.collections.collections, collectionUid));
 
   const currentVersion = getCollectionVersion(collection);
-  const isYml = isOpenCollectionFormat(collection);
-  const targetKey = isYml ? 'info.version' : 'collectionVersion';
-  const targetFile = isYml ? 'opencollection.yml' : 'bruno.json';
   const [newVersion, setNewVersion] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
@@ -105,7 +102,7 @@ const ChangeCollectionVersion = ({ collectionUid, onClose }) => {
             </div>
 
             <p className="preview m-0" data-testid="change-version-preview">
-              Updates <strong>{targetKey}</strong> in {targetFile} from{' '}
+              Updates <strong>info.version</strong> in opencollection.yml from{' '}
               <span className="old">{currentVersion || <span className="text-muted italic not-set">(Not Set)</span>}</span>
               <IconArrowRight size={13} className="preview-arrow" stroke={1.5} />
               <span className="new">{trimmedVersion || '…'}</span>

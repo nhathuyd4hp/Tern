@@ -7,10 +7,9 @@ import ToolHint from 'components/ToolHint/index';
 import { useTheme } from 'providers/Theme/index';
 import { AUTOCOMPLETE_TRIGGER } from 'utils/common/constants';
 
-const TagList = ({ tagsHintList = [], handleAddTag, tags, handleRemoveTag, onSave, handleValidation, collectionFormat, inheritedTags = [] }) => {
+const TagList = ({ tagsHintList = [], handleAddTag, tags, handleRemoveTag, onSave, handleValidation, inheritedTags = [] }) => {
   const { displayedTheme } = useTheme();
-  const isBruFormat = collectionFormat === 'bru';
-  const tagNameRegex = isBruFormat ? /^[\p{L}\p{N}_-]+$/u : /^[\p{L}\p{N}_-](?:[\p{L}\p{N}_\s-]*[\p{L}\p{N}_-])?$/u;
+  const tagNameRegex = /^[\p{L}\p{N}_-](?:[\p{L}\p{N}_\s-]*[\p{L}\p{N}_-])?$/u;
   const [text, setText] = useState('');
   const [error, setError] = useState('');
   const [showInheritedTags, setShowInheritedTags] = useState(false);
@@ -25,10 +24,7 @@ const TagList = ({ tagsHintList = [], handleAddTag, tags, handleRemoveTag, onSav
       return;
     }
     if (!tagNameRegex.test(text)) {
-      setError(isBruFormat
-        ? 'Tags in BRU format must only contain letters, numbers, "-", "_".'
-        : 'Tags must only contain letters, numbers, spaces, "-", "_"'
-      );
+      setError('Tags must only contain letters, numbers, spaces, "-", "_"');
       return;
     }
     if (tags.includes(text)) {

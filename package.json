@@ -12,8 +12,7 @@
     "packages/js",
     "packages/graphql-docs",
     "packages/requests",
-    "packages/filestore",
-    "packages/sqlite"
+    "packages/filestore"
   ],
   "homepage": "https://github.com/nhathuyd4hp/Kevin",
   "devDependencies": {
@@ -63,7 +62,6 @@
     "build:common": "npm run build --workspace=packages/common",
     "build:requests": "npm run build --workspace=packages/requests",
     "build:filestore": "npm run build --workspace=packages/filestore",
-    "build:sqlite": "npm run build --workspace=packages/sqlite",
     "build:converters": "npm run build --workspace=packages/converters",
     "build:query": "npm run build --workspace=packages/query",
     "build:graphql-docs": "npm run build --workspace=packages/graphql-docs",

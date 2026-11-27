@@ -15,12 +15,11 @@ it before non-trivial cross-package or architectural work.
 ## Dependency direction & ownership boundaries
 
 - **Leaf libs — zero internal `@tern/*` deps:** common, query,
-  requests, graphql-docs, schema, schema-types, sqlite
-  (a leaf, but *not* platform-neutral — see guardrail 6).
+  requests, graphql-docs, schema, schema-types
 - **Mid consumers:** js → (common, query); converters → (common, schema; schema-types
   as devDep); filestore → (common; schema-types as devDep).
 - **Top consumers (things flow *into* them, never out):** electron → (common, converters, filestore, js,
-  requests, schema, sqlite); app → (common, converters, graphql-docs, schema).
+  requests, schema); app → (common, converters, graphql-docs, schema).
 
 Guardrails this enforces:
 
@@ -39,10 +38,6 @@ Guardrails this enforces:
 5. **schema (Yup) and schema-types (TS types) are distinct and both live.** app +
    converters use `@tern/schema` for runtime validation; filestore + converters use
    `@tern/schema-types` for compile-time types. A data-model change usually touches both.
-6. **sqlite is main-process only.** `@tern/sqlite` (= `/node`) imports `node:sqlite`,
-   `node:fs` and `node:crypto`; importing it from the renderer breaks the bundle. The renderer
-   reaches statements only through the per-statement IPC handlers in electron. See
-   `.claude/rules/sqlite.md`.
 
 ## Declared dependencies must match real imports
 

@@ -9,10 +9,10 @@ describe('resolveNewRequestTarget', () => {
         type: 'folder',
         pathname: '/col/folder',
         items: [
-          { uid: 'req-nested', type: 'http-request', pathname: '/col/folder/req.bru' }
+          { uid: 'req-nested', type: 'http-request', pathname: '/col/folder/req.yml' }
         ]
       },
-      { uid: 'req-root', type: 'http-request', pathname: '/col/req.bru' }
+      { uid: 'req-root', type: 'http-request', pathname: '/col/req.yml' }
     ]
   };
 
@@ -30,7 +30,7 @@ describe('resolveNewRequestTarget', () => {
   it('targets collection root for a root-level request tab', () => {
     expect(resolveNewRequestTarget({
       tab: { type: 'http-request' },
-      item: { uid: 'req-root', pathname: '/col/req.bru' },
+      item: { uid: 'req-root', pathname: '/col/req.yml' },
       collection,
       folder: null
     })).toEqual({ collectionUid: 'col-1', item: null });
@@ -39,7 +39,7 @@ describe('resolveNewRequestTarget', () => {
   it('targets parent folder for a nested request tab', () => {
     const result = resolveNewRequestTarget({
       tab: { type: 'http-request' },
-      item: { uid: 'req-nested', pathname: '/col/folder/req.bru' },
+      item: { uid: 'req-nested', pathname: '/col/folder/req.yml' },
       collection,
       folder: null
     });

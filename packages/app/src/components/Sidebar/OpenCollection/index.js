@@ -77,7 +77,7 @@ const OpenCollectionModal = ({ onClose }) => {
           } else if (skippedItems.length) {
             toast.error(`No Tern applications found. ${skippedItems.length} skipped, config could not be read`);
           } else {
-            toast.error('No Tern applications found. Couldn\'t find a bruno.json or opencollection.yml');
+            toast.error('No Tern applications found. Couldn\'t find an opencollection.yml');
           }
           onClose();
           return;

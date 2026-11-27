@@ -19,13 +19,6 @@ const StyledWrapper = styled.div`
     background: ${(props) => props.theme.background.surface0};
   }
 
-  .advanced-options {
-    .caret {
-      color: ${(props) => props.theme.textLink};
-      fill: ${(props) => props.theme.textLink};
-    }
-  }
-
   .report-issue-link {
     display: inline-flex;
     align-items: center;

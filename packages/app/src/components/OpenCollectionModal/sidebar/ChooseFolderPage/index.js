@@ -48,7 +48,7 @@ const ChooseFolderPage = () => {
               title="Drop Tern application folders here"
               hint={(
                 <>
-                  Tern Application folder has <code>opencollection.yml</code> or <code>bruno.json</code> at the root
+                  Tern Application folder has <code>opencollection.yml</code> at the root
                 </>
               )}
               data-testid="choose-folder-drop-zone"

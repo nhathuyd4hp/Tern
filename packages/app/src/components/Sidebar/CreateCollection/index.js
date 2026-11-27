@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, forwardRef } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { useDispatch, useSelector, useStore } from 'react-redux';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -12,16 +12,13 @@ import Portal from 'components/Portal';
 import Modal from 'components/Modal';
 import { sanitizeName, validateName, validateNameError } from 'utils/common/regex';
 import PathDisplay from 'components/PathDisplay/index';
-import { IconArrowBackUp, IconEdit, IconCaretDown } from '@tabler/icons';
+import { IconArrowBackUp, IconEdit } from '@tabler/icons';
 import Help from 'components/Help';
-import Dropdown from 'components/Dropdown';
 import { multiLineMsg } from 'utils/common';
 import { formatIpcError } from 'utils/common/error';
-import { DEFAULT_COLLECTION_FORMAT } from 'utils/common/constants';
 import StyledWrapper from './StyledWrapper';
 import get from 'lodash/get';
 import Button from 'ui/Button';
-import Select from 'ui/Select';
 import SourceRow, { createSource } from './SourceRow';
 
 const waitFor = async (predicate, timeoutMs = 10000) => {
@@ -39,13 +36,10 @@ const CreateCollection = ({ onClose, defaultLocation: propDefaultLocation, initi
   const workspaces = useSelector((state) => state.workspaces?.workspaces || []);
   const workspaceUid = useSelector((state) => state.workspaces?.activeWorkspaceUid);
   const [isEditing, toggleEditing] = useState(false);
-  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
   const [sources, setSources] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const preferences = useSelector((state) => state.app.preferences);
 
-  const dropdownTippyRef = useRef();
-  const onDropdownCreate = (ref) => (dropdownTippyRef.current = ref);
   const activeWorkspace = workspaces.find((w) => w.uid === workspaceUid);
   const isDefaultWorkspace = activeWorkspace?.type === 'default';
 
@@ -56,8 +50,7 @@ const CreateCollection = ({ onClose, defaultLocation: propDefaultLocation, initi
     initialValues: {
       collectionName: initialCollectionName,
       collectionFolderName: initialCollectionName ? sanitizeName(initialCollectionName) : '',
-      collectionLocation: defaultLocation || '',
-      format: DEFAULT_COLLECTION_FORMAT
+      collectionLocation: defaultLocation || ''
     },
     validationSchema: Yup.object({
       collectionName: Yup.string()
@@ -73,8 +66,7 @@ const CreateCollection = ({ onClose, defaultLocation: propDefaultLocation, initi
           return isValid ? true : this.createError({ message: validateNameError(value) });
         })
         .required('Folder name is required'),
-      collectionLocation: Yup.string().min(1, 'Location is required').required('Location is required'),
-      format: Yup.string().oneOf(['bru', 'yml'], 'invalid format').required('Format is required')
+      collectionLocation: Yup.string().min(1, 'Location is required').required('Location is required')
     }),
     onSubmit: async (values) => {
       const unready = sources.find((source) => (source.type === 'openapi' ? !source.specData : !source.protoData));
@@ -92,8 +84,7 @@ const CreateCollection = ({ onClose, defaultLocation: propDefaultLocation, initi
       try {
         const created = await dispatch(createCollection(values.collectionName.trim(),
           values.collectionFolderName,
-          values.collectionLocation,
-          { format: values.format }));
+          values.collectionLocation));
 
         const failed = created?.uid ? await addSources(created, sources) : [];
         if (failed.length) {
@@ -168,20 +159,6 @@ const CreateCollection = ({ onClose, defaultLocation: propDefaultLocation, initi
     }, 50);
     return () => clearTimeout(timer);
   }, [inputRef]);
-
-  const AdvancedOptions = forwardRef((props, ref) => {
-    return (
-      <div ref={ref} className="flex mr-2 text-link cursor-pointer items-center">
-        <button
-          className="btn-advanced"
-          type="button"
-        >
-          Options
-        </button>
-        <IconCaretDown className="caret ml-1" size={14} strokeWidth={2} />
-      </div>
-    );
-  });
 
   return (
     <Portal>
@@ -338,64 +315,14 @@ const CreateCollection = ({ onClose, defaultLocation: propDefaultLocation, initi
                   ) : null}
                 </div>
               )}
-
-              {showAdvancedOptions && (
-                <div className="mt-4">
-                  <label htmlFor="format" className="flex items-center font-medium">
-                    File Format
-                    <Help width="300">
-                      <p>
-                        Choose the file format for storing requests in this application.
-                      </p>
-                      <p className="mt-2">
-                        <strong>OpenCollection (YAML):</strong> Industry-standard YAML format (.yml files)
-                      </p>
-                      <p className="mt-1">
-                        <strong>BRU:</strong> Tern's native file format (.bru files)
-                      </p>
-                    </Help>
-                  </label>
-                  <Select
-                    className="mt-2"
-                    data={[
-                      { value: 'yml', label: 'OpenCollection (YAML)' },
-                      { value: 'bru', label: 'BRU Format (.bru)' }
-                    ]}
-                    value={formik.values.format}
-                    allowDeselect={false}
-                    onChange={(value) => formik.setFieldValue('format', value)}
-                    data-testid="create-format"
-                  />
-                  {formik.touched.format && formik.errors.format ? (
-                    <div className="text-red-500">{formik.errors.format}</div>
-                  ) : null}
-                </div>
-              )}
             </div>
-            <div className="flex justify-between items-center mt-8 bruno-modal-footer">
-              <div className="flex advanced-options">
-                <Dropdown onCreate={onDropdownCreate} icon={<AdvancedOptions />} placement="bottom-start">
-                  <div
-                    className="dropdown-item"
-                    key="show-advanced-options"
-                    data-testid="show-advanced-options-toggle"
-                    onClick={(e) => {
-                      dropdownTippyRef.current.hide();
-                      setShowAdvancedOptions(!showAdvancedOptions);
-                    }}
-                  >
-                    {showAdvancedOptions ? 'Hide Advanced Options' : 'Show Advanced Options'}
-                  </div>
-                </Dropdown>
-              </div>
-              <div className="flex justify-end">
-                <Button type="button" color="secondary" variant="ghost" onClick={onClose} className="mr-2">
-                  Cancel
-                </Button>
-                <Button type="submit" loading={isSubmitting}>
-                  Create
-                </Button>
-              </div>
+            <div className="flex justify-end items-center mt-8 bruno-modal-footer">
+              <Button type="button" color="secondary" variant="ghost" onClick={onClose} className="mr-2">
+                Cancel
+              </Button>
+              <Button type="submit" loading={isSubmitting}>
+                Create
+              </Button>
             </div>
           </form>
         </Modal>

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useRef } from 'react';
 import { getSyncEntry } from 'utils/openapi-sync-scope';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -8,14 +8,11 @@ import {
   IconEye,
   IconSettings,
   IconDots,
-  IconX,
   IconFileCode,
-  IconFileOff,
-  IconTransform
+  IconFileOff
 } from '@tabler/icons';
 import OpenAPISyncIcon from 'components/Icons/OpenAPISync';
 import { toggleCollectionFileMode } from 'providers/ReduxStore/slices/collections';
-import { showMigrateToYmlModal } from 'providers/ReduxStore/slices/collection-migration';
 import { getWorkspaceCollections } from 'utils/collections';
 import isEqual from 'lodash/isEqual';
 import { selectCollections, selectActiveWorkspace } from 'src/selectors/collections';
@@ -31,17 +28,6 @@ import ActionIcon from 'ui/ActionIcon';
 import classNames from 'classnames';
 import StyledWrapper from './StyledWrapper';
 import { useTheme } from 'providers/Theme';
-
-const readDismissedCollections = () => {
-  try {
-    const raw = localStorage.getItem('bruno.migrateToYmlPill.dismissed');
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-};
 
 const CollectionHeader = ({ collection, isScratchCollection }) => {
   const dispatch = useDispatch();
@@ -59,36 +45,6 @@ const CollectionHeader = ({ collection, isScratchCollection }) => {
 
   // First open tab per collection (focused when switching to that collection).
   const firstTabUidByCollection = useSelector(selectFirstTabUidByCollection);
-
-  const [migratePillDismissed, setMigratePillDismissed] = useState(true);
-  useEffect(() => {
-    if (!collection?.pathname) return;
-    const dismissed = readDismissedCollections();
-    setMigratePillDismissed(dismissed.includes(collection.pathname));
-  }, [collection?.pathname]);
-
-  const dismissMigratePill = (e) => {
-    e?.stopPropagation();
-    if (!collection?.pathname) return;
-    const dismissed = readDismissedCollections();
-    if (!dismissed.includes(collection.pathname)) {
-      dismissed.push(collection.pathname);
-      try {
-        localStorage.setItem('bruno.migrateToYmlPill.dismissed', JSON.stringify(dismissed));
-      } catch { }
-    }
-    setMigratePillDismissed(true);
-  };
-
-  const openMigrateToYmlModal = () => {
-    dispatch(
-      showMigrateToYmlModal({
-        collectionUid: collection.uid,
-        collectionPathname: collection.pathname,
-        collectionName: collection.name
-      })
-    );
-  };
 
   const switcherRef = useRef();
 
@@ -268,31 +224,6 @@ const CollectionHeader = ({ collection, isScratchCollection }) => {
         <div className="header-actions flex gap-1.5 items-center">
           {!isScratchCollection && (
             <>
-              {collection.format === 'bru' && !migratePillDismissed && (
-                <div
-                  className="migrate-yml-pill"
-                  data-testid="migrate-yml-pill"
-                  title="Migrate this application to YML"
-                >
-                  <button
-                    type="button"
-                    className="pill-main"
-                    onClick={openMigrateToYmlModal}
-                  >
-                    <IconTransform size={13} strokeWidth={1.5} />
-                    <span className="pill-label">Migrate to YML</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="pill-dismiss"
-                    onClick={dismissMigratePill}
-                    aria-label="Dismiss"
-                    data-testid="migrate-yml-pill-dismiss"
-                  >
-                    <IconX size={12} strokeWidth={2} />
-                  </button>
-                </div>
-              )}
               {/* OpenAPI Sync - standalone only when configured and beta enabled */}
               {hasOpenApiSyncConfigured && (
                 <ToolHint

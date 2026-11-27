@@ -16,10 +16,10 @@ describe('readDroppedItems', () => {
   });
 
   it('returns dropped files, including a collection config file', () => {
-    expect(read(fileItem('/work/openapi.yaml'), fileItem('/work/api/bruno.json'))).toEqual({
+    expect(read(fileItem('/work/openapi.yaml'), fileItem('/work/api/opencollection.yml'))).toEqual({
       folderPaths: [],
       hasFolders: false,
-      files: [{ path: '/work/openapi.yaml' }, { path: '/work/api/bruno.json' }]
+      files: [{ path: '/work/openapi.yaml' }, { path: '/work/api/opencollection.yml' }]
     });
   });
 

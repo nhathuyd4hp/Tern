@@ -39,7 +39,6 @@ import { useDispatch, useStore } from 'react-redux';
 import { isElectron } from 'utils/common/platform';
 import { globalEnvironmentsUpdateEvent, updateGlobalEnvironments } from 'providers/ReduxStore/slices/global-environments';
 import { collectionAddOauth2CredentialsByUrl, collectionClearOauth2CredentialsByCredentialsId, updateCollectionLoadingState } from 'providers/ReduxStore/slices/collections/index';
-import { migrationProgressEvent } from 'providers/ReduxStore/slices/collection-migration';
 
 const useIpcEvents = () => {
   const dispatch = useDispatch();
@@ -105,13 +104,6 @@ const useIpcEvents = () => {
     ipcRenderer.invoke('renderer:ready');
 
     const removeCollectionTreeUpdateListener = ipcRenderer.on('main:collection-tree-updated', _collectionTreeUpdated);
-
-    const removeCollectionMigrationProgressListener = ipcRenderer.on(
-      'main:collection-migration-progress',
-      (progress) => {
-        dispatch(migrationProgressEvent(progress));
-      }
-    );
 
     const removeOpenCollectionListener = ipcRenderer.on('main:collection-opened', async (pathname, uid, brunoConfig, options) => {
       try {
@@ -336,7 +328,6 @@ const useIpcEvents = () => {
     return () => {
       removeCollectionTreeUpdateListener();
       removeOpenCollectionListener();
-      removeCollectionMigrationProgressListener();
       removeOpenWorkspaceListener();
       removeOpenCollectionModalListener();
       removeWorkspacesReadyListener();

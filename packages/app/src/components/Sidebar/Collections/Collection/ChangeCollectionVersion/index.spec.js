@@ -105,16 +105,6 @@ describe('ChangeCollectionVersion', () => {
     await waitFor(() => expect(onClose).toHaveBeenCalled());
   });
 
-  it('for a bru application, the preview mentions bruno.json and collectionVersion', () => {
-    renderModal(buildCollection({ brunoConfig: { version: '1', name: 'Legacy', type: 'collection' } }));
-    fireEvent.change(screen.getByTestId('change-version-input'), { target: { value: '2' } });
-
-    const preview = screen.getByTestId('change-version-preview');
-    expect(preview).toHaveTextContent('collectionVersion');
-    expect(preview).toHaveTextContent('bruno.json');
-    expect(preview).not.toHaveTextContent('info.version');
-  });
-
   it('shows "Not Set" for a yml application that has no version yet', () => {
     renderModal(buildCollection({ brunoConfig: { opencollection: '1.0.0', name: 'Tern-Testbench' } }));
 

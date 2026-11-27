@@ -12,13 +12,13 @@ const RENDERABLE_SIZE = 15 * 1024 * 1024;
 const DOWNLOAD_ONLY_SIZE = 60 * 1024 * 1024;
 
 const loadedItem = {
-  pathname: '/collections/demo/req.bru',
+  pathname: '/collections/demo/req.yml',
   requestSent: { url: 'https://example.com/report' },
   response: { headers: {}, data: { ok: true }, dataBuffer: Buffer.from('{"ok":true}').toString('base64') }
 };
 
 const storedItem = {
-  pathname: '/collections/demo/req.bru',
+  pathname: '/collections/demo/req.yml',
   requestSent: { url: 'https://example.com/report' },
   response: { headers: {}, data: null, dataBuffer: null, size: DOWNLOAD_ONLY_SIZE, storedRequestUid: 'run-1' }
 };
