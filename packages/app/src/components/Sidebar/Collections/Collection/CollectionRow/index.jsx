@@ -4,6 +4,7 @@ import { useDrop, useDrag } from 'react-dnd';
 import { getEmptyImage } from 'react-dnd-html5-backend';
 import {
   IconBox,
+  IconPalette,
   IconChevronRight,
   IconDots,
   IconLoader2,
@@ -40,7 +41,8 @@ import useKeybinding from 'hooks/useKeybinding';
 import useKeybindingDisplayText from 'hooks/useKeybindingDisplayText';
 import useSidebarSelectionClick from 'hooks/useSidebarSelectionClick';
 import { startBlockedDragTracking } from 'utils/dragBlockedCursor';
-import { getApplicationColor } from 'utils/application-color';
+import { useApplicationColor } from 'utils/application-color';
+import ApplicationColor from '../ApplicationColor';
 
 const CollectionRow = ({ collection, searchText, openBulkMenu, children, isCollectionMultiDragDisabled, multiDragCollections }) => {
   const { dropdownContainerRef } = useSidebarAccordion();
@@ -51,6 +53,8 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
   const [dropType, setDropType] = useState(null);
   const [isKeyboardFocused, setIsKeyboardFocused] = useState(false);
   const dispatch = useDispatch();
+  const applicationColor = useApplicationColor(collection);
+  const [showColorModal, setShowColorModal] = useState(false);
   const isLoading = collection.isLoading;
   const selectInvalidItemCount = useMemo(makeSelectInvalidItemCountForCollection, []);
   const invalidItemCount = useSelector((state) => selectInvalidItemCount(state, collection.uid));
@@ -352,6 +356,12 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
         setShowRenameCollectionModal(true);
       }
     },
+    {
+      id: 'change-color',
+      leftSection: IconPalette,
+      label: 'Change color',
+      onClick: () => setShowColorModal(true)
+    },
     { id: 'divider-view', type: 'divider' },
     {
       id: 'collapse',
@@ -386,6 +396,7 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
     <StyledWrapper className="flex flex-col">
       {showNewRequestModal && <NewRequest collectionUid={collection.uid} onClose={() => setShowNewRequestModal(false)} />}
       {showNewFolderModal && <NewFolder collectionUid={collection.uid} onClose={() => setShowNewFolderModal(false)} />}
+      {showColorModal && <ApplicationColor collection={collection} onClose={() => setShowColorModal(false)} />}
       {showRenameCollectionModal && (
         <RenameCollection collectionUid={collection.uid} onClose={() => setShowRenameCollectionModal(false)} />
       )}
@@ -419,7 +430,7 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
               onDoubleClick={handleCollectionDoubleClick}
             />
           </ActionIcon>
-          <IconBox size={16} strokeWidth={2} className="ml-1 flex-shrink-0" style={{ color: getApplicationColor(collection) }} />
+          <IconBox size={16} strokeWidth={2} className="ml-1 flex-shrink-0" style={{ color: applicationColor }} />
           <div className="ml-1 min-w-0" id="sidebar-collection-name" title={collection.name}>
             {collection.name}
           </div>

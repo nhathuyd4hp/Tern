@@ -70,7 +70,7 @@ import useKeybindingDisplayText from 'hooks/useKeybindingDisplayText';
 import useSidebarSelectionClick from 'hooks/useSidebarSelectionClick';
 import { startBlockedDragTracking } from 'utils/dragBlockedCursor';
 import { clearSidebarSelection } from 'providers/ReduxStore/slices/collections/index';
-import { getApplicationColor } from 'utils/application-color';
+import { useApplicationColor } from 'utils/application-color';
 
 const CollectionItemRow = ({
   item,
@@ -130,6 +130,7 @@ const CollectionItemRow = ({
   const itemIsCollapsed = hasSearchText ? false : isCollectionItemCollapsed(item);
   const isFolder = isItemAFolder(item);
   const CollectionIcon = depth > 1 ? IconFolder : IconStack2;
+  const applicationColor = useApplicationColor({ pathname: collectionPathname });
   const syncFolder = useSelector((state) => {
     const application = isFolder ? selectCollectionByUid(state, collectionUid) : null;
     return application ? getFolderSyncPath(application, item) : '';
@@ -827,7 +828,7 @@ const CollectionItemRow = ({
             ) : null}
 
             <div className="ml-1 flex w-full h-full items-center overflow-hidden">
-              {isFolder ? <CollectionIcon size={16} strokeWidth={2} className="mr-1.5 flex-shrink-0" style={{ color: getApplicationColor({ pathname: collectionPathname }) }} /> : null}
+              {isFolder ? <CollectionIcon size={16} strokeWidth={2} className="mr-1.5 flex-shrink-0" style={{ color: applicationColor }} /> : null}
               <CollectionItemIcon item={item} />
               <span className="item-name" title={item.name}>
                 {item.name}

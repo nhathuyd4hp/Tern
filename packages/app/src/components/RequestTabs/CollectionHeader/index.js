@@ -28,10 +28,11 @@ import ActionIcon from 'ui/ActionIcon';
 import classNames from 'classnames';
 import StyledWrapper from './StyledWrapper';
 import { useTheme } from 'providers/Theme';
-import { getApplicationColor } from 'utils/application-color';
+import { useApplicationColor } from 'utils/application-color';
 
 const CollectionHeader = ({ collection, isScratchCollection }) => {
   const dispatch = useDispatch();
+  const applicationColor = useApplicationColor(collection);
 
   const currentWorkspace = useSelector(selectActiveWorkspace);
 
@@ -168,7 +169,7 @@ const CollectionHeader = ({ collection, isScratchCollection }) => {
               size={18}
               strokeWidth={1.5}
               className="cursor-pointer display-icon"
-              style={isScratchCollection ? undefined : { color: getApplicationColor(collection) }}
+              style={isScratchCollection ? undefined : { color: applicationColor }}
               onClick={handleDisplayIconClick}
             />
             <Dropdown

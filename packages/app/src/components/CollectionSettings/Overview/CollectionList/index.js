@@ -4,12 +4,13 @@ import { IconStack2, IconRefresh } from '@tabler/icons';
 import { addTab } from 'providers/ReduxStore/slices/tabs';
 import { flattenItems, isItemAFolder, isItemARequest } from 'utils/collections/index';
 import { getFolderSyncPath, getSyncEntry } from 'utils/openapi-sync-scope';
-import { getApplicationColor } from 'utils/application-color';
+import { useApplicationColor } from 'utils/application-color';
 import StyledWrapper from './StyledWrapper';
 
 // The collections of an application (its top-level folders) with a summary, so one can be picked from here.
 const CollectionList = ({ collection: application }) => {
   const dispatch = useDispatch();
+  const applicationColor = useApplicationColor(application);
 
   const rows = useMemo(() => (application.items || []).filter(isItemAFolder).map((folder) => {
     const syncFolder = getFolderSyncPath(application, folder);
@@ -50,7 +51,7 @@ const CollectionList = ({ collection: application }) => {
           {rows.map((row) => (
             <button type="button" key={row.folder.uid} className="collection-row" onClick={() => openCollection(row)}>
               <span className="collection-name">
-                <IconStack2 size={16} strokeWidth={2} className="collection-icon" style={{ color: getApplicationColor(application) }} />
+                <IconStack2 size={16} strokeWidth={2} className="collection-icon" style={{ color: applicationColor }} />
                 <span className="name-text">{row.folder.name}</span>
               </span>
               <span>{row.requestCount}</span>
