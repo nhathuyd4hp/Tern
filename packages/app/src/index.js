@@ -4,6 +4,10 @@ import App from './pages/index';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import DndTargetErrorGuard from 'components/DndTargetErrorGuard';
+import { migrateLegacyLocalStorageKeys } from 'utils/common/migrateLocalStorage';
+
+// Before anything reads storage, so values stored under the old key names are still found.
+migrateLegacyLocalStorageKeys();
 
 const rootElement = document.getElementById('root');
 

@@ -16,7 +16,7 @@ const REFLECTION_DEBOUNCE_MS = 3000;
 export default function useReflectionManagement(item, collection) {
   const dispatch = useDispatch();
 
-  const [reflectionCache, setReflectionCache] = useLocalStorage('bruno.grpc.reflectionCache', {});
+  const [reflectionCache, setReflectionCache] = useLocalStorage('tern.grpc.reflectionCache', {});
   const [isLoadingMethods, setIsLoadingMethods] = useState(false);
 
   const resolveUrl = (url) => {

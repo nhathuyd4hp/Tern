@@ -40,7 +40,7 @@ const applyThemeToRoot = (theme) => {
 
 export const ThemeContext = createContext();
 export const ThemeProvider = (props) => {
-  const [storedTheme, setStoredThemeNow] = useLocalStorage('bruno.theme', 'system');
+  const [storedTheme, setStoredThemeNow] = useLocalStorage('tern.theme', 'system');
   // Re-theming re-renders every styled component; as a transition it never blocks the click that triggered it.
   const setStoredTheme = useCallback((next) => startTransition(() => setStoredThemeNow(next)), []);
   const [systemTheme, setSystemTheme] = useState(() => getEffectiveTheme('system'));

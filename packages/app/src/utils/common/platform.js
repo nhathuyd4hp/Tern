@@ -55,11 +55,11 @@ export const getRevealInFolderLabel = () => {
 };
 
 export const getAppInstallDate = () => {
-  let dateString = localStorage.getItem('bruno.installedOn');
+  let dateString = localStorage.getItem('tern.installedOn');
 
   if (!dateString) {
     dateString = new Date().toISOString();
-    localStorage.setItem('bruno.installedOn', dateString);
+    localStorage.setItem('tern.installedOn', dateString);
   }
 
   const date = new Date(dateString);

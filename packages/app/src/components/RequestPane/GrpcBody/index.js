@@ -80,8 +80,8 @@ const SingleGrpcMessage = ({ message, item, collection, index, methodType, handl
   const body = item.draft ? get(item, 'draft.request.body') : get(item, 'request.body');
   const isConnectionActive = useSelector((state) => state.collections.activeConnections.includes(item.uid));
 
-  const [reflectionCache] = useLocalStorage('bruno.grpc.reflectionCache', {});
-  const [protofileCache] = useLocalStorage('bruno.grpc.protofileCache', {});
+  const [reflectionCache] = useLocalStorage('tern.grpc.reflectionCache', {});
+  const [protofileCache] = useLocalStorage('tern.grpc.protofileCache', {});
 
   const canClientStream = methodType === 'client-streaming' || methodType === 'bidi-streaming';
   const { name, content } = message;

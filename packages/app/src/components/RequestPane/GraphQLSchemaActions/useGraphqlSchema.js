@@ -23,7 +23,7 @@ const buildAndValidateSchema = (data) => {
   return { schema, validationErrors };
 };
 
-const schemaHashPrefix = 'bruno.graphqlSchema';
+const schemaHashPrefix = 'tern.graphqlSchema';
 
 const useGraphqlSchema = (endpoint, environment, request, collection) => {
   const { ipcRenderer } = window;

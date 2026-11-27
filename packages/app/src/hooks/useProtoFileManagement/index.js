@@ -16,7 +16,7 @@ import get from 'lodash/get';
 export default function useProtoFileManagement(collection) {
   const dispatch = useDispatch();
 
-  const [protofileCache, setProtofileCache] = useLocalStorage('bruno.grpc.protofileCache', {});
+  const [protofileCache, setProtofileCache] = useLocalStorage('tern.grpc.protofileCache', {});
   const [isLoadingMethods, setIsLoadingMethods] = useState(false);
 
   // Get protobuf config from draft if exists, otherwise from brunoConfig

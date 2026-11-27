@@ -1,5 +1,5 @@
-export const SIDEBAR_WIDTH_KEY = 'bruno.leftSidebarWidth';
-export const SIDEBAR_COLLAPSED_KEY = 'bruno.sidebarCollapsed';
+export const SIDEBAR_WIDTH_KEY = 'tern.leftSidebarWidth';
+export const SIDEBAR_COLLAPSED_KEY = 'tern.sidebarCollapsed';
 
 /**
  * Read a value from localStorage with a fallback and optional parsing function.

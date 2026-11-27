@@ -17,7 +17,7 @@ jest.mock('providers/ReduxStore/slices/collections/actions', () => ({
 const { loadGrpcMethodsFromReflection } = require('providers/ReduxStore/slices/collections/actions');
 const useReflectionManagement = require('./index').default;
 
-const CACHE_KEY = 'bruno.grpc.reflectionCache';
+const CACHE_KEY = 'tern.grpc.reflectionCache';
 
 const makeItem = (url) => ({
   uid: 'item-1',
