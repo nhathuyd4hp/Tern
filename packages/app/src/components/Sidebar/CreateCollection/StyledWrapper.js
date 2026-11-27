@@ -11,7 +11,7 @@ const StyledWrapper = styled.div`
     }
   }
 
-  .source-row {
+  .application-source {
     margin-top: 0.5rem;
     padding: 0.75rem;
     border: 1px solid ${(props) => props.theme.border.border1};

@@ -55,7 +55,7 @@ const SpecSourcePicker = ({
         {mode === 'file' && (
           <SpecFilePicker value={value} onChange={onChange} onError={onError} accept={fileAccept} validateFile={validateFile} />
         )}
-        {action}
+        {action && <div className="source-action">{action}</div>}
       </div>
     </StyledWrapper>
   );

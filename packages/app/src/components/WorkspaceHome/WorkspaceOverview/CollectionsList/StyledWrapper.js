@@ -12,11 +12,12 @@ const StyledWrapper = styled.div`
   }
 
   .empty-state {
+    grid-column: 1 / -1;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 32px 20px;
+    padding: 64px 20px;
     text-align: center;
   }
 

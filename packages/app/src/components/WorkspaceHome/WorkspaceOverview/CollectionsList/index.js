@@ -350,7 +350,7 @@ const CollectionsList = ({ workspace, viewMode = 'card' }) => {
             <div className="empty-state">
               <IconBox size={32} strokeWidth={1.5} className="empty-icon" />
               <h3 className="empty-title">No applications yet</h3>
-              <p className="empty-description">Create your first application or open an existing one to get started.</p>
+              <p className="empty-description">Create your first application or import an existing one to get started.</p>
             </div>
           ) : (
             workspaceCollections.map((collection, index) => (

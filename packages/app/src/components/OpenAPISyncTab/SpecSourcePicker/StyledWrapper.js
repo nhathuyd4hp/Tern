@@ -30,7 +30,17 @@ const StyledWrapper = styled.div`
   .source-row {
     display: flex;
     gap: 0.375rem;
-    align-items: center;
+    align-items: stretch;
+  }
+
+  .source-action {
+    display: flex;
+    flex-shrink: 0;
+
+    button {
+      height: 100%;
+      padding: 0 1rem;
+    }
   }
 
   .source-input {

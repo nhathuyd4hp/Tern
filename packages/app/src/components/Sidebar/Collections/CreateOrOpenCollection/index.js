@@ -25,9 +25,9 @@ const CreateOrOpenCollection = ({ onCreateClick }) => {
       Create
     </LinkStyle>
   );
-  const OpenLink = () => (
+  const ImportLink = () => (
     <LinkStyle className="underline text-link cursor-pointer" theme={theme} onClick={() => handleOpenCollection(true)}>
-      Open
+      Import
     </LinkStyle>
   );
 
@@ -36,7 +36,7 @@ const CreateOrOpenCollection = ({ onCreateClick }) => {
       <div className="text-xs text-center">
         <div>No applications found.</div>
         <div className="mt-2">
-          <CreateLink /> or <OpenLink /> Application.
+          <CreateLink /> or <ImportLink /> Application.
         </div>
       </div>
     </StyledWrapper>

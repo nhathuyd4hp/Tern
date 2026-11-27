@@ -49,7 +49,7 @@ const SourceRow = ({ source, onChange, onRemove }) => {
   };
 
   return (
-    <div className="source-row" data-testid="create-source-row">
+    <div className="application-source" data-testid="create-source-row">
       <div className="flex items-center gap-2">
         <div style={{ width: 150, flexShrink: 0 }}>
           <Select
