@@ -25,8 +25,6 @@ const CONFIG = {
   ELECTRON_WATCH_PATHS: [
     'packages/**/dist/',
     'packages/electron/src/',
-    'packages/lang/src/',
-    'packages/lang/v2/src/',
     'packages/js/src/',
     'packages/schema/src/'
   ],
