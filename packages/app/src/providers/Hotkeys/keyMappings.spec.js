@@ -9,6 +9,11 @@ describe('keyMappings display helpers', () => {
     expect(getKeyBindingDisplayTextByOS('sendRequest', undefined, 'mac')).toBe('⌘ + ↩');
   });
 
+  it('uses F2 to rename and Ctrl+F4 to close a tab on Windows', () => {
+    expect(getKeyBindingDisplayTextByOS('renameItem', undefined, 'windows')).toBe('F2');
+    expect(getKeyBindingDisplayTextByOS('closeTab', undefined, 'windows')).toBe('Ctrl + F4');
+  });
+
   it('uses user keybinding overrides before formatting shortcuts', () => {
     const userKeyBindings = {
       sendRequest: {

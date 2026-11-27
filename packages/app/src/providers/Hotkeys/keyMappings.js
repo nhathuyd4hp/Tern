@@ -4,7 +4,7 @@ export const KEY_BINDING_SECTIONS = [
   {
     heading: 'Tabs',
     bindings: {
-      closeTab: { mac: 'command+bind+w', windows: 'ctrl+bind+w', name: 'Close Tab' }, // D
+      closeTab: { mac: 'command+bind+w', windows: 'ctrl+bind+f4', name: 'Close Tab' }, // D
       closeAllTabs: { mac: 'command+bind+shift+bind+w', windows: 'ctrl+bind+shift+bind+w', name: 'Close All Tabs' }, // D
       save: { mac: 'command+bind+s', windows: 'ctrl+bind+s', name: 'Save' }, // D
       saveAllTabs: { mac: 'command+bind+shift+bind+s', windows: 'ctrl+bind+shift+bind+s', name: 'Save All Tabs' }, // D
@@ -32,7 +32,7 @@ export const KEY_BINDING_SECTIONS = [
       copyItem: { mac: 'command+bind+c', windows: 'ctrl+bind+c', name: 'Copy Item' }, // D
       pasteItem: { mac: 'command+bind+v', windows: 'ctrl+bind+v', name: 'Paste Item' }, // D
       cloneItem: { mac: 'command+bind+d', windows: 'ctrl+bind+d', name: 'Clone Item' }, // D
-      renameItem: { mac: 'command+bind+r', windows: 'ctrl+bind+r', name: 'Rename Item' }, // D
+      renameItem: { mac: 'f2', windows: 'f2', name: 'Rename Item' }, // D
       collapseSidebar: { mac: 'command+bind+\\', windows: 'ctrl+bind+\\', name: 'Collapse Sidebar' } // D
     }
   },
