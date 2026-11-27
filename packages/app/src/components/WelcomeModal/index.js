@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import get from 'lodash/get';
 import toast from 'react-hot-toast';
-import Bruno from 'components/Bruno';
+import Logo from 'components/Logo';
 import Button from 'ui/Button';
 import { useTheme } from 'providers/Theme';
 import { browseDirectory } from 'providers/ReduxStore/slices/collections/actions';
@@ -103,10 +103,10 @@ const WelcomeModal = ({ onDismiss, onCreateCollection, onOpenCollection, onStart
       <div className="welcome-card">
         <div className="welcome-header">
           <div className="logo-container">
-            <Bruno width={48} />
+            <Logo width={48} />
           </div>
           <h1 className="welcome-heading">
-            {step === 1 ? 'Welcome to Kevin' : step === 4 ? 'Ready to go!' : 'Set up Kevin'}
+            {step === 1 ? 'Welcome to Tern' : step === 4 ? 'Ready to go!' : 'Set up Tern'}
           </h1>
           {step === 1 && (
             <p className="welcome-tagline">

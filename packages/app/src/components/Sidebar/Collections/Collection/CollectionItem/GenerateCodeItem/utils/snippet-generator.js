@@ -1,5 +1,5 @@
-import { buildHar } from '@usebruno/common';
-import { stripOrigin } from '@usebruno/common/utils';
+import { buildHar } from '@tern/common';
+import { stripOrigin } from '@tern/common/utils';
 import { getAllVariables, getTreePathFromCollectionToItem, mergeHeaders } from 'utils/collections/index';
 import { resolveInheritedAuth } from 'utils/auth';
 import { get } from 'lodash';

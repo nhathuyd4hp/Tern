@@ -8,7 +8,7 @@ import Button from 'ui/Button';
 import CollectionsList from './CollectionsList';
 import StyledWrapper from './StyledWrapper';
 
-const VIEW_MODE_KEY = 'kevin.home.viewMode';
+const VIEW_MODE_KEY = 'tern.home.viewMode';
 
 const readViewMode = () => {
   try {

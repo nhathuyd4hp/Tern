@@ -39,7 +39,7 @@ const CollectionItemInfo = ({ item, onClose }) => {
                 ) : (
                   <Help width="300">
                     <p>
-                      Kevin saves each request as a file in your application's folder.
+                      Tern saves each request as a file in your application's folder.
                     </p>
                   </Help>
                 )}

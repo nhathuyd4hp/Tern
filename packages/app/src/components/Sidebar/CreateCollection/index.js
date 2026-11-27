@@ -225,7 +225,7 @@ const CreateCollection = ({ onClose, defaultLocation: propDefaultLocation, initi
                 Location
                 <Help>
                   <p>
-                    Kevin stores your applications on your computer's filesystem.
+                    Tern stores your applications on your computer's filesystem.
                   </p>
                   <p className="mt-2">
                     Choose the location where you want to store this application.
@@ -351,7 +351,7 @@ const CreateCollection = ({ onClose, defaultLocation: propDefaultLocation, initi
                         <strong>OpenCollection (YAML):</strong> Industry-standard YAML format (.yml files)
                       </p>
                       <p className="mt-1">
-                        <strong>BRU:</strong> Kevin's native file format (.bru files)
+                        <strong>BRU:</strong> Tern's native file format (.bru files)
                       </p>
                     </Help>
                   </label>

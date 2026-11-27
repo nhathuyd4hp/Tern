@@ -85,7 +85,7 @@ const RemoveCollections = ({ onClose, collectionUid, collectionUids }) => {
           <p className="mb-4">
             {isMultiple
               ? `Are you sure you want to close all ${collections.length} applications from this workspace?`
-              : 'Are you sure you want to close the following application in Kevin?'}
+              : 'Are you sure you want to close the following application in Tern?'}
           </p>
 
           <div className="collections-list-container">

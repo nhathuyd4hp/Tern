@@ -6,7 +6,7 @@ const StorageStep = ({ collectionLocation, onBrowse }) => (
     <div className="step-label">Storage</div>
     <div className="step-title">Where should we store your applications?</div>
     <div className="step-description">
-      Kevin saves applications as plain files on your filesystem, perfect for version control with Git.
+      Tern saves applications as plain files on your filesystem, perfect for version control with Git.
     </div>
 
     <div className="location-input-group">

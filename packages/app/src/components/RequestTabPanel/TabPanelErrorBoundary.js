@@ -39,7 +39,7 @@ class TabPanelErrorBoundaryInner extends React.Component {
             </p>
           ) : (
             <p className="text-sm opacity-70 max-w-md">
-              This panel encountered an unexpected error. Restart Kevin to recover.
+              This panel encountered an unexpected error. Restart Tern to recover.
             </p>
           )}
           {errorMessage && (

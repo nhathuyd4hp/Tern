@@ -1,5 +1,5 @@
 import { IconTrash, IconSend, IconChevronRight, IconChevronDown } from '@tabler/icons';
-import { resolveEnvironmentInheritance } from '@usebruno/common/utils';
+import { resolveEnvironmentInheritance } from '@tern/common/utils';
 import CodeEditor from 'components/CodeEditor/index';
 import ToolHint from 'components/ToolHint/index';
 import { get } from 'lodash';

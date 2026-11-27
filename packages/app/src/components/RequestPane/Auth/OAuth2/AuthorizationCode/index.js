@@ -165,7 +165,7 @@ const OAuth2AuthorizationCode = ({ save, item = {}, request, handleRun, updateAu
               onRun={handleRun}
               collection={collection}
               item={item}
-              placeholder={useSystemBrowser ? 'kevin://app/oauth2/callback' : undefined}
+              placeholder={useSystemBrowser ? 'tern://app/oauth2/callback' : undefined}
               readOnly={readOnly}
               isCompact
             />

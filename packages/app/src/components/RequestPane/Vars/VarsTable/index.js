@@ -9,7 +9,7 @@ import InfoTip from 'components/InfoTip';
 import DataTypeSelector from 'components/DataTypeSelector';
 import VarValueCell from 'components/VarValueCell';
 import SensitiveWarningPopover from 'components/SensitiveFieldWarning/SensitiveWarningPopover';
-import { valueToString } from '@usebruno/common/utils';
+import { valueToString } from '@tern/common/utils';
 import EditableTable from 'components/EditableTable';
 import { createDescriptionColumn } from 'components/EditableTable/descriptionColumn';
 import StyledWrapper from './StyledWrapper';

@@ -15,7 +15,7 @@ import GrpcQueryUrl from 'components/RequestPane/GrpcQueryUrl/index';
 import NetworkError from 'components/ResponsePane/NetworkError';
 import VariablesEditor from 'components/VariablesEditor';
 import CollectionSettings from 'components/CollectionSettings';
-import { DocExplorer } from '@usebruno/graphql-docs';
+import { DocExplorer } from '@tern/graphql-docs';
 
 import FileEditor from 'components/FileEditor';
 import StyledWrapper from './StyledWrapper';

@@ -1,5 +1,5 @@
 import { useDispatch } from 'react-redux';
-import { SCRIPT_TYPES } from '@usebruno/common';
+import { SCRIPT_TYPES } from '@tern/common';
 import { addTab, updateRequestPaneTab, updateScriptPaneTab, setFocusErrorLine } from 'providers/ReduxStore/slices/tabs';
 import { updateSettingsSelectedTab, updatedFolderSettingsSelectedTab } from 'providers/ReduxStore/slices/collections';
 import { getErrorSourceTabUid } from 'utils/response-pane-errors';

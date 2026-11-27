@@ -1,4 +1,4 @@
-import { REQUEST_NAME_SOURCES } from '@usebruno/common';
+import { REQUEST_NAME_SOURCES } from '@tern/common';
 import ImportSettingRow from 'components/Sidebar/ImportSettings/ImportSettingRow';
 import ImportSettingDropdown from 'components/Sidebar/ImportSettings/ImportSettingDropdown';
 
@@ -14,7 +14,7 @@ const requestNameSourceOptions = REQUEST_NAME_SOURCES.map((value) => ({ value, l
 const RequestNameSourceOption = ({ value, onChange, disabled = false }) => (
   <ImportSettingRow
     label="Naming requests"
-    info="If an operation doesn't have the selected option, Kevin falls back in the following order: summary, operationId, description, then path."
+    info="If an operation doesn't have the selected option, Tern falls back in the following order: summary, operationId, description, then path."
     description="How requests in the generated application are named."
     disabled={disabled}
   >

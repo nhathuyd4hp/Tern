@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
 import { cloneDeep, find, get } from 'lodash';
 import { IconLoader2, IconX } from '@tabler/icons';
-import { interpolate } from '@usebruno/common';
+import { interpolate } from '@tern/common';
 import { fetchOauth2Credentials, clearOauth2Cache, refreshOauth2Credentials, cancelOauth2AuthorizationRequest, isOauth2AuthorizationRequestInProgress } from 'providers/ReduxStore/slices/collections/actions';
 import { responseReceived } from 'providers/ReduxStore/slices/collections';
 import { updateResponsePaneTab } from 'providers/ReduxStore/slices/tabs';

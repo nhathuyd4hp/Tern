@@ -75,9 +75,9 @@ const OpenCollectionModal = ({ onClose }) => {
           if (failedScans.length) {
             toast.error(`Failed to scan ${failedScans.length} folder${failedScans.length === 1 ? '' : 's'} for applications`);
           } else if (skippedItems.length) {
-            toast.error(`No Kevin applications found. ${skippedItems.length} skipped, config could not be read`);
+            toast.error(`No Tern applications found. ${skippedItems.length} skipped, config could not be read`);
           } else {
-            toast.error('No Kevin applications found. Couldn\'t find a bruno.json or opencollection.yml');
+            toast.error('No Tern applications found. Couldn\'t find a bruno.json or opencollection.yml');
           }
           onClose();
           return;

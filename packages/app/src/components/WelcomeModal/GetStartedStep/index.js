@@ -27,7 +27,7 @@ const GetStartedStep = ({ onCreateCollection, onOpenCollection, onStartRequest }
         </span>
         <div>
           <div className="secondary-label">Import existing application</div>
-          <div className="secondary-desc">Import a Kevin application from your filesystem</div>
+          <div className="secondary-desc">Import a Tern application from your filesystem</div>
         </div>
       </button>
       <button className="secondary-action" onClick={onStartRequest}>

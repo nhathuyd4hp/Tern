@@ -1,4 +1,4 @@
-import { getDataTypeFromValue, toDisplayString } from '@usebruno/common/utils';
+import { getDataTypeFromValue, toDisplayString } from '@tern/common/utils';
 import { getScopedStorageKey } from 'components/CodeEditor/state-persistence';
 import { VARIABLE_REFERENCE_PATTERN } from './constants';
 

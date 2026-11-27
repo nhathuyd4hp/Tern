@@ -36,7 +36,7 @@ const IgnoreCollectionItem = ({ onClose, item, collectionUid }) => {
     >
       Ignoring <span className="font-medium">{item.name}</span> will hide it from this
       {' '}
-      {isYamlCollection ? 'opencollection (YAML)' : 'Kevin (JSON)'}
+      {isYamlCollection ? 'opencollection (YAML)' : 'Tern (JSON)'}
       {' '}
       application by adding it to the
       {' '}

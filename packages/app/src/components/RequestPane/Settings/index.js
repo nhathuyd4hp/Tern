@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import get from 'lodash/get';
-import { utils } from '@usebruno/common';
+import { utils } from '@tern/common';
 import Toggle from 'ui/Toggle';
 import SettingsInput from 'components/SettingsInput';
 import InheritableSettingsInput from 'components/InheritableSettingsInput';

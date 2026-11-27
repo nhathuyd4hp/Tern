@@ -43,9 +43,9 @@ jest.mock('components/Modal', () => ({
 
 const buildCollection = (overrides = {}) => ({
   uid: 'collection-1',
-  name: 'Kevin-Testbench',
+  name: 'Tern-Testbench',
   pathname: '/tmp/bruno-testbench',
-  brunoConfig: { opencollection: '1.0.0', name: 'Kevin-Testbench', version: 'v1.0.0' },
+  brunoConfig: { opencollection: '1.0.0', name: 'Tern-Testbench', version: 'v1.0.0' },
   ...overrides
 });
 
@@ -116,7 +116,7 @@ describe('ChangeCollectionVersion', () => {
   });
 
   it('shows "Not Set" for a yml application that has no version yet', () => {
-    renderModal(buildCollection({ brunoConfig: { opencollection: '1.0.0', name: 'Kevin-Testbench' } }));
+    renderModal(buildCollection({ brunoConfig: { opencollection: '1.0.0', name: 'Tern-Testbench' } }));
 
     expect(screen.getByTestId('change-version-current')).toHaveTextContent('Not Set');
     expect(screen.getByTestId('change-version-input')).toHaveValue('');
