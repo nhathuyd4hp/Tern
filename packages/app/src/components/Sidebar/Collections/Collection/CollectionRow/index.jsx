@@ -5,6 +5,7 @@ import { getEmptyImage } from 'react-dnd-html5-backend';
 import {
   IconBox,
   IconPalette,
+  IconRoute,
   IconChevronRight,
   IconDots,
   IconLoader2,
@@ -361,6 +362,15 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
       leftSection: IconPalette,
       label: 'Change color',
       onClick: () => setShowColorModal(true)
+    },
+    {
+      id: 'flows',
+      leftSection: IconRoute,
+      label: 'Flows',
+      onClick: () => {
+        ensureCollectionIsMounted();
+        dispatch(addTab({ uid: `${collection.uid}-flows`, collectionUid: collection.uid, type: 'flows' }));
+      }
     },
     { id: 'divider-view', type: 'divider' },
     {

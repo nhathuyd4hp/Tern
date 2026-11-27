@@ -481,6 +481,17 @@ describe('hydrateSnapshotLookups', () => {
   });
 });
 
+describe('flows tab', () => {
+  const collection = { uid: 'c1', pathname: '/apps/a', items: [] };
+
+  it('comes back per application after a restart', () => {
+    const tab = { uid: 'c1-flows', collectionUid: 'c1', type: 'flows', preview: false };
+    const restored = deserializeTab(serializeTab(tab, collection), collection);
+    expect(restored).toMatchObject({ type: 'flows', uid: 'c1-flows' });
+    expect(shouldExcludeTab(tab)).toBeFalsy();
+  });
+});
+
 describe('folder-scoped openapi-sync tabs', () => {
   const collection = { uid: 'c1', pathname: '/apps/a', items: [] };
   const syncTab = { uid: 't1', collectionUid: 'c1', type: 'openapi-sync', syncFolder: 'api/users', tabName: 'users', preview: false };

@@ -15,7 +15,8 @@ const SINGLETON_TAB_TYPES = new Set([
   'workspaceOverview',
   'workspaceEnvironments',
   'openapi-sync',
-  'openapi-spec'
+  'openapi-spec',
+  'flows'
 ]);
 
 const NON_REPLACEABLE_SINGLETON_TAB_TYPES = new Set([
@@ -668,6 +669,8 @@ export const deserializeTab = (snapshotTab, collection) => {
       tab.uid = `${collection.uid}-environment-settings`;
     } else if (type === 'global-environment-settings') {
       tab.uid = `${collection.uid}-global-environment-settings`;
+    } else if (type === 'flows') {
+      tab.uid = `${collection.uid}-flows`;
     } else if (NON_REPLACEABLE_SINGLETON_TAB_TYPES.has(type)) {
       tab.uid = uuid();
     } else {

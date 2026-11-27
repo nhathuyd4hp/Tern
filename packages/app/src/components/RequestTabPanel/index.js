@@ -39,6 +39,7 @@ import WorkspaceOverview from 'components/WorkspaceHome/WorkspaceOverview';
 import Preferences from 'components/Preferences';
 import EnvironmentSettings from 'components/Environments/EnvironmentSettings';
 import GlobalEnvironmentSettings from 'components/Environments/GlobalEnvironmentSettings';
+import FlowsTab from 'components/FlowsTab';
 import OpenAPISyncTab from 'components/OpenAPISyncTab';
 import OpenAPISpecTab from 'components/OpenAPISpecTab';
 import CollapsedPanelIndicator from './CollapsedPanelIndicator';
@@ -444,6 +445,10 @@ const RequestTabPanel = () => {
 
   if (focusedTab.type === 'environment-settings') {
     return <EnvironmentSettings collection={collection} />;
+  }
+
+  if (focusedTab.type === 'flows') {
+    return <FlowsTab collection={collection} />;
   }
 
   if (focusedTab.type === 'openapi-sync') {
