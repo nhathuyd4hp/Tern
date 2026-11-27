@@ -66,7 +66,11 @@ const saveProtoIntoApplication = async ({ collectionPath, name, content }) => {
 const registerProtoSourceIpc = () => {
   ipcMain.handle('renderer:fetch-proto-file', (event, payload) => fetchProtoFile(payload));
   ipcMain.handle('renderer:remove-temp-proto-file', (event, { tempPath }) => removeTempProto(tempPath));
-  ipcMain.handle('renderer:save-proto-into-application', (event, payload) => saveProtoIntoApplication(payload));
+  ipcMain.handle('renderer:save-proto-into-application', (event, payload) => {
+    // required lazily: collection.js registers Electron handlers on load
+    require('./collection').validatePathIsInsideCollection(payload.collectionPath);
+    return saveProtoIntoApplication(payload);
+  });
 };
 
 module.exports = registerProtoSourceIpc;

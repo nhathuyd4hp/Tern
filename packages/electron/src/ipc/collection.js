@@ -2418,3 +2418,4 @@ const registerCollectionsIpc = (mainWindow, watcher) => {
 };
 
 module.exports = registerCollectionsIpc;
+module.exports.validatePathIsInsideCollection = validatePathIsInsideCollection;

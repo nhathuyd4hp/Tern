@@ -14,7 +14,7 @@ const {
 } = require('@usebruno/filestore');
 const { openApiToBruno } = require('@usebruno/converters');
 const { resolveEnvironmentInheritance, buildQueryString, parseQueryParams, getFilenameWithFormat } = require('@usebruno/common/utils');
-const { writeFile, writeFileUnique, sanitizeName, getCollectionFormat, posixifyPath } = require('../utils/filesystem');
+const { writeFile, withFileLock, writeFileUnique, sanitizeName, getCollectionFormat, posixifyPath } = require('../utils/filesystem');
 const { derefSpecObject, declaredSchemaNode, declaresKey, declaredKeysOf, declaredChild, declaredItems, declaresOnlyScalars, keyLeavesShapeOpen, itemsLeaveShapeOpen, otherAlternativeKeys } = require('../utils/openapi-schema');
 const { COLLECTION_ROOT_BASENAMES, FOLDER_ROOT_BASENAMES } = require('../utils/mount');
 
@@ -404,6 +404,19 @@ const findRequestFileOnDisk = (dirPath, method, urlPath, collectionPath = dirPat
   return null;
 };
 
+// Config edits of one application run one at a time, each on the freshly loaded file, so a sync, a settings
+// save and a disconnect that overlap cannot overwrite each other's entries.
+const updateConfigUnderLock = (collectionPath, mutate) => withFileLock(`${collectionPath}::openapi-config`, async () => {
+  const { format, brunoConfig, collectionRoot } = loadBrunoConfig(collectionPath);
+  await mutate(brunoConfig);
+  await saveBrunoConfig(collectionPath, format, brunoConfig, collectionRoot);
+});
+
+const patchSyncEntry = (collectionPath, folder, patch) => updateConfigUnderLock(collectionPath, (brunoConfig) => {
+  const index = entryIndexFor(brunoConfig, folder);
+  if (index >= 0) brunoConfig.openapi[index] = { ...brunoConfig.openapi[index], ...patch };
+});
+
 /**
  * Save an OpenAPI spec file to AppData specs directory.
  * - Detects format (JSON/YAML) from the content and uses the correct file extension.
@@ -448,9 +461,8 @@ const saveOpenApiSpecFile = async ({ collectionPath, content, sourceUrl, folder 
  * Shared by both the IPC handler (connect flow) and the import flow. Returns the metadata it saved.
  */
 const saveSpecAndUpdateMetadata = async ({ collectionPath, specContent, folder }) => {
-  const { format, brunoConfig, collectionRoot } = loadBrunoConfig(collectionPath);
-  const entryIndex = entryIndexFor(brunoConfig, folder);
-  const sourceUrl = brunoConfig?.openapi?.[entryIndex]?.sourceUrl;
+  const { brunoConfig } = loadBrunoConfig(collectionPath);
+  const sourceUrl = syncEntryOf(brunoConfig, folder)?.sourceUrl;
 
   await saveOpenApiSpecFile({ collectionPath, content: specContent, sourceUrl, folder });
 
@@ -463,11 +475,7 @@ const saveSpecAndUpdateMetadata = async ({ collectionPath, specContent, folder }
 
   const specHash = generateSpecHash(parsedSpec);
   const lastSyncDate = new Date().toISOString();
-  if (brunoConfig.openapi?.[entryIndex]) {
-    brunoConfig.openapi[entryIndex] = { ...brunoConfig.openapi[entryIndex], lastSyncDate, specHash };
-  };
-
-  await saveBrunoConfig(collectionPath, format, brunoConfig, collectionRoot);
+  await patchSyncEntry(collectionPath, folder, { lastSyncDate, specHash });
   return { lastSyncDate, specHash };
 };
 
@@ -478,15 +486,15 @@ const saveSpecAndUpdateMetadata = async ({ collectionPath, specContent, folder }
 const addFolderSyncEntry = async ({ collectionPath, folder, entry, specContent }) => {
   const folderKey = normalizeFolder(folder);
   scopeRootOf(collectionPath, folderKey);
-  const { format, brunoConfig, collectionRoot } = loadBrunoConfig(collectionPath);
   const sourceUrl = resolveSourceUrl(collectionPath, entry.sourceUrl);
 
   await saveOpenApiSpecFile({ collectionPath, content: specContent, sourceUrl, folder: folderKey });
 
   const specHash = generateSpecHash(parseSpec(specContent));
-  const others = (brunoConfig.openapi || []).filter((existing) => normalizeFolder(existing.folder) !== folderKey);
-  brunoConfig.openapi = [...others, { ...entry, sourceUrl, folder: folderKey, lastSyncDate: new Date().toISOString(), specHash }];
-  await saveBrunoConfig(collectionPath, format, brunoConfig, collectionRoot);
+  await updateConfigUnderLock(collectionPath, (brunoConfig) => {
+    const others = (brunoConfig.openapi || []).filter((existing) => normalizeFolder(existing.folder) !== folderKey);
+    brunoConfig.openapi = [...others, { ...entry, sourceUrl, folder: folderKey, lastSyncDate: new Date().toISOString(), specHash }];
+  });
 };
 
 /**
@@ -1652,7 +1660,7 @@ const registerOpenAPISyncIpc = (mainWindow) => {
   // Sync modes: 'spec-only' | 'reset' | 'sync' (default)
   ipcMain.handle('renderer:apply-openapi-sync', async (event, { collectionPath, addNewRequests, removeDeletedRequests, diff, localOnlyToRemove = [], driftedToReset = [], mode = 'sync', endpointDecisions = {}, preserveValues = true, folder }) => {
     try {
-      const { format, brunoConfig, collectionRoot } = loadBrunoConfig(collectionPath);
+      const { format, brunoConfig } = loadBrunoConfig(collectionPath);
       const entryIndex = entryIndexFor(brunoConfig, folder);
       const sourceUrl = brunoConfig?.openapi?.[entryIndex]?.sourceUrl;
       const scopeRoot = scopeRootOf(collectionPath, folder);
@@ -1664,16 +1672,7 @@ const registerOpenAPISyncIpc = (mainWindow) => {
           await saveOpenApiSpecFile({ collectionPath, content: specContent, sourceUrl, folder });
         }
 
-        // Update sync metadata
-        if (brunoConfig.openapi?.[entryIndex]) {
-          brunoConfig.openapi[entryIndex] = {
-            ...brunoConfig.openapi[entryIndex],
-            lastSyncDate: new Date().toISOString(),
-            specHash: generateSpecHash(diff.newSpec)
-          };
-        }
-
-        await saveBrunoConfig(collectionPath, format, brunoConfig, collectionRoot);
+        await patchSyncEntry(collectionPath, folder, { lastSyncDate: new Date().toISOString(), specHash: generateSpecHash(diff.newSpec) });
 
         return { success: true, mode: 'spec-only' };
       }
@@ -1745,16 +1744,7 @@ const registerOpenAPISyncIpc = (mainWindow) => {
         const specContent = diff.newSpecContent || JSON.stringify(diff.newSpec, null, 2);
         await saveOpenApiSpecFile({ collectionPath, content: specContent, sourceUrl, folder });
 
-        // Update sync metadata
-        if (brunoConfig.openapi?.[entryIndex]) {
-          brunoConfig.openapi[entryIndex] = {
-            ...brunoConfig.openapi[entryIndex],
-            lastSyncDate: new Date().toISOString(),
-            specHash: generateSpecHash(diff.newSpec)
-          };
-        }
-
-        await saveBrunoConfig(collectionPath, format, brunoConfig, collectionRoot);
+        await patchSyncEntry(collectionPath, folder, { lastSyncDate: new Date().toISOString(), specHash: generateSpecHash(diff.newSpec) });
 
         return { success: true, mode: 'reset' };
       }
@@ -1959,19 +1949,11 @@ const registerOpenAPISyncIpc = (mainWindow) => {
         await saveOpenApiSpecFile({ collectionPath, content: specContent, sourceUrl, folder });
       }
 
-      if (brunoConfig.openapi?.[entryIndex]) {
-        const updated = {
-          ...brunoConfig.openapi[entryIndex],
-          lastSyncDate: new Date().toISOString()
-        };
-        // Only update specHash when we have a valid newSpec, otherwise preserve existing hash
-        if (diff.newSpec) {
-          updated.specHash = generateSpecHash(diff.newSpec);
-        }
-        brunoConfig.openapi[entryIndex] = updated;
-      }
-
-      await saveBrunoConfig(collectionPath, format, brunoConfig, collectionRoot);
+      // Only update specHash when we have a valid newSpec, otherwise preserve existing hash
+      await patchSyncEntry(collectionPath, folder, {
+        lastSyncDate: new Date().toISOString(),
+        ...(diff.newSpec && { specHash: generateSpecHash(diff.newSpec) })
+      });
 
       return { success: true };
     } catch (error) {
@@ -1983,8 +1965,6 @@ const registerOpenAPISyncIpc = (mainWindow) => {
   // Update OpenAPI sync configuration (e.g., source URL)
   ipcMain.handle('renderer:update-openapi-sync-config', async (event, { collectionPath, config, folder }) => {
     try {
-      const { format, brunoConfig, collectionRoot } = loadBrunoConfig(collectionPath);
-
       // Merge new config into existing entry (allowlist keys only)
       const allowedKeys = ['sourceUrl', 'groupBy', 'lastSyncDate', 'specHash', 'autoCheck', 'autoCheckInterval', 'autoApply'];
       const sanitizedConfig = {};
@@ -2010,17 +1990,16 @@ const registerOpenAPISyncIpc = (mainWindow) => {
       // Update the entry of this scope (application-wide or one folder), or create it
       const folderKey = normalizeFolder(folder);
       scopeRootOf(collectionPath, folderKey);
-      const entryIndex = entryIndexFor(brunoConfig, folderKey);
-      if (entryIndex >= 0) {
-        brunoConfig.openapi = brunoConfig.openapi.map((entry, index) => (index === entryIndex ? { ...entry, ...sanitizedConfig } : entry));
-      } else {
-        if (!('autoCheck' in sanitizedConfig)) sanitizedConfig.autoCheck = true;
-        if (!('autoCheckInterval' in sanitizedConfig)) sanitizedConfig.autoCheckInterval = 5;
-        brunoConfig.openapi = [...(brunoConfig.openapi || []), { ...sanitizedConfig, ...(folderKey && { folder: folderKey }) }];
-      }
-
-      // Save updated config
-      await saveBrunoConfig(collectionPath, format, brunoConfig, collectionRoot);
+      await updateConfigUnderLock(collectionPath, (brunoConfig) => {
+        const entryIndex = entryIndexFor(brunoConfig, folderKey);
+        if (entryIndex >= 0) {
+          brunoConfig.openapi = brunoConfig.openapi.map((entry, index) => (index === entryIndex ? { ...entry, ...sanitizedConfig } : entry));
+        } else {
+          if (!('autoCheck' in sanitizedConfig)) sanitizedConfig.autoCheck = true;
+          if (!('autoCheckInterval' in sanitizedConfig)) sanitizedConfig.autoCheckInterval = 5;
+          brunoConfig.openapi = [...(brunoConfig.openapi || []), { ...sanitizedConfig, ...(folderKey && { folder: folderKey }) }];
+        }
+      });
 
       return { success: true };
     } catch (error) {
@@ -2093,13 +2072,12 @@ const registerOpenAPISyncIpc = (mainWindow) => {
   // Remove OpenAPI sync configuration (disconnect sync)
   ipcMain.handle('renderer:remove-openapi-sync-config', async (event, { collectionPath, deleteSpecFile = false, folder }) => {
     try {
-      const { format, brunoConfig, collectionRoot } = loadBrunoConfig(collectionPath);
-
       // Remove this scope's entry only; other folders keep their sync
-      const remaining = (brunoConfig.openapi || []).filter((entry) => normalizeFolder(entry?.folder) !== normalizeFolder(folder));
-      if (remaining.length) brunoConfig.openapi = remaining;
-      else delete brunoConfig.openapi;
-      await saveBrunoConfig(collectionPath, format, brunoConfig, collectionRoot);
+      await updateConfigUnderLock(collectionPath, (brunoConfig) => {
+        const remaining = (brunoConfig.openapi || []).filter((entry) => normalizeFolder(entry?.folder) !== normalizeFolder(folder));
+        if (remaining.length) brunoConfig.openapi = remaining;
+        else delete brunoConfig.openapi;
+      });
 
       // Remove the stored spec file and metadata of this entry
       const meta = loadSpecMetadata();
