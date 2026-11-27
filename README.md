@@ -21,7 +21,6 @@ Application và Collection là thư mục chứa file văn bản (`.yml`), nên 
 **Giao thức**
 
 - HTTP/REST, GraphQL, gRPC và WebSocket.
-- gRPC: nạp method từ file `.proto`; unary, server streaming, client streaming và bidirectional streaming.
 
 **Soạn request**
 
