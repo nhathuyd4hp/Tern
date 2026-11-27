@@ -1,13 +1,6 @@
 import type { BrunoCollection, BrunoItem, BrunoEnvironment } from '@tern/schema-types';
+import dotenv from 'dotenv';
 
-import {
-  parseBruRequest,
-  parseBruCollection,
-  parseBruEnvironment,
-  stringifyBruRequest,
-  stringifyBruCollection,
-  stringifyBruEnvironment
-} from './formats/bru';
 import {
   parseYmlItem,
   parseYmlCollection,
@@ -18,142 +11,106 @@ import {
   stringifyYmlCollection,
   stringifyYmlEnvironment
 } from './formats/yml';
-import { dotenvToJson } from '@tern/lang';
-import BruParserWorker from './workers';
-import {
-  ParseOptions,
-  StringifyOptions,
-  CollectionFormat
-} from './types';
+import FileParserWorker from './workers';
+import { ParseOptions, StringifyOptions, CollectionFormat } from './types';
 import { DEFAULT_COLLECTION_FORMAT } from './constants';
-import { bruRequestParseAndRedactBodyData } from './formats/bru/utils/request-parse-and-redact-body-data';
-import { redactLargeBruTextBlocks, restoreRedactedBlocks } from './formats/bru/utils/redact-large-text-blocks';
+
+// YAML is the only supported format; the option is kept so callers stay explicit.
+const assertYml = (options: { format?: CollectionFormat }): void => {
+  if (options.format !== undefined && options.format !== 'yml') {
+    throw new Error(`Unsupported format: ${options.format}`);
+  }
+};
+
+const DEFAULT_OPTIONS = { format: DEFAULT_COLLECTION_FORMAT };
 
 // request
-export const parseRequest = (content: string, options: ParseOptions = { format: DEFAULT_COLLECTION_FORMAT }): any => {
-  if (options.format === 'bru') {
-    return parseBruRequest(content);
-  } else if (options.format === 'yml') {
-    return parseYmlItem(content);
-  }
-  throw new Error(`Unsupported format: ${options.format}`);
+export const parseRequest = (content: string, options: ParseOptions = DEFAULT_OPTIONS): any => {
+  assertYml(options);
+  return parseYmlItem(content);
 };
 
-export const parseRequestAndRedactBody = (content: string, options: ParseOptions = { format: 'bru' }): any => {
-  if (options.format === 'bru') {
-    return bruRequestParseAndRedactBodyData(content);
-  }
-  throw new Error(`Unsupported format: ${options.format}`);
-};
-
-export const stringifyRequest = (requestObj: BrunoItem, options: StringifyOptions = { format: DEFAULT_COLLECTION_FORMAT }): string => {
-  if (options.format === 'bru') {
-    return stringifyBruRequest(requestObj);
-  } else if (options.format === 'yml') {
-    return stringifyYmlItem(requestObj);
-  }
-  throw new Error(`Unsupported format: ${options.format}`);
+export const stringifyRequest = (requestObj: BrunoItem, options: StringifyOptions = DEFAULT_OPTIONS): string => {
+  assertYml(options);
+  return stringifyYmlItem(requestObj);
 };
 
 // request via worker
-let globalWorkerInstance: BruParserWorker | null = null;
-const getWorkerInstance = (): BruParserWorker => {
+let globalWorkerInstance: FileParserWorker | null = null;
+const getWorkerInstance = (): FileParserWorker => {
   if (!globalWorkerInstance) {
-    globalWorkerInstance = new BruParserWorker();
+    globalWorkerInstance = new FileParserWorker();
   }
   return globalWorkerInstance;
 };
 
-export const parseRequestViaWorker = async (content: string, options: { format: CollectionFormat; filename?: string }): Promise<any> => {
-  const fileParserWorker = getWorkerInstance();
-
-  return await fileParserWorker.parseRequest(content, options.format);
+export const parseRequestViaWorker = async (content: string, options: { format?: CollectionFormat; filename?: string } = DEFAULT_OPTIONS): Promise<any> => {
+  assertYml(options);
+  return await getWorkerInstance().parseRequest(content);
 };
 
-export const stringifyRequestViaWorker = async (requestObj: any, options: { format: CollectionFormat }): Promise<string> => {
-  const fileParserWorker = getWorkerInstance();
-  return await fileParserWorker.stringifyRequest(requestObj, options.format);
+export const stringifyRequestViaWorker = async (requestObj: any, options: { format?: CollectionFormat } = DEFAULT_OPTIONS): Promise<string> => {
+  assertYml(options);
+  return await getWorkerInstance().stringifyRequest(requestObj);
 };
 
-export const parseFolderViaWorker = async (content: string, options: { format: CollectionFormat }): Promise<any> => {
-  return await getWorkerInstance().parseFolder(content, options.format);
+export const parseFolderViaWorker = async (content: string, options: { format?: CollectionFormat } = DEFAULT_OPTIONS): Promise<any> => {
+  assertYml(options);
+  return await getWorkerInstance().parseFolder(content);
 };
 
-export const stringifyFolderViaWorker = async (folderObj: any, options: { format: CollectionFormat }): Promise<string> => {
-  return await getWorkerInstance().stringifyFolder(folderObj, options.format);
+export const stringifyFolderViaWorker = async (folderObj: any, options: { format?: CollectionFormat } = DEFAULT_OPTIONS): Promise<string> => {
+  assertYml(options);
+  return await getWorkerInstance().stringifyFolder(folderObj);
 };
 
-export const parseEnvironmentViaWorker = async (content: string, options: { format: CollectionFormat }): Promise<any> => {
-  return await getWorkerInstance().parseEnvironment(content, options.format);
+export const parseEnvironmentViaWorker = async (content: string, options: { format?: CollectionFormat } = DEFAULT_OPTIONS): Promise<any> => {
+  assertYml(options);
+  return await getWorkerInstance().parseEnvironment(content);
 };
 
-export const stringifyEnvironmentViaWorker = async (envObj: any, options: { format: CollectionFormat }): Promise<string> => {
-  return await getWorkerInstance().stringifyEnvironment(envObj, options.format);
+export const stringifyEnvironmentViaWorker = async (envObj: any, options: { format?: CollectionFormat } = DEFAULT_OPTIONS): Promise<string> => {
+  assertYml(options);
+  return await getWorkerInstance().stringifyEnvironment(envObj);
 };
 
 // collection
-export const parseCollection = (content: string, options: ParseOptions = { format: DEFAULT_COLLECTION_FORMAT }): any => {
-  if (options.format === 'bru') {
-    return parseBruCollection(content);
-  } else if (options.format === 'yml') {
-    return parseYmlCollection(content);
-  }
-  throw new Error(`Unsupported format: ${options.format}`);
+export const parseCollection = (content: string, options: ParseOptions = DEFAULT_OPTIONS): any => {
+  assertYml(options);
+  return parseYmlCollection(content);
 };
 
-export const stringifyCollection = (collectionObj: BrunoCollection, brunoConfig: any, options: StringifyOptions = { format: DEFAULT_COLLECTION_FORMAT }): string => {
-  if (options.format === 'bru') {
-    return stringifyBruCollection(collectionObj, false);
-  } else if (options.format === 'yml') {
-    return stringifyYmlCollection(collectionObj, brunoConfig);
-  }
-  throw new Error(`Unsupported format: ${options.format}`);
+export const stringifyCollection = (collectionObj: BrunoCollection, brunoConfig: any, options: StringifyOptions = DEFAULT_OPTIONS): string => {
+  assertYml(options);
+  return stringifyYmlCollection(collectionObj, brunoConfig);
 };
 
 // folder
-export const parseFolder = (content: string, options: ParseOptions = { format: DEFAULT_COLLECTION_FORMAT }): any => {
-  if (options.format === 'bru') {
-    return parseBruCollection(content);
-  } else if (options.format === 'yml') {
-    return parseYmlFolder(content);
-  }
-  throw new Error(`Unsupported format: ${options.format}`);
+export const parseFolder = (content: string, options: ParseOptions = DEFAULT_OPTIONS): any => {
+  assertYml(options);
+  return parseYmlFolder(content);
 };
 
-export const stringifyFolder = (folderObj: any, options: StringifyOptions = { format: DEFAULT_COLLECTION_FORMAT }): string => {
-  if (options.format === 'bru') {
-    return stringifyBruCollection(folderObj, true);
-  } else if (options.format === 'yml') {
-    return stringifyYmlFolder(folderObj);
-  }
-  throw new Error(`Unsupported format: ${options.format}`);
+export const stringifyFolder = (folderObj: any, options: StringifyOptions = DEFAULT_OPTIONS): string => {
+  assertYml(options);
+  return stringifyYmlFolder(folderObj);
 };
 
 // environment
-export const parseEnvironment = (content: string, options: ParseOptions = { format: DEFAULT_COLLECTION_FORMAT }): any => {
-  if (options.format === 'bru') {
-    return parseBruEnvironment(content);
-  } else if (options.format === 'yml') {
-    return parseYmlEnvironment(content);
-  }
-  throw new Error(`Unsupported format: ${options.format}`);
+export const parseEnvironment = (content: string, options: ParseOptions = DEFAULT_OPTIONS): any => {
+  assertYml(options);
+  return parseYmlEnvironment(content);
 };
 
-export const stringifyEnvironment = (envObj: BrunoEnvironment, options: StringifyOptions = { format: DEFAULT_COLLECTION_FORMAT }): string => {
-  if (options.format === 'bru') {
-    return stringifyBruEnvironment(envObj);
-  } else if (options.format === 'yml') {
-    return stringifyYmlEnvironment(envObj);
-  }
-  throw new Error(`Unsupported format: ${options.format}`);
+export const stringifyEnvironment = (envObj: BrunoEnvironment, options: StringifyOptions = DEFAULT_OPTIONS): string => {
+  assertYml(options);
+  return stringifyYmlEnvironment(envObj);
 };
 
 export const parseDotEnv = (content: string): Record<string, string> => {
-  return dotenvToJson(content);
+  return dotenv.parse(Buffer.from(content));
 };
 
-export { redactLargeBruTextBlocks, restoreRedactedBlocks };
-export type { RedactedBlock, RedactionResult } from './formats/bru/utils/redact-large-text-blocks';
-export { BruParserWorker };
+export { FileParserWorker };
 export * from './types';
 export * from './constants';

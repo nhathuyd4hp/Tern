@@ -1,13 +1,5 @@
 import { parentPort } from 'node:worker_threads';
 import {
-  parseBruRequest,
-  parseBruCollection,
-  parseBruEnvironment,
-  stringifyBruRequest,
-  stringifyBruCollection,
-  stringifyBruEnvironment
-} from '../formats/bru';
-import {
   parseYmlItem,
   parseYmlFolder,
   parseYmlEnvironment,
@@ -15,8 +7,6 @@ import {
   stringifyYmlFolder,
   stringifyYmlEnvironment
 } from '../formats/yml';
-import { CollectionFormat } from '../types';
-import { DEFAULT_COLLECTION_FORMAT } from '../constants';
 
 type TaskType
   = | 'parse'
@@ -30,24 +20,23 @@ interface WorkerMessage {
   taskType: TaskType;
   data: {
     data: any;
-    format?: CollectionFormat;
   };
 }
 
-const runTask = (taskType: TaskType, data: any, format: CollectionFormat): any => {
+const runTask = (taskType: TaskType, data: any): any => {
   switch (taskType) {
     case 'parse':
-      return format === 'yml' ? parseYmlItem(data) : parseBruRequest(data);
+      return parseYmlItem(data);
     case 'stringify':
-      return format === 'yml' ? stringifyYmlItem(data) : stringifyBruRequest(data);
+      return stringifyYmlItem(data);
     case 'parseFolder':
-      return format === 'yml' ? parseYmlFolder(data) : parseBruCollection(data);
+      return parseYmlFolder(data);
     case 'stringifyFolder':
-      return format === 'yml' ? stringifyYmlFolder(data) : stringifyBruCollection(data, true);
+      return stringifyYmlFolder(data);
     case 'parseEnvironment':
-      return format === 'yml' ? parseYmlEnvironment(data) : parseBruEnvironment(data);
+      return parseYmlEnvironment(data);
     case 'stringifyEnvironment':
-      return format === 'yml' ? stringifyYmlEnvironment(data) : stringifyBruEnvironment(data);
+      return stringifyYmlEnvironment(data);
     default:
       throw new Error(`Unknown task type: ${taskType}`);
   }
@@ -56,8 +45,8 @@ const runTask = (taskType: TaskType, data: any, format: CollectionFormat): any =
 parentPort?.on('message', async (message: WorkerMessage) => {
   try {
     const { taskType, data: messageData } = message;
-    const { data, format = DEFAULT_COLLECTION_FORMAT } = messageData;
-    const result = runTask(taskType, data, format);
+    const { data } = messageData;
+    const result = runTask(taskType, data);
     parentPort?.postMessage(result);
   } catch (error: any) {
     console.error('Worker error:', error);

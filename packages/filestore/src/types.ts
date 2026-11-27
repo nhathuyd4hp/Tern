@@ -1,4 +1,4 @@
-export type CollectionFormat = 'bru' | 'yml';
+export type CollectionFormat = 'yml';
 
 export interface ParseOptions {
   format?: CollectionFormat;

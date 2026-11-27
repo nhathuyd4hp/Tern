@@ -1,6 +1,5 @@
 import WorkerQueue from './WorkerQueue';
-import { Lane, CollectionFormat } from '../types';
-import { DEFAULT_COLLECTION_FORMAT } from '../constants';
+import { Lane } from '../types';
 import path from 'node:path';
 
 const sizeInMB = (size: number): number => {
@@ -35,7 +34,7 @@ interface WorkerQueueWithSize {
 
 }
 
-class BruParserWorker {
+class FileParserWorker {
   private workerQueues: WorkerQueueWithSize[];
 
   constructor() {
@@ -57,47 +56,45 @@ class BruParserWorker {
 
   private async enqueueTask({
     data,
-    taskType,
-    format = DEFAULT_COLLECTION_FORMAT
+    taskType
   }: {
     data: any;
     taskType: 'parse' | 'stringify' | 'parseFolder' | 'stringifyFolder' | 'parseEnvironment' | 'stringifyEnvironment';
-    format?: CollectionFormat;
   }): Promise<any> {
     const size = getSize(data);
     const workerQueue = this.getWorkerQueue(size);
     const workerScriptPath = path.join(__dirname, './workers/worker-script.js');
 
     return workerQueue.enqueue({
-      data: { data, format },
+      data: { data },
       priority: size,
       scriptPath: workerScriptPath,
       taskType
     });
   }
 
-  async parseRequest(data: any, format: CollectionFormat = DEFAULT_COLLECTION_FORMAT): Promise<any> {
-    return this.enqueueTask({ data, taskType: 'parse', format });
+  async parseRequest(data: any): Promise<any> {
+    return this.enqueueTask({ data, taskType: 'parse' });
   }
 
-  async stringifyRequest(data: any, format: CollectionFormat = DEFAULT_COLLECTION_FORMAT): Promise<any> {
-    return this.enqueueTask({ data, taskType: 'stringify', format });
+  async stringifyRequest(data: any): Promise<any> {
+    return this.enqueueTask({ data, taskType: 'stringify' });
   }
 
-  async parseFolder(data: any, format: CollectionFormat = DEFAULT_COLLECTION_FORMAT): Promise<any> {
-    return this.enqueueTask({ data, taskType: 'parseFolder', format });
+  async parseFolder(data: any): Promise<any> {
+    return this.enqueueTask({ data, taskType: 'parseFolder' });
   }
 
-  async stringifyFolder(data: any, format: CollectionFormat = DEFAULT_COLLECTION_FORMAT): Promise<any> {
-    return this.enqueueTask({ data, taskType: 'stringifyFolder', format });
+  async stringifyFolder(data: any): Promise<any> {
+    return this.enqueueTask({ data, taskType: 'stringifyFolder' });
   }
 
-  async parseEnvironment(data: any, format: CollectionFormat = DEFAULT_COLLECTION_FORMAT): Promise<any> {
-    return this.enqueueTask({ data, taskType: 'parseEnvironment', format });
+  async parseEnvironment(data: any): Promise<any> {
+    return this.enqueueTask({ data, taskType: 'parseEnvironment' });
   }
 
-  async stringifyEnvironment(data: any, format: CollectionFormat = DEFAULT_COLLECTION_FORMAT): Promise<any> {
-    return this.enqueueTask({ data, taskType: 'stringifyEnvironment', format });
+  async stringifyEnvironment(data: any): Promise<any> {
+    return this.enqueueTask({ data, taskType: 'stringifyEnvironment' });
   }
 
   async cleanup(): Promise<void> {
@@ -108,4 +105,4 @@ class BruParserWorker {
   }
 }
 
-export default BruParserWorker;
+export default FileParserWorker;
