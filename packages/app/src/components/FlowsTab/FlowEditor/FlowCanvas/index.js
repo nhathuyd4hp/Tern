@@ -27,7 +27,8 @@ const FlowCanvas = ({ flow, requestOf, results, running, selectedId, onSelect, o
 
   const nodes = useMemo(() => flow.nodes.map((node) => {
     const request = requestOf(node.requestPath);
-    const handles = new Set([...getRequestStatuses(request), ...node.statuses, ...flow.edges.filter((edge) => edge.source === node.id).map((edge) => edge.sourceHandle)]);
+    const connected = flow.edges.filter((edge) => edge.source === node.id).map((edge) => edge.sourceHandle);
+    const handles = new Set([...[...getRequestStatuses(request), ...node.statuses].filter((status) => !node.hidden.includes(status)), ...connected]);
     return {
       id: node.id,
       type: 'request',

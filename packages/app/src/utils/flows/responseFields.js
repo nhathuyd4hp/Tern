@@ -24,6 +24,23 @@ const successExample = (item) => (item?.examples || []).find((example) => {
   return status >= 200 && status < 300;
 });
 
+/** The fields an item of a list has ('name', 'id'...), from the fields of the response; `list` is 'res.body.data'. */
+export const getItemKeys = (fields, list) => fields
+  .map((field) => (field.expression.startsWith(`${list}[0].`) ? field.expression.slice(list.length + 4) : ''))
+  .filter(isIdentifier);
+
+/** The list an expression goes into ('res.body.data' for 'res.body.data[0].id'), or undefined when it is not inside a list. */
+export const getListOf = (expression) => /^(.*?)\[0\]/.exec(expression)?.[1];
+
+/** The conditions a value inside a list starts with: an item is told by a field, 'name' or 'id' when it has one. */
+export const getDefaultItemConditions = (fields, expression) => {
+  const list = getListOf(expression);
+  if (list === undefined) return undefined;
+  const keys = getItemKeys(fields, list);
+  const field = ['name', 'id'].find((key) => keys.includes(key)) || keys[0];
+  return field ? [{ field, value: '' }] : undefined;
+};
+
 /** [{ expression: 'res.body.data.token', label: 'data.token', sample: 'abc…', name: 'token' }] */
 export const getResponseFields = (item) => {
   const body = successExample(item)?.response?.body;
@@ -44,7 +61,8 @@ export const getResponseFields = (item) => {
       const path = segments.map((segment) => (typeof segment === 'number' ? `[${segment}]` : isIdentifier(segment) ? `.${segment}` : `[${JSON.stringify(segment)}]`)).join('');
       fields.push({
         expression: `res.body${path}`,
-        label: path.replace(/^\./, ''),
+        // a list is shown as [], its item is chosen by a condition, never by position
+        label: path.replace(/^\./, '').replaceAll('[0]', '[]'),
         sample: sampleOf(value),
         name: suggestVariableName(segments)
       });

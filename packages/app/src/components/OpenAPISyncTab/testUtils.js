@@ -9,7 +9,7 @@ import { ThemeContext } from 'providers/Theme';
 export const validOpenApiSpec = { openapi: '3.0.0', info: { title: 'Pets' }, paths: {} };
 
 export const renderWithTheme = (ui) => {
-  const store = configureStore({ reducer: { openapiSync: (state = {}) => state } });
+  const store = configureStore({ reducer: { openapiSync: (state = {}) => state, globalEnvironments: (state = { globalEnvironments: [], activeGlobalEnvironmentUid: null }) => state } });
   return render(
     <Provider store={store}>
       <ThemeContext.Provider value={{ theme: themes.light }}>

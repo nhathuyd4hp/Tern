@@ -4,6 +4,7 @@ import Info from './Info';
 import { IconBox } from '@tabler/icons';
 import RequestsNotLoaded from './RequestsNotLoaded';
 import CollectionList from './CollectionList';
+import ReloadApplication from './ReloadApplication';
 
 const Overview = ({ collection }) => {
   return (
@@ -14,6 +15,9 @@ const Overview = ({ collection }) => {
             <IconBox size={20} stroke={1.5} className="flex-shrink-0" />
             <span className="overflow-hidden text-lg font-medium whitespace-nowrap text-ellipsis">
               {collection?.name}
+            </span>
+            <span className="ml-auto flex-shrink-0">
+              <ReloadApplication application={collection} />
             </span>
           </div>
           <CollectionList collection={collection} />

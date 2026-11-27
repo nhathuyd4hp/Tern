@@ -4,12 +4,16 @@ import Button from 'ui/Button';
 import MethodBadge from 'ui/MethodBadge';
 import Select from 'ui/Select';
 import { freeVariableName, getRequestUrlPath, getVariableNameProblem } from 'utils/flows';
-import { getResponseFields } from 'utils/flows/responseFields';
+import { getDefaultItemConditions, getItemKeys, getListOf, getResponseFields } from 'utils/flows/responseFields';
+import Conditions from './Conditions';
 import ResponseView from './ResponseView';
 import StatusSection from './StatusSection';
 import StyledWrapper from './StyledWrapper';
 import ValuePicker from './ValuePicker';
 import VariableField from './VariableField';
+
+// With a condition on the list the position in the expression is not used: the item is found by its field.
+const shownExpression = ({ expression, where }) => (where ? expression.replace('[0]', '[]') : expression);
 
 const shorten = (value) => {
   const text = typeof value === 'string' ? value : JSON.stringify(value);
@@ -45,9 +49,10 @@ const InputRows = ({ title, entries, overrides, disabled, onChange, renderPicker
 };
 
 // What a selected request of the flow sends, and which values it takes from the response.
-const NodePanel = ({ width, flow, node, request, upstream, results, result, disabled, onChange, onChangeMany, onRemove }) => {
+const NodePanel = ({ width, flow, node, request, upstream, environmentValues, results, result, disabled, onChange, onChangeMany, onRemove }) => {
   const bodyRef = useRef(null);
   const fields = useMemo(() => getResponseFields(request), [request]);
+  const environmentNames = useMemo(() => environmentValues.map((entry) => entry.name), [environmentValues]);
   const { inputs, extractions } = node;
 
   const params = (request?.request?.params || []).filter((param) => param.type === 'query' || param.type === 'path');
@@ -62,8 +67,8 @@ const NodePanel = ({ width, flow, node, request, upstream, results, result, disa
   // Uses a value of an earlier request here: that request is made to take the field as a variable (once), and the
   // variable is put where the user asked. Both nodes change in one go, as the flow is saved as a whole.
   const takeEarlierValue = ({ source, field }, apply) => {
-    const existing = source.extractions.find((extraction) => extraction.expression === field.expression);
-    const name = existing ? existing.name : freeVariableName(flow, field.name);
+    const existing = source.extractions.find((extraction) => extraction.expression === field.expression && !extraction.where);
+    const name = existing ? existing.name : freeVariableName(flow, field.name, environmentNames);
     const nextSource = existing ? source : { ...source, extractions: [...source.extractions, { name, expression: field.expression }] };
     const nextNode = apply(`{{${name}}}`);
     onChangeMany([nextNode, nextSource]);
@@ -89,17 +94,24 @@ const NodePanel = ({ width, flow, node, request, upstream, results, result, disa
       key: `${source.id}|${extraction.name}`,
       name: extraction.name,
       source: `${sourceRequest.request.method} ${getRequestUrlPath(sourceRequest)}`,
-      expression: extraction.expression,
+      expression: shownExpression(extraction),
       value: results?.[source.id]?.extracted?.[extraction.name]
     })));
+  // what {{ offers: the values of earlier requests, then the variables of the environments
+  const suggestions = [...earlierValues, ...environmentValues];
 
   // a row is picked from the known fields while it is empty or holds one of them; a typed expression stays a text box
   const canPick = (extraction) => fields.length > 0 && (!extraction.expression || fields.some((field) => field.expression === extraction.expression));
+  // The fields an item of the list has, when the value is inside a list: the item is then told by one of them.
+  const listFieldsOf = ({ expression }) => {
+    const list = getListOf(expression);
+    return list === undefined ? [] : getItemKeys(fields, list);
+  };
   const pickField = (position, expression) => {
     const field = fields.find((candidate) => candidate.expression === expression);
     if (!field) return;
     const current = extractions[position];
-    changeExtraction(position, { expression, name: current.name && fields.every((candidate) => candidate.name !== current.name) ? current.name : field.name });
+    changeExtraction(position, { expression, where: getDefaultItemConditions(fields, expression), name: current.name && fields.every((candidate) => candidate.name !== current.name) ? current.name : field.name });
   };
 
   return (
@@ -121,7 +133,7 @@ const NodePanel = ({ width, flow, node, request, upstream, results, result, disa
         disabled={disabled}
         onChange={(name, value, saved) => setInputs({ params: withOverride(inputs.params, name, value, saved) })}
         renderPicker={(entry) => pickerFor((token) => setEntry('params', entry, token))}
-        suggestions={earlierValues}
+        suggestions={suggestions}
       />
       <InputRows
         title="Headers"
@@ -130,7 +142,7 @@ const NodePanel = ({ width, flow, node, request, upstream, results, result, disa
         disabled={disabled}
         onChange={(name, value, saved) => setInputs({ headers: withOverride(inputs.headers, name, value, saved) })}
         renderPicker={(entry) => pickerFor((token) => setEntry('headers', entry, token))}
-        suggestions={earlierValues}
+        suggestions={suggestions}
       />
       {body?.mode === 'json' && (
         <div className="panel-section">
@@ -146,7 +158,7 @@ const NodePanel = ({ width, flow, node, request, upstream, results, result, disa
             rows={8}
             value={inputs.body === null ? savedBody : inputs.body}
             disabled={disabled}
-            suggestions={earlierValues}
+            suggestions={suggestions}
             onValueChange={(text) => setInputs({ body: text === savedBody ? null : text })}
           />
         </div>
@@ -160,7 +172,7 @@ const NodePanel = ({ width, flow, node, request, upstream, results, result, disa
         </div>
       )}
 
-      <StatusSection node={node} request={request} disabled={disabled} onChange={onChange} />
+      <StatusSection node={node} request={request} connected={new Set(flow.edges.filter((edge) => edge.source === node.id).map((edge) => edge.sourceHandle))} disabled={disabled} onChange={onChange} />
 
       <div className="panel-section">
         <div className="panel-subtitle">Share values of this response</div>
@@ -181,7 +193,7 @@ const NodePanel = ({ width, flow, node, request, upstream, results, result, disa
             </div>
           ))}
           {extractions.map((extraction, position) => {
-            const nameProblem = getVariableNameProblem(flow, node.id, position, extraction.name);
+            const nameProblem = getVariableNameProblem(flow, node.id, position, extraction.name, environmentNames);
             return (
               <div key={position}>
                 <div className="share-row">
@@ -199,7 +211,7 @@ const NodePanel = ({ width, flow, node, request, upstream, results, result, disa
                       <Select
                         data={fields
                           .filter((field) => field.expression === extraction.expression || !extractions.some((other) => other.expression === field.expression))
-                          .map((field) => ({ value: field.expression, label: field.expression === extraction.expression ? field.expression : field.label }))}
+                          .map((field) => ({ value: field.expression, label: field.expression === extraction.expression ? shownExpression(extraction) : field.label }))}
                         value={extraction.expression}
                         onChange={(expression) => pickField(position, expression)}
                         placeholder="Pick a value from the response"
@@ -224,6 +236,15 @@ const NodePanel = ({ width, flow, node, request, upstream, results, result, disa
                     <Button size="xs" variant="ghost" color="secondary" disabled={disabled} icon={<IconX size={14} />} onClick={() => setExtractions(extractions.filter((_, i) => i !== position))} title="Remove value" />
                   </span>
                 </div>
+                {listFieldsOf(extraction).length > 0 && (
+                  <Conditions
+                    conditions={extraction.where || []}
+                    keys={listFieldsOf(extraction)}
+                    suggestions={suggestions}
+                    disabled={disabled}
+                    onChange={(where) => changeExtraction(position, { where })}
+                  />
+                )}
                 {result?.extracted && extraction.name in result.extracted && (
                   <div className="share-last" title={String(result.extracted[extraction.name])}>last run: {shorten(result.extracted[extraction.name])}</div>
                 )}

@@ -1,10 +1,11 @@
 import { useMemo, useRef, useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { v4 as uuid } from 'uuid';
 import { ReactFlowProvider } from '@xyflow/react';
 import { IconPlayerPlay, IconPlayerStop, IconTrash } from '@tabler/icons';
 import Button from 'ui/Button';
 import { deleteFlow, getFlowNameProblem, getFlowRequests, getUpstreamNodes, saveFlow } from 'utils/flows';
+import { getEnvironmentSuggestions } from 'utils/flows/environmentVariables';
 import { runFlow } from 'utils/flows/runFlow';
 import FlowCanvas from './FlowCanvas';
 import NodePanel from './NodePanel';
@@ -23,6 +24,13 @@ const FlowEditor = ({ application, flow, onDeleted }) => {
   const [paletteWidth, setPaletteWidth] = useState(220);
   const [panelWidth, setPanelWidth] = useState(340);
   const stopRequested = useRef(false);
+
+  const { globalEnvironments, activeGlobalEnvironmentUid } = useSelector((state) => state.globalEnvironments);
+  const environmentValues = useMemo(
+    () => getEnvironmentSuggestions(application, { globalEnvironments, activeGlobalEnvironmentUid }),
+    [application, globalEnvironments, activeGlobalEnvironmentUid]
+  );
+  const environmentNames = useMemo(() => environmentValues.map((entry) => entry.name), [environmentValues]);
 
   const requests = useMemo(() => getFlowRequests(application), [application]);
   const requestOf = useMemo(() => (requestPath) => requests.find((entry) => entry.requestPath.toLowerCase() === requestPath.toLowerCase())?.item || null, [requests]);
@@ -93,7 +101,7 @@ const FlowEditor = ({ application, flow, onDeleted }) => {
     onDeleted();
   };
 
-  const nameProblem = getFlowNameProblem(flow);
+  const nameProblem = getFlowNameProblem(flow, environmentNames);
   const selected = flow.nodes.find((node) => node.id === selectedId) || null;
   // the earlier requests whose responses a request can use
   const upstream = selected
@@ -162,6 +170,7 @@ const FlowEditor = ({ application, flow, onDeleted }) => {
               flow={flow}
               node={selected}
               upstream={upstream}
+              environmentValues={environmentValues}
               results={results}
               onChangeMany={changeNodes}
               request={requestOf(selected.requestPath)}

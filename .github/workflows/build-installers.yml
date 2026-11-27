@@ -40,7 +40,6 @@ jobs:
 
   windows:
     name: Windows (nsis)
-    needs: lint
     runs-on: windows-latest
     timeout-minutes: 60
     steps:
@@ -69,7 +68,6 @@ jobs:
 
   linux:
     name: Linux (AppImage, deb, rpm)
-    needs: lint
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
@@ -86,14 +84,11 @@ jobs:
       - name: Build web app
         run: npm run build:web
 
-      - name: Build AppImage
-        run: node scripts/build-electron.js
+      - name: Prepare the app
+        run: node scripts/build-electron.js --prepare-only
 
-      - name: Build deb
-        run: npm run dist:deb --workspace=packages/electron -- --publish never
-
-      - name: Build rpm
-        run: npm run dist:rpm --workspace=packages/electron -- --publish never
+      - name: Build AppImage, deb and rpm
+        run: npm exec --workspace=packages/electron -- electron-builder --linux AppImage deb rpm --config electron-builder-config.js --publish never
 
       - name: Upload installers
         uses: actions/upload-artifact@v4
@@ -108,7 +103,7 @@ jobs:
 
   release:
     name: Publish release
-    needs: [windows, linux]
+    needs: [lint, windows, linux]
     runs-on: ubuntu-latest
     permissions:
       contents: write

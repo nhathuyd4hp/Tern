@@ -48,6 +48,12 @@ const StyledWrapper = styled.div`
       color: ${(props) => props.theme.colors.text.muted};
     }
 
+    .status-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+    }
+
     .status-origin {
       font-size: 10px;
       color: ${(props) => props.theme.colors.text.muted};

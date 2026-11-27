@@ -6,9 +6,11 @@ import { flattenItems, isItemARequest } from 'utils/collections/index';
 // A flow is a graph of requests of one application. A node sends a request; the status of its response picks
 // the edge to follow (an edge leaves a node from the handle of a status, or from 'other'). Values taken from a
 // response become variables ({{name}}) for the nodes after it.
-//   Flow = { id, name, nodes: [{ id, requestPath, position: { x, y }, inputs: { params, headers, body }, statuses: ['404', ...], extractions: [{ name, expression }] }],
+//   Flow = { id, name, nodes: [{ id, requestPath, position: { x, y }, inputs: { params, headers, body }, statuses: ['404', ...], extractions: [{ name, expression, where?: [{ field, op?, value }] }] }],
 //            edges: [{ id, source, sourceHandle, target }] }
-//   statuses are the ones the user added to a node, besides those its request documents.
+//   statuses are the ones the user added to a node, besides those its request documents; hidden are the documented ones
+//   (or 'other') the user took away because nothing is connected to them.
+//   where picks the item of a list: the expression holds [0] for the list, and the first item that meets every condition (its field is, differs from or contains value, by op) is used instead.
 //   inputs.params / inputs.headers map a name to the value to send instead of the saved one; inputs.body is a JSON text or null.
 // Flows are saved with their application, in its flows.json.
 
@@ -18,6 +20,9 @@ export const FLOW_REQUEST_TYPES = ['http-request', 'graphql-request'];
 export const FLOW_DRAG = { request: 'flow-request' };
 
 export const OTHER_STATUS = 'other';
+
+// How the field of an item of a list is compared with the value; a condition without op is 'equals'.
+export const WHERE_OPERATORS = { equals: 'equals', differs: 'differs from', contains: 'contains' };
 
 const STORAGE_KEY = 'tern.flows';
 const NO_FLOWS = [];
@@ -32,6 +37,15 @@ const isRecord = (value) => value !== null && typeof value === 'object' && !Arra
 
 const textMap = (value) => Object.fromEntries(Object.entries(isRecord(value) ? value : {}).filter(([, entry]) => typeof entry === 'string'));
 
+// The conditions that tell an item of a list; a flow saved with a single condition (an object) reads as a list of one.
+const sanitizeConditions = (where) => (Array.isArray(where) ? where : [where])
+  .filter((condition) => text(condition?.field))
+  .map((condition) => ({
+    field: condition.field,
+    ...(condition.op in WHERE_OPERATORS && condition.op !== 'equals' ? { op: condition.op } : {}),
+    value: text(condition.value)
+  }));
+
 const sanitizeNode = (node) => ({
   id: text(node?.id) || uuid(),
   requestPath: text(node?.requestPath),
@@ -42,9 +56,11 @@ const sanitizeNode = (node) => ({
     body: typeof node?.inputs?.body === 'string' ? node.inputs.body : null
   },
   statuses: [...new Set((Array.isArray(node?.statuses) ? node.statuses : []).map(String).filter((status) => /^[1-5]\d\d$/.test(status)))].sort(),
+  hidden: [...new Set((Array.isArray(node?.hidden) ? node.hidden : []).map(String).filter((status) => /^[1-5]\d\d$/.test(status) || status === OTHER_STATUS))].sort(),
   extractions: (Array.isArray(node?.extractions) ? node.extractions : []).map((extraction) => ({
     name: text(extraction?.name),
-    expression: text(extraction?.expression)
+    expression: text(extraction?.expression),
+    ...(sanitizeConditions(extraction?.where).length ? { where: sanitizeConditions(extraction.where) } : {})
   }))
 });
 
@@ -223,10 +239,14 @@ export const getUpstreamNodes = (flow, nodeId) => {
 
 const VARIABLE_NAME = /^[A-Za-z0-9_.-]+$/;
 
-/** Why a value shared under this name is not allowed, or null: letters, digits, _ - and . only, and no two shared values with one name. */
-export const getVariableNameProblem = (flow, nodeId, position, name) => {
+/**
+ * Why a value shared under this name is not allowed, or null: letters, digits, _ - and . only, and no two shared values
+ * with one name, nor one named like a variable of the environment (`reserved` lists those names).
+ */
+export const getVariableNameProblem = (flow, nodeId, position, name, reserved = []) => {
   if (!name) return null;
   if (!VARIABLE_NAME.test(name)) return 'Use only letters, digits, _ - and . (no spaces or accents)';
+  if (reserved.includes(name)) return `"${name}" is already a variable of the environment`;
   const clash = flow.nodes
     .flatMap((node) => node.extractions.map((extraction, index) => ({ node, index, name: extraction.name })))
     .find((entry) => entry.name === name && !(entry.node.id === nodeId && entry.index === position));
@@ -235,10 +255,10 @@ export const getVariableNameProblem = (flow, nodeId, position, name) => {
 };
 
 /** The first problem with the names of the shared values of a flow, or null. */
-export const getFlowNameProblem = (flow) => {
+export const getFlowNameProblem = (flow, reserved = []) => {
   for (const node of flow.nodes) {
     for (let index = 0; index < node.extractions.length; index++) {
-      const problem = getVariableNameProblem(flow, node.id, index, node.extractions[index].name);
+      const problem = getVariableNameProblem(flow, node.id, index, node.extractions[index].name, reserved);
       if (problem) return problem;
     }
   }
@@ -246,8 +266,8 @@ export const getFlowNameProblem = (flow) => {
 };
 
 /** A variable name not used yet in the flow: 'token', then 'token_2', 'token_3'... */
-export const freeVariableName = (flow, base) => {
-  const taken = new Set(flow.nodes.flatMap((node) => node.extractions.map((extraction) => extraction.name)));
+export const freeVariableName = (flow, base, reserved = []) => {
+  const taken = new Set([...reserved, ...flow.nodes.flatMap((node) => node.extractions.map((extraction) => extraction.name))]);
   if (!taken.has(base)) return base;
   let counter = 2;
   while (taken.has(`${base}_${counter}`)) counter += 1;

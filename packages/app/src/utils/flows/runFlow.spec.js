@@ -83,6 +83,48 @@ describe('runFlow', () => {
     expect(seen).toEqual([{ name: 'login', token: undefined }, { name: 'info', token: 'abc' }]);
   });
 
+  it('takes the item of a list that has the wanted field, the value being able to name an earlier variable', async () => {
+    const store = makeStore([request('login'), request('robots')]);
+    mockSendRequest.mockImplementation((sent) => async () => {
+      const item = store.application.items.find((candidate) => candidate.uid === sent.uid);
+      item.response = sent.name === 'login'
+        ? { status: 200, data: { robot: 'Beta' } }
+        : { status: 200, data: { data: [{ id: 1, name: 'Alpha' }, { id: 2, name: 'Beta' }] } };
+    });
+    const pick = { name: 'robot_id', expression: 'res.body.data[0].id', where: [{ field: 'name', value: '{{robot}}' }] };
+
+    const outcome = await store.dispatch(runFlow(flowOf(
+      [node('login', { extractions: [{ name: 'robot', expression: 'res.body.robot' }] }), node('robots', { extractions: [pick] })],
+      [edge('login', '200', 'robots')]
+    ), 'app-1'));
+
+    expect(outcome.results.robots.extracted).toEqual({ robot_id: 2 });
+  });
+
+  it('takes the first item whose field contains the value, or differs from it', async () => {
+    const store = makeStore([request('robots')]);
+    mockSendRequest.mockImplementation((sent) => async () => {
+      store.application.items.find((candidate) => candidate.uid === sent.uid).response = { status: 200, data: { data: [{ id: 1, name: 'Alpha' }, { id: 2, name: 'Zumen Status Update' }] } };
+    });
+    const take = (...where) => store.dispatch(runFlow(flowOf([node('robots', { extractions: [{ name: 'robot_id', expression: 'res.body.data[0].id', where }] })]), 'app-1'));
+
+    expect((await take({ field: 'name', op: 'contains', value: 'Status' })).results.robots.extracted).toEqual({ robot_id: 2 });
+    expect((await take({ field: 'name', op: 'differs', value: 'Alpha' })).results.robots.extracted).toEqual({ robot_id: 2 });
+    expect((await take({ field: 'name', op: 'contains', value: 'Status' }, { field: 'id', value: '2' })).results.robots.extracted).toEqual({ robot_id: 2 });
+    expect((await take({ field: 'name', op: 'contains', value: 'Status' }, { field: 'id', value: '1' })).results.robots.error).toContain('name contains Status and id equals 1');
+  });
+
+  it('fails a request when no item of the list has the wanted field', async () => {
+    const store = makeStore([request('robots')]);
+    mockSendRequest.mockImplementation((sent) => async () => {
+      store.application.items.find((candidate) => candidate.uid === sent.uid).response = { status: 200, data: { data: [{ id: 1, name: 'Alpha' }] } };
+    });
+
+    const outcome = await store.dispatch(runFlow(flowOf([node('robots', { extractions: [{ name: 'robot_id', expression: 'res.body.data[0].id', where: [{ field: 'name', value: 'Zeta' }] }] })]), 'app-1'));
+
+    expect(outcome.results.robots.error).toContain('no item of the list has name equals Zeta');
+  });
+
   it('follows the connection of the status that came back, the later request seeing earlier variables', async () => {
     const store = makeStore([request('login'), request('info'), request('retry')]);
     const seen = [];

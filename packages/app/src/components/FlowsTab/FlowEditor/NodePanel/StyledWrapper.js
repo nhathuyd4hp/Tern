@@ -197,7 +197,8 @@ const StyledWrapper = styled.div`
   }
 
   .extraction-error {
-    margin: -0.125rem 0 0.375rem;
+    margin: 0.25rem 0 0.5rem;
+    padding: 0 0.5rem;
     font-size: 11px;
     color: ${(props) => props.theme.colors.text.danger};
   }

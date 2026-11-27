@@ -1,4 +1,4 @@
-import { getResponseFields, suggestVariableName } from './responseFields';
+import { getDefaultItemConditions, getResponseFields, suggestVariableName } from './responseFields';
 
 const requestWith = (examples) => ({ examples });
 const json = (status, content) => ({ response: { status, body: { type: 'json', content: JSON.stringify(content) } } });
@@ -18,8 +18,8 @@ describe('getResponseFields', () => {
       'data.user.id',
       'data.user["display-name"]',
       'items',
-      'items[0]',
-      'items[0].id'
+      'items[]',
+      'items[].id'
     ]);
     expect(fields.map((field) => field.expression)).toContain('res.body.data.user["display-name"]');
     expect(fields.find((field) => field.label === 'data.token')).toMatchObject({ expression: 'res.body.data.token', sample: 'abcdef', name: 'token' });
@@ -48,5 +48,20 @@ describe('suggestVariableName', () => {
     expect(suggestVariableName(['display-name'])).toBe('display_name');
     expect(suggestVariableName(['1st'])).toBe('_1st');
     expect(suggestVariableName([])).toBe('value');
+  });
+});
+
+describe('getDefaultItemConditions', () => {
+  const fields = getResponseFields(requestWith([json(200, { data: [{ active: true, name: 'A', id: 1 }], total: 1 })]));
+
+  it('starts a value inside a list with a condition on the name of the item, else its id, else its first field', () => {
+    expect(getDefaultItemConditions(fields, 'res.body.data[0].active')).toEqual([{ field: 'name', value: '' }]);
+    expect(getDefaultItemConditions(getResponseFields(requestWith([json(200, { data: [{ active: true, id: 1 }] })])), 'res.body.data[0].active')).toEqual([{ field: 'id', value: '' }]);
+    expect(getDefaultItemConditions(getResponseFields(requestWith([json(200, { data: [{ active: true }] })])), 'res.body.data[0].active')).toEqual([{ field: 'active', value: '' }]);
+  });
+
+  it('leaves the whole list and values outside a list without one', () => {
+    expect(getDefaultItemConditions(fields, 'res.body.data')).toBeUndefined();
+    expect(getDefaultItemConditions(fields, 'res.body.total')).toBeUndefined();
   });
 });

@@ -2,7 +2,7 @@ import { findCollectionByUid, flattenItems } from 'utils/collections/index';
 import isEqual from 'lodash/isEqual';
 import { sendRequest } from 'providers/ReduxStore/slices/collections/actions';
 import { runtimeVariablesUpdateEvent } from 'providers/ReduxStore/slices/collections';
-import { findRequestByPath, OTHER_STATUS } from './index';
+import { findRequestByPath, OTHER_STATUS, WHERE_OPERATORS } from './index';
 
 const RESULT_LISTS = ['assertionResults', 'testResults', 'preRequestTestResults', 'postResponseTestResults'];
 const MAX_NODE_RUNS = 50;
@@ -78,10 +78,14 @@ const bodyPathOf = (expression) => {
 };
 
 // Says why a value could not be taken, as far as the response shows: where the path stops being there.
-const explainMissing = ({ name, expression }, response) => {
+const explainMissing = ({ name, expression, where }, response, variables) => {
   const base = `Could not take ${name} (${expression})`;
   const path = bodyPathOf(expression);
   if (!path || !response) return `${base} from the response`;
+  if (where) {
+    const wanted = where.map(({ field, op, value }) => `${field} ${WHERE_OPERATORS[op || 'equals']} ${fillVariables(value, variables)}`).join(' and ');
+    return `${base}: no item of the list has ${wanted}`;
+  }
   let value = response.data;
   if (typeof value === 'string') {
     try {
@@ -118,6 +122,26 @@ const readBodyPath = (response, path) => {
   return value;
 };
 
+const fillVariables = (text, variables) => text.replace(/\{\{\s*([\w.-]+)\s*\}\}/g, (token, name) => (name in variables ? String(variables[name]) : token));
+
+// The path with its first list index replaced by the position of the item whose field equals the wanted value
+// ({{variables}} in the value are filled in); null when the path has no list or no item matches.
+const pathToItem = (response, path, where, variables) => {
+  const listEnd = path.findIndex((key) => typeof key === 'number');
+  if (listEnd < 0) return null;
+  const list = readBodyPath(response, path.slice(0, listEnd));
+  if (!Array.isArray(list)) return null;
+  const meets = (item, { field, op, value }) => {
+    const found = String(item[field]);
+    const wanted = fillVariables(value, variables);
+    if (op === 'differs') return found !== wanted;
+    if (op === 'contains') return found.includes(wanted);
+    return found === wanted;
+  };
+  const position = list.findIndex((item) => item !== null && typeof item === 'object' && where.every((condition) => meets(item, condition)));
+  return position < 0 ? null : path.map((key, index) => (index === listEnd ? position : key));
+};
+
 // Puts the values taken so far in the variables of the application, for the requests that follow. The pipeline
 // replaces them wholesale when a request ends, so they are put back before each request.
 const publishVariables = (dispatch, getState, collectionUid, variables) => {
@@ -143,7 +167,7 @@ const runNode = async (node, collectionUid, dispatch, getState, flowVariables) =
         ...saved.request?.vars,
         res: [
           ...(saved.request?.vars?.res || []),
-          ...extractions.map((extraction) => ({ uid: `flow-${extraction.name}`, name: extraction.name, value: extraction.expression, enabled: true }))
+          ...extractions.filter((extraction) => !extraction.where).map((extraction) => ({ uid: `flow-${extraction.name}`, name: extraction.name, value: extraction.expression, enabled: true }))
         ]
       }
     }
@@ -162,17 +186,18 @@ const runNode = async (node, collectionUid, dispatch, getState, flowVariables) =
   // A plain path in the body is read from the response itself; anything else is what the pipeline evaluated.
   const fromBody = {};
   extractions.forEach((extraction) => {
-    const path = bodyPathOf(extraction.expression);
+    const plain = bodyPathOf(extraction.expression);
+    const path = plain && extraction.where ? pathToItem(after?.response, plain, extraction.where, flowVariables) : plain;
     const value = path ? readBodyPath(after?.response, path) : undefined;
     if (value !== undefined && value !== null) fromBody[extraction.name] = value;
   });
-  const rest = extractions.filter((extraction) => !(extraction.name in fromBody));
+  const rest = extractions.filter((extraction) => !extraction.where && !(extraction.name in fromBody));
   const variables = rest.length ? await waitForVariables(getState, collectionUid, rest.map((extraction) => extraction.name)) : {};
   const extracted = { ...fromBody, ...Object.fromEntries(rest.filter((extraction) => extraction.name in variables).map((extraction) => [extraction.name, variables[extraction.name]])) };
   publishVariables(dispatch, getState, collectionUid, { ...flowVariables, ...extracted });
   const missing = extractions.filter((extraction) => !(extraction.name in extracted));
 
-  const fatal = fatalErrorOf(after) || (missing.length ? missing.map((extraction) => explainMissing(extraction, after?.response)).join('\n') : null);
+  const fatal = fatalErrorOf(after) || (missing.length ? missing.map((extraction) => explainMissing(extraction, after?.response, flowVariables)).join('\n') : null);
   const error = fatal || testFailureOf(after);
   return {
     status: error ? 'failed' : 'passed',

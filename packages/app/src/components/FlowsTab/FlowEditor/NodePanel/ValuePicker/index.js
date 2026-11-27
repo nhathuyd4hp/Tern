@@ -14,7 +14,8 @@ const ValuePicker = ({ upstream, disabled, label = 'Use a value from an earlier 
     .map(({ node, request }) => ({
       node,
       name: `${request.request.method} ${getRequestUrlPath(request)}`,
-      fields: getResponseFields(request).slice(0, MAX_FIELDS_PER_REQUEST)
+      // what is inside a list needs a condition to tell its item, which is set where the value is shared
+      fields: getResponseFields(request).filter((field) => !field.expression.includes('[0]')).slice(0, MAX_FIELDS_PER_REQUEST)
     }))
     .filter((group) => group.fields.length > 0)
     .map((group) => ({

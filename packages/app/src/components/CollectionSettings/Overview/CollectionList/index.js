@@ -1,9 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useDispatch } from 'react-redux';
 import { IconStack2, IconRefresh, IconSend, IconRoute } from '@tabler/icons';
-import Button from 'ui/Button';
 import { addTab } from 'providers/ReduxStore/slices/tabs';
-import { reloadApplication } from 'providers/ReduxStore/slices/openapi-sync';
 import { flattenItems, isItemAFolder, isItemARequest } from 'utils/collections/index';
 import { getFolderSyncPath, getSyncEntry } from 'utils/openapi-sync-scope';
 import { useApplicationColor } from 'utils/application-color';
@@ -15,7 +13,6 @@ const CollectionList = ({ collection: application }) => {
   const dispatch = useDispatch();
   const applicationColor = useApplicationColor(application);
   const flows = useFlows(application);
-  const [reloading, setReloading] = useState(false);
 
   const rows = useMemo(() => (application.items || []).filter(isItemAFolder).map((folder) => {
     const syncFolder = getFolderSyncPath(application, folder);
@@ -28,16 +25,6 @@ const CollectionList = ({ collection: application }) => {
   }), [application]);
 
   const totalRequests = rows.reduce((sum, row) => sum + row.requestCount, 0);
-  const syncedCount = rows.filter((row) => row.isSynced).length;
-
-  const reload = async () => {
-    setReloading(true);
-    try {
-      await dispatch(reloadApplication(application));
-    } finally {
-      setReloading(false);
-    }
-  };
 
   const openFlows = () => dispatch(addTab({ uid: `${application.uid}-flows`, collectionUid: application.uid, type: 'flows' }));
 
@@ -63,14 +50,6 @@ const CollectionList = ({ collection: application }) => {
           <span className="summary-count">{flows.length}</span> Flows
         </button>
       </div>
-
-      {syncedCount > 0 && (
-        <div className="reload-row">
-          <Button size="sm" variant="outline" icon={<IconRefresh size={14} />} loading={reloading} disabled={reloading} onClick={reload} data-testid="reload-application">
-            Reload application
-          </Button>
-        </div>
-      )}
 
       {rows.length === 0 ? (
         <div className="empty">No collections yet. Create one from the application menu.</div>
