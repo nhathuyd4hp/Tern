@@ -30,12 +30,6 @@ describe('findCollectionsInFolders', () => {
     return folderPath;
   };
 
-  const makeBruCollection = (name, ...segments) => {
-    const folderPath = makeFolder(...segments);
-    fs.writeFileSync(path.join(folderPath, 'bruno.json'), JSON.stringify({ version: '1', name, type: 'collection' }));
-    return folderPath;
-  };
-
   const makeYmlCollection = (name, ...segments) => {
     const folderPath = makeFolder(...segments);
     fs.writeFileSync(path.join(folderPath, 'opencollection.yml'), `opencollection: 1.0.0\ninfo:\n  name: ${name}\n`);
@@ -44,7 +38,7 @@ describe('findCollectionsInFolders', () => {
 
   const makeBrokenCollection = (...segments) => {
     const folderPath = makeFolder(...segments);
-    fs.writeFileSync(path.join(folderPath, 'bruno.json'), '{ not json');
+    fs.writeFileSync(path.join(folderPath, 'opencollection.yml'), 'info:\n  name: Orders: v2\n');
     return folderPath;
   };
 
@@ -55,18 +49,18 @@ describe('findCollectionsInFolders', () => {
     importableFiles
   });
 
-  it('reports a picked collection with the name from its config', async () => {
-    const bru = makeBruCollection('Payments', 'payments');
+  it('reports picked collections with the name from their config', async () => {
+    const payments = makeYmlCollection('Payments', 'payments');
     const yml = makeYmlCollection('Orders', 'orders');
 
-    const result = await findCollectionsInFolders([bru, yml]);
+    const result = await findCollectionsInFolders([payments, yml]);
 
     expect(result.folders).toEqual([
-      folderSummary(bru, 'collection', [bru]),
+      folderSummary(payments, 'collection', [payments]),
       folderSummary(yml, 'collection', [yml])
     ]);
     expect(result.collections).toEqual([
-      { path: bru, name: 'Payments' },
+      { path: payments, name: 'Payments' },
       { path: yml, name: 'Orders' }
     ]);
     expect(result.stoppedEarly).toBe(false);
@@ -74,9 +68,9 @@ describe('findCollectionsInFolders', () => {
 
   it('reports a plain folder with the collections inside it', async () => {
     const workspace = makeFolder('workspace');
-    const first = makeBruCollection('First', 'workspace', 'collections', 'first');
+    const first = makeYmlCollection('First', 'workspace', 'collections', 'first');
     const second = makeYmlCollection('Second', 'workspace', 'second');
-    makeBruCollection('Nested', 'workspace', 'second', 'nested');
+    makeYmlCollection('Nested', 'workspace', 'second', 'nested');
 
     const result = await findCollectionsInFolders([workspace]);
 
@@ -87,10 +81,10 @@ describe('findCollectionsInFolders', () => {
 
   it('leaves out collections in hidden, dependency and build folders', async () => {
     const workspace = makeFolder('workspace');
-    makeBruCollection('Fixture', 'workspace', 'node_modules', 'package', 'fixture');
-    makeBruCollection('Hidden', 'workspace', '.cache', 'hidden');
-    makeBruCollection('Built', 'workspace', 'dist', 'built');
-    const kept = makeBruCollection('Kept', 'workspace', 'kept');
+    makeYmlCollection('Fixture', 'workspace', 'node_modules', 'package', 'fixture');
+    makeYmlCollection('Hidden', 'workspace', '.cache', 'hidden');
+    makeYmlCollection('Built', 'workspace', 'dist', 'built');
+    const kept = makeYmlCollection('Kept', 'workspace', 'kept');
 
     const result = await findCollectionsInFolders([workspace]);
 
@@ -98,7 +92,7 @@ describe('findCollectionsInFolders', () => {
   });
 
   it('lists a collection that a link in the picked folder points to, and counts it for that folder', async () => {
-    const outside = makeBruCollection('Payments', 'code', 'payments');
+    const outside = makeYmlCollection('Payments', 'code', 'payments');
     const picked = makeFolder('api-collections');
     fs.symlinkSync(outside, path.join(picked, 'payments'), folderLinkType);
 
@@ -110,7 +104,7 @@ describe('findCollectionsInFolders', () => {
 
   it('counts a linked collection for both the folder with the link and the folder that holds it', async () => {
     const holder = makeFolder('holder');
-    const collection = makeBruCollection('Payments', 'holder', 'payments');
+    const collection = makeYmlCollection('Payments', 'holder', 'payments');
     const linker = makeFolder('linker');
     fs.symlinkSync(collection, path.join(linker, 'payments'), folderLinkType);
 
@@ -123,8 +117,8 @@ describe('findCollectionsInFolders', () => {
   it('skips mounted network and removable drives inside the picked folder', async () => {
     const volumes = makeFolder('volumes');
     const share = makeFolder('volumes', 'share');
-    makeBruCollection('Remote', 'volumes', 'share', 'remote');
-    const local = makeBruCollection('Local', 'volumes', 'local');
+    makeYmlCollection('Remote', 'volumes', 'share', 'remote');
+    const local = makeYmlCollection('Local', 'volumes', 'local');
     getSkippedMountPoints.mockResolvedValue(new Set([share]));
 
     const result = await findCollectionsInFolders([volumes]);
@@ -135,7 +129,7 @@ describe('findCollectionsInFolders', () => {
   it('skips collections whose config cannot be opened and reports them', async () => {
     const workspace = makeFolder('workspace');
     const broken = makeBrokenCollection('workspace', 'broken');
-    const valid = makeBruCollection('Valid', 'workspace', 'valid');
+    const valid = makeYmlCollection('Valid', 'workspace', 'valid');
 
     const result = await findCollectionsInFolders([workspace, broken]);
 
@@ -149,7 +143,7 @@ describe('findCollectionsInFolders', () => {
 
   it('reports a picked collection whose config has no name as one that cannot be opened', async () => {
     const folderPath = makeFolder('nameless');
-    fs.writeFileSync(path.join(folderPath, 'bruno.json'), JSON.stringify({ version: '1', type: 'collection' }));
+    fs.writeFileSync(path.join(folderPath, 'opencollection.yml'), '');
 
     const result = await findCollectionsInFolders([folderPath]);
 
@@ -160,9 +154,9 @@ describe('findCollectionsInFolders', () => {
 
   (canMakePipes ? it : it.skip)('does not wait on a named pipe or a link to one in place of a config file', async () => {
     const pipeFolder = makeFolder('pipe');
-    execFileSync('mkfifo', [path.join(pipeFolder, 'bruno.json')]);
+    execFileSync('mkfifo', [path.join(pipeFolder, 'opencollection.yml')]);
     const linkFolder = makeFolder('link');
-    fs.symlinkSync(path.join(pipeFolder, 'bruno.json'), path.join(linkFolder, 'bruno.json'));
+    fs.symlinkSync(path.join(pipeFolder, 'opencollection.yml'), path.join(linkFolder, 'opencollection.yml'));
 
     const result = await findCollectionsInFolders([pipeFolder, linkFolder]);
 
@@ -207,7 +201,7 @@ describe('findCollectionsInFolders', () => {
   it('does not look for importable files in a folder that has collections', async () => {
     const workspace = makeFolder('workspace');
     fs.writeFileSync(path.join(workspace, 'openapi.yaml'), 'openapi: 3.0.0\n');
-    const collection = makeBruCollection('Api', 'workspace', 'api');
+    const collection = makeYmlCollection('Api', 'workspace', 'api');
 
     const result = await findCollectionsInFolders([workspace]);
 
@@ -240,7 +234,7 @@ describe('findCollectionsInFolders', () => {
   it('lists each collection once when picked folders overlap', async () => {
     const parent = makeFolder('parent');
     const child = makeFolder('parent', 'child');
-    const collection = makeBruCollection('Shared', 'parent', 'child', 'shared');
+    const collection = makeYmlCollection('Shared', 'parent', 'child', 'shared');
 
     const result = await findCollectionsInFolders([child, parent, parent]);
 
@@ -250,7 +244,7 @@ describe('findCollectionsInFolders', () => {
 
   it('matches folders by real path when one pick is a link to another', async () => {
     const real = makeFolder('real');
-    const collection = makeBruCollection('Linked', 'real', 'linked');
+    const collection = makeYmlCollection('Linked', 'real', 'linked');
     const alias = path.join(tempDir, 'alias');
     fs.symlinkSync(real, alias, folderLinkType);
 
@@ -264,9 +258,9 @@ describe('findCollectionsInFolders', () => {
   });
 
   it('does not list a picked collection again when another pick is inside it', async () => {
-    const outer = makeBruCollection('Outer', 'outer');
+    const outer = makeYmlCollection('Outer', 'outer');
     const inner = makeFolder('outer', 'requests');
-    const nested = makeBruCollection('Nested', 'outer', 'requests', 'nested');
+    const nested = makeYmlCollection('Nested', 'outer', 'requests', 'nested');
 
     const result = await findCollectionsInFolders([outer, inner]);
 
@@ -276,7 +270,7 @@ describe('findCollectionsInFolders', () => {
   it('still recognises a picked collection after an earlier pick used up the budget', async () => {
     makeFolder('large', 'a', 'b');
     makeFolder('large', 'c', 'd');
-    const collection = makeBruCollection('Late', 'late');
+    const collection = makeYmlCollection('Late', 'late');
 
     const result = await findCollectionsInFolders([path.join(tempDir, 'large'), collection], { maxFolders: 2 });
 
@@ -287,7 +281,7 @@ describe('findCollectionsInFolders', () => {
   it('skips excluded folders', async () => {
     const appData = makeFolder('app-data');
     const transient = makeFolder('app-data', 'tmp', 'transient');
-    makeBruCollection('Scratch', 'app-data', 'tmp', 'transient', '123', 'bruno-scratch-1');
+    makeYmlCollection('Scratch', 'app-data', 'tmp', 'transient', '123', 'bruno-scratch-1');
 
     const result = await findCollectionsInFolders([appData], { excludedFolders: [transient] });
 
@@ -295,7 +289,7 @@ describe('findCollectionsInFolders', () => {
   });
 
   it('accepts an excluded folder that does not exist yet', async () => {
-    const collection = makeBruCollection('Kept', 'kept');
+    const collection = makeYmlCollection('Kept', 'kept');
 
     const result = await findCollectionsInFolders([tempDir], { excludedFolders: [path.join(tempDir, 'not-created')] });
 
@@ -304,7 +298,7 @@ describe('findCollectionsInFolders', () => {
 
   it('says when it stopped before searching every folder', async () => {
     makeFolder('a', 'b', 'c');
-    makeBruCollection('Late', 'd', 'e', 'f', 'late');
+    makeYmlCollection('Late', 'd', 'e', 'f', 'late');
 
     const result = await findCollectionsInFolders([tempDir], { maxFolders: 2 });
 
@@ -316,7 +310,7 @@ describe('findCollectionsInFolders', () => {
     const workspace = makeFolder('many');
     const expected = Array.from({ length: 40 }, (_unused, index) => {
       const name = `Collection ${index}`;
-      return { path: makeBruCollection(name, 'many', `collection-${index}`), name };
+      return { path: makeYmlCollection(name, 'many', `collection-${index}`), name };
     });
 
     const result = await findCollectionsInFolders([workspace]);

@@ -15,6 +15,7 @@ jest.mock('../../src/utils/filesystem', () => {
   } };
 });
 
+const { parseCollection, stringifyCollection } = require('@tern/filestore');
 const { addFolderSyncEntry } = require('../../src/ipc/openapi-sync');
 
 const SPEC = JSON.stringify({ openapi: '3.0.0', info: { title: 't', version: '1' }, paths: {} });
@@ -22,7 +23,7 @@ const SPEC = JSON.stringify({ openapi: '3.0.0', info: { title: 't', version: '1'
 describe('OpenAPI sync config edits', () => {
   it('keeps every entry when several folders are connected at the same time', async () => {
     const collectionPath = fs.mkdtempSync(path.join(os.tmpdir(), 'tern-sync-'));
-    fs.writeFileSync(path.join(collectionPath, 'bruno.json'), JSON.stringify({ version: '1', name: 'app', type: 'collection' }));
+    fs.writeFileSync(path.join(collectionPath, 'opencollection.yml'), stringifyCollection({}, { opencollection: '1.0.0', name: 'app', type: 'collection' }));
     const folders = ['a', 'b', 'c', 'd'];
     folders.forEach((folder) => fs.mkdirSync(path.join(collectionPath, folder)));
 
@@ -33,7 +34,7 @@ describe('OpenAPI sync config edits', () => {
       specContent: SPEC
     })));
 
-    const saved = JSON.parse(fs.readFileSync(path.join(collectionPath, 'bruno.json'), 'utf8'));
+    const { brunoConfig: saved } = parseCollection(fs.readFileSync(path.join(collectionPath, 'opencollection.yml'), 'utf8'));
     expect(saved.openapi.map((entry) => entry.folder).sort()).toEqual(folders);
   });
 });

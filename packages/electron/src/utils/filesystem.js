@@ -57,9 +57,7 @@ const isValidCollectionDirectory = (dirPath) => {
   if (!isDirectory(dirPath)) {
     return false;
   }
-  const brunoJsonPath = path.join(dirPath, 'bruno.json');
-  const opencollectionYmlPath = path.join(dirPath, 'opencollection.yml');
-  return fs.existsSync(brunoJsonPath) || fs.existsSync(opencollectionYmlPath);
+  return fs.existsSync(path.join(dirPath, 'opencollection.yml'));
 };
 
 const hasSubDirectories = (dir) => {
@@ -86,7 +84,7 @@ const normalizeAndResolvePath = (pathname) => {
 
 function isWSLPath(pathname) {
   // Check if the path starts with the WSL prefix
-  // eg. "\\wsl.localhost\Ubuntu\home\user\bruno\collection\scripting\api\req\getHeaders.bru"
+  // eg. "\\wsl.localhost\Ubuntu\home\user\bruno\collection\scripting\api\req\getHeaders.yml"
   return pathname.startsWith('\\\\') || pathname.startsWith('//') || pathname.startsWith('/wsl.localhost/') || pathname.startsWith('\\wsl.localhost');
 }
 
@@ -239,20 +237,9 @@ const hasJsonExtension = (filename) => {
   return ['json'].some((ext) => filename.toLowerCase().endsWith(`.${ext}`));
 };
 
-const hasBruExtension = (filename) => {
+const hasRequestExtension = (filename) => {
   if (!filename || typeof filename !== 'string') return false;
-  return ['bru'].some((ext) => filename.toLowerCase().endsWith(`.${ext}`));
-};
-
-const hasRequestExtension = (filename, format = null) => {
-  if (!filename || typeof filename !== 'string') return false;
-
-  if (format) {
-    const ext = format === 'yml' ? 'yml' : 'bru';
-    return filename.toLowerCase().endsWith(`.${ext}`);
-  }
-
-  return ['bru', 'yml'].some((ext) => filename.toLowerCase().endsWith(`.${ext}`));
+  return filename.toLowerCase().endsWith('.yml');
 };
 
 const createDirectory = async (dir) => {
@@ -341,34 +328,10 @@ const searchForFiles = (dir, extension) => {
   return results;
 };
 
-// Search for request files based on collection filetype by reading config
-const searchForRequestFiles = (dir, collectionPath = null) => {
-  const format = getCollectionFormat(collectionPath || dir);
-  if (format === 'yml') {
-    return searchForFiles(dir, '.yml');
-  } else if (format === 'bru') {
-    return searchForFiles(dir, '.bru');
-  } else {
-    throw new Error(`Invalid format: ${format}`);
-  }
-};
+const searchForRequestFiles = (dir) => searchForFiles(dir, '.yml');
 
 const isWindowsOS = () => {
   return os.platform() === 'win32';
-};
-
-const getCollectionFormat = (collectionPath) => {
-  const ocYmlPath = path.join(collectionPath, 'opencollection.yml');
-  if (fs.existsSync(ocYmlPath)) {
-    return 'yml';
-  }
-
-  const brunoJsonPath = path.join(collectionPath, 'bruno.json');
-  if (fs.existsSync(brunoJsonPath)) {
-    return 'bru';
-  }
-
-  throw new Error(`No application configuration found at: ${collectionPath}`);
 };
 
 const safeToRename = (oldPath, newPath) => {
@@ -529,7 +492,7 @@ const getCollectionStats = async (directoryPath) => {
         await calculateStats(fullPath);
       }
 
-      if (path.extname(fullPath) === '.bru') {
+      if (path.extname(fullPath) === '.yml') {
         const stats = await fsPromises.stat(fullPath);
         size += stats?.size;
         if (maxFileSize < stats?.size) {
@@ -695,28 +658,6 @@ const isValidDotEnvFilename = (filename) => {
   return basename === '.env' || (basename.startsWith('.env.') && /^\.env\.[a-zA-Z0-9._-]+$/.test(basename));
 };
 
-const isBrunoConfigFile = (pathname, collectionPath) => {
-  const dirname = path.dirname(pathname);
-  const basename = path.basename(pathname);
-
-  return path.normalize(dirname) === path.normalize(collectionPath) && basename === 'bruno.json';
-};
-
-const isBruEnvironmentConfig = (pathname, collectionPath) => {
-  const dirname = path.dirname(pathname);
-  const envDirectory = path.join(collectionPath, 'environments');
-  const basename = path.basename(pathname);
-
-  return path.normalize(dirname) === path.normalize(envDirectory) && hasBruExtension(basename);
-};
-
-const isCollectionRootBruFile = (pathname, collectionPath) => {
-  const dirname = path.dirname(pathname);
-  const basename = path.basename(pathname);
-
-  return path.normalize(dirname) === path.normalize(collectionPath) && basename === 'collection.bru';
-};
-
 const scanForBrunoFiles = async (dir) => {
   const brunoFolders = [];
 
@@ -733,7 +674,7 @@ const scanForBrunoFiles = async (dir) => {
             return;
           }
           scanDir(fullPath);
-        } else if ((file === 'bruno.json' || file === 'opencollection.yml') && !brunoFolders.includes(currentDir)) {
+        } else if (file === 'opencollection.yml' && !brunoFolders.includes(currentDir)) {
           brunoFolders.push(currentDir);
         }
       });
@@ -769,7 +710,6 @@ module.exports = {
   canonicalPath,
   withDirLock,
   hasJsonExtension,
-  hasBruExtension,
   hasRequestExtension,
   createDirectory,
   removeDirectory,
@@ -794,11 +734,7 @@ module.exports = {
   getPaths,
   isLargeFile,
   generateUniqueName,
-  getCollectionFormat,
   isDotEnvFile,
   isValidDotEnvFilename,
-  isBrunoConfigFile,
-  isBruEnvironmentConfig,
-  isCollectionRootBruFile,
   scanForBrunoFiles
 };

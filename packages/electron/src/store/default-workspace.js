@@ -371,7 +371,7 @@ class DefaultWorkspaceManager {
             variables: env.variables || [],
             extends: resolvableEnvironmentNames.has(env.extends) ? env.extends : undefined
           };
-          const content = stringifyEnvironment(environment, { format: 'yml' });
+          const content = stringifyEnvironment(environment);
           await writeFile(envFilePath, content);
 
           // Map the legacy active env uid to the new file-based uid in the per-workspace store

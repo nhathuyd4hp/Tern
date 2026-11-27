@@ -77,9 +77,8 @@ const walk = (root, denylist) => {
   return out;
 };
 
-const COLLECTION_ROOT_BASENAMES = new Set(['collection.bru', 'collection.yml', 'opencollection.yml']);
-const FOLDER_ROOT_BASENAMES = new Set(['folder.bru', 'folder.yml']);
-const BRUNO_CONFIG_BASENAME = 'bruno.json';
+const COLLECTION_ROOT_BASENAMES = new Set(['opencollection.yml']);
+const FOLDER_ROOT_BASENAMES = new Set(['folder.yml']);
 const ENVIRONMENTS_DIR = 'environments';
 
 const defaultClassify = (relativePath) => {
@@ -87,32 +86,24 @@ const defaultClassify = (relativePath) => {
   const dirname = path.dirname(relativePath);
   const segments = dirname === '.' || dirname === '' ? [] : dirname.split(path.sep).filter(Boolean);
 
-  if (basename === BRUNO_CONFIG_BASENAME && segments.length === 0) {
-    return { format: 'json', type: 'config' };
-  }
-
   const ext = path.extname(basename).slice(1).toLowerCase();
-  let format;
-  if (ext === 'bru') format = 'bru';
-  else if (ext === 'yml' || ext === 'yaml') format = 'yml';
-  else return null;
+  if (ext !== 'yml' && ext !== 'yaml') return null;
 
   if (COLLECTION_ROOT_BASENAMES.has(basename) && segments.length === 0) {
-    return { format, type: 'collection' };
+    return { type: 'collection' };
   }
   if (FOLDER_ROOT_BASENAMES.has(basename)) {
-    return { format, type: 'folder' };
+    return { type: 'folder' };
   }
   if (segments[0] === ENVIRONMENTS_DIR && segments.length === 1) {
-    return { format, type: 'environment' };
+    return { type: 'environment' };
   }
-  return { format, type: 'request' };
+  return { type: 'request' };
 };
 
 module.exports = {
   COLLECTION_ROOT_BASENAMES,
   FOLDER_ROOT_BASENAMES,
-  BRUNO_CONFIG_BASENAME,
   ENVIRONMENTS_DIR,
   posixifyPath,
   resolveDenylist,

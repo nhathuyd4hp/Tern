@@ -1,5 +1,5 @@
 /**
- * This modules stores the configs loaded from bruno.json
+ * This modules stores the configs loaded from opencollection.yml
  */
 
 const config = {};

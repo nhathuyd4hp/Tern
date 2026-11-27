@@ -81,29 +81,8 @@ describe('readCollectionConfig', () => {
     expect(await nameOf(folderPath)).toBe('Orders');
   });
 
-  it('prefers opencollection.yml over bruno.json', async () => {
-    const folderPath = collectionWith({
-      'opencollection.yml': 'info:\n  name: From yml\n',
-      'bruno.json': JSON.stringify({ name: 'From json' })
-    });
-
-    expect(await nameOf(folderPath)).toBe('From yml');
-  });
-
-  it('reads the name from bruno.json the way opening it does', async () => {
-    const folderPath = collectionWith({ 'bruno.json': JSON.stringify({ version: '1', name: ' Payments ', type: 'collection' }) });
-
-    expect(await readCollectionConfig(folderPath)).toEqual({ name: ' Payments ', isBroken: false });
-  });
-
-  it('gives a bruno.json name that is not a string as text', async () => {
-    const folderPath = collectionWith({ 'bruno.json': JSON.stringify({ version: '1', name: 2024, type: 'collection' }) });
-
-    expect(await readCollectionConfig(folderPath)).toEqual({ name: '2024', isBroken: false });
-  });
-
   it('marks a collection broken when opencollection.yml is not a file, as opening fails on it', async () => {
-    const folderPath = collectionWith({ 'bruno.json': JSON.stringify({ version: '1', name: 'Payments', type: 'collection' }) });
+    const folderPath = collectionWith({});
     fs.mkdirSync(path.join(folderPath, 'opencollection.yml'));
 
     expect(await readCollectionConfig(folderPath)).toEqual({ name: 'my-collection', isBroken: true });
@@ -111,13 +90,7 @@ describe('readCollectionConfig', () => {
 
   it.each([
     ['an opencollection.yml that is not valid YAML', { 'opencollection.yml': 'info:\n  name: Orders: v2\n' }],
-    ['an empty opencollection.yml next to a valid bruno.json', {
-      'opencollection.yml': '',
-      'bruno.json': JSON.stringify({ version: '1', name: 'Payments', type: 'collection' })
-    }],
-    ['a bruno.json that is not valid JSON', { 'bruno.json': '{ "version": "1", "name": "Payments", ' }],
-    ['a bruno.json without a name', { 'bruno.json': JSON.stringify({ version: '1', type: 'collection' }) }],
-    ['a bruno.json without a type', { 'bruno.json': JSON.stringify({ version: '1', name: 'Payments' }) }],
+    ['an empty opencollection.yml', { 'opencollection.yml': '' }],
     ['no config file it can read', {}]
   ])('marks %s as a config that cannot be opened, named after its folder', async (_description, files) => {
     const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});

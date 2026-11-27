@@ -28,7 +28,7 @@ const { refreshExplicitHeaderNames } = require('@tern/common');
 const { resolveInheritedSettings } = require('../../utils/collection');
 const { cancelTokens, saveCancelToken, deleteCancelToken } = require('../../utils/cancel-token');
 const { uuid, safeStringifyJSON, safeParseJSON, parseDataFromResponse, parseDataFromRequest, isBinaryRequestBody } = require('../../utils/common');
-const { chooseFileToSave, writeFile, getCollectionFormat, hasRequestExtension } = require('../../utils/filesystem');
+const { chooseFileToSave, writeFile, hasRequestExtension } = require('../../utils/filesystem');
 const { addCookieToJar, getDomainsWithCookies, getCookieStringForUrl } = require('../../utils/cookies');
 const { createFormData } = require('../../utils/form-data');
 const { findItemInCollectionByPathname, getEnvVars, getTreePathFromCollectionToItem, mergeVars } = require('../../utils/collection');
@@ -759,10 +759,9 @@ const registerNetworkIpc = (mainWindow) => {
 
     const runRequestByItemPathname = async (relativeItemPathname, callerBru) => {
       return new Promise(async (resolve, reject) => {
-        const format = getCollectionFormat(collection.pathname);
         let itemPathname = path.join(collection.pathname, relativeItemPathname);
-        if (itemPathname && !hasRequestExtension(itemPathname, format)) {
-          itemPathname = `${itemPathname}.${format}`;
+        if (itemPathname && !hasRequestExtension(itemPathname)) {
+          itemPathname = `${itemPathname}.yml`;
         }
         const _item = cloneDeep(findItemInCollectionByPathname(collection, itemPathname));
         if (_item) {

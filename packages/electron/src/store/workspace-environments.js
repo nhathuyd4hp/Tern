@@ -57,7 +57,7 @@ class GlobalEnvironmentsManager {
 
   async parseEnvironmentFile(filePath, workspacePath) {
     const content = fs.readFileSync(filePath, 'utf8');
-    const environment = await parseEnvironment(content, { format: 'yml' });
+    const environment = await parseEnvironment(content);
 
     const fileName = path.basename(filePath);
     environment.name = fileName.slice(0, -ENV_FILE_EXTENSION.length);
@@ -153,7 +153,7 @@ class GlobalEnvironmentsManager {
         environmentSecretsStore.storeEnvSecrets(workspacePath, environment);
       }
 
-      const content = await stringifyEnvironment(environment, { format: 'yml' });
+      const content = await stringifyEnvironment(environment);
       await writeFile(environmentFilePath, content);
 
       return {
@@ -206,7 +206,7 @@ class GlobalEnvironmentsManager {
           environmentSecretsStore.storeEnvSecrets(workspacePath, environment);
         }
 
-        const content = await stringifyEnvironment(environment, { format: 'yml' });
+        const content = await stringifyEnvironment(environment);
         await writeFile(envFile.filePath, content);
       });
 
@@ -238,7 +238,7 @@ class GlobalEnvironmentsManager {
       const oldName = environment.name;
       environment.name = newName;
 
-      const content = await stringifyEnvironment(environment, { format: 'yml' });
+      const content = await stringifyEnvironment(environment);
       await writeFile(newFilePath, content);
 
       if (this.envHasSecrets(environment)) {
@@ -257,7 +257,6 @@ class GlobalEnvironmentsManager {
 
       await renameEnvironmentExtendsReferences({
         environmentsDirPath: this.getEnvironmentsDir(workspacePath),
-        format: 'yml',
         oldName,
         newName
       });
@@ -305,7 +304,7 @@ class GlobalEnvironmentsManager {
         const environment = await this.parseEnvironmentFile(envFile.filePath, workspacePath);
         environment.color = color;
 
-        const content = stringifyEnvironment(environment, { format: 'yml' });
+        const content = stringifyEnvironment(environment);
         await writeFile(envFile.filePath, content);
       });
 
@@ -336,7 +335,7 @@ class GlobalEnvironmentsManager {
           delete environment.extends;
         }
 
-        const content = stringifyEnvironment(environment, { format: 'yml' });
+        const content = stringifyEnvironment(environment);
         await writeFile(envFile.filePath, content);
       });
 

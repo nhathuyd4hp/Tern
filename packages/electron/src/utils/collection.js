@@ -6,7 +6,6 @@ const { posixifyPath } = require('./filesystem');
 const os = require('os');
 const { preferencesUtil } = require('../store/preferences');
 const path = require('path');
-const { DEFAULT_COLLECTION_FORMAT } = require('@tern/filestore');
 const { parseValueByDataType } = require('@tern/common/utils');
 const { GRPC_SCRIPT_KEYS, normalizeLineEndings } = require('@tern/common');
 
@@ -17,11 +16,6 @@ const { GRPC_SCRIPT_KEYS, normalizeLineEndings } = require('@tern/common');
  * via the UI takes effect at request-execution time without requiring a save.
  */
 const resolveTypedValue = (v) => parseValueByDataType(v.value, v.dataType);
-
-const FORMAT_CONFIG = {
-  yml: { ext: '.yml', collectionFile: 'opencollection.yml', folderFile: 'folder.yml' },
-  bru: { ext: '.bru', collectionFile: 'collection.bru', folderFile: 'folder.bru' }
-};
 
 const mergeHeaders = (collection, request, requestTreePath, options = {}) => {
   const { includeDisabledHeaders = false } = options;
@@ -204,11 +198,11 @@ ${normalizedScript}
  * const requestIndex = 2;
  * const opts = {
  *   segmentSources: [
- *     { type: 'collection', displayPath: 'collection.bru', filePath: '/c/collection.bru' },
- *     { type: 'folder',     displayPath: 'f/folder.bru',   filePath: '/c/f/folder.bru' },
+ *     { type: 'collection', displayPath: 'opencollection.yml', filePath: '/c/opencollection.yml' },
+ *     { type: 'folder',     displayPath: 'f/folder.yml',   filePath: '/c/f/folder.yml' },
  *     null // request segment: sourced via requestSegmentSource
  *   ],
- *   requestSegmentSource: { type: 'request', displayPath: 'f/get.bru', filePath: '/c/f/get.bru' },
+ *   requestSegmentSource: { type: 'request', displayPath: 'f/get.yml', filePath: '/c/f/get.yml' },
  *   collectionPath: '/c'
  * };
  *
@@ -217,21 +211,21 @@ ${normalizedScript}
  *   code:
  *       'await (async (__dirname, __filename) => { __bruSetScope({...collection});\n' // line 1
  *      + 'let col = 1;\n'                                                              // line 2
- *      + '})("/c","/c/collection.bru");\n'                                             // line 3
+ *      + '})("/c","/c/opencollection.yml");\n'                                             // line 3
  *      + '\n'                                                                          // line 4 (blank separator)
  *      + 'await (async (__dirname, __filename) => { __bruSetScope({...folder});\n'     // line 5
  *      + 'let fold = 2;\n'                                                             // line 6
- *      + '})("/c/f","/c/f/folder.bru");\n'                                             // line 7
+ *      + '})("/c/f","/c/f/folder.yml");\n'                                             // line 7
  *      + '\n'                                                                          // line 8 (blank separator)
  *      + 'await (async (__dirname, __filename) => { __bruSetScope({...request});\n'    // line 9
  *      + 'let req = 3;\n'                                                              // line 10
- *      + '})("/c/f","/c/f/get.bru");',                                                 // line 11
+ *      + '})("/c/f","/c/f/get.yml");',                                                 // line 11
  *   metadata: {
  *      requestStartLine: 9,
  *      requestEndLine: 11,
  *     segments: [
- *       { startLine: 1, endLine: 3, type: 'collection', displayPath: 'collection.bru', filePath: '/c/collection.bru' },
- *       { startLine: 5, endLine: 7, type: 'folder',     displayPath: 'f/folder.bru',   filePath: '/c/f/folder.bru' }
+ *       { startLine: 1, endLine: 3, type: 'collection', displayPath: 'opencollection.yml', filePath: '/c/opencollection.yml' },
+ *       { startLine: 5, endLine: 7, type: 'folder',     displayPath: 'f/folder.yml',   filePath: '/c/f/folder.yml' }
  *     ]
  *   }
  * }
@@ -300,12 +294,10 @@ const mergeScripts = (collection, request, requestTreePath, scriptFlow) => {
   const collectionTests = get(collectionRoot, 'request.tests', '');
 
   // Build source file info for error trace mapping
-  const format = collection.format || 'bru';
-  const config = FORMAT_CONFIG[format];
   const collectionSource = {
     type: 'collection',
-    filePath: path.join(collection.pathname, config.collectionFile),
-    displayPath: config.collectionFile
+    filePath: path.join(collection.pathname, 'opencollection.yml'),
+    displayPath: 'opencollection.yml'
   };
 
   const requestItem = requestTreePath?.[requestTreePath.length - 1];
@@ -334,8 +326,8 @@ const mergeScripts = (collection, request, requestTreePath, scriptFlow) => {
       const folderRoot = i?.draft || i?.root;
       const folderSource = {
         type: 'folder',
-        filePath: path.join(i.pathname, config.folderFile),
-        displayPath: posixifyPath(path.relative(collection.pathname, path.join(i.pathname, config.folderFile)))
+        filePath: path.join(i.pathname, 'folder.yml'),
+        displayPath: posixifyPath(path.relative(collection.pathname, path.join(i.pathname, 'folder.yml')))
       };
 
       const preReqScript = get(folderRoot, 'request.script.req', '');
@@ -510,66 +502,7 @@ const getTreePathFromCollectionToItem = (collection, _item) => {
   return path;
 };
 
-const parseBruFileMeta = (data) => {
-  try {
-    const metaRegex = /meta\s*{\s*([\s\S]*?)\s*}/;
-    const match = data?.match?.(metaRegex);
-    if (match) {
-      const metaContent = match[1].trim();
-      const lines = metaContent.replace(/\r\n/g, '\n').split('\n');
-      const metaJson = {};
-      lines.forEach((line) => {
-        const [key, value] = line.split(':').map((str) => str.trim());
-        if (key && value) {
-          metaJson[key] = isNaN(value) ? value : Number(value);
-        }
-      });
-
-      // Transform to the format expected by app
-      let requestType = metaJson.type;
-      if (requestType === 'http') {
-        requestType = 'http-request';
-      } else if (requestType === 'graphql') {
-        requestType = 'graphql-request';
-      } else {
-        requestType = 'http-request';
-      }
-
-      const sequence = metaJson.seq;
-      const transformedJson = {
-        type: requestType,
-        name: metaJson.name,
-        seq: !isNaN(sequence) ? Number(sequence) : 1,
-        settings: {},
-        tags: metaJson.tags || [],
-        request: {
-          method: '',
-          url: '',
-          params: [],
-          headers: [],
-          auth: { mode: 'none' },
-          body: { mode: 'none' },
-          script: {},
-          vars: {},
-          assertions: [],
-          tests: '',
-          docs: ''
-        }
-      };
-
-      return transformedJson;
-    } else {
-      console.log('No "meta" block found in the file.');
-      return null;
-    }
-  } catch (err) {
-    console.error('Error reading file:', err);
-    return null;
-  }
-};
-
-// Parse YML file meta information
-const parseYmlFileMeta = (data) => {
+const parseFileMeta = (data) => {
   try {
     const yaml = require('js-yaml');
     const parsed = yaml.load(data);
@@ -617,15 +550,6 @@ const parseYmlFileMeta = (data) => {
   } catch (err) {
     console.error('Error parsing YAML file meta:', err);
     return null;
-  }
-};
-
-// Format-aware meta parsing function
-const parseFileMeta = (data, format = DEFAULT_COLLECTION_FORMAT) => {
-  if (format === 'yml') {
-    return parseYmlFileMeta(data);
-  } else {
-    return parseBruFileMeta(data);
   }
 };
 
@@ -958,7 +882,6 @@ module.exports = {
   findItemInCollectionByPathname,
   findParentItemInCollection,
   findParentItemInCollectionByPathname,
-  parseBruFileMeta,
   parseFileMeta,
   hydrateRequestWithUuid,
   transformRequestToSaveToFilesystem,

@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { getFilenameWithFormat } = require('@tern/common/utils');
 const { stringifyRequestViaWorker, stringifyFolder } = require('@tern/filestore');
-const { sanitizeName, writeFileUnique, mkdirUnique, writeFile, getCollectionFormat, posixifyPath } = require('./filesystem');
+const { sanitizeName, writeFileUnique, mkdirUnique, writeFile, posixifyPath } = require('./filesystem');
 
 const REQUEST_TYPES = ['http-request', 'graphql-request', 'grpc-request', 'ws-request'];
 
@@ -17,7 +17,7 @@ const isInside = (target, parent) => {
  *
  * @returns {Promise<number>} how many requests were written
  */
-const writeItemsIntoFolder = async ({ items, folderPath, collectionPath, format }) => {
+const writeItemsIntoFolder = async ({ items, folderPath, collectionPath }) => {
   if (!isInside(folderPath, collectionPath)) {
     throw new Error('The target collection must be inside the application');
   }
@@ -29,10 +29,10 @@ const writeItemsIntoFolder = async ({ items, folderPath, collectionPath, format 
 
   const writeLevel = async (levelItems, currentPath) => {
     const requests = levelItems.filter((item) => REQUEST_TYPES.includes(item.type));
-    const contents = await Promise.all(requests.map((item) => stringifyRequestViaWorker(item, { format })));
+    const contents = await Promise.all(requests.map((item) => stringifyRequestViaWorker(item)));
     for (const [index, item] of requests.entries()) {
-      const filename = sanitizeName(getFilenameWithFormat(item, format));
-      await writeFileUnique(currentPath, filename.replace(/\.(bru|yml)$/, ''), format, contents[index]);
+      const filename = sanitizeName(getFilenameWithFormat(item, 'yml'));
+      await writeFileUnique(currentPath, filename.replace(/\.yml$/, ''), 'yml', contents[index]);
       written++;
     }
 
@@ -40,7 +40,7 @@ const writeItemsIntoFolder = async ({ items, folderPath, collectionPath, format 
       const { pathname } = await mkdirUnique(currentPath, sanitizeName(item.filename || item.name));
       if (item.root?.meta?.name) {
         const root = { ...item.root, meta: { ...item.root.meta, seq: item.seq } };
-        await writeFile(path.join(pathname, `folder.${format}`), await stringifyFolder(root, { format }));
+        await writeFile(path.join(pathname, 'folder.yml'), await stringifyFolder(root));
       }
       await writeLevel(item.items || [], pathname);
     }
@@ -55,8 +55,7 @@ const writeItemsIntoFolder = async ({ items, folderPath, collectionPath, format 
  * to that spec (`openapiSync: { entry, specContent }`). Returns the folder path relative to the application.
  */
 const importItemsIntoFolder = async ({ collectionPath, folderPath, items, openapiSync }) => {
-  const format = getCollectionFormat(collectionPath);
-  const count = await writeItemsIntoFolder({ items, folderPath, collectionPath, format });
+  const count = await writeItemsIntoFolder({ items, folderPath, collectionPath });
   const folder = posixifyPath(path.relative(collectionPath, folderPath));
 
   if (openapiSync) {

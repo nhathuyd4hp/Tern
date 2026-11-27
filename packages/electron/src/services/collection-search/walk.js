@@ -4,7 +4,7 @@ const path = require('node:path');
 const { promisify } = require('node:util');
 const { isRealFolder } = require('./entry-kind');
 
-const COLLECTION_CONFIG_FILES = ['opencollection.yml', 'bruno.json'];
+const COLLECTION_CONFIG_FILE = 'opencollection.yml';
 const PARALLEL_FOLDER_READS = 8;
 
 const PRUNED_FOLDER_NAMES = new Set([
@@ -32,12 +32,10 @@ const isPrunedFolderName = (name, parentRealPath) =>
   || (process.platform === 'linux' && parentRealPath === '/' && LINUX_ROOT_SYSTEM_FOLDERS.has(name));
 
 const hasCollectionConfig = (entries) =>
-  entries.some((entry) => COLLECTION_CONFIG_FILES.includes(entry.name) && (entry.isFile() || entry.isSymbolicLink()));
+  entries.some((entry) => entry.name === COLLECTION_CONFIG_FILE && (entry.isFile() || entry.isSymbolicLink()));
 
 const isCollectionFolder = async (folderPath) => {
-  const configFiles = await Promise.all(COLLECTION_CONFIG_FILES.map((file) =>
-    fs.stat(path.join(folderPath, file)).then((stats) => stats.isFile(), () => false)));
-  return configFiles.includes(true);
+  return fs.stat(path.join(folderPath, COLLECTION_CONFIG_FILE)).then((stats) => stats.isFile(), () => false);
 };
 
 class CollectionWalker {

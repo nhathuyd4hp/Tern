@@ -30,7 +30,7 @@ describe('File System Operations', () => {
   describe('copyPathTo and removePath', () => {
     it('should move files and folder items multiple times', async () => {
       {
-        const sourcePath = path.join(tempDir, 'folder_1', 'file_2.bru');
+        const sourcePath = path.join(tempDir, 'folder_1', 'file_2.yml');
         const destDir = path.join(tempDir, 'folder_1', 'folder_1_1');
         await moveInto(sourcePath, destDir);
         await removePath(sourcePath);
@@ -44,7 +44,7 @@ describe('File System Operations', () => {
       }
 
       {
-        const sourcePath = path.join(tempDir, 'folder_1', 'folder_1_1', 'folder_2', 'file_2_2.bru');
+        const sourcePath = path.join(tempDir, 'folder_1', 'folder_1_1', 'folder_2', 'file_2_2.yml');
         const destDir = path.join(tempDir, 'folder_1');
         await moveInto(sourcePath, destDir);
         await removePath(sourcePath);
@@ -66,12 +66,12 @@ describe('File System Operations', () => {
       const destDir = path.join(tempDir, 'suffix_dest');
       await fs.mkdir(srcDir, { recursive: true });
       await fs.mkdir(destDir, { recursive: true });
-      await fs.writeFile(path.join(srcDir, 'dup.bru'), 'source');
-      await fs.writeFile(path.join(destDir, 'dup.bru'), 'existing');
+      await fs.writeFile(path.join(srcDir, 'dup.yml'), 'source');
+      await fs.writeFile(path.join(destDir, 'dup.yml'), 'existing');
 
-      const targetPath = getUniqueTargetPath(path.join(srcDir, 'dup.bru'), destDir);
+      const targetPath = getUniqueTargetPath(path.join(srcDir, 'dup.yml'), destDir);
       // silent numeric suffix instead of throwing
-      expect(path.basename(targetPath)).toBe('dup 1.bru');
+      expect(path.basename(targetPath)).toBe('dup 1.yml');
     });
 
     it('suffixes a dotted DIRECTORY name without splitting on the dot', async () => {
@@ -141,10 +141,10 @@ describe('File System Operations', () => {
       const dir = path.join(tempDir, 'cap');
       await fs.mkdir(dir, { recursive: true });
 
-      const names = ['req.bru', ...Array.from({ length: 199 }, (_, i) => `req ${i + 1}.bru`)];
+      const names = ['req.yml', ...Array.from({ length: 199 }, (_, i) => `req ${i + 1}.yml`)];
       await Promise.all(names.map((name) => fs.writeFile(path.join(dir, name), 'x')));
 
-      await expect(writeFileUnique(dir, 'req', 'bru', 'x')).rejects.toThrow(
+      await expect(writeFileUnique(dir, 'req', 'yml', 'x')).rejects.toThrow(
         /Too many items named "req" \(limit 200\)/
       );
     }, 30000);

@@ -49,15 +49,10 @@ describe('specConversionOptions for a collection on disk', () => {
     fs.rmSync(collectionPath, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
   });
 
-  const writeCollection = (format, authPlacement) => {
+  const writeCollection = (authPlacement) => {
     const brunoConfig = { version: '1', name: 'Auth Flip', type: 'collection', openapi: [{ sourceUrl: '../openapi.yaml', groupBy: 'tags', authPlacement }] };
     const root = { request: { auth: { mode: 'bearer', bearer: { token: 'my-secret-token' } } } };
-    if (format === 'yml') {
-      fs.writeFileSync(path.join(collectionPath, 'opencollection.yml'), stringifyCollection(root, { ...brunoConfig, opencollection: '1.0.0' }, { format }));
-    } else {
-      fs.writeFileSync(path.join(collectionPath, 'bruno.json'), JSON.stringify(brunoConfig));
-      fs.writeFileSync(path.join(collectionPath, 'collection.bru'), stringifyCollection(root, brunoConfig, { format }));
-    }
+    fs.writeFileSync(path.join(collectionPath, 'opencollection.yml'), stringifyCollection(root, { ...brunoConfig, opencollection: '1.0.0' }));
     return brunoConfig;
   };
 
@@ -70,8 +65,8 @@ describe('specConversionOptions for a collection on disk', () => {
     paths: { '/a': operation([{ bearerAuth: [] }]), '/b': operation([{ bearerAuth: [] }]), '/public': operation(), '/c': operation([{ apiKeyAuth: [] }]) }
   };
 
-  it.each(['bru', 'yml'])('keeps requests on the collection scheme when the spec adds an operation with another scheme (%s)', (format) => {
-    const brunoConfig = writeCollection(format, 'collection');
+  it('keeps requests on the collection scheme when the spec adds an operation with another scheme', () => {
+    const brunoConfig = writeCollection('collection');
     const items = openApiToBruno(spec, specConversionOptions(brunoConfig, collectionPath)).items;
 
     expect(Object.fromEntries(items.map((item) => [item.request.url, item.request.auth.mode]))).toEqual({
@@ -83,7 +78,7 @@ describe('specConversionOptions for a collection on disk', () => {
   });
 
   it('reads no collection auth when authPlacement is request', () => {
-    expect(specConversionOptions(writeCollection('yml', 'request'), collectionPath)).not.toHaveProperty('collectionAuth');
+    expect(specConversionOptions(writeCollection('request'), collectionPath)).not.toHaveProperty('collectionAuth');
   });
 });
 
@@ -136,9 +131,9 @@ describe('ensureTagFolder', () => {
     fs.rmSync(collectionPath, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
   });
 
-  it.each(['yml', 'bru'])('creates a %s tag folder that lets its requests inherit the collection auth', async (format) => {
-    const folderPath = await ensureTagFolder(collectionPath, 'billing', format);
-    const folderRoot = parseFolder(fs.readFileSync(path.join(folderPath, `folder.${format}`), 'utf8'), { format });
+  it('creates a tag folder that lets its requests inherit the collection auth', async () => {
+    const folderPath = await ensureTagFolder(collectionPath, 'billing');
+    const folderRoot = parseFolder(fs.readFileSync(path.join(folderPath, 'folder.yml'), 'utf8'));
 
     expect(folderRoot.meta.name).toBe('billing');
     expect(folderRoot.request.auth.mode).toBe('inherit');

@@ -63,7 +63,7 @@ const parseGlobalEnvironmentFile = async (pathname, workspacePath, workspaceUid)
   };
 
   const content = fs.readFileSync(pathname, 'utf8');
-  file.data = await parseEnvironment(content, { format: 'yml' });
+  file.data = await parseEnvironment(content);
   file.data.name = environmentName;
   file.data.uid = generateUidBasedOnHash(pathname);
 

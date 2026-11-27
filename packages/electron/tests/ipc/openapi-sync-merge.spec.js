@@ -1128,25 +1128,6 @@ describe('mergeSpecIntoRequest (sync mode)', () => {
     });
   });
 
-  it('keeps .bru annotations on params and headers, with a single description', () => {
-    const bru = [
-      'meta {', '  name: r', '  type: http', '  seq: 1', '}', '',
-      'post {', '  url: {{old}}/x?q=mine', '  body: none', '  auth: none', '}', '',
-      'params:query {', '  @deprecated', '  @description(\'my search\')', '  q: mine', '}', '',
-      'headers {', '  @internal(\'x\')', '  H: mine', '}', ''
-    ].join('\n');
-    const specParams = [{ name: 'q', value: '', type: 'query', enabled: true, description: 'Search text' }];
-    const specHeaders = [{ name: 'H', value: '', enabled: true }];
-    const spec = { ...specItem, request: { ...specItem.request, params: specParams, headers: specHeaders, body: { mode: 'none' }, auth: { mode: 'none' } } };
-    const previousSpecItem = { request: { params: specParams, headers: specHeaders, body: {} } };
-    const written = stringifyRequest(helpers.mergeSpecIntoRequest(parseRequest(bru, { format: 'bru' }), spec, { previousSpecItem }), { format: 'bru' });
-    expect(written).toContain('@deprecated');
-    expect(written).toContain('@internal(\'x\')');
-    expect(written.match(/@description/g)).toHaveLength(1);
-    expect(written).toContain('Search text');
-    expect(written).not.toContain('my search');
-  });
-
   it('headers: matches names case-insensitively', () => {
     const withLowerCase = { ...existing, request: { ...existing.request, headers: [{ name: 'x-debug', value: '1', enabled: true }] } };
     const spec = { ...specItem, request: { ...specItem.request, headers: [{ name: 'X-Debug', value: '', enabled: true }] } };

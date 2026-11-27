@@ -3,16 +3,6 @@ const { isFile, isDirectory } = require('./filesystem');
 const { transformProxyConfig } = require('@tern/requests');
 
 function transformBrunoConfigBeforeSave(brunoConfig) {
-  if (brunoConfig && !brunoConfig.opencollection) {
-    const userVersion = brunoConfig.version;
-    brunoConfig.version = '1'; // bru schema marker
-    if (userVersion) {
-      brunoConfig.collectionVersion = userVersion;
-    } else {
-      delete brunoConfig.collectionVersion;
-    }
-  }
-
   // remove exists from importPaths and protoFiles
   if (brunoConfig.protobuf?.importPaths) {
     brunoConfig.protobuf.importPaths = brunoConfig.protobuf.importPaths.map((importPath) => {
@@ -43,15 +33,6 @@ function transformBrunoConfigBeforeSave(brunoConfig) {
 }
 
 async function transformBrunoConfigAfterRead(brunoConfig, collectionPathname) {
-  if (brunoConfig && !brunoConfig.opencollection) {
-    if (brunoConfig.collectionVersion) {
-      brunoConfig.version = brunoConfig.collectionVersion;
-    } else {
-      delete brunoConfig.version;
-    }
-    delete brunoConfig.collectionVersion;
-  }
-
   // add exists to importPaths and protoFiles by checking actual file/directory existence
   if (brunoConfig.protobuf?.importPaths) {
     brunoConfig.protobuf.importPaths = await Promise.all(brunoConfig.protobuf.importPaths.map(async (importPath) => {

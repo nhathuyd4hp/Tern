@@ -5,8 +5,8 @@ describe('mount denylist', () => {
     const denylist = resolveDenylist(['parent/child']);
 
     expect(isDenied('parent/child', denylist)).toBe(true);
-    expect(isDenied('parent/child/request.bru', denylist)).toBe(true);
-    expect(isDenied('parent/children/request.bru', denylist)).toBe(false);
+    expect(isDenied('parent/child/request.yml', denylist)).toBe(true);
+    expect(isDenied('parent/children/request.yml', denylist)).toBe(false);
   });
 
   test('preserves glob matching for default denylist entries', () => {
@@ -17,29 +17,29 @@ describe('mount denylist', () => {
     const denylist = resolveDenylist(['hidden/']);
 
     expect(isDenied('hidden', denylist)).toBe(true);
-    expect(isDenied('hidden/request.bru', denylist)).toBe(true);
-    expect(isDenied('hidden-other/request.bru', denylist)).toBe(false);
+    expect(isDenied('hidden/request.yml', denylist)).toBe(true);
+    expect(isDenied('hidden-other/request.yml', denylist)).toBe(false);
   });
 
   test('a glob denies the path it matches and not files beneath that directory', () => {
     const denylist = resolveDenylist(['**/hidden']);
 
     expect(isDenied('nested/hidden', denylist)).toBe(true);
-    expect(isDenied('nested/hidden/request.bru', denylist)).toBe(false);
-    expect(isDenied('nested/visible/request.bru', denylist)).toBe(false);
+    expect(isDenied('nested/hidden/request.yml', denylist)).toBe(false);
+    expect(isDenied('nested/visible/request.yml', denylist)).toBe(false);
   });
 
   test('a trailing slash on a glob does not match every path', () => {
-    expect(isDenied('foo/bar.bru', resolveDenylist(['**/']))).toBe(false);
-    expect(isDenied('visible.bru', resolveDenylist(['*/']))).toBe(false);
-    expect(isDenied('dir/file.bru', resolveDenylist(['*/']))).toBe(false);
+    expect(isDenied('foo/bar.yml', resolveDenylist(['**/']))).toBe(false);
+    expect(isDenied('visible.yml', resolveDenylist(['*/']))).toBe(false);
+    expect(isDenied('dir/file.yml', resolveDenylist(['*/']))).toBe(false);
   });
 
   test('skips empty and slash-only plain patterns', () => {
     const denylist = resolveDenylist(['', '/', '//', 'hidden']);
 
-    expect(isDenied('hidden/request.bru', denylist)).toBe(true);
-    expect(isDenied('visible.bru', denylist)).toBe(false);
+    expect(isDenied('hidden/request.yml', denylist)).toBe(true);
+    expect(isDenied('visible.yml', denylist)).toBe(false);
   });
 
   test('walk prunes plain ignored directories without descending', () => {
@@ -51,11 +51,11 @@ describe('mount denylist', () => {
 
     try {
       fs.mkdirSync(path.join(root, 'hidden'));
-      fs.writeFileSync(path.join(root, 'hidden', 'request.bru'), 'hidden');
-      fs.writeFileSync(path.join(root, 'visible.bru'), 'visible');
+      fs.writeFileSync(path.join(root, 'hidden', 'request.yml'), 'hidden');
+      fs.writeFileSync(path.join(root, 'visible.yml'), 'visible');
 
       const files = walk(root, resolveDenylist(['hidden'])).map((f) => f.relativePath);
-      expect(files).toEqual(['visible.bru']);
+      expect(files).toEqual(['visible.yml']);
     } finally {
       fs.rmSync(root, { recursive: true, force: true });
     }
@@ -70,13 +70,13 @@ describe('mount denylist', () => {
 
     try {
       fs.mkdirSync(path.join(root, 'nested', 'hidden'), { recursive: true });
-      fs.writeFileSync(path.join(root, 'nested', 'hidden', 'request.bru'), 'nested-hidden');
-      fs.writeFileSync(path.join(root, 'visible.bru'), 'visible');
+      fs.writeFileSync(path.join(root, 'nested', 'hidden', 'request.yml'), 'nested-hidden');
+      fs.writeFileSync(path.join(root, 'visible.yml'), 'visible');
 
       const files = walk(root, resolveDenylist(['**/hidden'])).map((f) => f.relativePath).sort();
       expect(files).toEqual([
-        path.join('nested', 'hidden', 'request.bru'),
-        'visible.bru'
+        path.join('nested', 'hidden', 'request.yml'),
+        'visible.yml'
       ].sort());
     } finally {
       fs.rmSync(root, { recursive: true, force: true });

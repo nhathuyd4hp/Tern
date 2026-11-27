@@ -2,8 +2,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { ipcMain } = require('electron');
 const { sanitizeName, createDirectory, writeFile, safeWriteFileSync, getCollectionStats } = require('./filesystem');
-const { generateUidBasedOnHash, stringifyJson } = require('./common');
-const { stringifyRequestViaWorker, stringifyCollection, stringifyEnvironment, stringifyFolder, DEFAULT_COLLECTION_FORMAT } = require('@tern/filestore');
+const { generateUidBasedOnHash } = require('./common');
+const { stringifyRequestViaWorker, stringifyCollection, stringifyEnvironment, stringifyFolder } = require('@tern/filestore');
 const { transformProxyConfig } = require('@tern/requests/dist/cjs');
 
 /**
@@ -25,7 +25,7 @@ async function findUniqueFolderName(baseName, collectionLocation, counter = 0) {
  * @param {Object} options - Optional settings
  * @param {boolean} options.skipOpenEvent - If true, don't send main:collection-opened event (caller will handle it)
  */
-async function importCollection(collection, collectionLocation, mainWindow, uniqueFolderName = null, format = DEFAULT_COLLECTION_FORMAT, options = {}) {
+async function importCollection(collection, collectionLocation, mainWindow, uniqueFolderName = null, options = {}) {
   // Use provided unique folder name or use collection name
   const folderName = uniqueFolderName ? sanitizeName(uniqueFolderName) : sanitizeName(collection.name);
   const collectionPath = path.join(collectionLocation, folderName);
@@ -38,8 +38,8 @@ async function importCollection(collection, collectionLocation, mainWindow, uniq
   const parseCollectionItems = async (items = [], currentPath) => {
     for (const item of items) {
       if (['http-request', 'graphql-request', 'grpc-request'].includes(item.type)) {
-        const sanitizedFilename = sanitizeName(item.filename || `${item.name}.${format}`);
-        const content = await stringifyRequestViaWorker(item, { format });
+        const sanitizedFilename = sanitizeName(item.filename || `${item.name}.yml`);
+        const content = await stringifyRequestViaWorker(item);
         const filePath = path.join(currentPath, sanitizedFilename);
         safeWriteFileSync(filePath, content);
       }
@@ -49,9 +49,9 @@ async function importCollection(collection, collectionLocation, mainWindow, uniq
         fs.mkdirSync(folderPath);
 
         if (item.root?.meta?.name) {
-          const folderFilePath = path.join(folderPath, `folder.${format}`);
+          const folderFilePath = path.join(folderPath, 'folder.yml');
           item.root.meta.seq = item.seq;
-          const folderContent = await stringifyFolder(item.root, { format });
+          const folderContent = await stringifyFolder(item.root);
           safeWriteFileSync(folderFilePath, folderContent);
         }
 
@@ -75,8 +75,8 @@ async function importCollection(collection, collectionLocation, mainWindow, uniq
     }
 
     for (const env of environments) {
-      const content = await stringifyEnvironment(env, { format });
-      const sanitizedEnvFilename = sanitizeName(`${env.name}.${format}`);
+      const content = await stringifyEnvironment(env);
+      const sanitizedEnvFilename = sanitizeName(`${env.name}.yml`);
       const filePath = path.join(envDirPath, sanitizedEnvFilename);
       safeWriteFileSync(filePath, content);
     }
@@ -105,25 +105,9 @@ async function importCollection(collection, collectionLocation, mainWindow, uniq
   const uid = generateUidBasedOnHash(collectionPath);
   const brunoConfig = getBrunoJsonConfig(collection);
 
-  if (format === 'yml') {
-    brunoConfig.opencollection = '1.0.0';
-    const collectionContent = await stringifyCollection(collection.root, brunoConfig, { format });
-    await writeFile(path.join(collectionPath, 'opencollection.yml'), collectionContent);
-  } else if (format === 'bru') {
-    const bruJsonConfig = { ...brunoConfig, version: '1' };
-    if (brunoConfig.version) {
-      bruJsonConfig.collectionVersion = brunoConfig.version;
-    } else {
-      delete bruJsonConfig.collectionVersion;
-    }
-    const stringifiedBrunoConfig = await stringifyJson(bruJsonConfig);
-    await writeFile(path.join(collectionPath, 'bruno.json'), stringifiedBrunoConfig);
-
-    const collectionContent = await stringifyCollection(collection.root, brunoConfig, { format });
-    await writeFile(path.join(collectionPath, 'collection.bru'), collectionContent);
-  } else {
-    throw new Error(`Invalid format: ${format}`);
-  }
+  brunoConfig.opencollection = '1.0.0';
+  const collectionContent = await stringifyCollection(collection.root, brunoConfig);
+  await writeFile(path.join(collectionPath, 'opencollection.yml'), collectionContent);
 
   const { size, filesCount } = await getCollectionStats(collectionPath);
   brunoConfig.size = size;

@@ -10,7 +10,7 @@ describe('requestUids cache', () => {
   });
 
   test('returns a stable uid for the same pathname across repeated calls', () => {
-    const pathname = path.join(collectionRoot, 'request-one.bru');
+    const pathname = path.join(collectionRoot, 'request-one.yml');
 
     const first = getRequestUid(pathname);
     const second = getRequestUid(pathname);
@@ -19,15 +19,15 @@ describe('requestUids cache', () => {
   });
 
   test('returns different uids for different pathnames', () => {
-    const uidOne = getRequestUid(path.join(collectionRoot, 'request-one.bru'));
-    const uidTwo = getRequestUid(path.join(collectionRoot, 'request-two.bru'));
+    const uidOne = getRequestUid(path.join(collectionRoot, 'request-one.yml'));
+    const uidTwo = getRequestUid(path.join(collectionRoot, 'request-two.yml'));
 
     expect(uidOne).not.toBe(uidTwo);
   });
 
   test('moveRequestUid preserves the uid under the new pathname and frees the old one', () => {
-    const oldPathname = path.join(collectionRoot, 'folder-a', 'request.bru');
-    const newPathname = path.join(collectionRoot, 'folder-b', 'request.bru');
+    const oldPathname = path.join(collectionRoot, 'folder-a', 'request.yml');
+    const newPathname = path.join(collectionRoot, 'folder-b', 'request.yml');
 
     const uidBeforeMove = getRequestUid(oldPathname);
     moveRequestUid(oldPathname, newPathname);
@@ -45,8 +45,8 @@ describe('requestUids cache', () => {
   // self-corrects. The fix reorders the call so every caller reads the new path only after the
   // identity has been carried over.
   test('a caller that reads the new pathname before moveRequestUid runs gets a mismatched uid', () => {
-    const oldPathname = path.join(collectionRoot, 'folder-a', 'request.bru');
-    const newPathname = path.join(collectionRoot, 'folder-b', 'request.bru');
+    const oldPathname = path.join(collectionRoot, 'folder-a', 'request.yml');
+    const newPathname = path.join(collectionRoot, 'folder-b', 'request.yml');
 
     const uidBeforeMove = getRequestUid(oldPathname);
 
@@ -64,7 +64,7 @@ describe('requestUids cache', () => {
   });
 
   test('deleteRequestUid removes a pathname from the cache', () => {
-    const pathname = path.join(collectionRoot, 'request-one.bru');
+    const pathname = path.join(collectionRoot, 'request-one.yml');
     const uidBeforeDelete = getRequestUid(pathname);
 
     deleteRequestUid(pathname);
@@ -73,7 +73,7 @@ describe('requestUids cache', () => {
   });
 
   test('clearRequestUidsForCollection purges every uid under the collection root', () => {
-    const pathname = path.join(collectionRoot, 'folder-a', 'request.bru');
+    const pathname = path.join(collectionRoot, 'folder-a', 'request.yml');
     const uidBeforeClear = getRequestUid(pathname);
 
     clearRequestUidsForCollection(collectionRoot);

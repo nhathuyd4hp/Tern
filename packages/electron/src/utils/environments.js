@@ -8,12 +8,12 @@ const { writeFile, withFileLock } = require('./filesystem');
  * References are matched exactly, the way the inheritance resolver reads them, so a differently-cased
  * reference the resolver never followed is not claimed by this rename either.
  */
-const renameEnvironmentExtendsReferences = async ({ environmentsDirPath, format, oldName, newName }) => {
+const renameEnvironmentExtendsReferences = async ({ environmentsDirPath, oldName, newName }) => {
   if (!fs.existsSync(environmentsDirPath)) {
     return;
   }
 
-  const extension = `.${format}`;
+  const extension = '.yml';
   const fileNames = fs.readdirSync(environmentsDirPath).filter((fileName) => fileName.endsWith(extension));
 
   for (const fileName of fileNames) {
@@ -21,7 +21,7 @@ const renameEnvironmentExtendsReferences = async ({ environmentsDirPath, format,
 
     try {
       await withFileLock(filePath, async () => {
-        const environment = parseEnvironment(fs.readFileSync(filePath, 'utf8'), { format });
+        const environment = parseEnvironment(fs.readFileSync(filePath, 'utf8'));
 
         if (environment.extends !== oldName) {
           return;
@@ -30,7 +30,7 @@ const renameEnvironmentExtendsReferences = async ({ environmentsDirPath, format,
         environment.extends = newName;
         environment.name = path.basename(fileName, extension);
 
-        await writeFile(filePath, stringifyEnvironment(environment, { format }));
+        await writeFile(filePath, stringifyEnvironment(environment));
       });
     } catch (error) {
       console.error(`Failed to update the extends reference in ${fileName}:`, error);

@@ -14,7 +14,7 @@ const {
 } = require('@tern/filestore');
 const { openApiToBruno } = require('@tern/converters');
 const { resolveEnvironmentInheritance, buildQueryString, parseQueryParams, getFilenameWithFormat } = require('@tern/common/utils');
-const { writeFile, withFileLock, writeFileUnique, sanitizeName, getCollectionFormat, posixifyPath } = require('../utils/filesystem');
+const { writeFile, withFileLock, writeFileUnique, sanitizeName, posixifyPath } = require('../utils/filesystem');
 const { derefSpecObject, declaredSchemaNode, declaresKey, declaredKeysOf, declaredChild, declaredItems, declaresOnlyScalars, keyLeavesShapeOpen, itemsLeaveShapeOpen, otherAlternativeKeys } = require('../utils/openapi-schema');
 const { COLLECTION_ROOT_BASENAMES, FOLDER_ROOT_BASENAMES } = require('../utils/mount');
 
@@ -287,30 +287,15 @@ const normalizeUrlPath = (urlStr) => {
 };
 
 /**
- * Load bruno config from disk. Returns { format, brunoConfig, collectionRoot }.
- * collectionRoot is only set for yml format collections.
+ * Load bruno config from disk. Returns { brunoConfig, collectionRoot }.
  */
 const loadBrunoConfig = (collectionPath) => {
-  const format = getCollectionFormat(collectionPath);
-  let brunoConfig;
-  let collectionRoot;
-
-  if (format === 'yml') {
-    const configFilePath = path.join(collectionPath, 'opencollection.yml');
-    if (!fs.existsSync(configFilePath)) {
-      throw new Error('opencollection.yml not found');
-    }
-    const content = fs.readFileSync(configFilePath, 'utf8');
-    const parsed = parseCollection(content, { format });
-    brunoConfig = parsed.brunoConfig;
-    collectionRoot = parsed.collectionRoot;
-  } else {
-    const brunoJsonPath = path.join(collectionPath, 'bruno.json');
-    if (!fs.existsSync(brunoJsonPath)) {
-      throw new Error('bruno.json not found');
-    }
-    brunoConfig = JSON.parse(fs.readFileSync(brunoJsonPath, 'utf8'));
+  const configFilePath = path.join(collectionPath, 'opencollection.yml');
+  if (!fs.existsSync(configFilePath)) {
+    throw new Error('opencollection.yml not found');
   }
+  const content = fs.readFileSync(configFilePath, 'utf8');
+  const { brunoConfig, collectionRoot } = parseCollection(content);
 
   // Resolve relative openapi sourceUrls to absolute so all callers get consistent paths
   if (Array.isArray(brunoConfig?.openapi)) {
@@ -320,13 +305,13 @@ const loadBrunoConfig = (collectionPath) => {
     }));
   }
 
-  return { format, brunoConfig, collectionRoot };
+  return { brunoConfig, collectionRoot };
 };
 
 /**
- * Save bruno config to disk (bruno.json or opencollection.yml).
+ * Save bruno config to disk (opencollection.yml).
  */
-const saveBrunoConfig = async (collectionPath, format, brunoConfig, collectionRoot) => {
+const saveBrunoConfig = async (collectionPath, brunoConfig, collectionRoot) => {
   // Convert absolute openapi sourceUrls back to collection-relative for git-shareability
   const configToSave = { ...brunoConfig };
   if (Array.isArray(configToSave?.openapi)) {
@@ -338,13 +323,8 @@ const saveBrunoConfig = async (collectionPath, format, brunoConfig, collectionRo
     }));
   }
 
-  if (format === 'yml') {
-    const content = await stringifyCollection(collectionRoot, configToSave, { format });
-    await writeFile(path.join(collectionPath, 'opencollection.yml'), content);
-  } else {
-    const brunoJsonPath = path.join(collectionPath, 'bruno.json');
-    await writeFile(brunoJsonPath, JSON.stringify(configToSave, null, 2));
-  }
+  const content = await stringifyCollection(collectionRoot, configToSave);
+  await writeFile(path.join(collectionPath, 'opencollection.yml'), content);
 };
 
 /**
@@ -371,8 +351,8 @@ const isFolderOrCollectionFile = (file, dirPath, collectionPath) => FOLDER_ROOT_
 
 /**
  * Find an existing request file on disk by HTTP method and normalized path.
- * Scans .bru/.yml files in the collection directory recursively.
- * Returns { filePath, request, content, fileFormat } or null.
+ * Scans .yml files in the collection directory recursively.
+ * Returns { filePath, request, content } or null.
  */
 const findRequestFileOnDisk = (dirPath, method, urlPath, collectionPath = dirPath) => {
   if (!fs.existsSync(dirPath)) return null;
@@ -383,17 +363,16 @@ const findRequestFileOnDisk = (dirPath, method, urlPath, collectionPath = dirPat
     if (stats.isDirectory() && !RESERVED_FOLDER_NAMES.includes(file)) {
       const found = findRequestFileOnDisk(filePath, method, urlPath, collectionPath);
       if (found) return found;
-    } else if (file.endsWith('.bru') || file.endsWith('.yml') || file.endsWith('.yaml')) {
+    } else if (file.endsWith('.yml') || file.endsWith('.yaml')) {
       if (isFolderOrCollectionFile(file, dirPath, collectionPath)) continue;
       try {
         const content = fs.readFileSync(filePath, 'utf8');
-        const fileFormat = file.endsWith('.yml') || file.endsWith('.yaml') ? 'yml' : 'bru';
-        const request = parseRequest(content, { format: fileFormat });
+        const request = parseRequest(content);
         if (request?.request) {
           const reqMethod = request.request.method?.toUpperCase();
           const reqPath = normalizeUrlPath(request.request.url);
           if (reqMethod === method && reqPath === urlPath) {
-            return { filePath, request, content, fileFormat };
+            return { filePath, request, content };
           }
         }
       } catch (err) {
@@ -407,9 +386,9 @@ const findRequestFileOnDisk = (dirPath, method, urlPath, collectionPath = dirPat
 // Config edits of one application run one at a time, each on the freshly loaded file, so a sync, a settings
 // save and a disconnect that overlap cannot overwrite each other's entries.
 const updateConfigUnderLock = (collectionPath, mutate) => withFileLock(`${collectionPath}::openapi-config`, async () => {
-  const { format, brunoConfig, collectionRoot } = loadBrunoConfig(collectionPath);
+  const { brunoConfig, collectionRoot } = loadBrunoConfig(collectionPath);
   await mutate(brunoConfig);
-  await saveBrunoConfig(collectionPath, format, brunoConfig, collectionRoot);
+  await saveBrunoConfig(collectionPath, brunoConfig, collectionRoot);
 });
 
 const patchSyncEntry = (collectionPath, folder, patch) => updateConfigUnderLock(collectionPath, (brunoConfig) => {
@@ -920,10 +899,10 @@ const mergeSpecIntoRequest = (existingRequest, specItem, { fullReset = false, pr
 
 /**
  * Ensure a tag-based folder exists in the collection directory.
- * Creates the folder and its folder.bru/folder.yml file if missing.
+ * Creates the folder and its folder.yml file if missing.
  * Returns the resolved target folder path (falls back to collectionPath on reserved/traversal names).
  */
-const ensureTagFolder = async (collectionPath, folderName, format) => {
+const ensureTagFolder = async (collectionPath, folderName) => {
   const safeFolderName = sanitizeName(folderName);
   if (RESERVED_FOLDER_NAMES.some((r) => r.toLowerCase() === safeFolderName.toLowerCase())) {
     console.warn(`[OpenAPI Sync] Tag "${folderName}" sanitizes to reserved folder name "${safeFolderName}", placing requests in collection root`);
@@ -936,9 +915,9 @@ const ensureTagFolder = async (collectionPath, folderName, format) => {
   }
   if (!fs.existsSync(targetFolder)) {
     fs.mkdirSync(targetFolder, { recursive: true });
-    const folderBruPath = path.join(targetFolder, `folder.${format}`);
-    const folderContent = await stringifyFolder({ meta: { name: safeFolderName }, request: { auth: { mode: 'inherit' } } }, { format });
-    await writeFile(folderBruPath, folderContent);
+    const folderFilePath = path.join(targetFolder, 'folder.yml');
+    const folderContent = await stringifyFolder({ meta: { name: safeFolderName }, request: { auth: { mode: 'inherit' } } });
+    await writeFile(folderFilePath, folderContent);
   }
   return targetFolder;
 };
@@ -1091,11 +1070,10 @@ const compareRequestFields = (specRequest, actualRequest, { keptBySync = false, 
 };
 
 const collectionRootAuth = (collectionPath) => {
-  const format = getCollectionFormat(collectionPath);
-  const rootPath = path.join(collectionPath, format === 'yml' ? 'opencollection.yml' : 'collection.bru');
+  const rootPath = path.join(collectionPath, 'opencollection.yml');
   if (!fs.existsSync(rootPath)) return { mode: 'none' };
-  const parsed = parseCollection(fs.readFileSync(rootPath, 'utf8'), { format });
-  return (format === 'yml' ? parsed?.collectionRoot : parsed)?.request?.auth ?? { mode: 'none' };
+  const parsed = parseCollection(fs.readFileSync(rootPath, 'utf8'));
+  return parsed?.collectionRoot?.request?.auth ?? { mode: 'none' };
 };
 
 const specConversionOptions = (brunoConfig, collectionPath, folder) => {
@@ -1373,7 +1351,7 @@ const registerOpenAPISyncIpc = (mainWindow) => {
     }
   });
 
-  // Collection Drift Detection - compare stored spec (converted to bru) vs actual .bru files
+  // Collection Drift Detection - compare stored spec (converted to Bruno format) vs actual .yml files
   ipcMain.handle('renderer:get-collection-drift', async (event, { collectionPath, compareSpec, folder }) => {
     try {
       let brunoConfig;
@@ -1430,7 +1408,7 @@ const registerOpenAPISyncIpc = (mainWindow) => {
           const stats = fs.statSync(fullPath);
           if (stats.isDirectory()) {
             files.push(...scanCollectionFiles(fullPath, relPath));
-          } else if ((entry.endsWith('.bru') || entry.endsWith('.yml') || entry.endsWith('.yaml'))
+          } else if ((entry.endsWith('.yml') || entry.endsWith('.yaml'))
             && !isFolderOrCollectionFile(entry, dirPath, scopeRoot)) {
             files.push({ fullPath, relativePath: relPath });
           }
@@ -1443,8 +1421,7 @@ const registerOpenAPISyncIpc = (mainWindow) => {
       for (const { fullPath, relativePath } of collectionFiles) {
         try {
           const content = fs.readFileSync(fullPath, 'utf8');
-          const fileFormat = fullPath.endsWith('.yml') || fullPath.endsWith('.yaml') ? 'yml' : 'bru';
-          const parsed = parseRequest(content, { format: fileFormat });
+          const parsed = parseRequest(content);
           if (!parsed?.request) continue;
           collectionEndpoints.push({
             fullPath,
@@ -1660,7 +1637,7 @@ const registerOpenAPISyncIpc = (mainWindow) => {
   // Sync modes: 'spec-only' | 'reset' | 'sync' (default)
   ipcMain.handle('renderer:apply-openapi-sync', async (event, { collectionPath, addNewRequests, removeDeletedRequests, diff, localOnlyToRemove = [], driftedToReset = [], mode = 'sync', endpointDecisions = {}, preserveValues = true, folder }) => {
     try {
-      const { format, brunoConfig } = loadBrunoConfig(collectionPath);
+      const { brunoConfig } = loadBrunoConfig(collectionPath);
       const entryIndex = entryIndexFor(brunoConfig, folder);
       const sourceUrl = brunoConfig?.openapi?.[entryIndex]?.sourceUrl;
       const scopeRoot = scopeRootOf(collectionPath, folder);
@@ -1686,7 +1663,7 @@ const registerOpenAPISyncIpc = (mainWindow) => {
         // Build map of spec items by endpoint ID
         const specItemsMap = buildSpecItemsMap(newCollection.items || []);
 
-        // Find and update existing .bru files
+        // Find and update existing .yml files
         const findAndResetRequest = async (dirPath) => {
           if (!fs.existsSync(dirPath)) return;
 
@@ -1697,12 +1674,11 @@ const registerOpenAPISyncIpc = (mainWindow) => {
 
             if (stats.isDirectory() && !RESERVED_FOLDER_NAMES.includes(file)) {
               await findAndResetRequest(filePath);
-            } else if ((file.endsWith('.bru') || file.endsWith('.yml') || file.endsWith('.yaml'))
+            } else if ((file.endsWith('.yml') || file.endsWith('.yaml'))
               && !isFolderOrCollectionFile(file, dirPath, scopeRoot)) {
               try {
                 const content = fs.readFileSync(filePath, 'utf8');
-                const fileFormat = file.endsWith('.yml') || file.endsWith('.yaml') ? 'yml' : 'bru';
-                const existingRequest = parseRequest(content, { format: fileFormat });
+                const existingRequest = parseRequest(content);
 
                 if (existingRequest?.request) {
                   const method = existingRequest.request.method?.toUpperCase() || 'GET';
@@ -1712,7 +1688,7 @@ const registerOpenAPISyncIpc = (mainWindow) => {
                   const specItem = specItemsMap.get(id);
                   if (specItem) {
                     const mergedRequest = mergeSpecIntoRequest(existingRequest, specItem, { fullReset: true });
-                    const newContent = await stringifyRequestViaWorker(mergedRequest, { format: fileFormat });
+                    const newContent = await stringifyRequestViaWorker(mergedRequest);
                     await writeFile(filePath, newContent);
 
                     // Mark as processed
@@ -1732,12 +1708,12 @@ const registerOpenAPISyncIpc = (mainWindow) => {
         for (const [, specItem] of specItemsMap) {
           let targetFolder = scopeRoot;
           if (specItem.folderName && groupBy === 'tags') {
-            targetFolder = await ensureTagFolder(scopeRoot, specItem.folderName, format);
+            targetFolder = await ensureTagFolder(scopeRoot, specItem.folderName);
           }
 
-          const requestContent = await stringifyRequestViaWorker(specItem, { format });
-          const filename = sanitizeName(getFilenameWithFormat(specItem, format));
-          await writeFileUnique(targetFolder, filename.replace(/\.(bru|yml)$/, ''), format, requestContent);
+          const requestContent = await stringifyRequestViaWorker(specItem);
+          const filename = sanitizeName(getFilenameWithFormat(specItem, 'yml'));
+          await writeFileUnique(targetFolder, filename.replace(/\.yml$/, ''), 'yml', requestContent);
         }
 
         // Save spec in original format
@@ -1763,7 +1739,7 @@ const registerOpenAPISyncIpc = (mainWindow) => {
       const mergeOptionsOf = mergeOptionsFor(collectionPath, brunoConfig, diff.newSpec, { preserveValues, groupBy, folder });
       const syncExistingFile = async (existingFile, newItem, endpoint) => {
         const mergedRequest = mergeSpecIntoRequest(existingFile.request, newItem, mergeOptionsOf(endpoint.method, endpoint.path));
-        const content = await stringifyRequestViaWorker(mergedRequest, { format: existingFile.fileFormat });
+        const content = await stringifyRequestViaWorker(mergedRequest);
         await writeFile(existingFile.filePath, content);
       };
 
@@ -1780,11 +1756,11 @@ const registerOpenAPISyncIpc = (mainWindow) => {
 
             if (stats.isDirectory() && !RESERVED_FOLDER_NAMES.includes(file)) {
               findAndRemoveRequest(filePath);
-            } else if ((file.endsWith('.bru') || file.endsWith('.yml') || file.endsWith('.yaml'))
+            } else if ((file.endsWith('.yml') || file.endsWith('.yaml'))
               && !isFolderOrCollectionFile(file, dirPath, scopeRoot)) {
               try {
                 const content = fs.readFileSync(filePath, 'utf8');
-                const request = parseRequest(content, { format: file.endsWith('.yml') || file.endsWith('.yaml') ? 'yml' : 'bru' });
+                const request = parseRequest(content);
 
                 if (request?.request) {
                   const method = request.request.method?.toUpperCase();
@@ -1825,9 +1801,8 @@ const registerOpenAPISyncIpc = (mainWindow) => {
             }
             if (fs.existsSync(fullPath)) {
               try {
-                const fileFormat = fullPath.endsWith('.yml') || fullPath.endsWith('.yaml') ? 'yml' : 'bru';
                 const content = fs.readFileSync(fullPath, 'utf8');
-                const parsed = parseRequest(content, { format: fileFormat });
+                const parsed = parseRequest(content);
                 if (parsed?.request) {
                   const fileMethod = parsed.request.method?.toUpperCase();
                   const fileUrlPath = normalizeUrlPath(parsed.request.url);
@@ -1859,12 +1834,12 @@ const registerOpenAPISyncIpc = (mainWindow) => {
               // Truly new — create file in the appropriate folder
               let targetFolder = scopeRoot;
               if (result.folderName && groupBy === 'tags') {
-                targetFolder = await ensureTagFolder(scopeRoot, result.folderName, format);
+                targetFolder = await ensureTagFolder(scopeRoot, result.folderName);
               }
 
-              const requestContent = await stringifyRequestViaWorker(newItem, { format });
-              const filename = sanitizeName(getFilenameWithFormat(newItem, format));
-              await writeFileUnique(targetFolder, filename.replace(/\.(bru|yml)$/, ''), format, requestContent);
+              const requestContent = await stringifyRequestViaWorker(newItem);
+              const filename = sanitizeName(getFilenameWithFormat(newItem, 'yml'));
+              await writeFileUnique(targetFolder, filename.replace(/\.yml$/, ''), 'yml', requestContent);
             }
           }
         }
@@ -1928,11 +1903,10 @@ const registerOpenAPISyncIpc = (mainWindow) => {
               }
               if (fs.existsSync(fullPath)) {
                 try {
-                  const fileFormat = fullPath.endsWith('.yml') || fullPath.endsWith('.yaml') ? 'yml' : 'bru';
                   const existingContent = fs.readFileSync(fullPath, 'utf8');
-                  const existingRequest = parseRequest(existingContent, { format: fileFormat });
+                  const existingRequest = parseRequest(existingContent);
                   const mergedRequest = mergeSpecIntoRequest(existingRequest, specItem, { fullReset: true });
-                  const content = await stringifyRequestViaWorker(mergedRequest, { format: fileFormat });
+                  const content = await stringifyRequestViaWorker(mergedRequest);
                   await writeFile(fullPath, content);
                 } catch (err) {
                   console.error(`[OpenAPI Sync] Error resetting drifted endpoint ${endpoint.id}:`, err);
@@ -2101,7 +2075,7 @@ const registerOpenAPISyncIpc = (mainWindow) => {
   // Add missing endpoints to collection (from stored spec)
   ipcMain.handle('renderer:add-missing-endpoints', async (event, { collectionPath, endpoints, folder }) => {
     try {
-      const { format, brunoConfig } = loadBrunoConfig(collectionPath);
+      const { brunoConfig } = loadBrunoConfig(collectionPath);
       const groupBy = syncEntryOf(brunoConfig, folder)?.groupBy || 'tags';
       const specCollection = loadStoredSpecCollection(collectionPath, brunoConfig, folder);
       const scopeRoot = scopeRootOf(collectionPath, folder);
@@ -2116,12 +2090,12 @@ const registerOpenAPISyncIpc = (mainWindow) => {
 
           // Use folder name from spec collection structure
           if (folderName && groupBy === 'tags') {
-            targetFolder = await ensureTagFolder(scopeRoot, folderName, format);
+            targetFolder = await ensureTagFolder(scopeRoot, folderName);
           }
 
-          const requestContent = await stringifyRequestViaWorker(specItem, { format });
-          const filename = sanitizeName(getFilenameWithFormat(specItem, format));
-          await writeFileUnique(targetFolder, filename.replace(/\.(bru|yml)$/, ''), format, requestContent);
+          const requestContent = await stringifyRequestViaWorker(specItem);
+          const filename = sanitizeName(getFilenameWithFormat(specItem, 'yml'));
+          await writeFileUnique(targetFolder, filename.replace(/\.yml$/, ''), 'yml', requestContent);
           addedCount++;
         }
       }
@@ -2152,11 +2126,10 @@ const registerOpenAPISyncIpc = (mainWindow) => {
           }
 
           try {
-            const fileFormat = endpoint.pathname.endsWith('.yml') || endpoint.pathname.endsWith('.yaml') ? 'yml' : 'bru';
             const existingContent = fs.readFileSync(endpoint.pathname, 'utf8');
-            const existingRequest = parseRequest(existingContent, { format: fileFormat });
+            const existingRequest = parseRequest(existingContent);
             const mergedRequest = mergeSpecIntoRequest(existingRequest, specItem, { fullReset: true });
-            const requestContent = await stringifyRequestViaWorker(mergedRequest, { format: fileFormat });
+            const requestContent = await stringifyRequestViaWorker(mergedRequest);
             await writeFile(endpoint.pathname, requestContent);
             resetCount++;
           } catch (err) {

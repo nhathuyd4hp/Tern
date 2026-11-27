@@ -34,11 +34,11 @@ describe('sanitizeName', () => {
 
 describe('nextSuffixedName', () => {
   it('omits the suffix for n === 0', () => {
-    expect(nextSuffixedName('login', 'bru', 0)).toBe('login.bru');
+    expect(nextSuffixedName('login', 'yml', 0)).toBe('login.yml');
   });
 
   it('appends the counter before the extension', () => {
-    expect(nextSuffixedName('login', 'bru', 2)).toBe('login 2.bru');
+    expect(nextSuffixedName('login', 'yml', 2)).toBe('login 2.yml');
   });
 
   it('handles folders (no extension)', () => {
@@ -169,13 +169,13 @@ describe('moveCollectionDirectory', () => {
     const destination = path.join(workDir, 'collections', 'source-collection');
     await fs.ensureDir(path.join(source, 'folder'));
     await fs.writeFile(path.join(source, 'bruno.json'), '{"name":"test"}');
-    await fs.writeFile(path.join(source, 'folder', 'request.bru'), 'meta {}');
+    await fs.writeFile(path.join(source, 'folder', 'request.yml'), 'meta {}');
 
     await moveCollectionDirectory(source, destination);
 
     expect(fs.existsSync(source)).toBe(false);
     expect(fs.readFileSync(path.join(destination, 'bruno.json'), 'utf8')).toBe('{"name":"test"}');
-    expect(fs.readFileSync(path.join(destination, 'folder', 'request.bru'), 'utf8')).toBe('meta {}');
+    expect(fs.readFileSync(path.join(destination, 'folder', 'request.yml'), 'utf8')).toBe('meta {}');
   });
 
   it('throws and leaves the source intact when the destination already exists', async () => {

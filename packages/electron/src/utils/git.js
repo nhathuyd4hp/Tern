@@ -1501,17 +1501,17 @@ const supportsVisualDiff = (filePath) => {
   if (!filePath) return false;
 
   const fileName = filePath.split('/').pop();
-  const excludedFiles = ['folder.yml', 'folder.bru', 'opencollection.yml', 'collection.bru'];
+  const excludedFiles = ['folder.yml', 'opencollection.yml'];
   if (excludedFiles.includes(fileName)) {
     return false;
   }
 
-  return filePath.endsWith('.bru') || filePath.endsWith('.yml');
+  return filePath.endsWith('.yml');
 };
 
 /**
  * Parse content for visual diff viewer
- * Uses parseRequest to get consistent BrunoItem structure for both .bru and .yml files
+ * Uses parseRequest to get consistent BrunoItem structure for .yml files
  * @param {string} content - Raw file content
  * @param {string} filePath - Path to the file
  * @returns {object|null} Parsed BrunoItem or null if parsing fails
@@ -1519,12 +1519,7 @@ const supportsVisualDiff = (filePath) => {
 const parseContentForVisualDiff = (content, filePath) => {
   if (!content) return null;
   try {
-    if (filePath?.endsWith('.bru')) {
-      return parseRequest(content, { format: 'bru' });
-    } else if (filePath?.endsWith('.yml')) {
-      return parseRequest(content, { format: 'yml' });
-    }
-    return null;
+    return filePath?.endsWith('.yml') ? parseRequest(content) : null;
   } catch (err) {
     console.error('Error parsing content for visual diff:', err);
     return null;

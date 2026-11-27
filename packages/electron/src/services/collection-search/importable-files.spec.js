@@ -30,7 +30,7 @@ describe('findImportableFiles', () => {
     Object.fromEntries((await findImportableFiles(tempDir)).map((file) => [file.name, file.format]));
 
   it('recognises Postman, Insomnia and OpenAPI exports and Tern collection zips', async () => {
-    writeZip('backup.zip', ['bruno.json', 'ping.bru']);
+    writeZip('backup.zip', ['bruno.json', 'ping.yml']);
     writeFile('Orders.postman_collection.json', '{}');
     writeFile('postman.json', '{ "info": { "_postman_id": "1" } }');
     writeFile('openapi.json', '{ "openapi": "3.0.0" }');

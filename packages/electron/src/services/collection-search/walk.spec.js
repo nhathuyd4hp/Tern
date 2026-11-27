@@ -24,9 +24,9 @@ describe('CollectionWalker', () => {
     return folderPath;
   };
 
-  const makeCollection = (configFile, ...segments) => {
+  const makeCollection = (...segments) => {
     const folderPath = makeFolder(...segments);
-    fs.writeFileSync(path.join(folderPath, configFile), '{}');
+    fs.writeFileSync(path.join(folderPath, 'opencollection.yml'), 'opencollection: 1.0.0\n');
     return folderPath;
   };
 
@@ -39,7 +39,7 @@ describe('CollectionWalker', () => {
   const foundPaths = (walker) => walker.collections.map((collection) => collection.path).sort();
 
   it('reports the picked folder when it is a collection and does not look inside it', async () => {
-    makeCollection('bruno.json', 'inner');
+    makeCollection('inner');
     fs.writeFileSync(path.join(tempDir, 'opencollection.yml'), '');
 
     const walker = await walk(tempDir);
@@ -48,9 +48,9 @@ describe('CollectionWalker', () => {
     expect(walker.folderCount).toBe(1);
   });
 
-  it('finds collections with either config file at any depth', async () => {
-    const first = makeCollection('bruno.json', 'a');
-    const second = makeCollection('opencollection.yml', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k');
+  it('finds collections at any depth', async () => {
+    const first = makeCollection('a');
+    const second = makeCollection('b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k');
     makeFolder('l', 'm');
 
     const walker = await walk(tempDir);
@@ -60,8 +60,8 @@ describe('CollectionWalker', () => {
   });
 
   it('never lists a collection nested inside another collection', async () => {
-    const outer = makeCollection('bruno.json', 'outer');
-    makeCollection('bruno.json', 'outer', 'nested');
+    const outer = makeCollection('outer');
+    makeCollection('outer', 'nested');
 
     const walker = await walk(tempDir);
 
@@ -69,7 +69,7 @@ describe('CollectionWalker', () => {
   });
 
   it('does not treat a folder named like a config file as a collection', async () => {
-    makeFolder('looks-like', 'bruno.json');
+    makeFolder('looks-like', 'opencollection.yml');
 
     const walker = await walk(tempDir);
 
@@ -95,8 +95,8 @@ describe('CollectionWalker', () => {
       ['Tool.app'],
       ['Kit.framework'],
       ['Project.xcodeproj']
-    ].forEach((segments) => makeCollection('bruno.json', ...segments, 'collection'));
-    const kept = makeCollection('bruno.json', 'projects', 'api');
+    ].forEach((segments) => makeCollection(...segments, 'collection'));
+    const kept = makeCollection('projects', 'api');
 
     const walker = await walk(tempDir);
 
@@ -104,7 +104,7 @@ describe('CollectionWalker', () => {
   });
 
   it('searches folders that are only named like Linux system folders', async () => {
-    const collections = ['dev', 'proc', 'sys'].map((name) => makeCollection('bruno.json', name, 'payments'));
+    const collections = ['dev', 'proc', 'sys'].map((name) => makeCollection(name, 'payments'));
 
     const walker = await walk(tempDir);
 
@@ -133,7 +133,7 @@ describe('CollectionWalker', () => {
 
   it('searches the picked folder itself even when its name would be skipped', async () => {
     const picked = makeFolder('build');
-    const collection = makeCollection('bruno.json', 'build', 'api');
+    const collection = makeCollection('build', 'api');
 
     const walker = await walk(picked);
 
@@ -141,10 +141,10 @@ describe('CollectionWalker', () => {
   });
 
   it('lists a skipped folder that is a collection itself, without searching inside it', async () => {
-    const hidden = makeCollection('opencollection.yml', '.bruno');
-    const build = makeCollection('bruno.json', 'build');
-    makeCollection('bruno.json', 'node_modules', 'package');
-    makeCollection('bruno.json', '.hidden', 'collection');
+    const hidden = makeCollection('.bruno');
+    const build = makeCollection('build');
+    makeCollection('node_modules', 'package');
+    makeCollection('.hidden', 'collection');
 
     const walker = await walk(tempDir);
 
@@ -152,7 +152,7 @@ describe('CollectionWalker', () => {
   });
 
   it('does not search inside folder links, but lists a link that is a collection itself', async () => {
-    const linked = makeCollection('bruno.json', 'elsewhere', 'linked');
+    const linked = makeCollection('elsewhere', 'linked');
     const picked = makeFolder('picked');
     fs.symlinkSync(path.join(tempDir, 'elsewhere'), path.join(picked, 'to-elsewhere'), folderLinkType);
     fs.symlinkSync(linked, path.join(picked, 'collection-link'), folderLinkType);
@@ -165,7 +165,7 @@ describe('CollectionWalker', () => {
 
   it('lists a collection once when a link in the picked folder also points to it', async () => {
     const picked = makeFolder('picked');
-    const collection = makeCollection('bruno.json', 'picked', 'api');
+    const collection = makeCollection('picked', 'api');
     fs.symlinkSync(collection, path.join(picked, 'api-link'), folderLinkType);
 
     const walker = await walk(picked);
@@ -175,7 +175,7 @@ describe('CollectionWalker', () => {
 
   it('does not list a linked collection inside an excluded folder', async () => {
     const excluded = makeFolder('excluded');
-    const collection = makeCollection('bruno.json', 'excluded', 'api');
+    const collection = makeCollection('excluded', 'api');
     const picked = makeFolder('picked');
     fs.symlinkSync(collection, path.join(picked, 'api-link'), folderLinkType);
 
@@ -185,7 +185,7 @@ describe('CollectionWalker', () => {
   });
 
   it('reports a picked folder that is itself a link by its real path', async () => {
-    const target = makeCollection('bruno.json', 'real-collection');
+    const target = makeCollection('real-collection');
     const link = path.join(tempDir, 'collection-link');
     fs.symlinkSync(target, link, folderLinkType);
 
@@ -196,8 +196,8 @@ describe('CollectionWalker', () => {
 
   it('skips the mount points it is told to skip', async () => {
     const mounted = makeFolder('volumes', 'network-share');
-    makeCollection('bruno.json', 'volumes', 'network-share', 'remote');
-    const local = makeCollection('bruno.json', 'volumes', 'local');
+    makeCollection('volumes', 'network-share', 'remote');
+    const local = makeCollection('volumes', 'local');
 
     const walker = await walk(path.join(tempDir, 'volumes'), { skippedMountPoints: new Set([mounted]) });
 
@@ -206,8 +206,8 @@ describe('CollectionWalker', () => {
 
   it('skips a mount point reached through a link in the picked path', async () => {
     const mounted = makeFolder('real', 'share');
-    makeCollection('bruno.json', 'real', 'share', 'remote');
-    makeCollection('bruno.json', 'real', 'local');
+    makeCollection('real', 'share', 'remote');
+    makeCollection('real', 'local');
     const link = path.join(tempDir, 'link');
     fs.symlinkSync(path.join(tempDir, 'real'), link, folderLinkType);
 
@@ -218,7 +218,7 @@ describe('CollectionWalker', () => {
 
   (process.platform === 'win32' ? it.skip : it)('does not treat a named pipe called bruno.json as a collection config', async () => {
     const folder = makeFolder('pipe');
-    execFileSync('mkfifo', [path.join(folder, 'bruno.json')]);
+    execFileSync('mkfifo', [path.join(folder, 'opencollection.yml')]);
 
     const walker = await walk(tempDir);
 
@@ -227,8 +227,8 @@ describe('CollectionWalker', () => {
 
   (canRemoveReadAccess ? it : it.skip)('skips and counts folders it cannot read', async () => {
     const locked = makeFolder('locked');
-    makeCollection('bruno.json', 'locked', 'hidden-away');
-    const visible = makeCollection('bruno.json', 'open');
+    makeCollection('locked', 'hidden-away');
+    const visible = makeCollection('open');
     fs.chmodSync(locked, 0o000);
 
     try {
@@ -242,7 +242,7 @@ describe('CollectionWalker', () => {
   });
 
   it('visits each folder once across walks of overlapping folders', async () => {
-    const collection = makeCollection('bruno.json', 'parent', 'child', 'collection');
+    const collection = makeCollection('parent', 'child', 'collection');
     const walker = new CollectionWalker({ maxFolders: 1000 });
 
     await walker.walk(path.join(tempDir, 'parent'));
@@ -253,8 +253,8 @@ describe('CollectionWalker', () => {
 
   it('skips excluded folders', async () => {
     const excluded = makeFolder('app-data', 'transient');
-    makeCollection('bruno.json', 'app-data', 'transient', 'bruno-scratch-1');
-    const kept = makeCollection('bruno.json', 'app-data', 'kept');
+    makeCollection('app-data', 'transient', 'bruno-scratch-1');
+    const kept = makeCollection('app-data', 'kept');
 
     const walker = await walk(tempDir, { excludedKeys: [toPathKey(excluded)] });
 
@@ -282,7 +282,7 @@ describe('CollectionWalker', () => {
   it('still looks at a picked folder after an earlier pick used up the budget', async () => {
     makeFolder('large', 'a', 'b');
     makeFolder('large', 'c', 'd');
-    const collection = makeCollection('bruno.json', 'collection');
+    const collection = makeCollection('collection');
     const walker = new CollectionWalker({ maxFolders: 2 });
 
     await walker.walk(path.join(tempDir, 'large'));
@@ -293,8 +293,8 @@ describe('CollectionWalker', () => {
   });
 
   it('counts a collection folder that disappears before it can be checked', async () => {
-    makeCollection('bruno.json', 'vanishing');
-    const kept = makeCollection('bruno.json', 'kept');
+    makeCollection('vanishing');
+    const kept = makeCollection('kept');
     const fsPromises = require('node:fs/promises');
     const lstat = fsPromises.lstat;
     const spy = jest.spyOn(fsPromises, 'lstat').mockImplementation((target, ...args) =>
@@ -313,7 +313,7 @@ describe('CollectionWalker', () => {
   });
 
   it('falls back to Node’s own real path lookup when the native one fails', async () => {
-    const collection = makeCollection('bruno.json', 'collection');
+    const collection = makeCollection('collection');
     const fsPromises = require('node:fs/promises');
     const spy = jest.spyOn(fsPromises, 'realpath').mockRejectedValue(Object.assign(new Error('EISDIR'), { code: 'EISDIR' }));
 
@@ -328,7 +328,7 @@ describe('CollectionWalker', () => {
   });
 
   it('stops when the search is cancelled', async () => {
-    makeCollection('bruno.json', 'a');
+    makeCollection('a');
     const controller = new AbortController();
     controller.abort();
 

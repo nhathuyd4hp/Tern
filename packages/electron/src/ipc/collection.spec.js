@@ -98,37 +98,10 @@ describe('IPC collection handlers', () => {
 
       await moveItemHandler({}, {
         targetDirname: path.join(os.tmpdir(), 'fake', 'target'),
-        sourcePathname: path.join(os.tmpdir(), 'fake', 'source', 'request.bru')
+        sourcePathname: path.join(os.tmpdir(), 'fake', 'source', 'request.yml')
       });
 
       expect(callOrder).toEqual(['moveRequestUid', 'copyPathTo']);
-    });
-  });
-
-  describe('renderer:move-item-cross-format', () => {
-    beforeEach(() => {
-      jest.spyOn(fs, 'existsSync').mockReturnValue(true);
-    });
-
-    afterEach(() => {
-      fs.existsSync.mockRestore();
-    });
-
-    it('calls moveRequestUid before writing the target file', async () => {
-      const moveItemCrossFormatHandler = ipcMain._getHandler('renderer:move-item-cross-format');
-
-      const callOrder = [];
-      moveRequestUid.mockImplementation(() => callOrder.push('moveRequestUid'));
-      fsPromises.writeFile.mockImplementation(async () => callOrder.push('writeFile'));
-
-      await moveItemCrossFormatHandler({}, {
-        targetDirname: path.join(os.tmpdir(), 'fake', 'target'),
-        sourcePathname: path.join(os.tmpdir(), 'fake', 'source', 'request.bru'),
-        sourceFormat: 'bru',
-        targetFormat: 'yml'
-      });
-
-      expect(callOrder).toEqual(['moveRequestUid', 'writeFile']);
     });
   });
 });

@@ -4,12 +4,12 @@ const initialCollectionStructure = [
     type: 'folder',
     files: [
       {
-        name: 'file_1.bru',
+        name: 'file_1.yml',
         type: 'file',
         content: 'file_1_content'
       },
       {
-        name: 'file_2.bru',
+        name: 'file_2.yml',
         type: 'file',
         content: 'file_2_content'
       },
@@ -18,24 +18,24 @@ const initialCollectionStructure = [
         type: 'folder',
         files: [
           {
-            name: 'file_1_1.bru',
+            name: 'file_1_1.yml',
             type: 'file',
             content: 'file_1_1_content'
           },
           {
-            name: 'file_1_2.bru',
+            name: 'file_1_2.yml',
             type: 'file',
             content: 'file_1_2_content'
           }
         ]
       },
       {
-        name: 'file_1_3.bru',
+        name: 'file_1_3.yml',
         type: 'file',
         content: 'file_1_3_content'
       },
       {
-        name: 'file_dup.bru',
+        name: 'file_dup.yml',
         type: 'file',
         content: 'file_dup_content'
       }
@@ -46,12 +46,12 @@ const initialCollectionStructure = [
     type: 'folder',
     files: [
       {
-        name: 'file_2_1.bru',
+        name: 'file_2_1.yml',
         type: 'file',
         content: 'file_2_1_content'
       },
       {
-        name: 'file_2_2.bru',
+        name: 'file_2_2.yml',
         type: 'file',
         content: 'file_2_2_content'
       },
@@ -60,7 +60,7 @@ const initialCollectionStructure = [
         type: 'folder',
         files: [
           {
-            name: 'file_2_1_1.bru',
+            name: 'file_2_1_1.yml',
             type: 'file',
             content: 'file_2_1_1_content'
           }
@@ -69,7 +69,7 @@ const initialCollectionStructure = [
     ]
   },
   {
-    name: 'file_dup.bru',
+    name: 'file_dup.yml',
     type: 'file',
     content: 'file_dup_content'
   }
@@ -81,7 +81,7 @@ const finalCollectionStructure = [
     type: 'folder',
     files: [
       {
-        name: 'file_1.bru',
+        name: 'file_1.yml',
         type: 'file',
         content: 'file_1_content'
       },
@@ -90,17 +90,17 @@ const finalCollectionStructure = [
         type: 'folder',
         files: [
           {
-            name: 'file_1_1.bru',
+            name: 'file_1_1.yml',
             type: 'file',
             content: 'file_1_1_content'
           },
           {
-            name: 'file_1_2.bru',
+            name: 'file_1_2.yml',
             type: 'file',
             content: 'file_1_2_content'
           },
           {
-            name: 'file_2.bru',
+            name: 'file_2.yml',
             type: 'file',
             content: 'file_2_content'
           },
@@ -109,7 +109,7 @@ const finalCollectionStructure = [
             type: 'folder',
             files: [
               {
-                name: 'file_2_1.bru',
+                name: 'file_2_1.yml',
                 type: 'file',
                 content: 'file_2_1_content'
               }
@@ -118,17 +118,17 @@ const finalCollectionStructure = [
         ]
       },
       {
-        name: 'file_1_3.bru',
+        name: 'file_1_3.yml',
         type: 'file',
         content: 'file_1_3_content'
       },
       {
-        name: 'file_2_2.bru',
+        name: 'file_2_2.yml',
         type: 'file',
         content: 'file_2_2_content'
       },
       {
-        name: 'file_dup.bru',
+        name: 'file_dup.yml',
         type: 'file',
         content: 'file_dup_content'
       }
@@ -139,14 +139,14 @@ const finalCollectionStructure = [
     type: 'folder',
     files: [
       {
-        name: 'file_2_1_1.bru',
+        name: 'file_2_1_1.yml',
         type: 'file',
         content: 'file_2_1_1_content'
       }
     ]
   },
   {
-    name: 'file_dup.bru',
+    name: 'file_dup.yml',
     type: 'file',
     content: 'file_dup_content'
   }

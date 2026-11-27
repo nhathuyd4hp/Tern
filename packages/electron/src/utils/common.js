@@ -13,14 +13,6 @@ const uuid = () => {
   return customNanoId();
 };
 
-const stringifyJson = async (str) => {
-  try {
-    return JSON.stringify(str, null, 2);
-  } catch (err) {
-    return Promise.reject(err);
-  }
-};
-
 const parseJson = async (obj) => {
   try {
     return JSON.parse(obj);
@@ -163,7 +155,6 @@ const isBinaryRequestBody = (data) => Buffer.isBuffer(data) || typeof data?.pipe
 
 module.exports = {
   uuid,
-  stringifyJson,
   parseJson,
   safeStringifyJSON,
   safeParseJSON,

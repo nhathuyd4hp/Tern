@@ -52,7 +52,6 @@ const { openCollection } = require('./app/collections');
 const registerNetworkIpc = require('./ipc/network');
 const registerCollectionsIpc = require('./ipc/collection');
 const { registerCollectionSearchIpc } = require('./ipc/collection-search');
-const { registerYmlMigrationIpc } = require('./ipc/yml-migration');
 const registerFilesystemIpc = require('./ipc/filesystem');
 const registerPreferencesIpc = require('./ipc/preferences');
 const registerSnapshotIpc = require('./ipc/snapshot');
@@ -61,7 +60,6 @@ const registerSpecFetchIpc = require('./ipc/spec-fetch');
 const registerGitIpc = require('./ipc/git');
 const registerOpenAPISyncIpc = require('./ipc/openapi-sync');
 const registerProtoSourceIpc = require('./ipc/proto-source');
-const sqliteService = require('./services/sqlite');
 const { transientManager } = require('./services/transient');
 const { registerWsdlIpc } = require('./ipc/wsdl');
 const collectionWatcher = require('./app/collection-watcher');
@@ -469,7 +467,6 @@ app.on('ready', async () => {
   registerNetworkIpc(mainWindow);
   registerGlobalEnvironmentsIpc(mainWindow, globalEnvironmentsManager);
   registerCollectionsIpc(mainWindow, collectionWatcher);
-  registerYmlMigrationIpc(mainWindow, collectionWatcher);
   registerPreferencesIpc(mainWindow, collectionWatcher);
   registerSnapshotIpc();
   registerWorkspaceIpc(mainWindow, workspaceWatcher);
@@ -478,7 +475,6 @@ app.on('ready', async () => {
   registerGitIpc(mainWindow);
   registerOpenAPISyncIpc(mainWindow);
   registerProtoSourceIpc();
-  sqliteService.openDatabase();
   registerWsdlIpc();
   registerCollectionSearchIpc();
 
@@ -514,10 +510,6 @@ app.on('before-quit', (event) => {
         new Promise((resolve) => setTimeout(resolve, 2000))
       ]);
     } catch {}
-
-    try { await sqliteService.reclaimDiskSpace(); } catch {}
-
-    try { sqliteService.shutdown(); } catch {}
 
     if (useSingleInstance && gotTheLock) {
       try { app.releaseSingleInstanceLock(); } catch {}

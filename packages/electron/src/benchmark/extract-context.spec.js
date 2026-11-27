@@ -43,7 +43,7 @@ describe('extractBenchmarkContext', () => {
 
   it('ignores bare pathname on the root object', () => {
     expect(
-      extractBenchmarkContext([{ pathname: '/collections/foo/requests/get.bru', collectionUid: 'c-1' }])
+      extractBenchmarkContext([{ pathname: '/collections/foo/requests/get.yml', collectionUid: 'c-1' }])
     ).toEqual({ collectionUid: 'c-1' });
   });
 
