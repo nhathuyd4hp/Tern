@@ -21,14 +21,21 @@ const getEffectiveTheme = (storedTheme) => {
   return storedTheme;
 };
 
-// Helper: Apply theme class to root element
+// Helper: Apply theme class to root element. Colors are CSS variables, so the browser cross-fades the old and
+// new rendering of the whole page (View Transitions); the first paint and reduced-motion users switch at once.
 const applyThemeToRoot = (theme) => {
   const root = window.document.documentElement;
-  root.classList.add('theme-switching');
-  root.classList.remove('light', 'dark');
-  root.classList.add(theme);
-  // Two frames: the first paints the new colors, the second is when transitions may resume.
-  requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove('theme-switching')));
+  const apply = () => {
+    root.classList.remove('light', 'dark');
+    root.classList.add(theme);
+  };
+  const isFirstPaint = !root.classList.contains('light') && !root.classList.contains('dark');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (isFirstPaint || reduceMotion || !document.startViewTransition) {
+    apply();
+    return;
+  }
+  document.startViewTransition(apply);
 };
 
 export const ThemeContext = createContext();

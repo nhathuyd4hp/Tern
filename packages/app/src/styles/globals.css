@@ -138,11 +138,11 @@
   background: transparent !important;
 }
 
-/* Re-theming would otherwise animate colors on every element at once. */
-html.theme-switching *,
-html.theme-switching *::before,
-html.theme-switching *::after {
-  transition: none !important;
+/* Theme switch: cross-fade of the whole page */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 350ms;
+  animation-timing-function: ease-in-out;
 }
 
 html,
