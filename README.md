@@ -8,15 +8,7 @@
 
 Tern dùng để thử và kiểm tra API trong lúc phát triển backend: REST, GraphQL, gRPC và WebSocket trong cùng một giao diện. Không cần tài khoản, không đăng nhập, hoạt động hoàn toàn offline; dữ liệu và khóa API không rời khỏi máy.
 
-<p align="center">
-  <img src="docs/tern.gif" alt="Video giới thiệu Tern: phần đầu là tổng quan, phần sau quay từ ứng dụng thật (tạo Application, nạp OpenAPI, Environment, gửi request, Flow, đổi theme)" width="720">
-</p>
-
-<p align="center">
-  <video src="docs/tern.mp4" controls muted width="720"></video>
-  <br>
-  <a href="docs/tern.mp4">Xem bản MP4 (nét hơn, 1280x720, 30 fps)</a>
-</p>
+https://github.com/user-attachments/assets/7beee4b1-9b13-4c3e-b701-8695bfba3d29
 
 ## Cách tổ chức
 
