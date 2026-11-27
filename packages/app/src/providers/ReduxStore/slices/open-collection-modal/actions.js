@@ -2,29 +2,33 @@ import toast from 'react-hot-toast';
 import { uuid } from 'utils/common';
 import { formatIpcError } from 'utils/common/error';
 import { callIpc } from 'utils/common/ipc';
-import { importApplicationZip } from 'utils/application-archive';
+import {
+  importApplicationFolder,
+  importApplicationZip,
+  readApplicationFolderName,
+  readApplicationZipName
+} from 'utils/application-archive';
+import { findApplicationByName, selectWorkspaceApplications } from 'utils/application-name';
+import { askDuplicateApplication } from 'utils/duplicate-application';
 import { selectCollections } from 'src/selectors/collections';
-import { savePreferences } from 'providers/ReduxStore/slices/app';
-import { browseDirectories, browseFiles, mountCollection, openMultipleCollections } from 'providers/ReduxStore/slices/collections/actions';
+import { browseDirectories, browseFiles, mountCollection, openMultipleCollections, removeCollection } from 'providers/ReduxStore/slices/collections/actions';
 import { expandCollection } from 'providers/ReduxStore/slices/collections';
 import { addTab } from 'providers/ReduxStore/slices/tabs';
 import {
   showOpenCollectionModal,
-  showOpenCollectionPage,
   hideOpenCollectionModal,
   folderPickStarted,
   folderSearchStarted,
   folderSearchFinished,
   folderPickEnded,
+  folderNoteDismissed,
   folderResultCleared,
   collectionsOpeningStarted,
   collectionsOpeningEnded
 } from './index';
-import { selectAutoOpenFolderPicker, selectOpenCollectionPathKeys } from './selectors';
+import { selectOpenCollectionPathKeys } from './selectors';
 import { countOf, getFolderSearchOutcome } from './folder-results';
 import { getFolderName, toPathKey } from './collection-paths';
-
-const CHOOSE_FOLDER_PAGE = 'choose-folder';
 
 const getSearchLabel = (folderPaths) =>
   folderPaths.length === 1 ? getFolderName(folderPaths[0]) : `${folderPaths.length} folders`;
@@ -67,7 +71,66 @@ const describeOpenFailures = (failures) => {
   return `Failed to open ${getFolderName(collectionPath)}. ${error.split('\n')[0]}`;
 };
 
-export const openCollectionsFromModal = (collectionPaths) => async (dispatch, getState) => {
+/**
+ * Decide what to do about a name that an application of the workspace already has, before anything is added.
+ * Resolves with { name } to go on with, or { stop: 'keep' } when the user keeps the existing one (it is shown),
+ * or { stop: 'cancel' } when they give up.
+ * "Use the new one" removes the existing application from the workspace; its files stay on disk.
+ */
+export const resolveApplicationName = (wantedName) => async (dispatch, getState) => {
+  const isTaken = (name) => Boolean(findApplicationByName(selectWorkspaceApplications(getState()), name));
+  let name = wantedName.trim();
+  while (isTaken(name)) {
+    const existing = findApplicationByName(selectWorkspaceApplications(getState()), name);
+    const answer = await askDuplicateApplication({ name, isTaken });
+    if (answer.choice === 'keep') {
+      dispatch(switchToCollection(existing.pathname));
+      return { stop: 'keep' };
+    }
+    if (answer.choice === 'replace') {
+      await dispatch(removeCollection(existing.uid));
+      return { name };
+    }
+    if (answer.choice !== 'rename') {
+      return { stop: 'cancel' };
+    }
+    name = answer.name.trim();
+  }
+  return { name };
+};
+
+const importFailure = (sourcePath, error) => toast.error(`Could not import ${getFolderName(sourcePath)}. ${formatIpcError(error)}`);
+
+// The new name goes into the copy only when the user chose another one.
+const renameOption = (originalName, resolved) => (resolved.name === originalName.trim() ? {} : { name: resolved.name });
+
+/** Import application folders: each one is copied into the applications location, then opened. */
+export const openCollectionsFromModal = (folderPaths) => async (dispatch, getState) => {
+  if (getState().openCollectionModal.openingId) {
+    return;
+  }
+  for (const folderPath of folderPaths) {
+    let name;
+    try {
+      name = await readApplicationFolderName(folderPath);
+    } catch (error) {
+      importFailure(folderPath, error);
+      continue;
+    }
+    const resolved = await dispatch(resolveApplicationName(name));
+    if (resolved.stop) {
+      continue;
+    }
+    try {
+      const imported = await importApplicationFolder(folderPath, renameOption(name, resolved));
+      await dispatch(openImportedApplications([imported.path]));
+    } catch (error) {
+      importFailure(folderPath, error);
+    }
+  }
+};
+
+export const openImportedApplications = (collectionPaths) => async (dispatch, getState) => {
   if (getState().openCollectionModal.openingId) {
     return;
   }
@@ -155,19 +218,31 @@ export const importApplicationFromZip = (zipPath) => async (dispatch, getState) 
   if (getState().openCollectionModal.openingId) {
     return;
   }
+  let name;
+  try {
+    name = await readApplicationZipName(zipPath);
+  } catch (error) {
+    importFailure(zipPath, error);
+    return;
+  }
+  const resolved = await dispatch(resolveApplicationName(name));
+  if (resolved.stop) {
+    return;
+  }
+
   const openingId = uuid();
   dispatch(collectionsOpeningStarted(openingId));
 
   let imported;
   try {
-    imported = await importApplicationZip(zipPath);
+    imported = await importApplicationZip(zipPath, renameOption(name, resolved));
   } catch (error) {
-    toast.error(`Could not import ${getFolderName(zipPath)}. ${formatIpcError(error)}`);
+    importFailure(zipPath, error);
     return;
   } finally {
     dispatch(collectionsOpeningEnded(openingId));
   }
-  await dispatch(openCollectionsFromModal([imported.path]));
+  await dispatch(openImportedApplications([imported.path]));
 };
 
 export const openDroppedItems = ({ folderPaths, hasFolders, files }) => async (dispatch, getState) => {
@@ -179,7 +254,7 @@ export const openDroppedItems = ({ folderPaths, hasFolders, files }) => async (d
     return;
   }
   if (folderPaths.length > 0) {
-    dispatch(showOpenCollectionPage(CHOOSE_FOLDER_PAGE));
+    dispatch(folderNoteDismissed());
     await dispatch(findCollectionsInFolders(folderPaths, files.length));
   } else if (files.length > 0) {
     const zipPaths = files.filter((file) => file.name.toLowerCase().endsWith('.zip')).map((file) => window.ipcRenderer.getFilePath(file));
@@ -235,28 +310,7 @@ export const pickCollectionFolders = () => async (dispatch, getState) => {
   await dispatch(findCollectionsInFolders(folderPaths));
 };
 
-export const saveAutoOpenFolderPicker = (enabled) => (dispatch, getState) => {
-  const { preferences } = getState().app;
-  const updated = { ...preferences, openCollection: { ...preferences.openCollection, autoOpenFolderPicker: enabled } };
-  return dispatch(savePreferences(updated)).catch(() => {
-    toast.error('Failed to save preferences');
-  });
-};
-
-export const openCollectionModal = (page) => (dispatch, getState) => {
-  const { isOpen, openingId, chooseFolder } = getState().openCollectionModal;
-  if (page !== CHOOSE_FOLDER_PAGE && chooseFolder.searchId) {
-    dispatch(cancelCollectionSearch());
-  }
-  dispatch(isOpen ? showOpenCollectionPage(page) : showOpenCollectionModal(page));
-
-  if (page !== CHOOSE_FOLDER_PAGE || openingId) {
-    return;
-  }
-  if (chooseFolder.result) {
-    dispatch(folderResultCleared());
-  }
-  if (selectAutoOpenFolderPicker(getState())) {
-    dispatch(pickCollectionFolders());
-  }
+export const openImportApplicationDialog = () => (dispatch) => {
+  dispatch(folderResultCleared());
+  dispatch(showOpenCollectionModal());
 };

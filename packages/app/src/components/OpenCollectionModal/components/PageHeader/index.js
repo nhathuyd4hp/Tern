@@ -2,10 +2,10 @@ import { IconX } from '@tabler/icons';
 import ActionIcon from 'ui/ActionIcon';
 import StyledWrapper from './StyledWrapper';
 
-const PageHeader = ({ title, description, onClose }) => (
+const PageHeader = ({ titleId, title, description, onClose }) => (
   <StyledWrapper>
     <div className="page-header-text">
-      <h3 data-testid="open-collection-page-title">{title}</h3>
+      <h3 id={titleId} data-testid="open-collection-page-title">{title}</h3>
       <span className="page-header-description">{description}</span>
     </div>
     <ActionIcon

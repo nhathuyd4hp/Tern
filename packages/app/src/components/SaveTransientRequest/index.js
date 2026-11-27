@@ -14,7 +14,8 @@ import FolderBreadcrumbs from './FolderBreadcrumbs';
 import useCollectionFolderTree from 'hooks/useCollectionFolderTree';
 import { removeSaveTransientRequestModal } from 'providers/ReduxStore/slices/collections';
 import { insertTaskIntoQueue } from 'providers/ReduxStore/slices/app';
-import { newFolder, closeTabs, mountCollection, createCollection, browseDirectory } from 'providers/ReduxStore/slices/collections/actions';
+import { newFolder, closeTabs, mountCollection, createCollection } from 'providers/ReduxStore/slices/collections/actions';
+import { resolveApplicationName } from 'providers/ReduxStore/slices/open-collection-modal/actions';
 import { sanitizeName, validateName, validateNameError } from 'utils/common/regex';
 import { resolveRequestFilename } from 'utils/common/platform';
 import path, { normalizePath } from 'utils/common/path';
@@ -22,7 +23,6 @@ import { transformRequestToSaveToFilesystem, findCollectionByUid, findItemInColl
 import { itemSchema } from '@tern/schema';
 import { uuid } from 'utils/common';
 import { formatIpcError } from 'utils/common/error';
-import get from 'lodash/get';
 
 const SaveTransientRequest = ({ item: itemProp, collection: collectionProp, isOpen = false, onClose, closeAfterSave = false }) => {
   const dispatch = useDispatch();
@@ -39,11 +39,6 @@ const SaveTransientRequest = ({ item: itemProp, collection: collectionProp, isOp
   const activeWorkspace = workspaces.find((w) => w.uid === activeWorkspaceUid);
   const allCollections = useSelector((state) => state.collections.collections);
   const isScratchCollection = activeWorkspace?.scratchCollectionUid === collection?.uid;
-  const preferences = useSelector((state) => state.app.preferences);
-  const isDefaultWorkspace = activeWorkspace?.type === 'default';
-  const defaultCollectionLocation = isDefaultWorkspace
-    ? get(preferences, 'general.defaultLocation', '')
-    : (activeWorkspace?.pathname ? path.join(activeWorkspace.pathname, 'collections') : '');
 
   const availableCollections = useMemo(() => {
     if (!isScratchCollection || !activeWorkspace) return [];
@@ -200,25 +195,7 @@ const SaveTransientRequest = ({ item: itemProp, collection: collectionProp, isOp
 
       const sanitizedFilename = sanitizeName(trimmedName);
 
-      const hasFileModeEdit = latestItem.draft?.raw != null && latestItem.draft.raw !== latestItem.raw;
-      let baseItem;
-      if (hasFileModeEdit) {
-        try {
-          const parsed = await ipcRenderer.invoke(
-            'renderer:convert-to-json',
-            latestItem,
-            latestItem.draft.raw
-          );
-          baseItem = { ...latestItem, ...parsed, uid: latestItem.uid, pathname: latestItem.pathname };
-        } catch (err) {
-          toast.error(formatIpcError(err) || 'Invalid request content - fix it in file mode before saving');
-          return;
-        }
-      } else {
-        baseItem = latestItem.draft ? { ...latestItem, ...latestItem.draft } : { ...latestItem };
-      }
-
-      const itemToSave = { ...baseItem };
+      const itemToSave = latestItem.draft ? { ...latestItem, ...latestItem.draft } : { ...latestItem };
       itemToSave.name = sanitizedFilename;
       delete itemToSave.draft;
       delete itemToSave.raw;
@@ -323,21 +300,11 @@ const SaveTransientRequest = ({ item: itemProp, collection: collectionProp, isOp
 
   // New Collection handlers
   const handleShowNewCollection = () => {
-    setNewCollection({ show: true, name: '', location: defaultCollectionLocation });
+    setNewCollection({ show: true, name: '' });
   };
 
   const handleCancelNewCollection = () => {
-    setNewCollection({ show: false, name: '', location: '' });
-  };
-
-  const handleBrowseCollectionLocation = () => {
-    dispatch(browseDirectory())
-      .then((dirPath) => {
-        if (typeof dirPath === 'string') {
-          setNewCollection((prev) => ({ ...prev, location: dirPath }));
-        }
-      })
-      .catch(() => {});
+    setNewCollection({ show: false, name: '' });
   };
 
   const handleCreateNewCollection = async () => {
@@ -350,12 +317,16 @@ const SaveTransientRequest = ({ item: itemProp, collection: collectionProp, isOp
       toast.error(validateNameError(trimmedName));
       return;
     }
-    if (!newCollection.location) {
-      toast.error('Location is required');
-      return;
-    }
     try {
-      await dispatch(createCollection(trimmedName, sanitizeName(trimmedName), newCollection.location, { source: 'save-transient-request', entryPoint: 'save-transient-request' }));
+      // A name that another application already has is settled with the user before anything is created.
+      const resolved = await dispatch(resolveApplicationName(trimmedName));
+      if (resolved.stop) {
+        if (resolved.stop === 'keep') {
+          handleCancelNewCollection();
+        }
+        return;
+      }
+      await dispatch(createCollection(resolved.name, sanitizeName(resolved.name), { source: 'save-transient-request', entryPoint: 'save-transient-request' }));
       toast.success('Application created!');
       handleCancelNewCollection();
     } catch (err) {
@@ -485,40 +456,6 @@ const SaveTransientRequest = ({ item: itemProp, collection: collectionProp, isOp
                               }
                             }}
                           />
-                        </div>
-
-                        <div className="new-collection-field">
-                          <label className="new-collection-label flex items-center">
-                            Location
-                            <Help width={250} placement="top">
-                              <p>
-                                Tern stores your applications on your computer's filesystem.
-                              </p>
-                              <p className="mt-2">
-                                Choose the location where you want to store this application.
-                              </p>
-                            </Help>
-                          </label>
-                          <div className="new-collection-location-row">
-                            <input
-                              type="text"
-                              className="new-collection-input cursor-pointer"
-                              placeholder="Select location"
-                              value={newCollection.location}
-                              readOnly
-                              onClick={handleBrowseCollectionLocation}
-                            />
-                            <Button
-                              type="button"
-                              variant="outline"
-                              color="secondary"
-                              size="sm"
-                              rounded="sm"
-                              onClick={handleBrowseCollectionLocation}
-                            >
-                              Browse
-                            </Button>
-                          </div>
                         </div>
 
                         <div className="new-collection-actions-footer">

@@ -1,6 +1,6 @@
 import { useTheme } from '../../../../providers/Theme';
 import { useDispatch } from 'react-redux';
-import { setIsOpeningCollection } from 'providers/ReduxStore/slices/app';
+import { openImportApplicationDialog } from 'providers/ReduxStore/slices/open-collection-modal/actions';
 
 import styled from 'styled-components';
 import StyledWrapper from './StyledWrapper';
@@ -14,7 +14,7 @@ const CreateOrOpenCollection = ({ onCreateClick }) => {
   const dispatch = useDispatch();
 
   const handleOpenCollection = () => {
-    dispatch(setIsOpeningCollection(true));
+    dispatch(openImportApplicationDialog());
   };
   const CreateLink = () => (
     <LinkStyle

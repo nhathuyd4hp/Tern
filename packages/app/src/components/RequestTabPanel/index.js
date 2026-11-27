@@ -17,7 +17,6 @@ import VariablesEditor from 'components/VariablesEditor';
 import CollectionSettings from 'components/CollectionSettings';
 import { DocExplorer } from '@tern/graphql-docs';
 
-import FileEditor from 'components/FileEditor';
 import StyledWrapper from './StyledWrapper';
 import FolderSettings from 'components/FolderSettings';
 import { makeSelectCollectionWithGlobals, selectActiveWorkspace } from 'src/selectors/collections';
@@ -498,16 +497,6 @@ const RequestTabPanel = () => {
         }));
     }
   };
-
-  if (collection.fileMode) {
-    return (
-      <ScopedPersistenceProvider scope={focusedTab.uid}>
-        <StyledWrapper className="flex flex-col flex-grow relative p-4 file-mode overflow-hidden">
-          <FileEditor item={item} collection={collection} />
-        </StyledWrapper>
-      </ScopedPersistenceProvider>
-    );
-  }
 
   const renderQueryUrl = () => {
     if (isGrpcRequest) {

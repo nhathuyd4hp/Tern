@@ -1,8 +1,9 @@
 import styled from 'styled-components';
 
 const StyledWrapper = styled.div`
-  flex: 1;
-  min-width: 0;
+  flex: 1 1 360px;
+  min-width: 280px;
+  min-height: 420px;
   height: 100%;
   border: 1px solid ${(props) => props.theme.input.border};
   border-radius: ${(props) => props.theme.border.radius.md};

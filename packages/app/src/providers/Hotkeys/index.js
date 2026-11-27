@@ -291,32 +291,6 @@ export const HotkeysProvider = (props) => {
     };
   }, [activeTabUid, tabs, dispatch, userKeyBindings, keybindingsEnabled]);
 
-  // Open preferences
-  const activeWorkspace = useSelector((state) => {
-    const { workspaces, activeWorkspaceUid } = state.workspaces;
-    return workspaces?.find((w) => w.uid === activeWorkspaceUid);
-  });
-
-  useEffect(() => {
-    bindAction('openPreferences', (e) => {
-      const activeTab = find(tabs, (t) => t.uid === activeTabUid);
-      const collectionUid = activeTab?.collectionUid || activeWorkspace?.scratchCollectionUid;
-
-      dispatch(
-        addTab({
-          type: 'preferences',
-          uid: collectionUid ? `${collectionUid}-preferences` : 'preferences',
-          collectionUid
-        })
-      );
-      return false;
-    });
-
-    return () => {
-      unbindAction('openPreferences');
-    };
-  }, [activeTabUid, tabs, activeWorkspace, dispatch, userKeyBindings, keybindingsEnabled]);
-
   // Change layout orientation
   useEffect(() => {
     bindAction('changeLayout', (e) => {
@@ -351,57 +325,6 @@ export const HotkeysProvider = (props) => {
 
     return () => {
       unbindAction('triggerAutocomplete');
-    };
-  }, [userKeyBindings, keybindingsEnabled]);
-
-  // Zoom in
-  useEffect(() => {
-    bindAction('zoomIn', () => {
-      const { ipcRenderer } = window;
-      ipcRenderer?.invoke('renderer:zoom-in');
-      return false;
-    });
-
-    return () => {
-      unbindAction('zoomIn');
-    };
-  }, [userKeyBindings, keybindingsEnabled]);
-
-  // Zoom out
-  useEffect(() => {
-    bindAction('zoomOut', () => {
-      const { ipcRenderer } = window;
-      ipcRenderer?.invoke('renderer:zoom-out');
-      return false;
-    });
-
-    return () => {
-      unbindAction('zoomOut');
-    };
-  }, [userKeyBindings, keybindingsEnabled]);
-
-  // Reset zoom
-  useEffect(() => {
-    bindAction('resetZoom', () => {
-      const { ipcRenderer } = window;
-      ipcRenderer?.invoke('renderer:reset-zoom');
-      return false;
-    });
-
-    return () => {
-      unbindAction('resetZoom');
-    };
-  }, [userKeyBindings, keybindingsEnabled]);
-
-  // Close Bruno
-  useEffect(() => {
-    bindAction('closeBruno', () => {
-      window.close();
-      return false;
-    });
-
-    return () => {
-      unbindAction('closeBruno');
     };
   }, [userKeyBindings, keybindingsEnabled]);
 

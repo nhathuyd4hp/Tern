@@ -2764,7 +2764,8 @@ export const openCollectionEvent = (uid, pathname, brunoConfig, options = {}) =>
   });
 };
 
-export const createCollection = (collectionName, collectionFolderName, collectionLocation, options = {}) => (dispatch, getState) => {
+// The application is created in the one applications location, which the main process takes from Preferences > General.
+export const createCollection = (collectionName, collectionFolderName, options = {}) => (dispatch, getState) => {
   const { ipcRenderer } = window;
 
   if (!options.workspaceId) {
@@ -2780,7 +2781,7 @@ export const createCollection = (collectionName, collectionFolderName, collectio
 
   return new Promise((resolve, reject) => {
     ipcRenderer
-      .invoke('renderer:create-collection', collectionName, collectionFolderName, collectionLocation, options)
+      .invoke('renderer:create-collection', collectionName, collectionFolderName, options)
       .then(resolve)
       .catch(reject);
   });
@@ -3223,18 +3224,6 @@ export const cloneGitRepository = (data) => (dispatch, getState) => {
 export const fetchBranchesForRepositoryUrl = (url) => (dispatch, getState) => {
   const { ipcRenderer } = window;
   return ipcRenderer.invoke('renderer:list-remote-branches-for-url', { url });
-};
-
-export const scanForBrunoFiles = (dir) => (dispatch, getState) => {
-  const { ipcRenderer } = window;
-  return new Promise((resolve, reject) => {
-    ipcRenderer
-      .invoke('renderer:scan-for-bruno-files', dir)
-      .then(resolve)
-      .catch((err) => {
-        reject();
-      });
-  });
 };
 
 export const revealItemInSidebar = ({ collectionUid, itemUid, expandTarget = false }) => (dispatch, getState) => {

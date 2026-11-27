@@ -7,12 +7,9 @@ import {
   IconChevronDown,
   IconEye,
   IconSettings,
-  IconDots,
-  IconFileCode,
-  IconFileOff
+  IconDots
 } from '@tabler/icons';
 import OpenAPISyncIcon from 'components/Icons/OpenAPISync';
-import { toggleCollectionFileMode } from 'providers/ReduxStore/slices/collections';
 import { getWorkspaceCollections } from 'utils/collections';
 import isEqual from 'lodash/isEqual';
 import { selectCollections, selectActiveWorkspace } from 'src/selectors/collections';
@@ -29,12 +26,14 @@ import classNames from 'classnames';
 import StyledWrapper from './StyledWrapper';
 import { useTheme } from 'providers/Theme';
 import { useApplicationColor } from 'utils/application-color';
+import { useHostname } from 'utils/hostname';
 
 const CollectionHeader = ({ collection, isScratchCollection }) => {
   const dispatch = useDispatch();
   const applicationColor = useApplicationColor(collection);
 
   const currentWorkspace = useSelector(selectActiveWorkspace);
+  const hostname = useHostname();
 
   const mountedCollections = useSelector((state) =>
     getWorkspaceCollections({
@@ -67,7 +66,7 @@ const CollectionHeader = ({ collection, isScratchCollection }) => {
 
   // Display name and icon based on context
   const displayName = isScratchCollection
-    ? 'Home'
+    ? (hostname || 'Home')
     : (collection.name || 'Untitled Application');
 
   const DisplayIcon = isScratchCollection ? IconCategory : IconBox;
@@ -131,18 +130,9 @@ const CollectionHeader = ({ collection, isScratchCollection }) => {
     }));
   };
 
-  const handleFileModeClick = () => {
-    dispatch(
-      toggleCollectionFileMode({
-        collectionUid: collection.uid
-      })
-    );
-  };
-
   // Build overflow menu items for the "..." dropdown
   const overflowMenuItems = [
     { id: 'variables', label: 'Variables', leftSection: IconEye, onClick: viewVariables },
-    { id: 'file-mode', label: collection.fileMode ? 'Switch to Code Mode' : 'Switch to File Mode', leftSection: collection.fileMode ? IconFileOff : IconFileCode, onClick: handleFileModeClick },
     ...(!hasOpenApiSyncConfigured
       ? [{ id: 'openapi-sync', label: 'OpenAPI', leftSection: OpenAPISyncIcon, onClick: viewOpenApiSync }]
       : []),
@@ -196,7 +186,7 @@ const CollectionHeader = ({ collection, isScratchCollection }) => {
                         <IconCategory size={16} strokeWidth={1.5} />
                       </div>
                       <span className="dropdown-label collection-header-dropdown-label">
-                        Home
+                        {hostname || 'Home'}
                       </span>
                     </div>
                   </>

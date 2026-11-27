@@ -1,6 +1,5 @@
 import reducer, {
   showOpenCollectionModal,
-  showOpenCollectionPage,
   hideOpenCollectionModal,
   folderPickStarted,
   folderSearchStarted,
@@ -25,39 +24,16 @@ const listResult = {
 const applyActions = (actions) => actions.reduce(reducer, initialState);
 
 describe('openCollectionModal slice', () => {
-  it('starts closed with no page and nothing in progress', () => {
+  it('starts closed and nothing is in progress', () => {
     expect(initialState).toEqual({
       isOpen: false,
-      page: null,
       openingId: null,
       chooseFolder: { status: 'idle', searchId: null, searchLabel: null, result: null }
     });
   });
 
-  it('showOpenCollectionModal opens the modal on the given page', () => {
-    expect(reducer(initialState, showOpenCollectionModal('import'))).toMatchObject({ isOpen: true, page: 'import' });
-  });
-
-  it('showOpenCollectionModal switches the page when the modal is already open', () => {
-    const open = reducer(initialState, showOpenCollectionModal('choose-folder'));
-
-    expect(reducer(open, showOpenCollectionModal('recents'))).toMatchObject({ isOpen: true, page: 'recents' });
-  });
-
-  it('showOpenCollectionPage changes the page', () => {
-    const open = reducer(initialState, showOpenCollectionModal('choose-folder'));
-
-    expect(reducer(open, showOpenCollectionPage('my-computer'))).toEqual({ ...open, page: 'my-computer' });
-  });
-
-  it('showOpenCollectionPage drops the note and keeps the rest of the result', () => {
-    const found = applyActions([
-      showOpenCollectionModal('choose-folder'),
-      folderSearchStarted({ searchId: 'search-1', searchLabel: 'work' }),
-      folderSearchFinished({ searchId: 'search-1', result: listResult })
-    ]);
-
-    expect(reducer(found, showOpenCollectionPage('choose-folder')).chooseFolder.result).toEqual({ ...listResult, note: null });
+  it('showOpenCollectionModal opens the modal', () => {
+    expect(reducer(initialState, showOpenCollectionModal())).toMatchObject({ isOpen: true });
   });
 
   it('tracks a folder pick and search, then keeps the result', () => {
@@ -121,7 +97,7 @@ describe('openCollectionModal slice', () => {
 
   it('hideOpenCollectionModal resets everything so the next open starts fresh', () => {
     const busy = applyActions([
-      showOpenCollectionModal('choose-folder'),
+      showOpenCollectionModal(),
       collectionsOpeningStarted('opening-1'),
       folderSearchStarted({ searchId: 'search-1', searchLabel: 'work' })
     ]);

@@ -8,12 +8,13 @@ const StyledWrapper = styled.div`
 
   .flow-header {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 0.5rem;
   }
 
   .flow-name {
-    flex: 1;
+    flex: 1 1 12rem;
     min-width: 0;
     padding: 0.25rem 0.5rem;
     border: 1px solid transparent;
@@ -61,6 +62,7 @@ const StyledWrapper = styled.div`
 
   .flow-body {
     display: flex;
+    flex-wrap: wrap;
     flex: 1;
     gap: 0.75rem;
     min-height: 420px;

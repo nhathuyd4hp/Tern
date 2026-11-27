@@ -58,9 +58,6 @@ const defaultPreferences = {
     defaultLocation: '',
     defaultWorkspacePath: ''
   },
-  openCollection: {
-    autoOpenFolderPicker: true
-  },
   autoSave: {
     enabled: false,
     interval: 1000
@@ -133,9 +130,6 @@ const preferencesSchema = Yup.object().shape({
   general: Yup.object({
     defaultLocation: Yup.string().max(1024).nullable(),
     defaultWorkspacePath: Yup.string().max(1024).nullable()
-  }),
-  openCollection: Yup.object({
-    autoOpenFolderPicker: Yup.boolean()
   }),
   autoSave: Yup.object({
     enabled: Yup.boolean(),

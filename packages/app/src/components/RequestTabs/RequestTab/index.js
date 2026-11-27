@@ -295,7 +295,7 @@ const RequestTab = ({ tab, collection, tabIndex, collectionRequestTabs, folderUi
       dispatch(saveCollectionSettings(collection.uid));
     } else if (item && item.uid) {
       if (hasChanges || isItemTransientRequest(item)) {
-        if (item.type === 'js' || collection.fileMode) {
+        if (item.type === 'js') {
           dispatch(saveFile(item.draft?.raw ?? item.raw, tab.uid, tab.collectionUid));
         } else {
           dispatch(saveRequest(tab.uid, tab.collectionUid));
@@ -596,8 +596,7 @@ const RequestTab = ({ tab, collection, tabIndex, collectionRequestTabs, folderUi
               return;
             }
 
-            const useFileSave = collection.fileMode || item.type === 'js';
-            const savePromise = useFileSave
+            const savePromise = item.type === 'js'
               ? dispatch(saveFile(item?.draft?.raw ?? item?.raw, item.uid, collection.uid))
               : dispatch(saveRequest(item.uid, collection.uid));
 

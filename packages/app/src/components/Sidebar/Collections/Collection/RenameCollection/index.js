@@ -2,15 +2,17 @@ import React, { useRef, useEffect } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import Modal from 'components/Modal';
-import { useDispatch, useSelector } from 'react-redux';
+import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
 import { renameCollection } from 'providers/ReduxStore/slices/collections/actions';
 import { findCollectionByUid } from 'utils/collections/index';
+import { DUPLICATE_APPLICATION_NAME_ERROR, findApplicationByName, selectWorkspaceApplications } from 'utils/application-name';
 
 const RenameCollection = ({ collectionUid, onClose }) => {
   const dispatch = useDispatch();
   const inputRef = useRef();
   const collection = useSelector((state) => findCollectionByUid(state.collections.collections, collectionUid));
+  const applications = useSelector(selectWorkspaceApplications, shallowEqual);
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
@@ -20,6 +22,7 @@ const RenameCollection = ({ collectionUid, onClose }) => {
       name: Yup.string()
         .min(1, 'must be at least 1 character')
         .required('name is required')
+        .test('is-unique-name', DUPLICATE_APPLICATION_NAME_ERROR, (value) => !findApplicationByName(applications, value, collection.uid))
     }),
     onSubmit: (values) => {
       dispatch(renameCollection(values.name, collection.uid))

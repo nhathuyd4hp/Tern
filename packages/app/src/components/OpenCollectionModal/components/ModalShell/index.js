@@ -3,10 +3,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import Portal from 'components/Portal';
 import { folderNoteDismissed } from 'providers/ReduxStore/slices/open-collection-modal';
 import { closeOpenCollectionModal, openDroppedItems } from 'providers/ReduxStore/slices/open-collection-modal/actions';
-import { OPEN_COLLECTION_PAGES } from '../../sidebar/pages';
 import BusyOverlay from '../BusyOverlay';
+import ChooseFolderPage from '../ChooseFolderPage';
 import DropOverlay from '../DropOverlay';
-import ModalMenu from '../../sidebar/ModalMenu';
 import Note from '../Note';
 import PageHeader from '../PageHeader';
 import { getTabbableElements } from '../../utils/focus';
@@ -35,11 +34,8 @@ const keepTabInside = (dialog, event) => {
 const ModalShell = () => {
   const dispatch = useDispatch();
   const [opener] = useState(() => document.activeElement);
-  const pageId = useSelector((state) => state.openCollectionModal.page);
   const isOpening = useSelector((state) => state.openCollectionModal.openingId !== null);
   const note = useSelector((state) => state.openCollectionModal.chooseFolder.result?.note);
-  const page = OPEN_COLLECTION_PAGES.find(({ id }) => id === pageId) || OPEN_COLLECTION_PAGES[0];
-  const Page = page.component;
   const [showDropOverlay, setShowDropOverlay] = useState(false);
 
   const close = () => dispatch(closeOpenCollectionModal());
@@ -132,9 +128,13 @@ const ModalShell = () => {
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
-          <ModalMenu titleId={TITLE_ID} activePageId={page.id} />
           <div className="modal-main">
-            <PageHeader title={page.title} description={page.description} onClose={close} />
+            <PageHeader
+              titleId={TITLE_ID}
+              title="Import application"
+              description="Pick a folder or a .zip file with a Tern application."
+              onClose={close}
+            />
             {note && (
               <Note
                 tone={note.tone}
@@ -143,9 +143,9 @@ const ModalShell = () => {
                 {note.text}
               </Note>
             )}
-            <div className="modal-page" data-testid={`open-collection-page-${page.id}`}>
+            <div className="modal-page" data-testid="open-collection-page-choose-folder">
               <div className="modal-page-content" inert={isOpening}>
-                <Page />
+                <ChooseFolderPage />
               </div>
               {isOpening && <BusyOverlay>Opening…</BusyOverlay>}
             </div>

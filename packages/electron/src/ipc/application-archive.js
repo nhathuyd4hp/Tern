@@ -4,7 +4,8 @@ const AdmZip = require('adm-zip');
 const { ipcMain } = require('electron');
 const { sanitizeName } = require('../utils/filesystem');
 const { findUniqueFolderName } = require('../utils/collection-import');
-const { resolveDefaultLocation } = require('../utils/default-location');
+const { parseCollection, stringifyCollection } = require('@tern/filestore');
+const { getApplicationsLocation } = require('../utils/default-location');
 
 const APPLICATION_MARKER = 'opencollection.yml';
 const MAX_ENTRIES = 50000;
@@ -81,17 +82,116 @@ const extractApplicationZip = async (zipFilePath, location) => {
   return destination;
 };
 
-const importApplicationZip = async (event, zipFilePath) => {
+// The name an application shows is the one in its opencollection.yml; a file that cannot be read has none.
+const parseApplicationName = (content) => {
+  try {
+    return parseCollection(content).brunoConfig.name || null;
+  } catch {
+    return null;
+  }
+};
+
+const readApplicationName = (applicationPath) => {
+  const markerPath = path.join(applicationPath, APPLICATION_MARKER);
+  const name = fs.existsSync(markerPath) ? parseApplicationName(fs.readFileSync(markerPath, 'utf8')) : null;
+  return name || path.basename(applicationPath);
+};
+
+const writeApplicationName = (applicationPath, name) => {
+  const markerPath = path.join(applicationPath, APPLICATION_MARKER);
+  const { brunoConfig, collectionRoot } = parseCollection(fs.readFileSync(markerPath, 'utf8'));
+  brunoConfig.name = name;
+  fs.writeFileSync(markerPath, stringifyCollection(collectionRoot, brunoConfig));
+};
+
+const assertZipPath = (zipFilePath) => {
   if (typeof zipFilePath !== 'string' || path.extname(zipFilePath).toLowerCase() !== '.zip' || !fs.existsSync(zipFilePath)) {
     throw new Error('Choose a .zip file to import');
   }
-  return { path: await extractApplicationZip(zipFilePath, resolveDefaultLocation()) };
+};
+
+// The name of the application inside a zip, read without unpacking it, so a name already in use is found first.
+const readZipApplicationName = (event, zipFilePath) => {
+  assertZipPath(zipFilePath);
+  let zip;
+  try {
+    zip = new AdmZip(zipFilePath);
+  } catch {
+    throw new Error('This file is not a valid zip');
+  }
+  const entries = zip.getEntries().filter((entry) => !toEntryPath(entry).startsWith('__MACOSX/'));
+  const prefix = findApplicationPrefix(entries.map(toEntryPath));
+  if (prefix === null) {
+    throw new Error(`This zip is not a Tern application: it has no ${APPLICATION_MARKER} at its top level`);
+  }
+  const marker = entries.find((entry) => toEntryPath(entry) === `${prefix}${APPLICATION_MARKER}`);
+  const fallback = prefix ? prefix.slice(0, -1) : path.basename(zipFilePath, path.extname(zipFilePath));
+  return parseApplicationName(marker.getData().toString('utf8')) || fallback;
+};
+
+/** Unpack the zip into the applications location. `options.name` renames the new application. */
+const importApplicationZip = async (event, zipFilePath, options = {}) => {
+  assertZipPath(zipFilePath);
+  const destination = await extractApplicationZip(zipFilePath, getApplicationsLocation());
+  if (options.name) {
+    writeApplicationName(destination, options.name);
+  }
+  return { path: destination, name: options.name || readApplicationName(destination) };
+};
+
+const isInside = (folderPath, parentPath) => {
+  const relative = path.relative(parentPath, folderPath);
+  return relative !== '' && !relative.startsWith('..') && !path.isAbsolute(relative);
+};
+
+const assertApplicationFolder = (folderPath) => {
+  if (typeof folderPath !== 'string' || !fs.existsSync(path.join(folderPath, APPLICATION_MARKER))) {
+    throw new Error(`This folder is not a Tern application: it has no ${APPLICATION_MARKER}`);
+  }
+};
+
+const readApplicationFolderName = (event, folderPath) => {
+  assertApplicationFolder(folderPath);
+  return readApplicationName(folderPath);
+};
+
+/**
+ * Bring an application folder into the applications location. The source is only copied, never moved or deleted;
+ * one that already lives in the location is used in place. `options.name` renames the application.
+ */
+const importApplicationFolder = async (event, folderPath, options = {}) => {
+  assertApplicationFolder(folderPath);
+  const location = getApplicationsLocation();
+  let destination = folderPath;
+  if (!isInside(path.resolve(folderPath), path.resolve(location))) {
+    const folderName = await findUniqueFolderName(path.basename(folderPath), location);
+    destination = path.join(location, sanitizeName(folderName));
+    try {
+      fs.cpSync(folderPath, destination, {
+        recursive: true,
+        filter: (source) => !['.git', 'node_modules'].includes(path.basename(source))
+      });
+    } catch (error) {
+      removeFolder(destination);
+      throw error;
+    }
+  }
+  if (options.name) {
+    writeApplicationName(destination, options.name);
+  }
+  return { path: destination, name: options.name || readApplicationName(destination) };
 };
 
 const registerApplicationArchiveIpc = () => {
+  ipcMain.handle('renderer:read-application-zip-name', readZipApplicationName);
   ipcMain.handle('renderer:import-application-zip', importApplicationZip);
+  ipcMain.handle('renderer:read-application-folder-name', readApplicationFolderName);
+  ipcMain.handle('renderer:import-application-folder', importApplicationFolder);
 };
 
 module.exports = registerApplicationArchiveIpc;
 module.exports.extractApplicationZip = extractApplicationZip;
 module.exports.importApplicationZip = importApplicationZip;
+module.exports.readZipApplicationName = readZipApplicationName;
+module.exports.importApplicationFolder = importApplicationFolder;
+module.exports.readApplicationFolderName = readApplicationFolderName;

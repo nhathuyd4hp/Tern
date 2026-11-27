@@ -2,7 +2,6 @@ import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
   isOpen: false,
-  page: null,
   openingId: null,
   chooseFolder: {
     status: 'idle',
@@ -16,15 +15,8 @@ export const openCollectionModalSlice = createSlice({
   name: 'openCollectionModal',
   initialState,
   reducers: {
-    showOpenCollectionModal: (state, action) => {
+    showOpenCollectionModal: (state) => {
       state.isOpen = true;
-      state.page = action.payload;
-    },
-    showOpenCollectionPage: (state, action) => {
-      state.page = action.payload;
-      if (state.chooseFolder.result) {
-        state.chooseFolder.result.note = null;
-      }
     },
     hideOpenCollectionModal: () => initialState,
     folderPickStarted: (state) => {
@@ -67,7 +59,6 @@ export const openCollectionModalSlice = createSlice({
 
 export const {
   showOpenCollectionModal,
-  showOpenCollectionPage,
   hideOpenCollectionModal,
   folderPickStarted,
   folderSearchStarted,

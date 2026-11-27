@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { IconPlus, IconFolder, IconLayoutGrid, IconList } from '@tabler/icons';
-import { setIsOpeningCollection } from 'providers/ReduxStore/slices/app';
+import { openImportApplicationDialog } from 'providers/ReduxStore/slices/open-collection-modal/actions';
 import toast from 'react-hot-toast';
 import CreateCollection from 'components/Sidebar/CreateCollection';
 import Button from 'ui/Button';
@@ -55,7 +55,7 @@ const WorkspaceOverview = ({ workspace }) => {
   };
 
   const handleOpenCollection = () => {
-    dispatch(setIsOpeningCollection(true));
+    dispatch(openImportApplicationDialog());
   };
 
   return (

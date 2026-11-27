@@ -1,7 +1,8 @@
 import styled from 'styled-components';
 
 const StyledWrapper = styled.div`
-  flex: 0 0 340px;
+  flex: 0 1 340px;
+  min-width: 260px;
   max-height: 100%;
   padding: 0.75rem;
   overflow-y: auto;

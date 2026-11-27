@@ -15,7 +15,7 @@ if (isDev) {
   }
 }
 
-const { BrowserWindow, app, session, Menu, globalShortcut, ipcMain, nativeTheme, shell } = require('electron');
+const { BrowserWindow, app, session, Menu, ipcMain, nativeTheme, shell } = require('electron');
 const { setContentSecurityPolicy } = require('electron-util');
 const { getAppUrl, isAppUrl, restrictIpcToAppFrames } = require('./utils/trusted-url');
 
@@ -48,7 +48,6 @@ if (isBenchmarkEnabled()) {
 }
 
 const menuTemplate = require('./app/menu-template');
-const { openCollection } = require('./app/collections');
 const registerNetworkIpc = require('./ipc/network');
 const registerCollectionsIpc = require('./ipc/collection');
 const { registerCollectionSearchIpc } = require('./ipc/collection-search');
@@ -67,7 +66,7 @@ const { registerWsdlIpc } = require('./ipc/wsdl');
 const collectionWatcher = require('./app/collection-watcher');
 const WorkspaceWatcher = require('./app/workspace-watcher');
 const { loadWindowState, saveBounds, saveMaximized } = require('./utils/window');
-const { preferencesUtil, getPreferences, savePreferences } = require('./store/preferences');
+const { preferencesUtil } = require('./store/preferences');
 const { globalEnvironmentsManager } = require('./store/workspace-environments');
 const registerGlobalEnvironmentsIpc = require('./ipc/global-environments');
 const { safeParseJSON, safeStringifyJSON } = require('./utils/common');
@@ -105,25 +104,6 @@ const isLinux = process.platform === 'linux';
 
 let mainWindow;
 let appProtocolUrl;
-
-// Helper function to save zoom percentage to preferences and notify renderer
-const saveZoomPreferences = async (percentage) => {
-  if (!mainWindow) return;
-
-  const clampedPercentage = Math.max(50, Math.min(150, percentage));
-
-  const prefs = getPreferences();
-  prefs.display = prefs.display || {};
-  prefs.display.zoomPercentage = clampedPercentage;
-
-  try {
-    await savePreferences(prefs);
-    // Notify renderer to update Redux state only after successful save
-    mainWindow.webContents.send('main:load-preferences', prefs);
-  } catch (err) {
-    console.error('Failed to save zoom preference:', err);
-  }
-};
 
 // Helper function to focus and restore the main window
 const focusMainWindow = () => {
@@ -302,37 +282,8 @@ app.on('ready', async () => {
     mainWindow.webContents.toggleDevTools();
   });
 
-  ipcMain.handle('renderer:reset-zoom', () => {
-    updateZoomLevel(100);
-  });
-
-  ipcMain.handle('renderer:zoom-in', () => {
-    incrementZoomAndPersist(10);
-  });
-
-  ipcMain.handle('renderer:zoom-out', () => {
-    incrementZoomAndPersist(-10);
-  });
-
-  // Menu event handlers for zoom (from menu-template.js)
-  ipcMain.on('menu:reset-zoom', () => {
-    updateZoomLevel(100);
-  });
-
-  ipcMain.on('menu:zoom-in', () => {
-    incrementZoomAndPersist(10);
-  });
-
-  ipcMain.on('menu:zoom-out', () => {
-    incrementZoomAndPersist(-10);
-  });
-
   ipcMain.handle('renderer:set-zoom-level', (event, zoomLevel) => {
     mainWindow.webContents.setZoomLevel(zoomLevel);
-  });
-
-  ipcMain.handle('renderer:toggle-fullscreen', () => {
-    mainWindow.setFullScreen(!mainWindow.isFullScreen());
   });
 
   mainWindow.once('ready-to-show', () => {
@@ -530,42 +481,3 @@ app.on('before-quit', (event) => {
 });
 
 app.on('window-all-closed', app.quit);
-
-// Open collection from Recent menu (#1521)
-app.on('open-file', (event, path) => {
-  openCollection(mainWindow, collectionWatcher, path);
-});
-
-// Register the global shortcuts
-app.on('browser-window-focus', () => {
-  // Quick fix for Electron issue #29996: https://github.com/electron/electron/issues/29996
-  globalShortcut.register('Ctrl+=', () => {
-    incrementZoomAndPersist(10);
-  });
-});
-
-// Disable global shortcuts when not focused
-app.on('browser-window-blur', () => {
-  globalShortcut.unregisterAll();
-});
-
-/**
- * @param {number} inc (+/- amount to zoom in / out);
- */
-function incrementZoomAndPersist(inc) {
-  const currentPercentage = preferencesUtil.getZoomPercentage();
-  const nextPercentage = Math.min(
-    Math.max(currentPercentage + inc, 50),
-    150
-  );
-  updateZoomLevel(nextPercentage);
-}
-
-/**
- * @param {number} percent percentage to increase or decrease zoom by, percentage is converted to chrome's log value internally
- */
-function updateZoomLevel(percent) {
-  const zoomLevel = percentageToZoomLevel(percent);
-  mainWindow.webContents.setZoomLevel(zoomLevel);
-  saveZoomPreferences(percent);
-}

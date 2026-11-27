@@ -5,7 +5,7 @@ const os = require('os');
 const path = require('path');
 const archiver = require('archiver');
 const AdmZip = require('adm-zip');
-const { ipcMain, shell, dialog, app } = require('electron');
+const { ipcMain, shell, dialog } = require('electron');
 const {
   parseRequest,
   stringifyRequest,
@@ -53,9 +53,9 @@ const {
   getPaths,
   generateUniqueName,
   isValidDotEnvFilename,
-  scanForBrunoFiles,
   withFileLock
 } = require('../utils/filesystem');
+const { getApplicationsLocation } = require('../utils/default-location');
 const { getCollectionConfigFile, openCollection, openCollectionsByPathname, registerScratchCollectionPath } = require('../app/collections');
 const { generateUidBasedOnHash, safeStringifyJSON, safeParseJSON } = require('../utils/common');
 const { isValidNpmPackageName, runNpmInstall } = require('../utils/install-packages');
@@ -199,8 +199,9 @@ const registerRendererEventHandlers = (mainWindow, watcher) => {
   // create collection
   ipcMain.handle(
     'renderer:create-collection',
-    async (event, collectionName, collectionFolderName, collectionLocation, options = {}) => {
+    async (event, collectionName, collectionFolderName, options = {}) => {
       try {
+        const collectionLocation = getApplicationsLocation();
         collectionFolderName = sanitizeName(collectionFolderName);
 
         if (!validateName(collectionFolderName)) {
@@ -2152,48 +2153,6 @@ const registerRendererEventHandlers = (mainWindow, watcher) => {
 };
 
 const registerMainEventHandlers = (mainWindow) => {
-  const triggerOpenCollection = () => {
-    if (mainWindow) {
-      mainWindow.webContents.send('main:open-collection');
-    }
-  };
-
-  ipcMain.on('renderer:open-collection', triggerOpenCollection);
-  ipcMain.on('menu:open-collection', triggerOpenCollection);
-
-  ipcMain.on('main:collection-opened', async (win, pathname, uid, brunoConfig) => {
-    app.addRecentDocument(pathname);
-  });
-
-  ipcMain.handle('renderer:scan-for-bruno-files', async (event, dir) => {
-    try {
-      const collectionPaths = await scanForBrunoFiles(dir);
-
-      const scanResults = await Promise.all(
-        collectionPaths.map(async (pathname) => {
-          try {
-            const brunoConfig = await getCollectionConfigFile(pathname);
-
-            return {
-              pathname,
-              name: brunoConfig.name
-            };
-          } catch (error) {
-            console.warn(`Skipping invalid Tern collection at ${pathname}: ${error.message}`);
-            return { pathname, skipped: true };
-          }
-        })
-      );
-
-      return {
-        items: scanResults.filter((result) => !result.skipped),
-        skippedItems: scanResults.filter((result) => result.skipped).map(({ pathname }) => pathname)
-      };
-    } catch (error) {
-      throw new Error(error.message);
-    }
-  });
-
   // The app listen for this event and allows the user to save unsaved requests before closing the app
   ipcMain.on('main:start-quit-flow', () => {
     mainWindow.webContents.send('main:start-quit-flow');

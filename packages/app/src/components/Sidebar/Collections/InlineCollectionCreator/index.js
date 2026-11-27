@@ -2,9 +2,9 @@ import { useRef, useEffect, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { IconCheck, IconX, IconSettings } from '@tabler/icons';
 import get from 'lodash/get';
-import path from 'utils/common/path';
 import toast from 'react-hot-toast';
 import { createCollection } from 'providers/ReduxStore/slices/collections/actions';
+import { resolveApplicationName } from 'providers/ReduxStore/slices/open-collection-modal/actions';
 import { sanitizeName, validateName, validateNameError } from 'utils/common/regex';
 import { multiLineMsg } from 'utils/common';
 import { formatIpcError } from 'utils/common/error';
@@ -18,15 +18,7 @@ const InlineCollectionCreator = ({ onComplete, onCancel, onOpenAdvanced }) => {
   const openingAdvancedRef = useRef(false);
   const clickedOutsideRef = useRef(false);
 
-  const preferences = useSelector((state) => state.app.preferences);
-  const workspaces = useSelector((state) => state.workspaces?.workspaces || []);
-  const activeWorkspaceUid = useSelector((state) => state.workspaces?.activeWorkspaceUid);
-  const activeWorkspace = workspaces.find((w) => w.uid === activeWorkspaceUid);
-  const isDefaultWorkspace = activeWorkspace?.type === 'default';
-
-  const defaultLocation = isDefaultWorkspace
-    ? get(preferences, 'general.defaultLocation', '')
-    : (activeWorkspace?.pathname ? path.join(activeWorkspace.pathname, 'collections') : '');
+  const defaultLocation = useSelector((state) => get(state.app.preferences, 'general.defaultLocation', ''));
 
   useEffect(() => {
     const focusAndSelect = (value) => {
@@ -78,23 +70,26 @@ const InlineCollectionCreator = ({ onComplete, onCancel, onOpenAdvanced }) => {
       return;
     }
 
-    if (!defaultLocation) {
-      toast.error('Please set a default location in Preferences > General');
-      onCancel();
-      return;
-    }
-
     setIsCreating(true);
     try {
-      const folderName = sanitizeName(name);
-      await dispatch(createCollection(name, folderName, defaultLocation));
+      // A name that another application already has is settled with the user before anything is created.
+      const resolved = await dispatch(resolveApplicationName(name));
+      if (resolved.stop) {
+        if (resolved.stop === 'keep') {
+          onComplete();
+        } else {
+          setIsCreating(false);
+        }
+        return;
+      }
+      await dispatch(createCollection(resolved.name, sanitizeName(resolved.name)));
       toast.success('Application created!');
       onComplete();
     } catch (e) {
       toast.error(multiLineMsg('An error occurred while creating the application', formatIpcError(e)));
       setIsCreating(false);
     }
-  }, [isCreating, defaultLocation, dispatch, onCancel, onComplete]);
+  }, [isCreating, dispatch, onCancel, onComplete]);
 
   // Click outside to create
   useEffect(() => {

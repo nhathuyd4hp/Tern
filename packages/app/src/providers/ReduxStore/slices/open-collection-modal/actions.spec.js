@@ -1,21 +1,21 @@
 import { configureStore } from '@reduxjs/toolkit';
 import toast from 'react-hot-toast';
 import { callIpc } from 'utils/common/ipc';
-import { browseDirectories, browseFiles, mountCollection, openMultipleCollections } from 'providers/ReduxStore/slices/collections/actions';
-import { updatePreferences } from 'providers/ReduxStore/slices/app';
+import { browseDirectories, browseFiles, mountCollection, openMultipleCollections, removeCollection } from 'providers/ReduxStore/slices/collections/actions';
 import { expandCollection } from 'providers/ReduxStore/slices/collections';
 import { addTab } from 'providers/ReduxStore/slices/tabs';
+import { askDuplicateApplication } from 'utils/duplicate-application';
 import openCollectionModalReducer from './index';
 import {
   cancelCollectionSearch,
   closeOpenCollectionModal,
   findCollectionsInFolders,
-  openCollectionModal,
   openCollectionsFromModal,
+  openImportedApplications,
   openDroppedItems,
+  openImportApplicationDialog,
   pickApplicationZip,
   pickCollectionFolders,
-  saveAutoOpenFolderPicker,
   switchToCollection
 } from './actions';
 
@@ -34,8 +34,10 @@ jest.mock('providers/ReduxStore/slices/collections/actions', () => ({
   browseDirectories: jest.fn(),
   browseFiles: jest.fn(),
   mountCollection: jest.fn(),
-  openMultipleCollections: jest.fn()
+  openMultipleCollections: jest.fn(),
+  removeCollection: jest.fn()
 }));
+jest.mock('utils/duplicate-application', () => ({ askDuplicateApplication: jest.fn() }));
 
 const FIND_IN_FOLDERS = 'renderer:collection-search:find-in-folders';
 const CANCEL_SEARCH = 'renderer:collection-search:cancel';
@@ -43,6 +45,7 @@ const CANCEL_SEARCH = 'renderer:collection-search:cancel';
 const workspace = { uid: 'workspace-1', collections: [{ path: '/work/open' }, { path: '/work/open-too' }] };
 const openCollectionInRedux = {
   uid: 'collection-1',
+  name: 'Open One',
   pathname: '/work/open',
   collapsed: true,
   mountStatus: 'unmounted',
@@ -50,6 +53,7 @@ const openCollectionInRedux = {
 };
 const otherOpenCollectionInRedux = {
   uid: 'collection-2',
+  name: 'Open Too',
   pathname: '/work/open-too',
   collapsed: false,
   mountStatus: 'mounted',
@@ -79,13 +83,11 @@ const pickedCollection = folderResult(
   [{ path: '/work/api', name: 'API' }]
 );
 
-const createStore = ({ preferences = {}, modal = closedModal, collections = [openCollectionInRedux, otherOpenCollectionInRedux] } = {}) => {
+const createStore = ({ modal = closedModal, collections = [openCollectionInRedux, otherOpenCollectionInRedux] } = {}) => {
   const dispatchedActions = [];
   const store = configureStore({
     reducer: {
       openCollectionModal: openCollectionModalReducer,
-      app: (state = { preferences }, action) =>
-        (action.type === updatePreferences.type ? { ...state, preferences: action.payload } : state),
       collections: (state = { collections }) => state,
       workspaces: (state = { workspaces: [workspace], activeWorkspaceUid: workspace.uid }) => state
     },
@@ -99,7 +101,7 @@ const createStore = ({ preferences = {}, modal = closedModal, collections = [ope
   return { store, dispatchedActions };
 };
 
-const openOn = (page, chooseFolder = closedModal.chooseFolder) => ({ ...closedModal, isOpen: true, page, chooseFolder });
+const openOn = (chooseFolder = closedModal.chooseFolder) => ({ ...closedModal, isOpen: true, chooseFolder });
 
 const modalState = (store) => store.getState().openCollectionModal;
 
@@ -117,8 +119,23 @@ const flushPromises = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 const pickerReturns = (result) => browseDirectories.mockReturnValue(() => result);
 
+const baseName = (somePath) => somePath.split('/').pop();
+
+// What the main process answers for the import channels: the name is the folder name, a copy goes to /apps.
+const importIpc = (channel, source, options = {}) => {
+  if (typeof source !== 'string') return Promise.resolve();
+  const name = baseName(source).replace(/\.zip$/i, '');
+  if (channel === 'renderer:read-application-folder-name' || channel === 'renderer:read-application-zip-name') {
+    return Promise.resolve(name);
+  }
+  if (channel === 'renderer:import-application-folder' || channel === 'renderer:import-application-zip') {
+    return Promise.resolve({ path: `/apps/${name}`, name: options.name || name });
+  }
+  return Promise.resolve();
+};
+
 const searchReturns = (result) =>
-  callIpc.mockImplementation((channel) => (channel === FIND_IN_FOLDERS ? result : Promise.resolve()));
+  callIpc.mockImplementation((channel, ...args) => (channel === FIND_IN_FOLDERS ? result : importIpc(channel, ...args)));
 
 const droppedFile = { name: 'openapi.yaml' };
 
@@ -127,80 +144,33 @@ const openingReturns = (result) => openMultipleCollections.mockReturnValue(() =>
 describe('open collection modal actions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    callIpc.mockResolvedValue(undefined);
+    callIpc.mockImplementation(importIpc);
     mountCollection.mockImplementation((payload) => ({ type: 'test/mountCollection', payload }));
   });
 
-  describe('openCollectionModal', () => {
-    it('opens on Choose folder and opens the folder picker', async () => {
-      pickerReturns(Promise.resolve([]));
+  describe('openImportApplicationDialog', () => {
+    it('opens the dialog without opening the folder picker', () => {
       const { store } = createStore();
 
-      store.dispatch(openCollectionModal('choose-folder'));
-      await flushPromises();
+      store.dispatch(openImportApplicationDialog());
 
-      expect(modalState(store)).toMatchObject({ isOpen: true, page: 'choose-folder' });
-      expect(browseDirectories).toHaveBeenCalledTimes(1);
-    });
-
-    it('leaves the folder picker closed when the setting is off', () => {
-      const { store } = createStore({ preferences: { openCollection: { autoOpenFolderPicker: false } } });
-
-      store.dispatch(openCollectionModal('choose-folder'));
-
-      expect(modalState(store).page).toBe('choose-folder');
+      expect(modalState(store).isOpen).toBe(true);
       expect(browseDirectories).not.toHaveBeenCalled();
     });
 
-    it('opens other pages without the folder picker', () => {
-      const { store } = createStore();
+    it('starts afresh instead of showing what an earlier import found', () => {
+      const { store } = createStore({ modal: openOn({ ...closedModal.chooseFolder, result: listResult }) });
 
-      store.dispatch(openCollectionModal('recents'));
-
-      expect(modalState(store)).toMatchObject({ isOpen: true, page: 'recents' });
-      expect(browseDirectories).not.toHaveBeenCalled();
-    });
-
-    it('starts Choose folder afresh and picks again when it was showing found collections', async () => {
-      pickerReturns(Promise.resolve([]));
-      const { store } = createStore({ modal: openOn('recents', { ...closedModal.chooseFolder, result: listResult }) });
-
-      store.dispatch(openCollectionModal('choose-folder'));
-      await flushPromises();
-
-      expect(modalState(store)).toMatchObject({ isOpen: true, page: 'choose-folder' });
-      expect(modalState(store).chooseFolder.result).toBeNull();
-      expect(browseDirectories).toHaveBeenCalledTimes(1);
-    });
-
-    it('keeps the found collections and leaves the folder picker closed while collections are opening', () => {
-      const chooseFolder = { ...closedModal.chooseFolder, result: listResult };
-      const { store } = createStore({ modal: { ...openOn('recents', chooseFolder), openingId: 'opening-1' } });
-
-      store.dispatch(openCollectionModal('choose-folder'));
-
-      expect(modalState(store).page).toBe('choose-folder');
-      expect(modalState(store).chooseFolder.result).toEqual({ ...listResult, note: null });
-      expect(browseDirectories).not.toHaveBeenCalled();
-    });
-
-    it('starts Choose folder afresh instead of showing an earlier message', async () => {
-      pickerReturns(Promise.resolve([]));
-      const messageResult = { id: 'search-0', type: 'message', note: { tone: 'info', text: 'notes isn’t a Tern application.' } };
-      const { store } = createStore({ modal: openOn('recents', { ...closedModal.chooseFolder, result: messageResult }) });
-
-      store.dispatch(openCollectionModal('choose-folder'));
-      await flushPromises();
+      store.dispatch(openImportApplicationDialog());
 
       expect(modalState(store).chooseFolder.result).toBeNull();
-      expect(browseDirectories).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('pickCollectionFolders', () => {
     it('opens one folder picker at a time', () => {
       pickerReturns(new Promise(() => {}));
-      const { store } = createStore({ modal: openOn('choose-folder') });
+      const { store } = createStore({ modal: openOn() });
 
       store.dispatch(pickCollectionFolders());
       store.dispatch(pickCollectionFolders());
@@ -210,7 +180,7 @@ describe('open collection modal actions', () => {
     });
 
     it('does not open the folder picker while collections are opening', async () => {
-      const { store } = createStore({ modal: { ...openOn('choose-folder'), openingId: 'opening-1' } });
+      const { store } = createStore({ modal: { ...openOn(), openingId: 'opening-1' } });
 
       await store.dispatch(pickCollectionFolders());
 
@@ -220,7 +190,7 @@ describe('open collection modal actions', () => {
 
     it('keeps what the page showed when the picker is cancelled', async () => {
       pickerReturns(Promise.resolve([]));
-      const { store } = createStore({ modal: openOn('choose-folder', { ...closedModal.chooseFolder, result: listResult }) });
+      const { store } = createStore({ modal: openOn({ ...closedModal.chooseFolder, result: listResult }) });
 
       await store.dispatch(pickCollectionFolders());
 
@@ -230,7 +200,7 @@ describe('open collection modal actions', () => {
 
     it('shows an error when the folder picker fails', async () => {
       pickerReturns(Promise.reject(new Error('dialog failed')));
-      const { store } = createStore({ modal: openOn('choose-folder') });
+      const { store } = createStore({ modal: openOn() });
 
       await store.dispatch(pickCollectionFolders());
 
@@ -241,7 +211,7 @@ describe('open collection modal actions', () => {
     it('does not search when the modal was closed while the picker was open', async () => {
       const picker = deferred();
       pickerReturns(picker.promise);
-      const { store } = createStore({ modal: openOn('choose-folder') });
+      const { store } = createStore({ modal: openOn() });
 
       const pick = store.dispatch(pickCollectionFolders());
       store.dispatch(closeOpenCollectionModal());
@@ -254,7 +224,7 @@ describe('open collection modal actions', () => {
     it('searches the picked folders', async () => {
       pickerReturns(Promise.resolve(['/work', '/shop']));
       searchReturns(new Promise(() => {}));
-      const { store } = createStore({ modal: openOn('choose-folder') });
+      const { store } = createStore({ modal: openOn() });
 
       store.dispatch(pickCollectionFolders());
       await flushPromises();
@@ -267,7 +237,7 @@ describe('open collection modal actions', () => {
   describe('findCollectionsInFolders', () => {
     it('shows the folder name while it searches one folder', () => {
       searchReturns(new Promise(() => {}));
-      const { store } = createStore({ modal: openOn('choose-folder') });
+      const { store } = createStore({ modal: openOn() });
 
       store.dispatch(findCollectionsInFolders(['/work/api']));
 
@@ -277,11 +247,12 @@ describe('open collection modal actions', () => {
     it('opens a picked collection and closes the modal', async () => {
       searchReturns(Promise.resolve(pickedCollection));
       openingReturns(Promise.resolve({ opened: ['/work/api'], failed: [], invalid: [] }));
-      const { store } = createStore({ modal: openOn('choose-folder') });
+      const { store } = createStore({ modal: openOn() });
 
       await store.dispatch(findCollectionsInFolders(['/work/api']));
 
-      expect(openMultipleCollections).toHaveBeenCalledWith(['/work/api'], { silent: true, dontSendDisplayErrors: true });
+      expect(callIpc).toHaveBeenCalledWith('renderer:import-application-folder', '/work/api', {});
+      expect(openMultipleCollections).toHaveBeenCalledWith(['/apps/api'], { silent: true, dontSendDisplayErrors: true });
       expect(toast.success).toHaveBeenCalledWith('Application added to workspace');
       expect(modalState(store).isOpen).toBe(false);
     });
@@ -290,7 +261,7 @@ describe('open collection modal actions', () => {
       searchReturns(Promise.resolve(pickedCollection));
       openingReturns(Promise.resolve({ opened: [], failed: [{ path: '/work/api', error: 'Unable to parse opencollection.yml' }], invalid: [] }));
       const lastResult = { id: 'search-0', type: 'message', note: { tone: 'info', text: 'docs isn’t a Tern application.' } };
-      const { store } = createStore({ modal: openOn('choose-folder', { ...closedModal.chooseFolder, result: lastResult }) });
+      const { store } = createStore({ modal: openOn({ ...closedModal.chooseFolder, result: lastResult }) });
 
       await store.dispatch(findCollectionsInFolders(['/work/api']));
 
@@ -300,7 +271,7 @@ describe('open collection modal actions', () => {
 
     it('brings back the last list when the next search is cancelled', () => {
       searchReturns(new Promise(() => {}));
-      const { store } = createStore({ modal: openOn('choose-folder', { ...closedModal.chooseFolder, result: listResult }) });
+      const { store } = createStore({ modal: openOn({ ...closedModal.chooseFolder, result: listResult }) });
 
       store.dispatch(findCollectionsInFolders(['/work/docs']));
       store.dispatch(cancelCollectionSearch());
@@ -317,12 +288,12 @@ describe('open collection modal actions', () => {
         [{ path: '/work/api', name: 'API' }]
       )));
       openingReturns(Promise.resolve({ opened: ['/work/api'], failed: [], invalid: [] }));
-      const { store } = createStore({ modal: openOn('choose-folder') });
+      const { store } = createStore({ modal: openOn() });
 
       await store.dispatch(findCollectionsInFolders(['/work/api', '/work/docs']));
 
       expect(toast).toHaveBeenCalledWith('docs isn’t an application, so it was skipped.');
-      expect(openMultipleCollections).toHaveBeenCalledWith(['/work/api'], expect.anything());
+      expect(openMultipleCollections).toHaveBeenCalledWith(['/apps/api'], expect.anything());
     });
 
     it('switches to a picked collection that is already open', async () => {
@@ -330,7 +301,7 @@ describe('open collection modal actions', () => {
         [{ path: '/work/open', status: 'collection', collectionPaths: ['/work/open'], importableFiles: [] }],
         [{ path: '/work/open', name: 'Open One' }]
       )));
-      const { store, dispatchedActions } = createStore({ modal: openOn('choose-folder') });
+      const { store, dispatchedActions } = createStore({ modal: openOn() });
 
       await store.dispatch(findCollectionsInFolders(['/work/open']));
 
@@ -349,7 +320,7 @@ describe('open collection modal actions', () => {
         ],
         [{ path: '/work/open', name: 'Open One' }, { path: '/work/open-too', name: 'Open Too' }]
       )));
-      const { store } = createStore({ modal: openOn('choose-folder') });
+      const { store } = createStore({ modal: openOn() });
 
       await store.dispatch(findCollectionsInFolders(['/work/open', '/work/open-too']));
 
@@ -358,44 +329,12 @@ describe('open collection modal actions', () => {
       expect(modalState(store).isOpen).toBe(false);
     });
 
-    it('cancels the search when another page is opened, so its result never pulls the user back', async () => {
-      const search = deferred();
-      searchReturns(search.promise);
-      const { store } = createStore({ modal: openOn('choose-folder') });
-
-      const searching = store.dispatch(findCollectionsInFolders(['/work']));
-      const { searchId } = modalState(store).chooseFolder;
-      store.dispatch(openCollectionModal('recents'));
-      search.resolve(folderResult(
-        [{ path: '/work', status: 'folder', collectionPaths: ['/work/api'], importableFiles: [] }],
-        [{ path: '/work/api', name: 'API' }]
-      ));
-      await searching;
-
-      expect(callIpc).toHaveBeenCalledWith(CANCEL_SEARCH, { requestId: searchId });
-      expect(modalState(store)).toMatchObject({ page: 'recents', chooseFolder: { status: 'idle', searchId: null, result: null } });
-    });
-
-    it('does not open a collection the search found after the user moved to another page', async () => {
-      const search = deferred();
-      searchReturns(search.promise);
-      const { store } = createStore({ modal: openOn('choose-folder') });
-
-      const searching = store.dispatch(findCollectionsInFolders(['/work/api']));
-      store.dispatch(openCollectionModal('recents'));
-      search.resolve(pickedCollection);
-      await searching;
-
-      expect(openMultipleCollections).not.toHaveBeenCalled();
-      expect(modalState(store)).toMatchObject({ isOpen: true, page: 'recents' });
-    });
-
     it('shows the collections found inside a folder', async () => {
       searchReturns(Promise.resolve(folderResult(
         [{ path: '/work', status: 'folder', collectionPaths: ['/work/api', '/work/open'], importableFiles: [] }],
         [{ path: '/work/api', name: 'API' }, { path: '/work/open', name: 'Open One' }]
       )));
-      const { store } = createStore({ modal: openOn('choose-folder') });
+      const { store } = createStore({ modal: openOn() });
 
       await store.dispatch(findCollectionsInFolders(['/work']));
 
@@ -411,7 +350,7 @@ describe('open collection modal actions', () => {
 
     it('cancels the search already running when a new one starts', async () => {
       searchReturns(new Promise(() => {}));
-      const { store } = createStore({ modal: openOn('choose-folder') });
+      const { store } = createStore({ modal: openOn() });
 
       store.dispatch(findCollectionsInFolders(['/work']));
       const { searchId } = modalState(store).chooseFolder;
@@ -424,7 +363,7 @@ describe('open collection modal actions', () => {
     it('ignores the result of a search that was cancelled', async () => {
       const search = deferred();
       searchReturns(search.promise);
-      const { store } = createStore({ modal: openOn('choose-folder') });
+      const { store } = createStore({ modal: openOn() });
 
       const searching = store.dispatch(findCollectionsInFolders(['/work']));
       const { searchId } = modalState(store).chooseFolder;
@@ -439,7 +378,7 @@ describe('open collection modal actions', () => {
 
     it('cancels the search in the main process when the modal closes', () => {
       searchReturns(new Promise(() => {}));
-      const { store } = createStore({ modal: openOn('choose-folder') });
+      const { store } = createStore({ modal: openOn() });
 
       store.dispatch(findCollectionsInFolders(['/work']));
       const { searchId } = modalState(store).chooseFolder;
@@ -450,7 +389,7 @@ describe('open collection modal actions', () => {
 
     it('shows an error when the search fails', async () => {
       searchReturns(Promise.reject(new Error('disk failure')));
-      const { store } = createStore({ modal: openOn('choose-folder') });
+      const { store } = createStore({ modal: openOn() });
 
       await store.dispatch(findCollectionsInFolders(['/work']));
 
@@ -467,19 +406,18 @@ describe('open collection modal actions', () => {
 
     it('goes to Choose folder and searches the dropped folders without the folder picker', async () => {
       searchReturns(Promise.resolve(plainFolderResult));
-      const { store } = createStore({ modal: openOn('recents') });
+      const { store } = createStore({ modal: openOn() });
 
       await store.dispatch(openDroppedItems({ folderPaths: ['/work'], hasFolders: true, files: [] }));
 
       expect(browseDirectories).not.toHaveBeenCalled();
       expect(callIpc).toHaveBeenCalledWith(FIND_IN_FOLDERS, expect.objectContaining({ paths: ['/work'] }));
-      expect(modalState(store).page).toBe('choose-folder');
       expect(modalState(store).chooseFolder.result).toMatchObject({ type: 'list', folders: ['/work'] });
     });
 
     it('says when files dropped with the folders were left out', async () => {
       searchReturns(Promise.resolve(plainFolderResult));
-      const { store } = createStore({ modal: openOn('choose-folder') });
+      const { store } = createStore({ modal: openOn() });
 
       await store.dispatch(openDroppedItems({ folderPaths: ['/work'], hasFolders: true, files: [droppedFile, droppedFile] }));
 
@@ -496,20 +434,19 @@ describe('open collection modal actions', () => {
       });
 
       it('unpacks a dropped zip and opens the new application', async () => {
-        callIpc.mockResolvedValue({ path: '/data/orders' });
-        openingReturns(Promise.resolve({ opened: ['/data/orders'], failed: [], invalid: [] }));
-        const { store } = createStore({ modal: openOn('choose-folder') });
+        openingReturns(Promise.resolve({ opened: ['/apps/orders'], failed: [], invalid: [] }));
+        const { store } = createStore({ modal: openOn() });
 
         await store.dispatch(openDroppedItems({ folderPaths: [], hasFolders: false, files: [{ name: 'orders.ZIP' }] }));
 
-        expect(callIpc).toHaveBeenCalledWith('renderer:import-application-zip', '/downloads/orders.ZIP');
-        expect(openMultipleCollections).toHaveBeenCalledWith(['/data/orders'], expect.anything());
+        expect(callIpc).toHaveBeenCalledWith('renderer:import-application-zip', '/downloads/orders.ZIP', {});
+        expect(openMultipleCollections).toHaveBeenCalledWith(['/apps/orders'], expect.anything());
         expect(modalState(store).isOpen).toBe(false);
       });
 
       it('says why a zip could not be imported and opens nothing', async () => {
         callIpc.mockRejectedValue(new Error('Error invoking remote method \'renderer:import-application-zip\': Error: This zip is not a Tern application'));
-        const { store } = createStore({ modal: openOn('choose-folder') });
+        const { store } = createStore({ modal: openOn() });
 
         await store.dispatch(openDroppedItems({ folderPaths: [], hasFolders: false, files: [{ name: 'photos.zip' }] }));
 
@@ -520,73 +457,67 @@ describe('open collection modal actions', () => {
 
       it('imports the zip chosen in the file picker', async () => {
         browseFiles.mockReturnValue(() => Promise.resolve(['/downloads/orders.zip']));
-        callIpc.mockResolvedValue({ path: '/data/orders' });
-        openingReturns(Promise.resolve({ opened: ['/data/orders'], failed: [], invalid: [] }));
-        const { store } = createStore({ modal: openOn('choose-folder') });
+        openingReturns(Promise.resolve({ opened: ['/apps/orders'], failed: [], invalid: [] }));
+        const { store } = createStore({ modal: openOn() });
 
         await store.dispatch(pickApplicationZip());
 
         expect(browseFiles).toHaveBeenCalledWith([{ name: 'Zip files', extensions: ['zip'] }], []);
-        expect(callIpc).toHaveBeenCalledWith('renderer:import-application-zip', '/downloads/orders.zip');
+        expect(callIpc).toHaveBeenCalledWith('renderer:import-application-zip', '/downloads/orders.zip', {});
       });
 
       it('does nothing when the file picker is cancelled', async () => {
         browseFiles.mockReturnValue(() => Promise.resolve([]));
-        const { store } = createStore({ modal: openOn('choose-folder') });
+        const { store } = createStore({ modal: openOn() });
 
         await store.dispatch(pickApplicationZip());
 
-        expect(callIpc).not.toHaveBeenCalledWith('renderer:import-application-zip', expect.anything());
+        expect(callIpc).not.toHaveBeenCalledWith('renderer:import-application-zip', expect.anything(), expect.anything());
       });
     });
 
     it('says importing from a file is not supported when only files were dropped', async () => {
-      const { store } = createStore({ modal: openOn('choose-folder') });
+      const { store } = createStore({ modal: openOn() });
 
       await store.dispatch(openDroppedItems({ folderPaths: [], hasFolders: false, files: [droppedFile] }));
 
       expect(toast.error).toHaveBeenCalledWith('Importing an application from a file is not supported. Drop a folder or a .zip');
-      expect(modalState(store).page).toBe('choose-folder');
       expect(callIpc).not.toHaveBeenCalledWith(FIND_IN_FOLDERS, expect.anything());
     });
 
     it('says when the dropped folders cannot be read', async () => {
-      const { store } = createStore({ modal: openOn('recents') });
+      const { store } = createStore({ modal: openOn() });
 
       await store.dispatch(openDroppedItems({ folderPaths: [], hasFolders: true, files: [droppedFile] }));
 
       expect(toast.error).toHaveBeenCalledWith('Could not read the dropped folders');
-      expect(modalState(store).page).toBe('recents');
     });
 
     it('does nothing when the drop held neither folders nor files', async () => {
-      const { store } = createStore({ modal: openOn('recents') });
+      const { store } = createStore({ modal: openOn() });
 
       await store.dispatch(openDroppedItems({ folderPaths: [], hasFolders: false, files: [] }));
-
-      expect(modalState(store).page).toBe('recents');
     });
 
     it('ignores a drop while collections are opening', async () => {
-      const { store } = createStore({ modal: { ...openOn('recents'), openingId: 'opening-1' } });
+      const { store } = createStore({ modal: { ...openOn(), openingId: 'opening-1' } });
 
       await store.dispatch(openDroppedItems({ folderPaths: ['/work'], hasFolders: true, files: [] }));
 
       expect(callIpc).not.toHaveBeenCalledWith(FIND_IN_FOLDERS, expect.anything());
-      expect(modalState(store).page).toBe('recents');
     });
   });
 
-  describe('openCollectionsFromModal', () => {
+  describe('openImportedApplications', () => {
     it('keeps the modal open and says why in one toast when nothing opened', async () => {
       openingReturns(Promise.resolve({
         opened: [],
         failed: [{ path: '/work/api', error: 'Unable to parse opencollection.yml: Nested mappings are not allowed\n\n  name: a: b\n' }],
         invalid: []
       }));
-      const { store } = createStore({ modal: openOn('choose-folder') });
+      const { store } = createStore({ modal: openOn() });
 
-      await store.dispatch(openCollectionsFromModal(['/work/api']));
+      await store.dispatch(openImportedApplications(['/work/api']));
 
       expect(openMultipleCollections).toHaveBeenCalledWith(['/work/api'], { silent: true, dontSendDisplayErrors: true });
       expect(toast.error).toHaveBeenCalledTimes(1);
@@ -596,9 +527,9 @@ describe('open collection modal actions', () => {
 
     it('reports folders that no longer exist', async () => {
       openingReturns(Promise.resolve({ opened: ['/work/api'], failed: [], invalid: ['/work/gone'] }));
-      const { store } = createStore({ modal: openOn('choose-folder') });
+      const { store } = createStore({ modal: openOn() });
 
-      await store.dispatch(openCollectionsFromModal(['/work/api', '/work/gone']));
+      await store.dispatch(openImportedApplications(['/work/api', '/work/gone']));
 
       expect(toast.success).toHaveBeenCalledWith('Application added to workspace');
       expect(toast.error).toHaveBeenCalledWith('Failed to open gone. The application doesn’t exist anymore.');
@@ -607,9 +538,9 @@ describe('open collection modal actions', () => {
 
     it('counts the failures in one toast when several collections fail to open', async () => {
       openingReturns(Promise.resolve({ opened: [], failed: [{ path: '/work/api', error: 'bad json' }], invalid: ['/work/gone'] }));
-      const { store } = createStore({ modal: openOn('choose-folder') });
+      const { store } = createStore({ modal: openOn() });
 
-      await store.dispatch(openCollectionsFromModal(['/work/api', '/work/gone']));
+      await store.dispatch(openImportedApplications(['/work/api', '/work/gone']));
 
       expect(toast.error).toHaveBeenCalledTimes(1);
       expect(toast.error).toHaveBeenCalledWith('Failed to open 2 applications');
@@ -617,10 +548,10 @@ describe('open collection modal actions', () => {
 
     it('opens the collections once even when asked twice', () => {
       openingReturns(new Promise(() => {}));
-      const { store } = createStore({ modal: openOn('choose-folder') });
+      const { store } = createStore({ modal: openOn() });
 
-      store.dispatch(openCollectionsFromModal(['/work/api']));
-      store.dispatch(openCollectionsFromModal(['/work/api']));
+      store.dispatch(openImportedApplications(['/work/api']));
+      store.dispatch(openImportedApplications(['/work/api']));
 
       expect(openMultipleCollections).toHaveBeenCalledTimes(1);
       expect(modalState(store).openingId).toEqual(expect.any(String));
@@ -629,11 +560,11 @@ describe('open collection modal actions', () => {
     it('stays open while collections are opening, so they cannot be opened a second time', async () => {
       const opening = deferred();
       openingReturns(opening.promise);
-      const { store } = createStore({ modal: openOn('choose-folder') });
+      const { store } = createStore({ modal: openOn() });
 
-      const result = store.dispatch(openCollectionsFromModal(['/work/api']));
+      const result = store.dispatch(openImportedApplications(['/work/api']));
       store.dispatch(closeOpenCollectionModal());
-      store.dispatch(openCollectionsFromModal(['/work/api']));
+      store.dispatch(openImportedApplications(['/work/api']));
 
       expect(modalState(store)).toMatchObject({ isOpen: true, openingId: expect.any(String) });
       expect(openMultipleCollections).toHaveBeenCalledTimes(1);
@@ -646,62 +577,103 @@ describe('open collection modal actions', () => {
 
     it('shows an error when opening fails', async () => {
       openingReturns(Promise.reject());
-      const { store } = createStore({ modal: openOn('choose-folder') });
+      const { store } = createStore({ modal: openOn() });
 
-      await store.dispatch(openCollectionsFromModal(['/work/api']));
+      await store.dispatch(openImportedApplications(['/work/api']));
 
       expect(toast.error).toHaveBeenCalledWith('An error occurred while opening the applications');
       expect(modalState(store)).toMatchObject({ isOpen: true, openingId: null });
     });
   });
 
-  describe('saveAutoOpenFolderPicker', () => {
+  describe('a name that is already used', () => {
+    const importFolder = (store, folderPath = '/downloads/Open One') => store.dispatch(openCollectionsFromModal([folderPath]));
+
     beforeEach(() => {
-      window.ipcRenderer = { invoke: jest.fn().mockResolvedValue(undefined) };
+      openingReturns(Promise.resolve({ opened: ['/apps/x'], failed: [], invalid: [] }));
+      removeCollection.mockImplementation((uid) => () => Promise.resolve(uid));
     });
 
-    afterEach(() => {
-      delete window.ipcRenderer;
+    it('imports without asking when the name is free', async () => {
+      const { store } = createStore({ modal: openOn() });
+
+      await importFolder(store, '/downloads/Shipping');
+
+      expect(askDuplicateApplication).not.toHaveBeenCalled();
+      expect(callIpc).toHaveBeenCalledWith('renderer:import-application-folder', '/downloads/Shipping', {});
     });
 
-    it('shows the new setting at once and saves it with the other preferences', async () => {
-      const { store } = createStore({ preferences: { general: { defaultLocation: '/collections' } } });
+    it('asks, ignoring case and spaces, and keeps the existing application when told to', async () => {
+      askDuplicateApplication.mockResolvedValue({ choice: 'keep' });
+      const { store, dispatchedActions } = createStore({ modal: openOn() });
 
-      await store.dispatch(saveAutoOpenFolderPicker(false));
+      await importFolder(store, '/downloads/ open one ');
 
-      const updated = { general: { defaultLocation: '/collections' }, openCollection: { autoOpenFolderPicker: false } };
-      expect(store.getState().app.preferences).toEqual(updated);
-      expect(window.ipcRenderer.invoke).toHaveBeenCalledWith('renderer:save-preferences', updated);
+      expect(askDuplicateApplication).toHaveBeenCalledWith(expect.objectContaining({ name: 'open one' }));
+      expect(callIpc).not.toHaveBeenCalledWith('renderer:import-application-folder', expect.anything(), expect.anything());
+      expect(openMultipleCollections).not.toHaveBeenCalled();
+      expect(dispatchedActions).toContainEqual(addTab({ uid: 'collection-1', collectionUid: 'collection-1', type: 'collection-settings' }));
     });
 
-    it('puts the setting back and says so when saving fails', async () => {
-      window.ipcRenderer.invoke.mockRejectedValue(new Error('disk full'));
-      const preferences = { openCollection: { autoOpenFolderPicker: true } };
-      const { store } = createStore({ preferences });
+    it('takes the new application and removes the old one from the workspace when told to', async () => {
+      askDuplicateApplication.mockResolvedValue({ choice: 'replace' });
+      const { store } = createStore({ modal: openOn() });
 
-      await store.dispatch(saveAutoOpenFolderPicker(false));
+      await importFolder(store);
 
-      expect(store.getState().app.preferences).toEqual(preferences);
-      expect(toast.error).toHaveBeenCalledWith('Failed to save preferences');
+      expect(removeCollection).toHaveBeenCalledWith('collection-1');
+      expect(callIpc).toHaveBeenCalledWith('renderer:import-application-folder', '/downloads/Open One', {});
+      expect(openMultipleCollections).toHaveBeenCalledWith(['/apps/Open One'], expect.anything());
     });
 
-    it('keeps newer preferences when an older save fails', async () => {
-      const save = deferred();
-      window.ipcRenderer.invoke.mockReturnValue(save.promise);
-      const { store } = createStore();
+    it('imports under another name, and asks again when that one is taken as well', async () => {
+      askDuplicateApplication
+        .mockResolvedValueOnce({ choice: 'rename', name: 'open too' })
+        .mockResolvedValueOnce({ choice: 'rename', name: 'Open Three' });
+      const { store } = createStore({ modal: openOn() });
 
-      const saving = store.dispatch(saveAutoOpenFolderPicker(false));
-      store.dispatch(updatePreferences({ display: { zoomPercentage: 120 } }));
-      save.reject(new Error('disk full'));
-      await saving;
+      await importFolder(store);
 
-      expect(store.getState().app.preferences).toEqual({ display: { zoomPercentage: 120 } });
+      expect(askDuplicateApplication).toHaveBeenCalledTimes(2);
+      expect(callIpc).toHaveBeenCalledWith('renderer:import-application-folder', '/downloads/Open One', { name: 'Open Three' });
+    });
+
+    it('does nothing when the question is cancelled', async () => {
+      askDuplicateApplication.mockResolvedValue({ choice: 'cancel' });
+      const { store } = createStore({ modal: openOn() });
+
+      await importFolder(store);
+
+      expect(callIpc).not.toHaveBeenCalledWith('renderer:import-application-folder', expect.anything(), expect.anything());
+      expect(removeCollection).not.toHaveBeenCalled();
+      expect(modalState(store).isOpen).toBe(true);
+    });
+
+    it('asks about the name in a zip before unpacking it, and passes the other name on', async () => {
+      askDuplicateApplication.mockResolvedValue({ choice: 'rename', name: 'Open Zip' });
+      const { store } = createStore({ modal: openOn() });
+      browseFiles.mockReturnValue(() => Promise.resolve(['/downloads/Open One.zip']));
+
+      await store.dispatch(pickApplicationZip());
+
+      expect(callIpc).toHaveBeenCalledWith('renderer:read-application-zip-name', '/downloads/Open One.zip');
+      expect(callIpc).toHaveBeenCalledWith('renderer:import-application-zip', '/downloads/Open One.zip', { name: 'Open Zip' });
+    });
+
+    it('does not unpack a zip when the existing application is kept', async () => {
+      askDuplicateApplication.mockResolvedValue({ choice: 'keep' });
+      const { store } = createStore({ modal: openOn() });
+      browseFiles.mockReturnValue(() => Promise.resolve(['/downloads/Open One.zip']));
+
+      await store.dispatch(pickApplicationZip());
+
+      expect(callIpc).not.toHaveBeenCalledWith('renderer:import-application-zip', expect.anything(), expect.anything());
     });
   });
 
   describe('switchToCollection', () => {
     it('mounts and expands the collection, shows its settings and closes the modal', () => {
-      const { store, dispatchedActions } = createStore({ modal: openOn('choose-folder') });
+      const { store, dispatchedActions } = createStore({ modal: openOn() });
 
       store.dispatch(switchToCollection('/work/open'));
 
@@ -717,7 +689,7 @@ describe('open collection modal actions', () => {
 
     it('leaves a mounted, expanded collection as it is', () => {
       const { store, dispatchedActions } = createStore({
-        modal: openOn('choose-folder'),
+        modal: openOn(),
         collections: [{ ...openCollectionInRedux, collapsed: false, mountStatus: 'mounted' }]
       });
 
@@ -728,7 +700,7 @@ describe('open collection modal actions', () => {
     });
 
     it('closes the modal when the collection was closed in the meantime', () => {
-      const { store, dispatchedActions } = createStore({ modal: openOn('choose-folder'), collections: [] });
+      const { store, dispatchedActions } = createStore({ modal: openOn(), collections: [] });
 
       store.dispatch(switchToCollection('/work/open'));
 

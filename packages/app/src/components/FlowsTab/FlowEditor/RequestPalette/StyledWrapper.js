@@ -1,7 +1,8 @@
 import styled from 'styled-components';
 
 const StyledWrapper = styled.div`
-  flex: 0 0 220px;
+  flex: 0 1 220px;
+  min-width: 160px;
   overflow-y: auto;
   padding: 0.75rem;
   border: 1px solid ${(props) => props.theme.input.border};

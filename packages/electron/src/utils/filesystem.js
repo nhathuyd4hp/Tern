@@ -658,33 +658,6 @@ const isValidDotEnvFilename = (filename) => {
   return basename === '.env' || (basename.startsWith('.env.') && /^\.env\.[a-zA-Z0-9._-]+$/.test(basename));
 };
 
-const scanForBrunoFiles = async (dir) => {
-  const brunoFolders = [];
-
-  const scanDir = (currentDir) => {
-    const files = fs.readdirSync(currentDir);
-
-    if (files && files.length) {
-      files.forEach((file) => {
-        const fullPath = path.join(currentDir, file);
-        const stat = fs.statSync(fullPath);
-
-        if (stat.isDirectory()) {
-          if (['node_modules', '.git'].includes(file)) {
-            return;
-          }
-          scanDir(fullPath);
-        } else if (file === 'opencollection.yml' && !brunoFolders.includes(currentDir)) {
-          brunoFolders.push(currentDir);
-        }
-      });
-    }
-  };
-
-  scanDir(dir);
-  return brunoFolders;
-};
-
 const posixifyPath = (p) => (p ? p.replace(/\\/g, '/') : p);
 
 module.exports = {
@@ -735,6 +708,5 @@ module.exports = {
   isLargeFile,
   generateUniqueName,
   isDotEnvFile,
-  isValidDotEnvFilename,
-  scanForBrunoFiles
+  isValidDotEnvFilename
 };

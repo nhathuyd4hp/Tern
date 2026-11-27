@@ -5,11 +5,11 @@ import { useDispatch, useSelector, useStore } from 'react-redux';
 import {
   IconFolder,
   IconPlus,
-  IconBox
+  IconDeviceLaptop
 } from '@tabler/icons';
 
 import { newHttpRequest } from 'providers/ReduxStore/slices/collections/actions';
-import { folderResultCleared, showOpenCollectionModal } from 'providers/ReduxStore/slices/open-collection-modal';
+import { openImportApplicationDialog } from 'providers/ReduxStore/slices/open-collection-modal/actions';
 import { savePreferences, setIsCreatingCollection } from 'providers/ReduxStore/slices/app';
 import { flattenItems, isItemTransientRequest } from 'utils/collections';
 import { selectCollections, selectActiveWorkspace } from 'src/selectors/collections';
@@ -56,10 +56,8 @@ const CollectionsSection = () => {
     });
   };
 
-  // A dialog with the two ways to import: a folder or a .zip file.
   const handleOpenCollection = () => {
-    dispatch(folderResultCleared());
-    dispatch(showOpenCollectionModal('choose-folder'));
+    dispatch(openImportApplicationDialog());
   };
 
   const handleStartRequest = () => {
@@ -178,7 +176,7 @@ const CollectionsSection = () => {
       <SidebarSection
         id="collections"
         title={hostname || 'Applications'}
-        icon={IconBox}
+        icon={IconDeviceLaptop}
         actions={sectionActions}
       >
         <Collections

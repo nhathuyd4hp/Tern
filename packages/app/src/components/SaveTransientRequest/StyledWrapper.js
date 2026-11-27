@@ -489,11 +489,6 @@ const StyledWrapper = styled.div`
     }
   }
 
-  .new-collection-location-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
 
   .new-collection-actions-footer {
     display: flex;

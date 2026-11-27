@@ -2,8 +2,7 @@ import { useEffect } from 'react';
 import {
   updateCookies,
   updatePreferences,
-  setGitVersion,
-  setIsOpeningCollection
+  setGitVersion
 } from 'providers/ReduxStore/slices/app';
 import {
   addTab
@@ -115,10 +114,6 @@ const useIpcEvents = () => {
 
     const removeOpenWorkspaceListener = ipcRenderer.on('main:workspace-opened', (workspacePath, workspaceUid, workspaceConfig) => {
       dispatch(workspaceOpenedEvent(workspacePath, workspaceUid, workspaceConfig));
-    });
-
-    const removeOpenCollectionModalListener = ipcRenderer.on('main:open-collection', () => {
-      dispatch(setIsOpeningCollection(true));
     });
 
     const removeWorkspacesReadyListener = ipcRenderer.on('main:workspaces-ready', () => {
@@ -329,7 +324,6 @@ const useIpcEvents = () => {
       removeCollectionTreeUpdateListener();
       removeOpenCollectionListener();
       removeOpenWorkspaceListener();
-      removeOpenCollectionModalListener();
       removeWorkspacesReadyListener();
       removeWorkspaceConfigUpdatedListener();
       removeWorkspaceEnvironmentAddedListener();

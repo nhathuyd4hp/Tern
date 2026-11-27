@@ -16,16 +16,17 @@ const StyledWrapper = styled.div`
     color: ${(props) => props.theme.colors.text.subtext0};
     cursor: pointer;
 
-    &:hover,
-    &[aria-expanded="true"] {
+    &:hover {
       background: ${(props) => props.theme.background.mantle};
       color: ${(props) => props.theme.text};
     }
   }
 
-  .shortcut {
-    font-size: 11px;
-    color: ${(props) => props.theme.dropdown.mutedText};
+  .menu-bar-version {
+    padding: 0 8px;
+    font-size: ${(props) => props.theme.font.size.sm};
+    color: ${(props) => props.theme.colors.text.muted};
+    white-space: nowrap;
   }
 `;
 

@@ -22,19 +22,6 @@ const StyledWrapper = styled.div`
     gap: 0.875rem;
     padding: 0.25rem 1.25rem 1.25rem;
   }
-
-  .choose-folder-auto-open {
-    align-self: flex-start;
-    user-select: none;
-
-    .checkbox-label {
-      color: ${(props) => props.theme.colors.text.muted};
-    }
-
-    &:hover .checkbox-label {
-      color: ${(props) => props.theme.text};
-    }
-  }
 `;
 
 export default StyledWrapper;

@@ -37,7 +37,7 @@ const listResult = {
   note: { tone: 'info', text: 'work isn’t a collection itself, but it has 2 collections inside. Pick the ones to open.' }
 };
 
-const renderPage = ({ preferences = {}, chooseFolder = {} } = {}) => {
+const renderPage = ({ chooseFolder = {} } = {}) => {
   const store = configureStore({
     reducer: {
       openCollectionModal: openCollectionModalReducer,
@@ -49,10 +49,9 @@ const renderPage = ({ preferences = {}, chooseFolder = {} } = {}) => {
       openCollectionModal: {
         ...closedModal,
         isOpen: true,
-        page: 'choose-folder',
         chooseFolder: { ...closedModal.chooseFolder, ...chooseFolder }
       },
-      app: { ...appReducer(undefined, { type: 'init' }), preferences }
+      app: appReducer(undefined, { type: 'init' })
     }
   });
   render(
@@ -67,8 +66,6 @@ const renderPage = ({ preferences = {}, chooseFolder = {} } = {}) => {
   return store;
 };
 
-const autoOpenCheckbox = () => screen.getByTestId('choose-folder-auto-open-picker');
-
 describe('ChooseFolderPage', () => {
   beforeEach(() => {
     window.ipcRenderer = { invoke: jest.fn().mockResolvedValue(undefined), send: jest.fn() };
@@ -80,17 +77,13 @@ describe('ChooseFolderPage', () => {
     delete window.ipcRenderer;
   });
 
-  it('shows the drop zone with the folder picker setting on by default', () => {
+  it('shows the drop zone with the two ways to import', () => {
     renderPage();
 
-    expect(screen.getByTestId('choose-folder-drop-zone')).toHaveTextContent('Drop Tern application folders or a .zip here');
-    expect(autoOpenCheckbox()).toBeChecked();
-  });
-
-  it('shows the saved folder picker setting', () => {
-    renderPage({ preferences: { openCollection: { autoOpenFolderPicker: false } } });
-
-    expect(autoOpenCheckbox()).not.toBeChecked();
+    expect(screen.getByTestId('choose-folder-drop-zone')).toHaveTextContent('Drop a Tern application folder or a .zip here');
+    expect(screen.getByTestId('choose-folder-choose-link')).toHaveTextContent('Choose folder');
+    expect(screen.getByTestId('choose-folder-import-zip-link')).toHaveTextContent('Choose .zip file');
+    expect(browseDirectories).not.toHaveBeenCalled();
   });
 
   it('opens the folder picker from the choose folders link', async () => {
@@ -113,29 +106,6 @@ describe('ChooseFolderPage', () => {
 
     expect(browseFiles).toHaveBeenCalledWith([{ name: 'Zip files', extensions: ['zip'] }], []);
     expect(browseDirectories).not.toHaveBeenCalled();
-  });
-
-  it('saves the setting and does not open the folder picker', async () => {
-    renderPage({ preferences: { general: { defaultLocation: '/collections' } } });
-
-    fireEvent.click(autoOpenCheckbox());
-
-    await waitFor(() => expect(window.ipcRenderer.invoke).toHaveBeenCalledWith('renderer:save-preferences', {
-      general: { defaultLocation: '/collections' },
-      openCollection: { autoOpenFolderPicker: false }
-    }));
-    expect(autoOpenCheckbox()).not.toBeChecked();
-    expect(browseDirectories).not.toHaveBeenCalled();
-  });
-
-  it('puts the setting back and says so when saving fails', async () => {
-    window.ipcRenderer.invoke.mockRejectedValue(new Error('disk full'));
-    renderPage();
-
-    fireEvent.click(autoOpenCheckbox());
-
-    await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Failed to save preferences'));
-    expect(autoOpenCheckbox()).toBeChecked();
   });
 
   it('shows the collections found and leaves the note to the modal', () => {
@@ -166,13 +136,19 @@ describe('ChooseFolderPage', () => {
     expect(browseDirectories).toHaveBeenCalledTimes(1);
   });
 
-  it('opens the selected collections', () => {
+  it('copies the selected application into the applications location, then opens the copy', async () => {
+    callIpc.mockImplementation((channel) => {
+      if (channel === 'renderer:read-application-folder-name') return Promise.resolve('API');
+      if (channel === 'renderer:import-application-folder') return Promise.resolve({ path: '/apps/api', name: 'API' });
+      return Promise.resolve(undefined);
+    });
     openMultipleCollections.mockReturnValue(() => new Promise(() => {}));
     renderPage({ chooseFolder: { result: listResult } });
 
     fireEvent.click(screen.getByTestId('choose-folder-open-selected'));
 
-    expect(openMultipleCollections).toHaveBeenCalledWith(['/work/api'], { silent: true, dontSendDisplayErrors: true });
+    await waitFor(() => expect(openMultipleCollections).toHaveBeenCalledWith(['/apps/api'], { silent: true, dontSendDisplayErrors: true }));
+    expect(callIpc).toHaveBeenCalledWith('renderer:import-application-folder', '/work/api', {});
   });
 
   it('puts focus on the choose folders link when nothing else has it', () => {

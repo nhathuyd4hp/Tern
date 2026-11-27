@@ -41,9 +41,9 @@ const StyledWrapper = styled.div`
     z-index: 11;
     display: flex;
     flex-shrink: 0;
-    width: 52.5rem;
+    width: 40rem;
     max-width: calc(100vw - 2rem);
-    height: 35rem;
+    height: 28rem;
     max-height: calc(100vh - 6.25rem);
     margin-top: 3.125rem;
     margin-bottom: 3vh;

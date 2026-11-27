@@ -3,7 +3,6 @@ import classnames from 'classnames';
 import RequestTabs from 'components/RequestTabs';
 import RequestTabPanel from 'components/RequestTabPanel';
 import Sidebar from 'components/Sidebar';
-import OpenCollection from 'components/Sidebar/OpenCollection';
 import OpenCollectionModal from 'components/OpenCollectionModal';
 import AppTitleBar from 'components/AppTitleBar';
 import TabPanelErrorBoundary from 'components/RequestTabPanel/TabPanelErrorBoundary';
@@ -14,6 +13,7 @@ import 'swagger-ui-react/swagger-ui.css';
 import useGrpcEventListeners from 'utils/network/grpc-event-listeners';
 import useWsEventListeners from 'utils/network/ws-event-listeners';
 import Portal from 'components/Portal';
+import DuplicateApplicationModal from 'components/DuplicateApplicationModal';
 import SaveTransientRequestContainer from 'components/SaveTransientRequest/Container';
 import SaveTransientRequest from 'components/SaveTransientRequest';
 
@@ -107,8 +107,8 @@ export default function Main() {
       </div>
 
       <TransientRequestModalsRenderer modals={saveTransientRequestModals} />
-      <OpenCollection />
       <OpenCollectionModal />
+      <DuplicateApplicationModal />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { saveRequest, saveCollectionSettings, saveFolderRoot, saveFile, saveEnvironment } from '../../slices/collections/actions';
+import { saveRequest, saveCollectionSettings, saveFolderRoot, saveEnvironment } from '../../slices/collections/actions';
 import { saveGlobalEnvironment } from '../../slices/global-environments';
 import { flattenItems, isItemARequest, isItemAFolder, findItemInCollection, findCollectionByUid, isItemTransientRequest } from 'utils/collections';
 import { isEnvironmentValidationError } from 'utils/environments';
@@ -55,7 +55,6 @@ const actionsToIntercept = [
   'collections/updateItemSettings',
   'collections/addRequestTag',
   'collections/deleteRequestTag',
-  'collections/updateFileContent',
 
   // Folder-level actions
   'collections/addFolderHeader',
@@ -147,19 +146,11 @@ const saveExistingDrafts = (dispatch, getState, interval) => {
       }
     }
 
-    // Check all items (requests, folders, and file mode) for drafts
+    // Check all items (requests and folders) for drafts
     const allItems = flattenItems(collection.items);
     allItems.forEach((item) => {
       if (item.draft) {
-        // File mode (requests with raw draft content, including empty content)
-        if (collection.fileMode && typeof item.draft.raw === 'string') {
-          // Skip auto-save for transient requests
-          if (isItemTransientRequest(item)) {
-            return;
-          }
-          const key = `file-${item.uid}`;
-          scheduleAutoSave(key, () => dispatch(saveFile(item.draft.raw, item.uid, collection.uid, true)), interval);
-        } else if (isItemARequest(item)) {
+        if (isItemARequest(item)) {
           // Skip auto-save for transient requests
           if (isItemTransientRequest(item)) {
             return;
@@ -241,13 +232,6 @@ const determineSaveHandler = (actionType, payload, dispatch, getState) => {
       if (item && isItemTransientRequest(item)) {
         return null; // Skip auto-save for transient requests
       }
-    }
-
-    if (actionType === 'collections/updateFileContent') {
-      return {
-        key: `file-${itemUid}`,
-        save: () => dispatch(saveFile(payload.content, itemUid, collectionUid, true))
-      };
     }
 
     return {

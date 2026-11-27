@@ -2,25 +2,22 @@ import { useMemo } from 'react';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { IconFileZip, IconFolder } from '@tabler/icons';
 import Button from 'ui/Button';
-import Checkbox from 'ui/Checkbox';
 import {
   cancelCollectionSearch,
   closeOpenCollectionModal,
   openCollectionsFromModal,
   pickApplicationZip,
-  pickCollectionFolders,
-  saveAutoOpenFolderPicker
+  pickCollectionFolders
 } from 'providers/ReduxStore/slices/open-collection-modal/actions';
-import { selectAutoOpenFolderPicker, selectOpenCollectionPathKeys } from 'providers/ReduxStore/slices/open-collection-modal/selectors';
-import BusyOverlay from '../../components/BusyOverlay';
-import CollectionPicker from '../../components/CollectionPicker';
-import DropZone from '../../components/DropZone';
+import { selectOpenCollectionPathKeys } from 'providers/ReduxStore/slices/open-collection-modal/selectors';
+import BusyOverlay from '../BusyOverlay';
+import CollectionPicker from '../CollectionPicker';
+import DropZone from '../DropZone';
 import { focusWhenFocusIsLost } from '../../utils/focus';
 import StyledWrapper from './StyledWrapper';
 
 const ChooseFolderPage = () => {
   const dispatch = useDispatch();
-  const autoOpenFolderPicker = useSelector(selectAutoOpenFolderPicker);
   const { status, searchLabel, result } = useSelector((state) => state.openCollectionModal.chooseFolder);
   const openPathKeyList = useSelector(selectOpenCollectionPathKeys, shallowEqual);
   const openPathKeys = useMemo(() => new Set(openPathKeyList), [openPathKeyList]);
@@ -47,7 +44,7 @@ const ChooseFolderPage = () => {
           <div className="choose-folder-start">
             <DropZone
               icon={IconFolder}
-              title="Drop Tern application folders or a .zip here"
+              title="Drop a Tern application folder or a .zip here"
               hint={(
                 <>
                   Tern Application folder has <code>opencollection.yml</code> at the root
@@ -75,14 +72,6 @@ const ChooseFolderPage = () => {
                 </Button>
               </span>
             </DropZone>
-            <Checkbox
-              className="choose-folder-auto-open"
-              size="lg"
-              checked={autoOpenFolderPicker}
-              onChange={(event) => dispatch(saveAutoOpenFolderPicker(event.target.checked))}
-              label="Open the folder picker when this tab opens"
-              data-testid="choose-folder-auto-open-picker"
-            />
           </div>
         )}
       </div>

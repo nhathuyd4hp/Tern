@@ -6,6 +6,7 @@ import { toggleSidebarCollapse } from 'providers/ReduxStore/slices/app';
 import { setLocalStorageValue, SIDEBAR_COLLAPSED_KEY } from 'utils/common/localStorage';
 import { focusTab } from 'providers/ReduxStore/slices/tabs';
 
+import { useHostname } from 'utils/hostname';
 import Logo from 'components/Logo';
 import ActionIcon from 'ui/ActionIcon';
 import IconSidebarToggle from 'components/Icons/IconSidebarToggle';
@@ -24,6 +25,7 @@ const getOsClass = () => {
 
 const AppTitleBar = () => {
   const dispatch = useDispatch();
+  const hostname = useHostname();
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
   const osClass = getOsClass();
@@ -118,7 +120,7 @@ const AppTitleBar = () => {
     <StyledWrapper data-testid="app-titlebar" className={`app-titlebar ${osClass} ${isFullScreen ? 'fullscreen' : ''}`}>
       <div className="titlebar-content">
         <div className="titlebar-left">
-          <ActionIcon onClick={handleHomeClick} label="Home" size="lg" className="home-button">
+          <ActionIcon onClick={handleHomeClick} label={hostname || 'Home'} size="lg" className="home-button">
             <IconHome size={16} stroke={1.5} />
           </ActionIcon>
 

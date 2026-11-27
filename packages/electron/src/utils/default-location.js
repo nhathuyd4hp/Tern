@@ -11,4 +11,14 @@ function resolveDefaultLocation() {
   return dirPath;
 }
 
-module.exports = { resolveDefaultLocation };
+/**
+ * The one place every application lives: the default location of Settings (Preferences > General),
+ * or the data directory when that one is not set or does not exist anymore.
+ */
+function getApplicationsLocation() {
+  const { getPreferences } = require('../store/preferences');
+  const location = getPreferences().general?.defaultLocation;
+  return location && fs.existsSync(location) && fs.statSync(location).isDirectory() ? location : resolveDefaultLocation();
+}
+
+module.exports = { resolveDefaultLocation, getApplicationsLocation };

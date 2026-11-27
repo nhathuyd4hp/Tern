@@ -16,7 +16,7 @@ jest.mock('nanoid', () => {
   let count = 0;
   return { customAlphabet: () => () => `mock-id-${(count += 1)}` };
 });
-jest.mock('../../sidebar/ChooseFolderPage', () => ({
+jest.mock('../ChooseFolderPage', () => ({
   __esModule: true,
   default: () => (
     <div>
@@ -27,14 +27,9 @@ jest.mock('../../sidebar/ChooseFolderPage', () => ({
   )
 }));
 
-jest.mock('../../sidebar/RecentsPage', () => ({
-  __esModule: true,
-  default: () => <input aria-label="Search recents" autoFocus />
-}));
-
 const closedState = openCollectionModalReducer(undefined, { type: 'init' });
 
-const createStore = (openCollectionModal = { isOpen: true, page: 'choose-folder' }) =>
+const createStore = (openCollectionModal = { isOpen: true }) =>
   configureStore({
     reducer: { openCollectionModal: openCollectionModalReducer },
     preloadedState: { openCollectionModal: { ...closedState, ...openCollectionModal } }
@@ -47,8 +42,8 @@ const renderWithStore = (ui, store) =>
     </Provider>
   );
 
-const renderShell = (page = 'choose-folder') => {
-  const store = createStore({ isOpen: true, page });
+const renderShell = () => {
+  const store = createStore({ isOpen: true });
   renderWithStore(<ModalShell />, store);
   return store;
 };
@@ -66,23 +61,16 @@ describe('ModalShell', () => {
     delete Element.prototype.checkVisibility;
   });
 
-  it('shows the page from the store with its title and description', () => {
-    renderShell('recents');
+  it('shows the import title and description', () => {
+    renderShell();
 
-    expect(screen.getByTestId('open-collection-page-title')).toHaveTextContent('Recents');
-    expect(screen.getByText('Applications you opened recently, including ones you closed')).toBeInTheDocument();
-    expect(screen.getByTestId('open-collection-page-recents')).toBeInTheDocument();
-  });
-
-  it('falls back to the first page for an unknown page id', () => {
-    renderShell('unknown');
-
-    expect(screen.getByTestId('open-collection-page-title')).toHaveTextContent('Choose folder');
-    expect(screen.getByTestId('open-collection-menu-item-choose-folder')).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByTestId('open-collection-page-title')).toHaveTextContent('Import application');
+    expect(screen.getByText('Pick a folder or a .zip file with a Tern application.')).toBeInTheDocument();
+    expect(screen.getByTestId('open-collection-page-choose-folder')).toBeInTheDocument();
   });
 
   it('shows that applications are opening over the page and keeps the page out of reach', () => {
-    const store = createStore({ isOpen: true, page: 'choose-folder', openingId: 'opening-1' });
+    const store = createStore({ isOpen: true, openingId: 'opening-1' });
     renderWithStore(<ModalShell />, store);
 
     const page = screen.getByTestId('open-collection-page-choose-folder');
@@ -91,16 +79,15 @@ describe('ModalShell', () => {
   });
 
   it('keeps Tab inside the dialog while the page is out of reach', () => {
-    const store = createStore({ isOpen: true, page: 'choose-folder', openingId: 'opening-1' });
+    const store = createStore({ isOpen: true, openingId: 'opening-1' });
     renderWithStore(<ModalShell />, store);
     const close = screen.getByTestId('open-collection-close');
-    const firstItem = screen.getByTestId('open-collection-menu-item-choose-folder');
     close.focus();
 
     fireEvent.keyDown(close, { key: 'Tab' });
-    expect(firstItem).toHaveFocus();
+    expect(close).toHaveFocus();
 
-    fireEvent.keyDown(firstItem, { key: 'Tab', shiftKey: true });
+    fireEvent.keyDown(close, { key: 'Tab', shiftKey: true });
     expect(close).toHaveFocus();
   });
 
@@ -176,7 +163,7 @@ describe('ModalShell', () => {
     });
 
     it('does not offer a drop while applications are opening', () => {
-      const store = createStore({ isOpen: true, page: 'choose-folder', openingId: 'opening-1' });
+      const store = createStore({ isOpen: true, openingId: 'opening-1' });
       renderWithStore(<ModalShell />, store);
 
       fireEvent.dragEnter(dialog(), { dataTransfer: fileDrag });
@@ -185,7 +172,7 @@ describe('ModalShell', () => {
     });
 
     it('offers the drop once applications finish opening during the drag', () => {
-      const store = createStore({ isOpen: true, page: 'choose-folder', openingId: 'opening-1' });
+      const store = createStore({ isOpen: true, openingId: 'opening-1' });
       renderWithStore(<ModalShell />, store);
 
       fireEvent.dragEnter(dialog(), { dataTransfer: fileDrag });
@@ -206,14 +193,13 @@ describe('ModalShell', () => {
       fireEvent.drop(dialog(), { dataTransfer: { ...fileDrag, items: [item] } });
 
       expect(queryOverlay()).not.toBeInTheDocument();
-      expect(store.getState().openCollectionModal.page).toBe('choose-folder');
       delete window.ipcRenderer;
     });
   });
 
   it('leaves the note without an action when it names no file', () => {
     const result = { id: 'search-1', type: 'message', note: { tone: 'info', text: 'Not an application.' } };
-    const store = createStore({ isOpen: true, page: 'choose-folder', chooseFolder: { ...closedState.chooseFolder, result } });
+    const store = createStore({ isOpen: true, chooseFolder: { ...closedState.chooseFolder, result } });
     renderWithStore(<ModalShell />, store);
 
     expect(screen.queryByTestId('open-collection-note-action')).not.toBeInTheDocument();
@@ -229,7 +215,7 @@ describe('ModalShell', () => {
   it('is a modal dialog labelled by its heading', () => {
     renderShell();
 
-    expect(screen.getByRole('dialog', { name: 'Open application' })).toHaveAttribute('aria-modal', 'true');
+    expect(screen.getByRole('dialog', { name: 'Import application' })).toHaveAttribute('aria-modal', 'true');
   });
 
   it('closes from the Close button', () => {
@@ -251,7 +237,7 @@ describe('ModalShell', () => {
   it('closes on Escape', () => {
     const store = renderShell();
 
-    fireEvent.keyDown(screen.getByTestId('open-collection-menu-item-choose-folder'), { key: 'Escape' });
+    fireEvent.keyDown(screen.getByTestId('open-collection-close'), { key: 'Escape' });
 
     expect(isOpen(store)).toBe(false);
   });
@@ -265,7 +251,7 @@ describe('ModalShell', () => {
   });
 
   it('stays open while applications are opening', () => {
-    const store = createStore({ isOpen: true, page: 'choose-folder', openingId: 'opening-1' });
+    const store = createStore({ isOpen: true, openingId: 'opening-1' });
     renderWithStore(<ModalShell />, store);
 
     fireEvent.click(screen.getByTestId('open-collection-close'));
@@ -277,7 +263,7 @@ describe('ModalShell', () => {
 
   it('stays open when an inner control already handled Escape', () => {
     const store = renderShell();
-    const item = screen.getByTestId('open-collection-menu-item-choose-folder');
+    const item = screen.getByTestId('open-collection-close');
     item.addEventListener('keydown', (event) => event.preventDefault());
 
     fireEvent.keyDown(item, { key: 'Escape' });
@@ -286,22 +272,15 @@ describe('ModalShell', () => {
   });
 
   it('moves focus into the dialog when it opens', () => {
-    renderShell('import');
+    renderShell();
 
     expect(screen.getByTestId('open-collection-modal')).toHaveFocus();
-  });
-
-  it('leaves focus on a page control that took it on open', () => {
-    renderShell('recents');
-
-    expect(screen.getByRole('textbox', { name: 'Search recents' })).toHaveFocus();
   });
 
   it('shows the Choose collection note between the header and the page, and dismisses it', () => {
     const note = { tone: 'info', text: 'work isn’t an application itself, but it has 2 applications inside. Pick the ones to open.' };
     const store = createStore({
       isOpen: true,
-      page: 'choose-folder',
       chooseFolder: { ...closedState.chooseFolder, result: { id: 'search-1', type: 'list', collections: [], preselect: [], note } }
     });
     renderWithStore(<ModalShell />, store);
@@ -319,7 +298,6 @@ describe('ModalShell', () => {
   it('moves focus to the page when the focused note is dismissed', () => {
     const store = createStore({
       isOpen: true,
-      page: 'choose-folder',
       chooseFolder: { ...closedState.chooseFolder, result: { id: 'search-1', type: 'message', note: { tone: 'info', text: 'Note' } } }
     });
     renderWithStore(<ModalShell />, store);
@@ -338,12 +316,12 @@ describe('ModalShell', () => {
 
     fireEvent.keyDown(checkbox, { key: 'Tab' });
 
-    expect(screen.getByTestId('open-collection-menu-item-choose-folder')).toHaveFocus();
+    expect(screen.getByTestId('open-collection-close')).toHaveFocus();
   });
 
   it('wraps Shift+Tab from the first tabbable element to the last', () => {
     renderShell();
-    const first = screen.getByTestId('open-collection-menu-item-choose-folder');
+    const first = screen.getByTestId('open-collection-close');
     first.focus();
 
     fireEvent.keyDown(first, { key: 'Tab', shiftKey: true });
@@ -369,7 +347,7 @@ describe('ModalShell', () => {
 
     fireEvent.keyDown(dialog, { key: 'Tab' });
 
-    expect(screen.getByTestId('open-collection-menu-item-choose-folder')).toHaveFocus();
+    expect(screen.getByTestId('open-collection-close')).toHaveFocus();
   });
 
   it('moves Shift+Tab from the dialog itself to its last tabbable element', () => {
@@ -388,7 +366,7 @@ describe('ModalShell', () => {
 
     fireEvent.keyDown(document.body, { key: 'Tab' });
 
-    expect(screen.getByTestId('open-collection-menu-item-choose-folder')).toHaveFocus();
+    expect(screen.getByTestId('open-collection-close')).toHaveFocus();
   });
 
   it('takes focus back when a control behind it grabs focus', () => {
@@ -400,12 +378,12 @@ describe('ModalShell', () => {
       </>,
       store
     );
-    const menuItem = screen.getByTestId('open-collection-menu-item-choose-folder');
-    menuItem.focus();
+    const closeButton = screen.getByTestId('open-collection-close');
+    closeButton.focus();
 
     screen.getByTestId('background-search').focus();
 
-    expect(menuItem).toHaveFocus();
+    expect(closeButton).toHaveFocus();
   });
 
   it('closes on Escape pressed on a control behind it', () => {
@@ -444,7 +422,7 @@ describe('ModalShell', () => {
   });
 
   it('returns focus to the element that opened it', () => {
-    const store = createStore({ isOpen: false, page: null });
+    const store = createStore({ isOpen: false });
     renderWithStore(
       <>
         <button type="button" data-testid="opener">Open</button>
@@ -456,7 +434,7 @@ describe('ModalShell', () => {
     opener.focus();
 
     act(() => {
-      store.dispatch(showOpenCollectionModal('choose-folder'));
+      store.dispatch(showOpenCollectionModal());
     });
     expect(opener).not.toHaveFocus();
 
@@ -467,37 +445,15 @@ describe('ModalShell', () => {
     expect(opener).toHaveFocus();
   });
 
-  it('returns focus to the opener when the page focuses its own control on open', () => {
-    const store = createStore({ isOpen: false, page: null });
-    renderWithStore(
-      <>
-        <button type="button" data-testid="opener">Open</button>
-        <OpenCollectionModal />
-      </>,
-      store
-    );
-    const opener = screen.getByTestId('opener');
-    opener.focus();
-
-    act(() => {
-      store.dispatch(showOpenCollectionModal('recents'));
-    });
-    act(() => {
-      store.dispatch(hideOpenCollectionModal());
-    });
-
-    expect(opener).toHaveFocus();
-  });
-
   it('stops handling keys once it is closed', () => {
-    const store = createStore({ isOpen: true, page: 'choose-folder' });
+    const store = createStore({ isOpen: true });
     renderWithStore(<OpenCollectionModal />, store);
 
     act(() => {
       store.dispatch(hideOpenCollectionModal());
     });
     act(() => {
-      store.dispatch(showOpenCollectionModal('recents'));
+      store.dispatch(showOpenCollectionModal());
     });
     act(() => {
       store.dispatch(hideOpenCollectionModal());
