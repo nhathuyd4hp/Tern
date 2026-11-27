@@ -8,6 +8,10 @@
 
 Tern dùng để thử và kiểm tra API trong lúc phát triển backend: REST, GraphQL, gRPC và WebSocket trong cùng một giao diện. Không cần tài khoản, không đăng nhập, hoạt động hoàn toàn offline; dữ liệu và khóa API không rời khỏi máy.
 
+<p align="center">
+  <img src="docs/tern.gif" alt="Video giới thiệu Tern: phần đầu là tổng quan, phần sau quay từ ứng dụng thật (tạo Application, nạp OpenAPI, Environment, gửi request, Flow, đổi theme)" width="720">
+</p>
+
 ## Cách tổ chức
 
 - **Application:** một dự án, tương ứng một thư mục trên đĩa. Một Application chứa nhiều Collection. Tên Application không được trùng nhau.
@@ -23,7 +27,7 @@ Application và Collection là thư mục chứa file văn bản (`.yml`), nên 
 
 **Giao thức**
 
-- HTTP/REST, GraphQL, gRPC (có server reflection) và WebSocket.
+- HTTP/REST, GraphQL, gRPC, WebSocket.
 
 **Soạn request**
 
@@ -81,12 +85,12 @@ Bản cài đặt cho Windows và Linux (AppImage, deb, rpm) được build bằ
 
 Monorepo (npm workspaces) trong `packages/`:
 
-| Package                                                     | Vai trò                                        |
-| ----------------------------------------------------------- | ---------------------------------------------- |
-| `app`                                                       | Giao diện React + Redux                        |
-| `electron`                                                  | Tiến trình chính của Electron: file, mạng, IPC |
-| `requests`                                                  | Gửi request (HTTP, gRPC, WebSocket)            |
-| `js`                                                        | Sandbox chạy script và test                    |
-| `filestore`                                                 | Đọc, ghi file `.yml`                           |
-| `converters`                                                | Chuyển đổi OpenAPI sang request                |
-| `common`, `schema`, `schema-types`, `query`, `graphql-docs` | Thư viện dùng chung                            |
+| Package                                                               | Vai trò                                            |
+| --------------------------------------------------------------------- | --------------------------------------------------- |
+| `app`                                                               | Giao diện React + Redux                            |
+| `electron`                                                          | Tiến trình chính của Electron: file, mạng, IPC |
+| `requests`                                                          | Gửi request (HTTP, gRPC, WebSocket)                |
+| `js`                                                                | Sandbox chạy script và test                       |
+| `filestore`                                                         | Đọc, ghi file `.yml`                            |
+| `converters`                                                        | Chuyển đổi OpenAPI sang request                  |
+| `common`, `schema`, `schema-types`, `query`, `graphql-docs` | Thư viện dùng chung                              |

@@ -76,3 +76,6 @@ packages/filestore/dist
 packages/requests/dist
 packages/schema-types/dist
 packages/converters/dist
+
+# intro video sources (docs/tern.gif is the rendered result)
+video/
