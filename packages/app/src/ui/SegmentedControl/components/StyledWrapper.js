@@ -1,9 +1,14 @@
 import styled, { css } from 'styled-components';
-import { transparentize } from 'polished';
+import { transparentize } from 'utils/color';
 
 // Raised active-segment fill: surface1 in dark themes, base in light themes.
-const activeBg = (theme) =>
-  theme.mode === 'dark' ? theme.background.surface1 : theme.background.base;
+const activeSegmentBg = css`
+  background: ${(props) => props.theme.background.base};
+
+  html.dark & {
+    background: ${(props) => props.theme.background.surface1};
+  }
+`;
 
 const variantStyles = {
   solid: css`
@@ -11,7 +16,7 @@ const variantStyles = {
 
     .segment.active {
       color: ${(props) => props.theme.text};
-      background: ${(props) => activeBg(props.theme)};
+      ${activeSegmentBg}
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
       font-weight: 500;
     }
@@ -45,7 +50,7 @@ const variantStyles = {
 
     .segment.active {
       color: ${(props) => props.theme.text};
-      background: ${(props) => activeBg(props.theme)};
+      ${activeSegmentBg}
       box-shadow: none;
       font-weight: 500;
     }

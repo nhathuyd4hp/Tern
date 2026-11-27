@@ -138,6 +138,13 @@
   background: transparent !important;
 }
 
+/* Re-theming would otherwise animate colors on every element at once. */
+html.theme-switching *,
+html.theme-switching *::before,
+html.theme-switching *::after {
+  transition: none !important;
+}
+
 html,
 body {
   margin: 0;

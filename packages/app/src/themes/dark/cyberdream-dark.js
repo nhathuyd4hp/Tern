@@ -1,7 +1,7 @@
 // Cyberdream Theme for Bruno (dark)
 // https://github.com/scottmckendry/cyberdream.nvim
 
-import { mix, rgba } from 'polished';
+import { mix, rgba } from 'utils/color';
 
 const BG = '#16181a';
 const BG_ALT = '#1e2124';
@@ -235,7 +235,7 @@ const cyberdreamDarkTheme = {
   request: {
     methods: {
       get: colors.GREEN,
-      post: colors.PURPLE,
+      post: colors.BLUE,
       put: colors.YELLOW,
       delete: colors.RED,
       patch: colors.ORANGE,

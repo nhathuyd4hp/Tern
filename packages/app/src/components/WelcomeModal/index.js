@@ -19,14 +19,7 @@ const WelcomeModal = ({ onDismiss, onCreateCollection, onOpenCollection, onStart
   const dispatch = useDispatch();
   const preferences = useSelector((state) => state.app.preferences);
   const defaultLocation = get(preferences, 'general.defaultLocation', '');
-  const {
-    storedTheme,
-    setStoredTheme,
-    themeVariantLight,
-    setThemeVariantLight,
-    themeVariantDark,
-    setThemeVariantDark
-  } = useTheme();
+  const { storedTheme, setStoredTheme } = useTheme();
 
   const [step, setStep] = useState(1);
   const [collectionLocation, setCollectionLocation] = useState(defaultLocation);
@@ -78,10 +71,6 @@ const WelcomeModal = ({ onDismiss, onCreateCollection, onOpenCollection, onStart
       key="theme"
       storedTheme={storedTheme}
       setStoredTheme={setStoredTheme}
-      themeVariantLight={themeVariantLight}
-      setThemeVariantLight={setThemeVariantLight}
-      themeVariantDark={themeVariantDark}
-      setThemeVariantDark={setThemeVariantDark}
     />,
     <StorageStep
       key="storage"

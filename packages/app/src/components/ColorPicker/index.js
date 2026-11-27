@@ -3,7 +3,7 @@ import { IconBan, IconBrush } from '@tabler/icons';
 import Dropdown from 'components/Dropdown';
 import ColorBadge from 'components/ColorBadge';
 import StyledWrapper from './StyledWrapper';
-import { parseToRgb, toColorString } from 'polished';
+import { parseToRgb, toColorString } from 'utils/color';
 import ColorRangePicker from 'components/ColorRange/index';
 
 const PRESET_COLORS = [

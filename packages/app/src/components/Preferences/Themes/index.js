@@ -1,20 +1,28 @@
 import React from 'react';
-import { rgba } from 'polished';
+import { rgba } from 'utils/color';
 import { useTheme } from 'providers/Theme';
-import themes, { getLightThemes, getDarkThemes } from 'themes/index';
+import themes from 'themes/index';
 import { IconBrightnessUp, IconMoon, IconDeviceDesktop } from '@tabler/icons';
 import StyledWrapper from './StyledWrapper';
 
-const ThemePreview = ({ themeId, isDark }) => {
-  const theme = themes[themeId] || themes[isDark ? 'dark' : 'light'];
+const themeModes = [
+  { key: 'light', label: 'Light', icon: IconBrightnessUp },
+  { key: 'dark', label: 'Dark', icon: IconMoon },
+  { key: 'system', label: 'System', icon: IconDeviceDesktop }
+];
 
-  const bgColor = theme.background.base;
-  const sidebarColor = theme.sidebar.bg;
+const modeThemes = {
+  light: { name: 'Cyberdream Light', label: 'Light Theme' },
+  dark: { name: 'Cyberdream Dark', label: 'Dark Theme' }
+};
+
+// A preview paints its own fixed theme, so it shows real colors rather than the active theme's variables.
+const ThemePreview = ({ theme }) => {
   const lineColor = rgba(theme.brand, 0.5);
 
   return (
-    <div className="theme-preview" style={{ background: bgColor, border: `1px solid ${lineColor}` }}>
-      <div className="theme-preview-sidebar" style={{ background: sidebarColor }} />
+    <div className="theme-preview" style={{ background: theme.background.base, border: `1px solid ${lineColor}` }}>
+      <div className="theme-preview-sidebar" style={{ background: theme.sidebar.bg }} />
       <div className="theme-preview-main">
         <div className="theme-preview-line" style={{ background: lineColor }} />
         <div className="theme-preview-line" style={{ background: lineColor, width: '60%' }} />
@@ -24,55 +32,20 @@ const ThemePreview = ({ themeId, isDark }) => {
   );
 };
 
-const ThemeVariantCard = ({ theme, isSelected, onClick }) => {
-  const isDark = theme.mode === 'dark';
-
-  return (
-    <div className={`theme-variant-card ${isSelected ? 'selected' : ''}`} onClick={onClick}>
-      <ThemePreview themeId={theme.id} isDark={isDark} />
-      <span className="theme-variant-name">{theme.name}</span>
-    </div>
-  );
-};
-
-const Themes = () => {
-  const {
-    storedTheme,
-    setStoredTheme,
-    themeVariantLight,
-    setThemeVariantLight,
-    themeVariantDark,
-    setThemeVariantDark
-  } = useTheme();
-
-  const lightThemes = getLightThemes();
-  const darkThemes = getDarkThemes();
-
-  const themeModes = [
-    { key: 'light', label: 'Light', icon: IconBrightnessUp },
-    { key: 'dark', label: 'Dark', icon: IconMoon },
-    { key: 'system', label: 'System', icon: IconDeviceDesktop }
-  ];
-
-  const handleModeChange = (mode) => {
-    setStoredTheme(mode);
-  };
-
-  const renderThemeVariants = (themes, selectedVariant, onSelect, label) => (
-    <div className="theme-variant-section">
-      <div className="theme-variant-label">{label}</div>
-      <div className="theme-variants">
-        {themes.map((theme) => (
-          <ThemeVariantCard
-            key={theme.id}
-            theme={theme}
-            isSelected={selectedVariant === theme.id}
-            onClick={() => onSelect(theme.id)}
-          />
-        ))}
+const ThemeSection = ({ mode }) => (
+  <div className="theme-variant-section">
+    <div className="theme-variant-label">{modeThemes[mode].label}</div>
+    <div className="theme-variants">
+      <div className="theme-variant-card selected">
+        <ThemePreview theme={themes[mode]} />
+        <span className="theme-variant-name">{modeThemes[mode].name}</span>
       </div>
     </div>
-  );
+  </div>
+);
+
+const Themes = () => {
+  const { storedTheme, setStoredTheme } = useTheme();
 
   return (
     <StyledWrapper>
@@ -89,7 +62,7 @@ const Themes = () => {
             return (
               <button
                 key={mode.key}
-                onClick={() => handleModeChange(mode.key)}
+                onClick={() => setStoredTheme(mode.key)}
                 className={`theme-mode-option relative ${isSelected ? 'selected' : ''}`}
               >
                 <div className="flex items-center justify-start gap-2">
@@ -103,25 +76,9 @@ const Themes = () => {
 
         <div className="section-divider" />
 
-        {storedTheme === 'light' && (
-          <>
-            {renderThemeVariants(lightThemes, themeVariantLight, setThemeVariantLight, 'Light Theme')}
-          </>
-        )}
-
-        {storedTheme === 'dark' && (
-          <>
-            {renderThemeVariants(darkThemes, themeVariantDark, setThemeVariantDark, 'Dark Theme')}
-          </>
-        )}
-
-        {storedTheme === 'system' && (
-          <>
-            {renderThemeVariants(lightThemes, themeVariantLight, setThemeVariantLight, 'Light Theme')}
-            <div className="section-divider" />
-            {renderThemeVariants(darkThemes, themeVariantDark, setThemeVariantDark, 'Dark Theme')}
-          </>
-        )}
+        {storedTheme !== 'dark' && <ThemeSection mode="light" />}
+        {storedTheme === 'system' && <div className="section-divider" />}
+        {storedTheme !== 'light' && <ThemeSection mode="dark" />}
       </div>
     </StyledWrapper>
   );

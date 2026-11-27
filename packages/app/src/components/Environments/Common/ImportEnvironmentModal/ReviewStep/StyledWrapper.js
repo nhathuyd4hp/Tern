@@ -1,5 +1,5 @@
 import styled, { css } from 'styled-components';
-import { rgba } from 'polished';
+import { rgba } from 'utils/color';
 
 export const StyledWrapper = styled.div`
   .modal-content {
@@ -76,7 +76,11 @@ export const StyledWrapper = styled.div`
     padding: 12px 1.25rem;
     flex-shrink: 0;
     gap: 1rem;
-    background: ${(props) => (props.theme.mode === 'dark' ? props.theme.background.mantle : 'transparent')};
+    background: transparent;
+
+    html.dark & {
+      background: ${(props) => props.theme.background.mantle};
+    }
   }
 
   .search-input-wrapper {
@@ -130,11 +134,19 @@ export const StyledWrapper = styled.div`
     height: 35px;
     padding: 9px 20px 9px 14px;
     font-size: ${(props) => props.theme.font.size.sm};
-    background: ${(props) => (props.theme.mode === 'dark' ? props.theme.background.surface0 : props.theme.background.mantle)};
+    background: ${(props) => props.theme.background.mantle};
     border-bottom: 1px solid ${(props) => props.theme.border.border0};
 
     &:hover {
-      background: ${(props) => (props.theme.mode === 'dark' ? props.theme.background.surface1 : props.theme.background.crust)};
+      background: ${(props) => props.theme.background.crust};
+    }
+
+    html.dark & {
+      background: ${(props) => props.theme.background.surface0};
+
+      &:hover {
+        background: ${(props) => props.theme.background.surface1};
+      }
     }
   }
 
@@ -186,7 +198,11 @@ export const StyledWrapper = styled.div`
     border-bottom: 1px solid ${(props) => rgba(props.theme.border.border0, 0.6)};
 
     &:hover {
-      background: ${(props) => (props.theme.mode === 'dark' ? props.theme.background.surface0 : props.theme.background.mantle)};
+      background: ${(props) => props.theme.background.mantle};
+    }
+
+    html.dark &:hover {
+      background: ${(props) => props.theme.background.surface0};
     }
   }
 
@@ -196,7 +212,11 @@ export const StyledWrapper = styled.div`
     border-bottom: 1px solid ${(props) => rgba(props.theme.border.border0, 0.6)};
 
     &:hover {
-      background: ${(props) => (props.theme.mode === 'dark' ? props.theme.background.surface0 : props.theme.background.mantle)};
+      background: ${(props) => props.theme.background.mantle};
+    }
+
+    html.dark &:hover {
+      background: ${(props) => props.theme.background.surface0};
     }
   }
 
@@ -252,8 +272,12 @@ export const StyledWrapper = styled.div`
     gap: 0;
     padding: 2px;
     border-radius: ${(props) => props.theme.border.radius.base};
-    background: ${(props) => (props.theme.mode === 'dark' ? props.theme.background.crust : props.theme.background.mantle)};
+    background: ${(props) => props.theme.background.mantle};
     flex-shrink: 0;
+
+    html.dark & {
+      background: ${(props) => props.theme.background.crust};
+    }
   }
 
   .empty-state {

@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { rgba } from 'polished';
+import { rgba } from 'utils/color';
 
 const StyledWrapper = styled.div`
   .theme-mode-buttons {
@@ -33,71 +33,6 @@ const StyledWrapper = styled.div`
       border-color: ${(props) => props.theme.primary.solid};
       background: ${(props) => rgba(props.theme.primary.solid, 0.07)};
       color: ${(props) => props.theme.text};
-    }
-  }
-
-  .theme-variants-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
-    gap: 0.5rem;
-  }
-
-  .theme-variant-option {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.375rem;
-    padding: 0.5rem 0.375rem;
-    border-radius: ${(props) => props.theme.border.radius.base};
-    border: 1.5px solid ${(props) => props.theme.border.border0};
-    background: transparent;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    font-family: inherit;
-
-    &:hover {
-      border-color: ${(props) => props.theme.border.border2};
-    }
-
-    &.selected {
-      border-color: ${(props) => props.theme.primary.solid};
-      background: ${(props) => rgba(props.theme.primary.solid, 0.06)};
-    }
-
-    .variant-name {
-      font-size: 0.6875rem;
-      color: ${(props) => props.theme.colors.text.subtext0};
-      text-align: center;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 100%;
-    }
-  }
-
-  .theme-preview-box {
-    width: 52px;
-    height: 34px;
-    border-radius: 3px;
-    display: flex;
-    overflow: hidden;
-
-    .preview-sidebar {
-      width: 13px;
-      height: 100%;
-    }
-
-    .preview-main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      padding: 4px;
-      gap: 3px;
-    }
-
-    .preview-line {
-      height: 3px;
-      border-radius: 2px;
     }
   }
 `;

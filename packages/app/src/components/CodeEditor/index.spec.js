@@ -4,7 +4,7 @@ import CodeEditor from './index';
 import { ThemeProvider } from 'styled-components';
 import { formatSize } from 'utils/common';
 import { LONG_LINE_LIMIT } from 'utils/common/long-lines';
-import darkTheme from 'themes/dark/vscode';
+import darkTheme from 'themes/dark/cyberdream-dark';
 
 const CodeMirror = require('codemirror');
 

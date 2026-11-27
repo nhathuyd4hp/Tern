@@ -13,7 +13,7 @@ import ImportEnvironmentModal from 'components/Environments/Common/ImportEnviron
 import CreateGlobalEnvironment from 'components/WorkspaceHome/WorkspaceEnvironments/CreateEnvironment';
 import ToolHint from 'components/ToolHint';
 import StyledWrapper from './StyledWrapper';
-import { transparentize } from 'polished';
+import { transparentize } from 'utils/color';
 
 const TABS = [
   { id: 'collection', label: 'Application', icon: <IconDatabase size={16} strokeWidth={1.5} /> },

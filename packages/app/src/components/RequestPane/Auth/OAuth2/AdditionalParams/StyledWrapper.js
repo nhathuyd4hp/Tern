@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { rgba } from 'polished';
+import { rgba } from 'utils/color';
 
 const StyledWrapper = styled.div`
   .oauth2-icon-container {
@@ -25,14 +25,14 @@ const StyledWrapper = styled.div`
       }
 
       &.active {
-        background-color: ${(props) => {
-          return props.theme.mode === 'dark'
-            ? rgba(props.theme.primary.solid, 0.2)
-            : rgba(props.theme.primary.solid, 0.1);
-        }};
+        background-color: ${(props) => rgba(props.theme.primary.solid, 0.1)};
         color: ${(props) => props.theme.primary.text} !important;
         border-bottom: none !important;
         font-weight: normal !important;
+
+        html.dark & {
+          background-color: ${(props) => rgba(props.theme.primary.solid, 0.2)};
+        }
       }
     }
   }

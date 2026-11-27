@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { rgba } from 'polished';
+import { rgba } from 'utils/color';
 
 const MODAL_RADIUS = '12px';
 

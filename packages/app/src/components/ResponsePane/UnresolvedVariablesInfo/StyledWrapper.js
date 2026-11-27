@@ -24,12 +24,16 @@ const StyledWrapper = styled.div`
 
   .variable-names code,
   .variable-list code {
-    background-color: ${(props) => (props.theme.mode === 'light' ? props.theme.sidebar.bg : 'transparent')};
+    background-color: ${(props) => props.theme.sidebar.bg};
     border: solid 1px ${(props) => props.theme.border.border0};
     border-radius: ${(props) => props.theme.border.radius.base};
     font-size: 0.85em;
     padding: 0.15em 0.35em;
     font-family: monospace;
+
+    html.dark & {
+      background-color: transparent;
+    }
   }
 
   .variable-count {

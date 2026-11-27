@@ -109,7 +109,11 @@ const editorContentStyles = css`
     cursor: pointer;
     vertical-align: top;
     background-color: transparent;
-    color-scheme: ${(props) => props.theme.mode};
+    color-scheme: light;
+
+    html.dark & {
+      color-scheme: dark;
+    }
   }
 
   ul[data-type='taskList'] > li > div,
@@ -130,18 +134,26 @@ const editorContentStyles = css`
   }
 
   code {
-    background-color: ${(props) => (props.theme.mode === 'light' ? props.theme.sidebar.bg : 'transparent')};
+    background-color: ${(props) => props.theme.sidebar.bg};
     border: solid 1px ${(props) => props.theme.border.border0};
     border-radius: ${(props) => props.theme.border.radius.base};
     font-size: 0.85em;
     padding: 0.15em 0.35em;
     font-family: ${(props) => props.theme.font.monospace || 'monospace'};
+
+    html.dark & {
+      background-color: transparent;
+    }
   }
 
   pre {
-    background-color: ${(props) => (props.theme.mode === 'light' ? props.theme.sidebar.bg : 'transparent')};
+    background-color: ${(props) => props.theme.sidebar.bg};
     border: solid 1px ${(props) => props.theme.border.border0};
     color: ${(props) => props.theme.text};
+
+    html.dark & {
+      background-color: transparent;
+    }
     font-family: ${(props) => props.theme.font.monospace || 'monospace'};
     margin: 1rem 0;
     padding: 0.75rem 1rem;

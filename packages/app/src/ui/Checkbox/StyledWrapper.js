@@ -1,8 +1,9 @@
 import styled, { css } from 'styled-components';
-import { darken, lighten, rgba } from 'polished';
+import { rgba } from 'utils/color';
 
-// adjusts the color for hover state based on the theme mode
-const hoverAdjust = (color, props) => (props.theme.mode === 'dark' ? lighten(0.05, color) : darken(0.05, color));
+// theme colors are var(--...) strings, so hover shades use color-mix: darker in light mode, lighter in dark mode
+const darkenOnHover = (color) => `color-mix(in srgb, ${color} 95%, black)`;
+const lightenOnHover = (color) => `color-mix(in srgb, ${color} 95%, white)`;
 
 const sizeStyles = {
   sm: css`
@@ -92,13 +93,22 @@ const StyledWrapper = styled.div`
   }
 
   .checkbox-input:not(:disabled):hover + .checkbox-box {
-    border-color: ${(props) => hoverAdjust(props.theme.border.border3, props)};
+    border-color: ${(props) => darkenOnHover(props.theme.border.border3)};
+
+    html.dark & {
+      border-color: ${(props) => lightenOnHover(props.theme.border.border3)};
+    }
   }
 
   .checkbox-input:checked:not(:disabled):hover + .checkbox-box,
   .checkbox-input:indeterminate:not(:disabled):hover + .checkbox-box {
-    background-color: ${(props) => hoverAdjust(props.theme.primary.solid, props)};
-    border-color: ${(props) => hoverAdjust(props.theme.primary.solid, props)};
+    background-color: ${(props) => darkenOnHover(props.theme.primary.solid)};
+    border-color: ${(props) => darkenOnHover(props.theme.primary.solid)};
+
+    html.dark & {
+      background-color: ${(props) => lightenOnHover(props.theme.primary.solid)};
+      border-color: ${(props) => lightenOnHover(props.theme.primary.solid)};
+    }
   }
 
   .checkbox-input:focus-visible + .checkbox-box {
