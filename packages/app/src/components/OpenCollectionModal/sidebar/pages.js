@@ -1,15 +1,11 @@
 import {
-  IconBrandSafari,
   IconClock,
-  IconDatabase,
   IconDeviceLaptop,
   IconFolder
 } from '@tabler/icons';
 import ChooseFolderPage from './ChooseFolderPage';
 import RecentsPage from './RecentsPage';
 import MyComputerPage from './MyComputerPage';
-import RegistryPage from './RegistryPage';
-import ApiCatalogPage from './ApiCatalogPage';
 
 /**
  * Pages of the Open collection modal, in menu order.
@@ -50,23 +46,5 @@ export const OPEN_COLLECTION_PAGES = [
     icon: IconDeviceLaptop,
     group: 'sources',
     component: MyComputerPage
-  },
-  {
-    id: 'registry',
-    label: 'Registry',
-    title: 'Registry',
-    description: 'Applications published to your team’s private registry',
-    icon: IconDatabase,
-    group: 'sources',
-    component: RegistryPage
-  },
-  {
-    id: 'api-catalog',
-    label: 'API Catalog',
-    title: 'API Catalog',
-    description: 'Every public Kevin application indexed from GitHub',
-    icon: IconBrandSafari,
-    group: 'sources',
-    component: ApiCatalogPage
   }
 ];

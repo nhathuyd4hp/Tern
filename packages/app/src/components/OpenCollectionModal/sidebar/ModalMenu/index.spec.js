@@ -38,7 +38,7 @@ describe('ModalMenu', () => {
 
     const sources = screen.getByRole('group', { name: 'Sources' });
     const sourceLabels = OPEN_COLLECTION_PAGES.filter((page) => page.group === 'sources').map((page) => page.label);
-    expect(sourceLabels).toEqual(expect.arrayContaining(['My computer', 'Registry', 'API Catalog']));
+    expect(sourceLabels).toEqual(expect.arrayContaining(['My computer']));
     expect(within(sources).getAllByRole('button').map((item) => item.textContent)).toEqual(sourceLabels);
   });
 
