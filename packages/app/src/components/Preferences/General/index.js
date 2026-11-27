@@ -5,6 +5,7 @@ import { useFormik } from 'formik';
 import { useSelector, useDispatch } from 'react-redux';
 import { savePreferences } from 'providers/ReduxStore/slices/app';
 import { browseDirectory } from 'providers/ReduxStore/slices/collections/actions';
+import Button from 'ui/Button';
 import StyledWrapper from './StyledWrapper';
 import * as Yup from 'yup';
 import toast from 'react-hot-toast';
@@ -350,14 +351,14 @@ const General = () => {
               onClick={browseDefaultLocation}
               placeholder="Click to browse for default location"
             />
-            <button
+            <Button
               type="button"
               className="default-location-browse"
               data-testid="general-browse-default-location"
               onClick={browseDefaultLocation}
             >
               Browse
-            </button>
+            </Button>
           </SettingsField>
         </SettingsGroup>
       </form>

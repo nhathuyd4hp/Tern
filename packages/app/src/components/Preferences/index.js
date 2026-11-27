@@ -4,7 +4,6 @@ import { useSelector, useDispatch } from 'react-redux';
 import { updateActivePreferencesTab } from 'providers/ReduxStore/slices/app';
 import {
   IconSettings,
-  IconPalette,
   IconBrowser,
   IconUserCircle,
   IconKeyboard,
@@ -12,7 +11,6 @@ import {
 } from '@tabler/icons';
 
 import General from './General';
-import Themes from './Themes';
 import Proxy from './ProxySettings';
 import Display from './Display';
 import Keybindings from './Keybindings';
@@ -41,10 +39,6 @@ const Preferences = () => {
         return <General />;
       }
 
-      case 'themes': {
-        return <Themes />;
-      }
-
       case 'proxy': {
         return <Proxy />;
       }
@@ -70,10 +64,6 @@ const Preferences = () => {
           <div className={getTabClassname('general')} role="tab" onClick={() => setTab('general')}>
             <IconSettings size={16} strokeWidth={1.5} />
             General
-          </div>
-          <div className={getTabClassname('themes')} role="tab" onClick={() => setTab('themes')}>
-            <IconPalette size={16} strokeWidth={1.5} />
-            Themes
           </div>
           <div className={getTabClassname('display')} role="tab" onClick={() => setTab('display')}>
             <IconBrowser size={16} strokeWidth={1.5} />

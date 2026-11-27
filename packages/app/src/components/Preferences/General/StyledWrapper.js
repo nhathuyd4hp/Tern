@@ -76,27 +76,25 @@ const StyledWrapper = styled.div`
 
   .default-location-field {
     .settings-field-control {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0.375rem;
+      flex-direction: row;
+      align-items: stretch;
+      flex-wrap: nowrap;
+      gap: 0.75rem;
     }
 
     .default-location-input {
-      width: 100%;
+      flex: 1;
+      min-width: 0;
     }
-  }
 
-  .default-location-browse {
-    padding: 0;
-    border: none;
-    background: none;
-    font-family: inherit;
-    font-size: ${(props) => props.theme.font.size.sm};
-    color: ${(props) => props.theme.textLink};
-    cursor: pointer;
+    .default-location-browse {
+      display: flex;
+      flex-shrink: 0;
 
-    &:hover {
-      text-decoration: underline;
+      button {
+        height: 100%;
+        white-space: nowrap;
+      }
     }
   }
 `;
