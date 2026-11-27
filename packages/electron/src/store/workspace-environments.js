@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 const _ = require('lodash');
-const { parseEnvironment, stringifyEnvironment } = require('@usebruno/filestore');
-const { parseValueByDataType } = require('@usebruno/common/utils');
+const { parseEnvironment, stringifyEnvironment } = require('@tern/filestore');
+const { parseValueByDataType } = require('@tern/common/utils');
 const { writeFile, createDirectory, withFileLock } = require('../utils/filesystem');
 const { renameEnvironmentExtendsReferences } = require('../utils/environments');
 const { generateUidBasedOnHash, uuid } = require('../utils/common');

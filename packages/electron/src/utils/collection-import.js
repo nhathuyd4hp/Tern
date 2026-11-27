@@ -3,8 +3,8 @@ const path = require('node:path');
 const { ipcMain } = require('electron');
 const { sanitizeName, createDirectory, writeFile, safeWriteFileSync, getCollectionStats } = require('./filesystem');
 const { generateUidBasedOnHash, stringifyJson } = require('./common');
-const { stringifyRequestViaWorker, stringifyCollection, stringifyEnvironment, stringifyFolder, DEFAULT_COLLECTION_FORMAT } = require('@usebruno/filestore');
-const { transformProxyConfig } = require('@usebruno/requests/dist/cjs');
+const { stringifyRequestViaWorker, stringifyCollection, stringifyEnvironment, stringifyFolder, DEFAULT_COLLECTION_FORMAT } = require('@tern/filestore');
+const { transformProxyConfig } = require('@tern/requests/dist/cjs');
 
 /**
  * Recursively find a unique folder name by appending incremental numbers

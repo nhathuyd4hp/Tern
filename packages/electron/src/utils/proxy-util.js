@@ -10,7 +10,7 @@ const {
   getOrCreateHttpAgent,
   resolveAgentsFromPac,
   PatchedHttpsProxyAgent
-} = require('@usebruno/requests');
+} = require('@tern/requests');
 
 const DEFAULT_PORTS = {
   ftp: 21,

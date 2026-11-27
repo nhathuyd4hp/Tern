@@ -3,7 +3,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { exec } = require('child_process');
-const { parseRequest } = require('@usebruno/filestore');
+const { parseRequest } = require('@tern/filestore');
 
 const collectionPathToGitRootPathMap = new Map();
 

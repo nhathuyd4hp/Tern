@@ -1,7 +1,7 @@
 const path = require('path');
 const fs = require('fs/promises');
 const os = require('os');
-const { parseEnvironment, stringifyEnvironment } = require('@usebruno/filestore');
+const { parseEnvironment, stringifyEnvironment } = require('@tern/filestore');
 const { renameEnvironmentExtendsReferences } = require('../environments');
 
 const format = 'yml';

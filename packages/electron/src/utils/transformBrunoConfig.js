@@ -1,6 +1,6 @@
 const path = require('path');
 const { isFile, isDirectory } = require('./filesystem');
-const { transformProxyConfig } = require('@usebruno/requests');
+const { transformProxyConfig } = require('@tern/requests');
 
 function transformBrunoConfigBeforeSave(brunoConfig) {
   if (brunoConfig && !brunoConfig.opencollection) {

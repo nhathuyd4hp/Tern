@@ -4,9 +4,9 @@ const fsPromises = require('fs/promises');
 const { dialog } = require('electron');
 const isValidPathname = require('is-valid-path');
 const os = require('os');
-// Single shared implementation lives in @usebruno/common; re-exported below so
+// Single shared implementation lives in @tern/common; re-exported below so
 // `require('../utils/filesystem')` consumers keep working unchanged.
-const { sanitizeName, validateName, generateUniqueName } = require('@usebruno/common').utils;
+const { sanitizeName, validateName, generateUniqueName } = require('@tern/common').utils;
 
 const DEFAULT_GITIGNORE = [
   '# Secrets',

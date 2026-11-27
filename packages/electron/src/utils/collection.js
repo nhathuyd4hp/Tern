@@ -6,13 +6,13 @@ const { posixifyPath } = require('./filesystem');
 const os = require('os');
 const { preferencesUtil } = require('../store/preferences');
 const path = require('path');
-const { DEFAULT_COLLECTION_FORMAT } = require('@usebruno/filestore');
-const { parseValueByDataType } = require('@usebruno/common/utils');
-const { GRPC_SCRIPT_KEYS, normalizeLineEndings } = require('@usebruno/common');
+const { DEFAULT_COLLECTION_FORMAT } = require('@tern/filestore');
+const { parseValueByDataType } = require('@tern/common/utils');
+const { GRPC_SCRIPT_KEYS, normalizeLineEndings } = require('@tern/common');
 
 /**
  * Returns the variable's runtime value with datatype-driven coercion applied.
- * The shared `parseValueByDataType` from `@usebruno/common/utils` honors
+ * The shared `parseValueByDataType` from `@tern/common/utils` honors
  * draft dataType changes — e.g. a user picking `@number` on a "42" string
  * via the UI takes effect at request-execution time without requiring a save.
  */

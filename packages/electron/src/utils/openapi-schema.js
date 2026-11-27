@@ -1,5 +1,5 @@
 const isPlainObject = require('lodash/isPlainObject');
-const { safeDecodeURIComponent } = require('@usebruno/common/utils');
+const { safeDecodeURIComponent } = require('@tern/common/utils');
 
 const resolveSpecRef = (spec, ref) => {
   if (typeof ref !== 'string' || !ref.startsWith('#/')) return undefined;

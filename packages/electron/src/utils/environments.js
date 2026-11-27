@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { parseEnvironment, stringifyEnvironment } = require('@usebruno/filestore');
+const { parseEnvironment, stringifyEnvironment } = require('@tern/filestore');
 const { writeFile, withFileLock } = require('./filesystem');
 
 /**

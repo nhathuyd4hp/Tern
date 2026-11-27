@@ -21,7 +21,7 @@ const SPEC = JSON.stringify({ openapi: '3.0.0', info: { title: 't', version: '1'
 
 describe('OpenAPI sync config edits', () => {
   it('keeps every entry when several folders are connected at the same time', async () => {
-    const collectionPath = fs.mkdtempSync(path.join(os.tmpdir(), 'kevin-sync-'));
+    const collectionPath = fs.mkdtempSync(path.join(os.tmpdir(), 'tern-sync-'));
     fs.writeFileSync(path.join(collectionPath, 'bruno.json'), JSON.stringify({ version: '1', name: 'app', type: 'collection' }));
     const folders = ['a', 'b', 'c', 'd'];
     folders.forEach((folder) => fs.mkdirSync(path.join(collectionPath, folder)));

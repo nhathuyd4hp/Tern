@@ -8,7 +8,7 @@ const easterEggResponse = (request) => {
     '   /,    /`',
     '   \\\\"--\\\\',
     '',
-    'Kevin fetched your request. Good human.'
+    'Tern fetched your request. Good human.'
   ].join('\n');
   const buffer = Buffer.from(body, 'utf-8');
   return {
@@ -17,7 +17,7 @@ const easterEggResponse = (request) => {
     headers: {
       'content-type': 'text/plain; charset=utf-8',
       'x-good-boy': 'true',
-      'x-fetched-by': 'kevin'
+      'x-fetched-by': 'tern'
     },
     data: body,
     dataBuffer: buffer.toString('base64'),

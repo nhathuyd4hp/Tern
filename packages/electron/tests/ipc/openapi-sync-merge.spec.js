@@ -3,7 +3,7 @@
  * Run: cd packages/electron && npx jest tests/ipc/openapi-sync-merge.spec.js
  */
 const { describe, it, expect, beforeAll } = require('@jest/globals');
-const { parseRequest, stringifyRequest } = require('@usebruno/filestore');
+const { parseRequest, stringifyRequest } = require('@tern/filestore');
 
 process.env.NODE_ENV = 'test';
 

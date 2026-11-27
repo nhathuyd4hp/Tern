@@ -1,7 +1,7 @@
 const fs = require('node:fs');
 const path = require('path');
 const { app } = require('electron');
-const { createDatabase } = require('@usebruno/sqlite');
+const { createDatabase } = require('@tern/sqlite');
 
 let service = null;
 

@@ -8,7 +8,7 @@ const { safeParseJSON, safeStringifyJSON } = require('./common');
 const { preferencesUtil } = require('../store/preferences');
 const qs = require('qs');
 
-const KEVIN_OAUTH2_CALLBACK_URL = 'kevin://app/oauth2/callback';
+const TERN_OAUTH2_CALLBACK_URL = 'tern://app/oauth2/callback';
 
 const oauth2Store = new Oauth2Store();
 
@@ -155,7 +155,7 @@ const getOAuth2TokenUsingAuthorizationCode = async ({ request, collectionUid, fo
     autoFetchToken,
     additionalParameters
   } = oAuth;
-  const effectiveCallbackUrl = callbackUrl && callbackUrl.length ? callbackUrl : KEVIN_OAUTH2_CALLBACK_URL;
+  const effectiveCallbackUrl = callbackUrl && callbackUrl.length ? callbackUrl : TERN_OAUTH2_CALLBACK_URL;
   const url = requestCopy?.oauth2?.accessTokenUrl;
 
   // Validate required fields
@@ -307,7 +307,7 @@ const getOAuth2AuthorizationCode = (request, codeChallenge, collectionUid) => {
     const { oauth2 } = request;
     const { callbackUrl, clientId, authorizationUrl, scope, state, pkce, accessTokenUrl, additionalParameters } = oauth2;
     const useSystemBrowser = preferencesUtil.shouldUseSystemBrowser();
-    const effectiveCallbackUrl = callbackUrl && callbackUrl.length ? callbackUrl : KEVIN_OAUTH2_CALLBACK_URL;
+    const effectiveCallbackUrl = callbackUrl && callbackUrl.length ? callbackUrl : TERN_OAUTH2_CALLBACK_URL;
     // Use the user-configured state if present, otherwise generate a cryptographically
     // random one. The state is validated when the callback is received to prevent CSRF.
     const effectiveState = generateState({ userState: state });
@@ -775,7 +775,7 @@ const getOAuth2TokenUsingImplicitGrant = async ({ request, collectionUid, forceF
     additionalParameters
   } = oauth2;
   const useSystemBrowser = preferencesUtil.shouldUseSystemBrowser();
-  const effectiveCallbackUrl = callbackUrl && callbackUrl.length ? callbackUrl : KEVIN_OAUTH2_CALLBACK_URL;
+  const effectiveCallbackUrl = callbackUrl && callbackUrl.length ? callbackUrl : TERN_OAUTH2_CALLBACK_URL;
   // Use the user-configured state if present, otherwise generate a cryptographically
   // random one. The state is validated when the callback is received to prevent CSRF.
   const effectiveState = generateState({ userState: state });

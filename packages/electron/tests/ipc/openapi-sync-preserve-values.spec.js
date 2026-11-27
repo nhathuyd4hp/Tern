@@ -19,14 +19,14 @@ jest.mock('electron', () => {
   };
 });
 
-jest.mock('@usebruno/filestore', () => {
-  const filestore = jest.requireActual('@usebruno/filestore');
+jest.mock('@tern/filestore', () => {
+  const filestore = jest.requireActual('@tern/filestore');
   return { ...filestore, stringifyRequestViaWorker: async (item, options) => filestore.stringifyRequest(item, options) };
 });
 
 const { ipcMain } = require('electron');
-const { parseRequest, stringifyRequest, stringifyCollection } = require('@usebruno/filestore');
-const { openApiToBruno } = require('@usebruno/converters');
+const { parseRequest, stringifyRequest, stringifyCollection } = require('@tern/filestore');
+const { openApiToBruno } = require('@tern/converters');
 const registerOpenAPISyncIpc = require('../../src/ipc/openapi-sync');
 
 const SOURCE_URL = 'https://example.com/pets.json';

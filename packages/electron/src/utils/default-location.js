@@ -2,11 +2,11 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { app } = require('electron');
 
-const APP_DIR_NAME = 'Kevin';
+const APP_DIR_NAME = 'Tern';
 
 /**
  * Returns the default location where new collections are stored.
- * Checks ~/Documents/Kevin if available, otherwise falls back to the app's data directory
+ * Checks ~/Documents/Tern if available, otherwise falls back to the app's data directory
  */
 function resolveDefaultLocation() {
   const defaultPaths = [

@@ -1,7 +1,7 @@
 let mockFetchShellEnv;
 let mockGetSystemProxy;
 
-jest.mock('@usebruno/requests', () => ({
+jest.mock('@tern/requests', () => ({
   fetchShellEnv: (...args) => mockFetchShellEnv(...args),
   getSystemProxy: (...args) => mockGetSystemProxy(...args)
 }));

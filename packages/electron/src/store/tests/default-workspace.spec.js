@@ -1,7 +1,7 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { parseEnvironment } = require('@usebruno/filestore');
+const { parseEnvironment } = require('@tern/filestore');
 
 let mockGlobalEnvironments;
 let mockUserDataPath;

@@ -1,7 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
-const { getFilenameWithFormat } = require('@usebruno/common/utils');
-const { stringifyRequestViaWorker, stringifyFolder } = require('@usebruno/filestore');
+const { getFilenameWithFormat } = require('@tern/common/utils');
+const { stringifyRequestViaWorker, stringifyFolder } = require('@tern/filestore');
 const { sanitizeName, writeFileUnique, mkdirUnique, writeFile, getCollectionFormat, posixifyPath } = require('./filesystem');
 
 const REQUEST_TYPES = ['http-request', 'graphql-request', 'grpc-request', 'ws-request'];

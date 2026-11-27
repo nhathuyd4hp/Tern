@@ -2,8 +2,8 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { describe, it, expect, beforeEach, afterEach } = require('@jest/globals');
-const { openApiToBruno } = require('@usebruno/converters');
-const { parseFolder, stringifyCollection } = require('@usebruno/filestore');
+const { openApiToBruno } = require('@tern/converters');
+const { parseFolder, stringifyCollection } = require('@tern/filestore');
 const { _test: { specConversionOptions, mergeSpecIntoRequest, ensureTagFolder } } = require('../../src/ipc/openapi-sync');
 
 describe('specConversionOptions', () => {

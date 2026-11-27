@@ -1,6 +1,6 @@
 const fs = require('node:fs/promises');
 const path = require('node:path');
-const { parseCollection } = require('@usebruno/filestore');
+const { parseCollection } = require('@tern/filestore');
 const { validateSchema } = require('../../app/collections');
 
 const MAX_CONFIG_BYTES = 1024 * 1024;

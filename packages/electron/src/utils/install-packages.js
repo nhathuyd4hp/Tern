@@ -1,7 +1,7 @@
 const { spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
-const { isValidNpmPackageName } = require('@usebruno/common').utils;
+const { isValidNpmPackageName } = require('@tern/common').utils;
 
 const shouldUseShellForNpmSpawn = (npmCommand, platform = process.platform) => {
   return platform === 'win32' && /\.(cmd|bat)$/i.test(npmCommand);
