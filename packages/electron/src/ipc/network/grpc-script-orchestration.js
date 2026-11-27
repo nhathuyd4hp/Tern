@@ -1,7 +1,7 @@
 const { get } = require('lodash');
 const { safeParseJSON } = require('../../utils/common');
-const { GrpcScriptRuntime, formatErrorWithContextV2 } = require('@usebruno/js');
-const { SCRIPT_TYPES } = require('@usebruno/common');
+const { GrpcScriptRuntime, formatErrorWithContextV2 } = require('@tern/js');
+const { SCRIPT_TYPES } = require('@tern/common');
 const { clearOauth2CredentialsByCredentialsId } = require('../../utils/oauth2');
 const { applyCollectionVarsToCollectionRoot } = require('./apply-collection-vars');
 

@@ -22,8 +22,8 @@ jest.mock('../cache/requestUids', () => ({
 }));
 // The worker pool needs a built dist + worker threads; unit tests run the sync
 // equivalents instead — the conversion output is identical.
-jest.mock('@usebruno/filestore', () => {
-  const actual = jest.requireActual('@usebruno/filestore');
+jest.mock('@tern/filestore', () => {
+  const actual = jest.requireActual('@tern/filestore');
   return {
     ...actual,
     parseRequestViaWorker: async (content, options) => actual.parseRequest(content, options),

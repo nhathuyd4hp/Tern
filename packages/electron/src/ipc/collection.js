@@ -18,10 +18,10 @@ const {
   stringifyEnvironment,
   parseEnvironment,
   DEFAULT_COLLECTION_FORMAT
-} = require('@usebruno/filestore');
-const { utils } = require('@usebruno/common');
-const { resolveEnvironmentInheritance } = require('@usebruno/common/utils');
-const brunoConverters = require('@usebruno/converters');
+} = require('@tern/filestore');
+const { utils } = require('@tern/common');
+const { resolveEnvironmentInheritance } = require('@tern/common/utils');
+const brunoConverters = require('@tern/converters');
 const { postmanToBruno } = brunoConverters;
 const { cookiesStore } = require('../store/cookies');
 const { parseLargeRequestWithRedaction } = require('../utils/parse');
@@ -542,7 +542,7 @@ const registerRendererEventHandlers = (mainWindow, watcher) => {
 
       let finalContent;
       if (needsConversion) {
-        const { parseRequest, stringifyRequest } = require('@usebruno/filestore');
+        const { parseRequest, stringifyRequest } = require('@tern/filestore');
         const sourceContent = await fs.promises.readFile(sourcePathname, 'utf8');
         const parsedRequest = parseRequest(sourceContent, { format: actualSourceFormat });
         const mergedRequest = { ...parsedRequest, ...request };
@@ -964,7 +964,7 @@ const registerRendererEventHandlers = (mainWindow, watcher) => {
         info: {
           type: 'bruno-environment',
           exportedAt: new Date().toISOString(),
-          exportedUsing: `Kevin/v${appVersion}`
+          exportedUsing: `Tern/v${appVersion}`
         }
       });
 
@@ -995,7 +995,7 @@ const registerRendererEventHandlers = (mainWindow, watcher) => {
           info: {
             type: 'bruno-environment',
             exportedAt: new Date().toISOString(),
-            exportedUsing: `Kevin/v${appVersion}`
+            exportedUsing: `Tern/v${appVersion}`
           },
           environments
         };
@@ -2252,7 +2252,7 @@ const registerRendererEventHandlers = (mainWindow, watcher) => {
         preserveScripts: !!options.preserveScripts
       });
     } catch (error) {
-      console.error('Error converting Postman to Kevin:', error);
+      console.error('Error converting Postman to Tern:', error);
       return Promise.reject(error);
     }
   });
@@ -2383,7 +2383,7 @@ const registerMainEventHandlers = (mainWindow) => {
               name: brunoConfig.name
             };
           } catch (error) {
-            console.warn(`Skipping invalid Kevin collection at ${pathname}: ${error.message}`);
+            console.warn(`Skipping invalid Tern collection at ${pathname}: ${error.message}`);
             return { pathname, skipped: true };
           }
         })

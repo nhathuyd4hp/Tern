@@ -15,10 +15,10 @@ const {
   parseRequestViaWorker,
   parseCollection,
   parseFolder
-} = require('@usebruno/filestore');
+} = require('@tern/filestore');
 
 const { uuid } = require('../utils/common');
-const { parseValueByDataType } = require('@usebruno/common/utils');
+const { parseValueByDataType } = require('@tern/common/utils');
 const { getRequestUid } = require('../cache/requestUids');
 const { decryptStringSafe } = require('../utils/encryption');
 const { setBrunoConfig, getBrunoConfig } = require('../store/bruno-config');

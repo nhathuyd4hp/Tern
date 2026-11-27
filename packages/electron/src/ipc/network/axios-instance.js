@@ -17,9 +17,9 @@ const {
   startHop,
   completeHop,
   configureHybridTlsDefaults
-} = require('@usebruno/requests');
-const { isSameOrigin, DEFAULT_MAX_REDIRECTS } = require('@usebruno/common').utils;
-const { applyOmitHeaders } = require('@usebruno/common');
+} = require('@tern/requests');
+const { isSameOrigin, DEFAULT_MAX_REDIRECTS } = require('@tern/common').utils;
+const { applyOmitHeaders } = require('@tern/common');
 
 // Same entry as CLI (bru.js): OpenSSL advertise-without-share when supported; no-op on BoringSSL.
 configureHybridTlsDefaults();
@@ -145,7 +145,7 @@ function makeAxiosInstance({
   // axios.create() preserves defaults.headers.common = { Accept: 'application/json, text/plain, */*' }.
   // Assigning a new object (= { 'User-Agent': ... }) would nuke that default, causing servers that
   // rely on content-negotiation to receive requests with no Accept header.
-  instance.defaults.headers.common['User-Agent'] = `kevin-runtime/${version}`;
+  instance.defaults.headers.common['User-Agent'] = `tern-runtime/${version}`;
   instance.interceptors.request.use(async (config) => {
     const url = URL.parse(config.url);
     config.metadata = config.metadata || {};

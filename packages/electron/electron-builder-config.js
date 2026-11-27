@@ -3,8 +3,8 @@ require('dotenv').config({ path: process.env.DOTENV_PATH });
 const isBenchmark = process.env.BRUNO_BENCHMARK === 'true';
 
 const config = {
-  appId: 'com.nhathuyd4hp.kevin',
-  productName: isBenchmark ? 'Kevin Benchmark' : 'Kevin',
+  appId: 'com.nhathuyd4hp.tern',
+  productName: isBenchmark ? 'Tern Benchmark' : 'Tern',
   extraMetadata: {
     brunoBuild: {
       benchmark: isBenchmark,
@@ -50,9 +50,9 @@ const config = {
     requirements: 'resources/app-requirements.txt',
     protocols: [
       {
-        name: 'Kevin',
+        name: 'Tern',
         schemes: [
-          'kevin'
+          'tern'
         ]
       }
     ]
@@ -76,14 +76,14 @@ const config = {
     ],
     protocols: [
       {
-        name: 'Kevin',
-        schemes: ['kevin']
+        name: 'Tern',
+        schemes: ['tern']
       }
     ],
     category: 'Development',
     desktop: {
       entry: {
-        MimeType: 'x-scheme-handler/kevin;'
+        MimeType: 'x-scheme-handler/tern;'
       }
     }
   },

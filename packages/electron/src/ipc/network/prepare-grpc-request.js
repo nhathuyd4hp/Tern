@@ -6,7 +6,7 @@ const { getOAuth2TokenUsingPasswordCredentials, getOAuth2TokenUsingClientCredent
 const { setAuthHeaders } = require('./prepare-request');
 const { getCertsAndProxyConfig } = require('./cert-utils');
 const { interpolateString } = require('./interpolate-string');
-const { buildHeaderEntries } = require('@usebruno/js');
+const { buildHeaderEntries } = require('@tern/js');
 
 const processHeaders = (headers) => {
   Object.entries(headers).forEach(([key, value]) => {

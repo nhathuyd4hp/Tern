@@ -54,7 +54,7 @@ jest.mock('../app/collection-watcher', () => {
   };
 });
 
-jest.mock('@usebruno/filestore', () => ({
+jest.mock('@tern/filestore', () => ({
   parseRequest: jest.fn(() => ({})),
   stringifyRequest: jest.fn(() => 'mock-content-stringified'),
   stringifyRequestViaWorker: jest.fn(async () => 'mock-request-stringified'),

@@ -23,7 +23,7 @@ jest.mock('../utils/filesystem', () => ({
   getCollectionFormat: jest.fn(() => 'bru')
 }));
 
-jest.mock('@usebruno/filestore', () => ({
+jest.mock('@tern/filestore', () => ({
   parseEnvironment: jest.fn(),
   parseRequest: jest.fn(),
   parseRequestViaWorker: jest.fn(),
@@ -31,7 +31,7 @@ jest.mock('@usebruno/filestore', () => ({
   parseFolder: jest.fn()
 }), { virtual: true });
 
-jest.mock('@usebruno/common/utils', () => ({
+jest.mock('@tern/common/utils', () => ({
   parseValueByDataType: jest.fn()
 }), { virtual: true });
 

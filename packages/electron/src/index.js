@@ -4,7 +4,7 @@ const { execSync } = require('node:child_process');
 const isDev = require('electron-is-dev');
 const os = require('os');
 const { initializeShellEnv, waitForShellEnv } = require('./store/shell-env-state');
-const { percentageToZoomLevel } = require('@usebruno/common');
+const { percentageToZoomLevel } = require('@tern/common');
 const { isBenchmarkEnabled } = require('./utils/benchmark');
 
 if (isDev) {
@@ -28,6 +28,12 @@ if (isDev && process.env.ELECTRON_USER_DATA_PATH) {
 
   app.setPath('userData', process.env.ELECTRON_USER_DATA_PATH);
 }
+
+// Must run before any store (electron-store) is created: they read userData when they are constructed.
+require('./utils/legacy-user-data').migrateLegacyUserData({
+  userDataPath: app.getPath('userData'),
+  appDataPath: app.getPath('appData')
+});
 
 // Command line switches
 if (os.platform() === 'linux') {
@@ -149,9 +155,9 @@ if (useSingleInstance && !gotTheLock) {
   // This is the primary instance (or single instance is disabled)
 
   // Try to remove any existing registrations
-  app.removeAsDefaultProtocolClient('kevin');
-  // Register as default handler for `kevin://` protocol URLs
-  app.setAsDefaultProtocolClient('kevin');
+  app.removeAsDefaultProtocolClient('tern');
+  // Register as default handler for `tern://` protocol URLs
+  app.setAsDefaultProtocolClient('tern');
 
   if (isLinux) {
     try {
@@ -246,7 +252,7 @@ app.on('ready', async () => {
       preload: path.join(__dirname, 'preload.js'),
       webviewTag: true
     },
-    title: 'Kevin',
+    title: 'Tern',
     icon: path.join(__dirname, 'about/256x256.png'),
     titleBarStyle: isMac ? 'hiddenInset' : isWindows ? 'hidden' : undefined,
     frame: isLinux ? false : true,

@@ -18,8 +18,8 @@ const mockInterceptGrpcEvent = jest.fn();
 
 // Only GrpcClient is faked - the rest of the package (getPacResolver, getCACertificates)
 // is still needed by this module and its siblings at require time.
-jest.mock('@usebruno/requests', () => ({
-  ...jest.requireActual('@usebruno/requests'),
+jest.mock('@tern/requests', () => ({
+  ...jest.requireActual('@tern/requests'),
   GrpcClient: class FakeGrpcClient {
     constructor(eventCallback) {
       this.eventCallback = eventCallback;

@@ -42,8 +42,8 @@ const authorizeUserInWindow = ({ authorizeUrl, callbackUrl, session, additionalH
       event.preventDefault();
       const shouldAllow = !preferencesUtil.shouldVerifyTls();
       if (!shouldAllow) {
-        console.error(`Kevin OAuth: SSL Certificate verification failed for ${url}. Error: ${error}`);
-        console.error('Kevin OAuth: Disable "SSL/TLS Certificate Verification" in settings to proceed with OAuth flows that use self-signed certificates.');
+        console.error(`Tern OAuth: SSL Certificate verification failed for ${url}. Error: ${error}`);
+        console.error('Tern OAuth: Disable "SSL/TLS Certificate Verification" in settings to proceed with OAuth flows that use self-signed certificates.');
       }
       callback(shouldAllow);
     });

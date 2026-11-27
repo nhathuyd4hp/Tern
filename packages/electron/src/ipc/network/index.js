@@ -1,16 +1,16 @@
 const https = require('https');
 const axios = require('axios');
 const path = require('path');
-const { applyOAuth1ToRequest } = require('@usebruno/requests');
-const { buildScriptedEntry } = require('@usebruno/requests').scripting;
+const { applyOAuth1ToRequest } = require('@tern/requests');
+const { buildScriptedEntry } = require('@tern/requests').scripting;
 const qs = require('qs');
 const contentDispositionParser = require('content-disposition');
 const mime = require('mime-types');
 const { ipcMain } = require('electron');
 const { get, extend, cloneDeep, merge } = require('lodash');
 const { NtlmClient } = require('axios-ntlm');
-const { VarsRuntime, AssertRuntime, ScriptRuntime, TestRuntime, formatErrorWithContextV2, trackUnresolvedVariables, getUnresolvedVariableCollector } = require('@usebruno/js');
-const { encodeUrl, hasExplicitScheme, DEFAULT_MAX_REDIRECTS } = require('@usebruno/common').utils;
+const { VarsRuntime, AssertRuntime, ScriptRuntime, TestRuntime, formatErrorWithContextV2, trackUnresolvedVariables, getUnresolvedVariableCollector } = require('@tern/js');
+const { encodeUrl, hasExplicitScheme, DEFAULT_MAX_REDIRECTS } = require('@tern/common').utils;
 const { interpolateString } = require('./interpolate-string');
 const { resolveAwsV4Credentials, addAwsV4Interceptor } = require('./awsv4auth-helper');
 const {
@@ -18,13 +18,13 @@ const {
   addEdgeGridInterceptor,
   applySentHeadersToRequest,
   measureResponseTime
-} = require('@usebruno/requests');
+} = require('@tern/requests');
 const prepareGqlIntrospectionRequest = require('./prepare-gql-introspection-request');
 const { prepareRequest } = require('./prepare-request');
 const interpolateVars = require('./interpolate-vars');
 const { applyCollectionVarsToCollectionRoot } = require('./apply-collection-vars');
 const { makeAxiosInstance, completeOpenHop } = require('./axios-instance');
-const { refreshExplicitHeaderNames } = require('@usebruno/common');
+const { refreshExplicitHeaderNames } = require('@tern/common');
 const { resolveInheritedSettings } = require('../../utils/collection');
 const { cancelTokens, saveCancelToken, deleteCancelToken } = require('../../utils/cancel-token');
 const { uuid, safeStringifyJSON, safeParseJSON, parseDataFromResponse, parseDataFromRequest, isBinaryRequestBody } = require('../../utils/common');
@@ -42,7 +42,7 @@ const registerGrpcEventHandlers = require('./grpc-event-handlers');
 const { registerWsEventHandlers } = require('./ws-event-handlers');
 const { getCertsAndProxyConfig, buildCertsAndProxyConfig } = require('./cert-utils');
 const { easterEggResponse } = require('../../utils/woof');
-const { buildFormUrlEncodedPayload, isFormData, getMediaType, extractBoundaryFromContentType } = require('@usebruno/common').utils;
+const { buildFormUrlEncodedPayload, isFormData, getMediaType, extractBoundaryFromContentType } = require('@tern/common').utils;
 
 const ERROR_OCCURRED_WHILE_EXECUTING_REQUEST = 'Error occurred while executing the request!';
 

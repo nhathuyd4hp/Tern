@@ -11,9 +11,9 @@ const {
   parseCollection,
   stringifyCollection,
   stringifyFolder
-} = require('@usebruno/filestore');
-const { openApiToBruno } = require('@usebruno/converters');
-const { resolveEnvironmentInheritance, buildQueryString, parseQueryParams, getFilenameWithFormat } = require('@usebruno/common/utils');
+} = require('@tern/filestore');
+const { openApiToBruno } = require('@tern/converters');
+const { resolveEnvironmentInheritance, buildQueryString, parseQueryParams, getFilenameWithFormat } = require('@tern/common/utils');
 const { writeFile, withFileLock, writeFileUnique, sanitizeName, getCollectionFormat, posixifyPath } = require('../utils/filesystem');
 const { derefSpecObject, declaredSchemaNode, declaresKey, declaredKeysOf, declaredChild, declaredItems, declaresOnlyScalars, keyLeavesShapeOpen, itemsLeaveShapeOpen, otherAlternativeKeys } = require('../utils/openapi-schema');
 const { COLLECTION_ROOT_BASENAMES, FOLDER_ROOT_BASENAMES } = require('../utils/mount');

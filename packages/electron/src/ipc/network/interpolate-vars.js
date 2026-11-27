@@ -1,7 +1,7 @@
-const { interpolate } = require('@usebruno/common');
+const { interpolate } = require('@tern/common');
 const { each, forOwn, cloneDeep } = require('lodash');
-const { isFormData, getMediaType } = require('@usebruno/common').utils;
-const { getUnresolvedVariableCollector } = require('@usebruno/js');
+const { isFormData, getMediaType } = require('@tern/common').utils;
+const { getUnresolvedVariableCollector } = require('@tern/js');
 const { isBinaryRequestBody } = require('../../utils/common');
 
 const hasResolvablePathParamValue = (pathParam) => {

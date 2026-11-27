@@ -11,8 +11,8 @@ const {
   stringifyFolderViaWorker,
   parseEnvironmentViaWorker,
   stringifyEnvironmentViaWorker
-} = require('@usebruno/filestore');
-const { transformProxyConfig } = require('@usebruno/requests');
+} = require('@tern/filestore');
+const { transformProxyConfig } = require('@tern/requests');
 const { getCollectionFormat, getCollectionStats, writeFile } = require('../utils/filesystem');
 const { openCollection } = require('../app/collections');
 const snapshotManager = require('../services/snapshot');
