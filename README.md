@@ -64,12 +64,12 @@ Bản cài đặt cho Windows và Linux (AppImage, deb, rpm) được build bằ
 
 Monorepo (npm workspaces) trong `packages/`:
 
-| Package | Vai trò |
-|---|---|
-| `app` | Giao diện React + Redux |
-| `electron` | Tiến trình chính của Electron: file, mạng, IPC |
-| `requests` | Gửi request (HTTP, gRPC, WebSocket) |
-| `js` | Sandbox chạy script và test |
-| `filestore` | Đọc, ghi file `.yml` |
-| `converters` | Chuyển đổi OpenAPI sang request |
-| `common`, `schema`, `schema-types`, `query`, `sqlite`, `graphql-docs` | Thư viện dùng chung |
+| Package                                                                           | Vai trò                                            |
+| --------------------------------------------------------------------------------- | --------------------------------------------------- |
+| `app`                                                                           | Giao diện React + Redux                            |
+| `electron`                                                                      | Tiến trình chính của Electron: file, mạng, IPC |
+| `requests`                                                                      | Gửi request (HTTP, gRPC, WebSocket)                |
+| `js`                                                                            | Sandbox chạy script và test                       |
+| `filestore`                                                                     | Đọc, ghi file `.yml`                            |
+| `converters`                                                                    | Chuyển đổi OpenAPI sang request                  |
+| `common`, `schema`, `schema-types`, `query`, `sqlite`, `graphql-docs` | Thư viện dùng chung                              |
