@@ -1,29 +1,14 @@
 const fs = require('node:fs');
-const path = require('node:path');
 const { app } = require('electron');
 
-const APP_DIR_NAME = 'Tern';
-
 /**
- * Returns the default location where new collections are stored.
- * Checks ~/Documents/Tern if available, otherwise falls back to the app's data directory
+ * Returns the default location where new applications are stored: the app's data directory
+ * (%APPDATA%\tern on Windows). It is deliberately not under the user's Documents folder.
  */
 function resolveDefaultLocation() {
-  const defaultPaths = [
-    path.join(app.getPath('documents'), APP_DIR_NAME),
-    app.getPath('userData')
-  ];
-
-  for (const dirPath of defaultPaths) {
-    try {
-      fs.mkdirSync(dirPath, { recursive: true });
-      return dirPath;
-    } catch (error) {
-      console.warn(`Failed to create directory at ${dirPath}:`, error.message);
-    }
-  }
-
-  throw new Error('Failed to create default location');
+  const dirPath = app.getPath('userData');
+  fs.mkdirSync(dirPath, { recursive: true });
+  return dirPath;
 }
 
 module.exports = { resolveDefaultLocation };
