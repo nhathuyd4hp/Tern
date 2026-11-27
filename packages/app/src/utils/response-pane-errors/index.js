@@ -1,5 +1,5 @@
 import camelCase from 'lodash/camelCase';
-import { SCRIPT_TYPES } from '@usebruno/common';
+import { SCRIPT_TYPES } from '@tern/common';
 import { findItemInCollectionByPathname } from 'utils/collections';
 import path, { normalizePath } from 'utils/common/path';
 

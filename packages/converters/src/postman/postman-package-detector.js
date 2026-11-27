@@ -3,7 +3,7 @@
  * calls inside Postman scripts being imported into Bruno.
  */
 
-import { isValidNpmPackageName } from '@usebruno/common/utils';
+import { isValidNpmPackageName } from '@tern/common/utils';
 
 // String literals inside pm.require / require - single, double, or backtick
 // quoted. We deliberately keep this simple and do not attempt to handle

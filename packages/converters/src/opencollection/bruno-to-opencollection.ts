@@ -1,10 +1,10 @@
-import { normalizeOpenApiSyncConfigs } from "@usebruno/common";
+import { normalizeOpenApiSyncConfigs } from "@tern/common";
 import { toOpenCollectionActions, toOpenCollectionAuth, toOpenCollectionHeaders, toOpenCollectionScripts, toOpenCollectionVariables } from "./common";
 import { toOpenCollectionEnvironments } from "./environment";
 import { toOpenCollectionFolder } from "./folder";
 import { toOpenCollectionItems } from "./items";
 import { BrunoCollection, BrunoCollectionRoot, BrunoConfig, BrunoPresets, ClientCertificate, CollectionConfig, OpenCollection, PemCertificate, Pkcs12Certificate, Protobuf } from "./types";
-import { HTTP_SCRIPT_KEYS } from '@usebruno/common';
+import { HTTP_SCRIPT_KEYS } from '@tern/common';
 
 const toOpenCollectionConfig = (brunoConfig: BrunoConfig | undefined): CollectionConfig | undefined => {
   if (!brunoConfig) {

@@ -11,7 +11,7 @@ import {
   fromOpenCollectionAssertions,
   toOpenCollectionAssertions
 } from '../common';
-import { GRPC_SCRIPT_KEYS } from '@usebruno/common';
+import { GRPC_SCRIPT_KEYS } from '@tern/common';
 import type {
   GrpcRequest,
   GrpcRequestInfo,

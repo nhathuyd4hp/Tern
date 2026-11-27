@@ -1,7 +1,7 @@
 import map from 'lodash/map';
 import { deleteSecretsInEnvs, deleteUidsInEnvs, deleteUidsInItems, isItemARequest } from '../common';
 import translateBruToPostman from '../utils/bruno-to-postman-translator';
-import { toDisplayString as ensureString } from '@usebruno/common/utils';
+import { toDisplayString as ensureString } from '@tern/common/utils';
 
 const isItemAFolder = (item) => item.type === 'folder';
 

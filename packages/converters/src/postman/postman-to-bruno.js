@@ -1,5 +1,5 @@
 import mime from 'mime-types';
-import { transformExampleStatusInCollection, utils } from '@usebruno/common';
+import { transformExampleStatusInCollection, utils } from '@tern/common';
 import each from 'lodash/each';
 import get from 'lodash/get';
 import { hydrateSeqInCollection, transformItemsInCollection, uuid, validateSchema } from '../common';

@@ -1,11 +1,11 @@
 import { BrunoError } from 'utils/common/error';
-import { openApiToBruno } from '@usebruno/converters';
+import { openApiToBruno } from '@tern/converters';
 
 export const convertOpenapiToBruno = (data, options = {}) => {
   try {
     return openApiToBruno(data, options);
   } catch (err) {
-    console.error('Error converting OpenAPI to Kevin:', err);
+    console.error('Error converting OpenAPI to Tern:', err);
     throw new BrunoError('Import application failed: ' + err.message);
   }
 };

@@ -10,10 +10,10 @@ const os = require('os');
 const packageJson = require('./package.json');
 
 const externalDeps = [
-  '@usebruno/common',
-  '@usebruno/common/utils',
-  '@usebruno/schema',
-  '@usebruno/schema-types',
+  '@tern/common',
+  '@tern/common/utils',
+  '@tern/schema',
+  '@tern/schema-types',
   /@usebruno\/schema-types\/.*/,
   '@opencollection/types',
   /@opencollection\/types\/.*/,

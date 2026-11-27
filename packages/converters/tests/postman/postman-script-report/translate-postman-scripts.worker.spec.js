@@ -15,7 +15,7 @@ jest.mock('node:worker_threads', () => ({
   }
 }), { virtual: true });
 
-jest.mock('@usebruno/converters', () => ({ translatePostmanScript: mockTranslatePostmanScript }), { virtual: true });
+jest.mock('@tern/converters', () => ({ translatePostmanScript: mockTranslatePostmanScript }), { virtual: true });
 
 const { parentPort } = require('node:worker_threads');
 require('../../../src/workers/scripts/translate-postman-scripts');

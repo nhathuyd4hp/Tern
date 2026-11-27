@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@jest/globals';
-import { getFolderTags } from '@usebruno/common';
+import { getFolderTags } from '@tern/common';
 import { fromOpenCollectionFolder, toOpenCollectionFolder } from '../../src/opencollection/folder';
 import { brunoToOpenCollection } from '../../src/opencollection/bruno-to-opencollection';
 import { openCollectionToBruno } from '../../src/opencollection/opencollection-to-bruno';

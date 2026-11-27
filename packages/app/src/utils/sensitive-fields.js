@@ -1,5 +1,5 @@
 import get from 'lodash/get';
-import { interpolate } from '@usebruno/common';
+import { interpolate } from '@tern/common';
 import { resolveInheritedAuth } from 'utils/auth';
 import { VARIABLE_ADD_SCOPES } from 'utils/common/constants';
 import {

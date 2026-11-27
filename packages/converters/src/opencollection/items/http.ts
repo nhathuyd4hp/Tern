@@ -18,7 +18,7 @@ import {
   toOpenCollectionAssertions,
   resolveTimeoutSetting
 } from '../common';
-import { utils, HTTP_SCRIPT_KEYS } from '@usebruno/common';
+import { utils, HTTP_SCRIPT_KEYS } from '@tern/common';
 import type {
   HttpRequest,
   HttpRequestSettings,
@@ -35,7 +35,7 @@ import type {
   BrunoExample,
   BrunoHttpRequest
 } from '../types';
-import type { HttpItemSettings as BrunoHttpItemSettings } from '@usebruno/schema-types/collection/item';
+import type { HttpItemSettings as BrunoHttpItemSettings } from '@tern/schema-types/collection/item';
 
 
 const { toBool, toMaxRedirects } = utils;

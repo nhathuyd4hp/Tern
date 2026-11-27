@@ -4,7 +4,7 @@ import {
   BrunoVariableDataType,
   isBrunoVariableDataType,
   valueToString
-} from '@usebruno/common/utils';
+} from '@tern/common/utils';
 
 export { BrunoVariableDataType, isBrunoVariableDataType };
 

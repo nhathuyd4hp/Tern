@@ -6,10 +6,10 @@ import filter from 'lodash/filter';
 import cloneDeep from 'lodash/cloneDeep';
 import { uuid } from 'utils/common';
 import { isItemARequest } from 'utils/collections';
-import { collectionSchema } from '@usebruno/schema';
+import { collectionSchema } from '@tern/schema';
 import { BrunoError } from 'utils/common/error';
 import { isOpenApiSpec } from './openapi-collection';
-import { valueToString } from '@usebruno/common/utils';
+import { valueToString } from '@tern/common/utils';
 
 export const validateSchema = async (collections = []) => {
   collections = Array.isArray(collections) ? collections : [collections];

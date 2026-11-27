@@ -1,8 +1,8 @@
 import each from 'lodash/each';
 import isPlainObject from 'lodash/isPlainObject';
 import MarkdownIt from 'markdown-it';
-import { DEFAULT_REQUEST_NAME_SOURCE, REQUEST_NAME_SOURCES } from '@usebruno/common';
-import { sanitizeName } from '@usebruno/common/utils';
+import { DEFAULT_REQUEST_NAME_SOURCE, REQUEST_NAME_SOURCES } from '@tern/common';
+import { sanitizeName } from '@tern/common/utils';
 import {
   resolveSchemaComposition,
   cycleKeyOf,

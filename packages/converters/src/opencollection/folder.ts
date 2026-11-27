@@ -21,7 +21,7 @@ import type {
   BrunoFolderRoot,
   BrunoKeyValue
 } from './types';
-import { HTTP_SCRIPT_KEYS, normalizeTags } from '@usebruno/common';
+import { HTTP_SCRIPT_KEYS, normalizeTags } from '@tern/common';
 
 export const fromOpenCollectionFolder = (folder: Folder): BrunoItem => {
   const info = folder.info || {};

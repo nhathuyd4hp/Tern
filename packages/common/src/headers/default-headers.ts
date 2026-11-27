@@ -13,7 +13,7 @@ export type BrunoDefaultHeader = {
 export const BRUNO_DEFAULT_HEADERS: BrunoDefaultHeader[] = [
   {
     name: 'User-Agent',
-    previewValue: 'kevin-runtime/<version>',
+    previewValue: 'tern-runtime/<version>',
     omittable: true,
     source: 'bruno'
   },
@@ -145,4 +145,4 @@ export const applyOmitHeaders = (
 
 /** User-Agent Bruno sends by default. */
 export const getBrunoRuntimeUserAgent = (version: string): string =>
-  `kevin-runtime/${version || ''}`;
+  `tern-runtime/${version || ''}`;

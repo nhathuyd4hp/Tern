@@ -3,7 +3,7 @@ import { addEnvironment, selectEnvironment } from 'providers/ReduxStore/slices/c
 import { addGlobalEnvironment } from 'providers/ReduxStore/slices/global-environments';
 import { validateName, validateNameError } from 'utils/common/regex';
 import { VARIABLE_ADD_SCOPES } from 'utils/common/constants';
-import { getDataTypeFromValue } from '@usebruno/common/utils';
+import { getDataTypeFromValue } from '@tern/common/utils';
 
 const NEW_ENVIRONMENT_WAIT_TIMEOUT_MS = 3000;
 

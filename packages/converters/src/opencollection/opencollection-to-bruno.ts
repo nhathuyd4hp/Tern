@@ -1,12 +1,12 @@
 import { OpenCollection } from "@opencollection/types";
-import { normalizeOpenApiSyncConfigs } from "@usebruno/common";
+import { normalizeOpenApiSyncConfigs } from "@tern/common";
 import { BrunoCollection, BrunoCollectionRoot, BrunoConfig, BrunoPresets, PemCertificate, Pkcs12Certificate } from "./types";
 import { fromOpenCollectionActions, fromOpenCollectionAuth, fromOpenCollectionHeaders, fromOpenCollectionScripts, fromOpenCollectionVariables } from "./common";
 import { uuid } from "../common";
 import { fromOpenCollectionItems } from "./items";
 import { fromOpenCollectionFolder } from "./folder";
 import { fromOpenCollectionEnvironments } from "./environment";
-import { HTTP_SCRIPT_KEYS } from '@usebruno/common';
+import { HTTP_SCRIPT_KEYS } from '@tern/common';
 
 const fromOpenCollectionConfig = (oc: OpenCollection): BrunoConfig => {
   const brunoExtension = oc.extensions?.bruno as {

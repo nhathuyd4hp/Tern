@@ -24,7 +24,7 @@ import type {
   BrunoKeyValue,
   BrunoWebSocketRequestBody
 } from '../types';
-import { HTTP_SCRIPT_KEYS } from '@usebruno/common';
+import { HTTP_SCRIPT_KEYS } from '@tern/common';
 
 export const fromOpenCollectionWebsocketItem = (item: WebSocketRequest): BrunoItem => {
   const info = item.info || {};

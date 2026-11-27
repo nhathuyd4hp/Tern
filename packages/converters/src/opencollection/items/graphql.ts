@@ -18,7 +18,7 @@ import {
   toOpenCollectionAssertions,
   resolveTimeoutSetting
 } from '../common';
-import { utils, HTTP_SCRIPT_KEYS } from '@usebruno/common';
+import { utils, HTTP_SCRIPT_KEYS } from '@tern/common';
 import type {
   GraphQLRequest,
   GraphQLRequestInfo,

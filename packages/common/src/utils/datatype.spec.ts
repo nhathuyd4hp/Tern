@@ -8,7 +8,7 @@ import {
 } from './datatype';
 
 /*
- * Canonical coercion test matrix. `@usebruno/lang` and `@usebruno/filestore`
+ * Canonical coercion test matrix. `@tern/lang` and `@tern/filestore`
  * both delegate to `parseValueByDataType` from this package, so this is the
  * only place the contract is exercised in detail.
  */

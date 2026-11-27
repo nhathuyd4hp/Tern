@@ -1,5 +1,5 @@
 import jsyaml from 'js-yaml';
-import { DEFAULT_AUTH_PLACEMENT, DEFAULT_REQUEST_NAME_SOURCE } from '@usebruno/common';
+import { DEFAULT_AUTH_PLACEMENT, DEFAULT_REQUEST_NAME_SOURCE } from '@tern/common';
 import { getRelativePath } from 'utils/common/path';
 import { convertOpenapiToBruno } from './openapi-collection';
 import { convertProtoToBruno } from './proto-collection';

@@ -9,7 +9,7 @@ const generateUID = () => {
 };
 
 import { get, each } from 'lodash';
-import { collectionSchema } from '@usebruno/schema';
+import { collectionSchema } from '@tern/schema';
 import parseXML, { XML_POSITION_KEY } from './parse-xml.js';
 import { collectWsdlSchemas, resolveQName } from './schema-graph.js';
 

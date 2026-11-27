@@ -6,7 +6,7 @@ It can be used as a standalone package or as a part of the Bruno framework.
 ## Installation
 
 ```bash
-npm install @usebruno/converters
+npm install @tern/converters
 ```
 
 ## Usage
@@ -14,7 +14,7 @@ npm install @usebruno/converters
 ### Convert Postman collection to Bruno collection
 
 ```javascript
-const { postmanToBruno } = require('@usebruno/converters');
+const { postmanToBruno } = require('@tern/converters');
 
 // Convert Postman collection to Bruno collection
 const brunoCollection = postmanToBruno(postmanCollection);
@@ -23,7 +23,7 @@ const brunoCollection = postmanToBruno(postmanCollection);
 ### Convert Postman Environment to Bruno Environment
 
 ```javascript
-const { postmanToBrunoEnvironment } = require('@usebruno/converters');
+const { postmanToBrunoEnvironment } = require('@tern/converters');
 
 const brunoEnvironment = postmanToBrunoEnvironment(postmanEnvironment);
 ```
@@ -31,7 +31,7 @@ const brunoEnvironment = postmanToBrunoEnvironment(postmanEnvironment);
 ### Convert Insomnia collection to Bruno collection
 
 ```javascript
-const { insomniaToBruno } = require('@usebruno/converters');
+const { insomniaToBruno } = require('@tern/converters');
 
 const brunoCollection = insomniaToBruno(insomniaCollection);
 ```
@@ -39,7 +39,7 @@ const brunoCollection = insomniaToBruno(insomniaCollection);
 ### Convert OpenAPI specification to Bruno collection
 
 ```javascript
-const { openApiToBruno } = require('@usebruno/converters');
+const { openApiToBruno } = require('@tern/converters');
 
 const brunoCollection = openApiToBruno(openApiSpecification);
 ```
@@ -47,7 +47,7 @@ const brunoCollection = openApiToBruno(openApiSpecification);
 ### Convert WSDL file to Bruno collection
 
 ```javascript
-import { wsdlToBruno } from '@usebruno/converters';
+import { wsdlToBruno } from '@tern/converters';
 
 const brunoCollection = await wsdlToBruno(wsdlContent);
 ```
@@ -56,14 +56,14 @@ const brunoCollection = await wsdlToBruno(wsdlContent);
 
 ```javascript
 
-const { postmanToBruno } = require('@usebruno/converters');
+const { postmanToBruno } = require('@tern/converters');
 const fs = require('fs/promises');
 
 async function convertPostmanToBruno(inputFile, outputDir) {
   const inputData = await fs.readFile(inputFile, 'utf8');
 
   const collection = await postmanToBruno(JSON.parse(inputData));
-  // `collection` is a Bruno collection object; serialize it with @usebruno/filestore.
+  // `collection` is a Bruno collection object; serialize it with @tern/filestore.
   return collection;
 }
 
@@ -85,14 +85,14 @@ The WSDL importer supports the following features:
 ### WSDL Import Example
 
 ```javascript
-import { wsdlToBruno } from '@usebruno/converters';
+import { wsdlToBruno } from '@tern/converters';
 import fs from 'fs/promises';
 
 async function importWSDL() {
   const wsdlContent = await fs.readFile('service.wsdl', 'utf8');
 
   const collection = await wsdlToBruno(wsdlContent);
-  // `collection` is a Bruno collection object; serialize it with @usebruno/filestore.
+  // `collection` is a Bruno collection object; serialize it with @tern/filestore.
   return collection;
 }
 
@@ -122,4 +122,4 @@ bruno import wsdl --source service.wsdl --output-file ~/Desktop/soap-collection.
 - `nanoid` - UUID generation
 - `js-yaml` - YAML parsing
 - `xml2js` - XML parsing for WSDL
-- `@usebruno/schema` - Schema validation
+- `@tern/schema` - Schema validation

@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@jest/globals';
-import { sanitizeName } from '@usebruno/common/utils';
+import { sanitizeName } from '@tern/common/utils';
 import openApiToBruno from '../../src/openapi/openapi-to-bruno';
 
 const buildOpenApiSpec = (paths) => ({

@@ -1,4 +1,4 @@
-import { validatedEnvironmentName } from '@usebruno/common/utils';
+import { validatedEnvironmentName } from '@tern/common/utils';
 import { uuid } from '../common/index.js';
 import {
   isTypedValue,

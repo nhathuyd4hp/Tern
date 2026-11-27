@@ -1,6 +1,6 @@
 import { BrunoError } from 'utils/common/error';
 import { buildEnvVariable, coerceEnvColor } from 'utils/environments';
-import { coerceEnvName, dedupeImportedSecrets, validatedEnvironmentExtendsFrom } from '@usebruno/common/utils';
+import { coerceEnvName, dedupeImportedSecrets, validatedEnvironmentExtendsFrom } from '@tern/common/utils';
 
 const validateBrunoEnvironment = (env, filePath, fileName) => {
   if (!env || typeof env !== 'object') {
@@ -113,7 +113,7 @@ const importBrunoEnvironment = (parsedFiles) => {
     return result;
   } catch (err) {
     console.error(err);
-    throw err instanceof BrunoError ? err : new BrunoError('Import Kevin environment failed');
+    throw err instanceof BrunoError ? err : new BrunoError('Import Tern environment failed');
   }
 };
 
