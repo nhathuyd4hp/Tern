@@ -1,11 +1,12 @@
 import { useMemo, useRef, useState } from 'react';
 import { useDispatch } from 'react-redux';
+import { useDrop } from 'react-dnd';
 import { IconPlayerPlay, IconPlayerStop, IconTrash } from '@tabler/icons';
 import Button from 'ui/Button';
-import Select from 'ui/Select';
-import { deleteFlow, getFlowRequests, saveFlow } from 'utils/flows';
+import { FLOW_DRAG, deleteFlow, getFlowRequests, saveFlow } from 'utils/flows';
 import { runFlow } from 'utils/flows/runFlow';
 import FlowStep from './FlowStep';
+import RequestPalette from './RequestPalette';
 import StyledWrapper from './StyledWrapper';
 
 const FlowEditor = ({ application, flow, onDeleted }) => {
@@ -27,7 +28,31 @@ const FlowEditor = ({ application, flow, onDeleted }) => {
     [steps[index], steps[target]] = [steps[target], steps[index]];
     change({ steps });
   };
-  const addStep = (requestPath) => requestPath && change({ steps: [...flow.steps, { requestPath, extractions: [] }] });
+  const addStep = (requestPath, at = flow.steps.length) => {
+    const steps = [...flow.steps];
+    steps.splice(at, 0, { requestPath, extractions: [] });
+    change({ steps });
+  };
+
+  // A step dropped on another one takes its place; a request dropped on a step goes in before it.
+  const dropOnStep = (index, type, dragged) => {
+    if (type === FLOW_DRAG.request) {
+      addStep(dragged.requestPath, index);
+      return;
+    }
+    if (dragged.index === index) return;
+    const steps = [...flow.steps];
+    const [moved] = steps.splice(dragged.index, 1);
+    steps.splice(index, 0, moved);
+    change({ steps });
+  };
+
+  const [{ overEnd }, dropAtEnd] = useDrop({
+    accept: [FLOW_DRAG.step, FLOW_DRAG.request],
+    canDrop: () => !running,
+    drop: (dragged, monitor) => dropOnStep(flow.steps.length, monitor.getItemType(), dragged),
+    collect: (monitor) => ({ overEnd: monitor.isOver() && monitor.canDrop() })
+  });
 
   const run = async () => {
     stopRequested.current = false;
@@ -85,34 +110,32 @@ const FlowEditor = ({ application, flow, onDeleted }) => {
         </div>
       )}
 
-      <div className="flow-steps">
-        {flow.steps.map((step, index) => (
-          <FlowStep
-            key={step.id}
-            index={index}
-            count={flow.steps.length}
-            step={step}
-            request={requestOf(step.requestPath)}
-            result={results[index]}
-            disabled={running}
-            onChange={(next) => changeStep(index, next)}
-            onMove={(direction) => moveStep(index, direction)}
-            onRemove={() => removeStep(index)}
-          />
-        ))}
-      </div>
+      <div className="flow-body">
+        <div className="flow-main">
+          <div className="flow-steps">
+            {flow.steps.map((step, index) => (
+              <FlowStep
+                key={step.id}
+                index={index}
+                count={flow.steps.length}
+                step={step}
+                request={requestOf(step.requestPath)}
+                result={results[index]}
+                disabled={running}
+                onChange={(next) => changeStep(index, next)}
+                onMove={(direction) => moveStep(index, direction)}
+                onRemove={() => removeStep(index)}
+                onDrop={dropOnStep}
+              />
+            ))}
+          </div>
 
-      <div className="flow-add">
-        <Select
-          data={requests.map(({ item, requestPath }) => ({ value: requestPath, label: `${item.request.method} ${requestPath}` }))}
-          value=""
-          onChange={addStep}
-          placeholder={requests.length ? 'Add a request as the next step' : 'This application has no HTTP requests yet'}
-          disabled={running || requests.length === 0}
-          searchable
-          nothingFoundMessage="No request matches"
-          aria-label="Add step"
-        />
+          <div ref={dropAtEnd} className={`flow-drop-end ${overEnd ? 'over' : ''}`} data-testid="flow-drop-end">
+            {flow.steps.length ? 'Drop a request here to add it as the last step' : 'Drag a request here, or click one on the right, to start the flow'}
+          </div>
+        </div>
+
+        <RequestPalette requests={requests} disabled={running} onAdd={addStep} />
       </div>
     </StyledWrapper>
   );

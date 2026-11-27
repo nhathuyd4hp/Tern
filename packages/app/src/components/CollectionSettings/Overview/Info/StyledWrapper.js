@@ -2,18 +2,7 @@ import styled from 'styled-components';
 import { rgba } from 'utils/color';
 
 const StyledWrapper = styled.div`
-  .version-value-wrap {
-    display: flex;
-    min-width: 0;
-    max-width: 220px;
-  }
 
-  .version-value {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
 
   .icon-box {
     &.location {
@@ -43,14 +32,7 @@ const StyledWrapper = styled.div`
       }
     }
 
-    &.version {
-      background-color: ${(props) => rgba(props.theme.colors.text.yellow, 0.1)};
-      border: 1px solid ${(props) => rgba(props.theme.colors.text.yellow, 0.1)};
 
-      svg {
-        color: ${(props) => props.theme.colors.text.yellow};
-      }
-    }
   }
 `;
 

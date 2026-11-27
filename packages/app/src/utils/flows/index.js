@@ -9,6 +9,9 @@ import { flattenItems, isItemARequest } from 'utils/collections/index';
 
 export const FLOW_REQUEST_TYPES = ['http-request', 'graphql-request'];
 
+// Drag and drop: a request of the palette is dropped into a flow, a step is dropped to move it.
+export const FLOW_DRAG = { request: 'flow-request', step: 'flow-step' };
+
 const STORAGE_KEY = 'tern.flows';
 const NO_FLOWS = [];
 

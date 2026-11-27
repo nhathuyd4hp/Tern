@@ -1,16 +1,18 @@
 import { useMemo } from 'react';
 import { useDispatch } from 'react-redux';
-import { IconStack2, IconRefresh } from '@tabler/icons';
+import { IconStack2, IconRefresh, IconSend, IconRoute } from '@tabler/icons';
 import { addTab } from 'providers/ReduxStore/slices/tabs';
 import { flattenItems, isItemAFolder, isItemARequest } from 'utils/collections/index';
 import { getFolderSyncPath, getSyncEntry } from 'utils/openapi-sync-scope';
 import { useApplicationColor } from 'utils/application-color';
+import { useFlows } from 'utils/flows';
 import StyledWrapper from './StyledWrapper';
 
 // The collections of an application (its top-level folders) with a summary, so one can be picked from here.
 const CollectionList = ({ collection: application }) => {
   const dispatch = useDispatch();
   const applicationColor = useApplicationColor(application);
+  const flows = useFlows(application);
 
   const rows = useMemo(() => (application.items || []).filter(isItemAFolder).map((folder) => {
     const syncFolder = getFolderSyncPath(application, folder);
@@ -23,7 +25,8 @@ const CollectionList = ({ collection: application }) => {
   }), [application]);
 
   const totalRequests = rows.reduce((sum, row) => sum + row.requestCount, 0);
-  const syncedCount = rows.filter((row) => row.isSynced).length;
+
+  const openFlows = () => dispatch(addTab({ uid: `${application.uid}-flows`, collectionUid: application.uid, type: 'flows' }));
 
   const openCollection = ({ folder, syncFolder, isSynced }) => {
     dispatch(addTab(isSynced
@@ -34,9 +37,18 @@ const CollectionList = ({ collection: application }) => {
   return (
     <StyledWrapper className="mt-4" data-testid="application-collection-list">
       <div className="summary-row">
-        <div className="summary-item"><span className="summary-count">{rows.length}</span> Collections</div>
-        <div className="summary-item"><span className="summary-count">{totalRequests}</span> Requests</div>
-        <div className="summary-item"><span className="summary-count">{syncedCount}</span> Synced with OpenAPI</div>
+        <div className="summary-item">
+          <IconStack2 size={18} strokeWidth={2} style={{ color: applicationColor }} />
+          <span className="summary-count">{rows.length}</span> Collections
+        </div>
+        <div className="summary-item">
+          <IconSend size={18} strokeWidth={2} className="icon-requests" />
+          <span className="summary-count">{totalRequests}</span> Requests
+        </div>
+        <button type="button" className="summary-item summary-link" onClick={openFlows} data-testid="summary-flows">
+          <IconRoute size={18} strokeWidth={2} className="icon-flows" />
+          <span className="summary-count">{flows.length}</span> Flows
+        </button>
       </div>
 
       {rows.length === 0 ? (

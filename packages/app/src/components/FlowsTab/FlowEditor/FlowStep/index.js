@@ -1,6 +1,11 @@
-import { IconArrowDown, IconArrowUp, IconCheck, IconLoader2, IconPlus, IconX } from '@tabler/icons';
+import { useMemo, useRef } from 'react';
+import { useDrag, useDrop } from 'react-dnd';
+import { IconArrowDown, IconArrowUp, IconCheck, IconGripVertical, IconLoader2, IconPlus, IconX } from '@tabler/icons';
 import Button from 'ui/Button';
 import MethodBadge from 'ui/MethodBadge';
+import Select from 'ui/Select';
+import { FLOW_DRAG } from 'utils/flows';
+import { getResponseFields } from 'utils/flows/responseFields';
 import StyledWrapper from './StyledWrapper';
 
 const shorten = (value) => {
@@ -20,7 +25,33 @@ const ResultLine = ({ result }) => {
     : <span className="result failed"><IconX size={14} strokeWidth={2.5} /> {detail || 'Failed'}</span>;
 };
 
-const FlowStep = ({ index, count, step, request, result, disabled, onChange, onMove, onRemove }) => {
+const FlowStep = ({ index, count, step, request, result, disabled, onChange, onMove, onRemove, onDrop }) => {
+  const rootRef = useRef(null);
+  const handleRef = useRef(null);
+  const [{ dragging }, drag, preview] = useDrag({
+    type: FLOW_DRAG.step,
+    item: { index },
+    canDrag: !disabled,
+    collect: (monitor) => ({ dragging: monitor.isDragging() })
+  });
+  const [{ over }, drop] = useDrop({
+    accept: [FLOW_DRAG.step, FLOW_DRAG.request],
+    canDrop: () => !disabled,
+    drop: (dragged, monitor) => onDrop(index, monitor.getItemType(), dragged),
+    collect: (monitor) => ({ over: monitor.isOver({ shallow: true }) && monitor.canDrop() })
+  });
+  drag(handleRef);
+  drop(preview(rootRef));
+
+  const fields = useMemo(() => getResponseFields(request), [request]);
+  // a row is picked from the known fields while it is empty or holds one of them; a typed expression stays a text box
+  const canPick = (extraction) => fields.length > 0 && (!extraction.expression || fields.some((field) => field.expression === extraction.expression));
+  const pickField = (position, expression) => {
+    const field = fields.find((candidate) => candidate.expression === expression);
+    if (!field) return;
+    const current = step.extractions[position];
+    changeExtraction(position, { expression, name: current.name && fields.every((candidate) => candidate.name !== current.name) ? current.name : field.name });
+  };
   const changeExtraction = (position, next) => onChange({
     ...step,
     extractions: step.extractions.map((extraction, i) => (i === position ? { ...extraction, ...next } : extraction))
@@ -29,8 +60,11 @@ const FlowStep = ({ index, count, step, request, result, disabled, onChange, onM
   const removeExtraction = (position) => onChange({ ...step, extractions: step.extractions.filter((_, i) => i !== position) });
 
   return (
-    <StyledWrapper className={result?.status || ''} data-testid="flow-step">
+    <StyledWrapper ref={rootRef} className={`${result?.status || ''} ${dragging ? 'dragging' : ''} ${over ? 'drop-target' : ''}`} data-testid="flow-step">
       <div className="step-head">
+        <span ref={handleRef} className={`step-grip ${disabled ? 'disabled' : ''}`} title="Drag to move">
+          <IconGripVertical size={16} />
+        </span>
         <span className="step-number">{index + 1}</span>
         {request ? <MethodBadge method={request.request.method} /> : null}
         <span className={`step-request ${request ? '' : 'missing'}`}>
@@ -58,14 +92,31 @@ const FlowStep = ({ index, count, step, request, result, disabled, onChange, onM
               onChange={(event) => changeExtraction(position, { name: event.target.value })}
             />
             <span className="extraction-equals">=</span>
-            <input
-              className="extraction-expression"
-              aria-label="Expression on the response"
-              placeholder="res.body.data.token"
-              value={extraction.expression}
-              disabled={disabled}
-              onChange={(event) => changeExtraction(position, { expression: event.target.value })}
-            />
+            {canPick(extraction) ? (
+              <div className="extraction-picker">
+                <Select
+                  data={fields
+                    .filter((field) => field.expression === extraction.expression || !step.extractions.some((other) => other.expression === field.expression))
+                    .map((field) => ({ value: field.expression, label: `${field.label}  =  ${field.sample}` }))}
+                  value={extraction.expression}
+                  onChange={(expression) => pickField(position, expression)}
+                  placeholder="Pick a value from the response"
+                  searchable
+                  nothingFoundMessage="No field matches"
+                  disabled={disabled}
+                  aria-label="Value from the response"
+                />
+              </div>
+            ) : (
+              <input
+                className="extraction-expression"
+                aria-label="Expression on the response"
+                placeholder="res.body.data.token"
+                value={extraction.expression}
+                disabled={disabled}
+                onChange={(event) => changeExtraction(position, { expression: event.target.value })}
+              />
+            )}
             <Button size="xs" variant="ghost" color="secondary" disabled={disabled} icon={<IconX size={14} />} onClick={() => removeExtraction(position)} title="Remove value" />
             {result?.extracted && extraction.name in result.extracted && (
               <span className="extraction-value" title={String(result.extracted[extraction.name])}>{shorten(result.extracted[extraction.name])}</span>

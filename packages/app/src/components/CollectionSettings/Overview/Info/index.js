@@ -1,12 +1,9 @@
 import React, { useMemo } from 'react';
 import { getTotalRequestCountInCollection } from 'utils/collections/';
-import { IconFolder, IconWorld, IconApi, IconTag } from '@tabler/icons';
-import { areItemsLoading, getItemsLoadStats, getCollectionVersion } from 'utils/collections/index';
-import { useRef, useState } from 'react';
+import { IconFolder, IconWorld, IconApi } from '@tabler/icons';
+import { areItemsLoading, getItemsLoadStats } from 'utils/collections/index';
 import { useSelector, useDispatch } from 'react-redux';
 import { makeSelectInvalidItemCountForCollection } from 'src/selectors/collections';
-import ChangeCollectionVersion from 'components/Sidebar/Collections/Collection/ChangeCollectionVersion';
-import ToolHint from 'components/ToolHint';
 import { addTab } from 'providers/ReduxStore/slices/tabs';
 import StyledWrapper from './StyledWrapper';
 
@@ -18,18 +15,6 @@ const Info = ({ collection }) => {
 
   const isCollectionLoading = areItemsLoading(collection);
   const { loading: itemsLoadingCount, total: totalItems } = getItemsLoadStats(collection);
-  const [showChangeVersionModal, setShowChangeVersionModal] = useState(false);
-  const [isVersionOverflowing, setIsVersionOverflowing] = useState(false);
-
-  const collectionVersion = getCollectionVersion(collection);
-
-  const versionRef = useRef(null);
-
-  const handleVersionHover = () => {
-    const el = versionRef.current;
-    if (el) setIsVersionOverflowing(el.scrollWidth > el.clientWidth);
-  };
-
   const globalEnvironments = useSelector((state) => state.globalEnvironments.globalEnvironments);
 
   const collectionEnvironmentCount = collection.environments?.length || 0;
@@ -51,40 +36,6 @@ const Info = ({ collection }) => {
               </div>
             </div>
           </div>
-
-          <div className="flex items-start group cursor-pointer" onClick={() => setShowChangeVersionModal(true)} data-testid="info-version-row">
-            <div className="icon-box version flex-shrink-0 p-3 rounded-lg">
-              <IconTag className="w-5 h-5" stroke={1.5} />
-            </div>
-            <div className="ml-4 h-full flex flex-col justify-start">
-              <div className="font-medium h-fit my-auto">Version</div>
-              <div className="flex flex-wrap items-center gap-2">
-                {collectionVersion ? (
-                  <ToolHint
-                    text={collectionVersion}
-                    toolhintId={`info-version-value-${collection.uid}`}
-                    hidden={!isVersionOverflowing}
-                    place="top"
-                    tooltipStyle={{ maxWidth: '320px', whiteSpace: 'normal', wordBreak: 'break-all' }}
-                    className="version-value-wrap"
-                  >
-                    <span
-                      ref={versionRef}
-                      className="text-muted version-value"
-                      onMouseEnter={handleVersionHover}
-                      data-testid="info-version-value"
-                    >
-                      {collectionVersion}
-                    </span>
-                  </ToolHint>
-                ) : (
-                  <span className="text-muted italic" data-testid="info-version-value">Not Set</span>
-                )}
-                <span className="group-hover:underline text-link" data-testid="info-version-change">change</span>
-              </div>
-            </div>
-          </div>
-          {showChangeVersionModal && <ChangeCollectionVersion collectionUid={collection.uid} onClose={() => setShowChangeVersionModal(false)} />}
 
           {/* Environments Row */}
           <div className="flex items-start">

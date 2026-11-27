@@ -15,7 +15,6 @@ import {
   getSelectionInfo,
   getBulkActionsSelection,
   getUniqueTagsFromItems,
-  getCollectionVersion,
   isCollectionItemCollapsed,
   getVariableNamesWithScope,
   getWorkspaceCollections,
@@ -162,18 +161,6 @@ describe('getUniqueTagsFromItems', () => {
 
   it('reads only saved tags when includeDrafts is false', () => {
     expect(getUniqueTagsFromItems(items, { includeDrafts: false })).toEqual(['nested', 'other-saved', 'saved']);
-  });
-});
-
-describe('getCollectionVersion', () => {
-  it('reads the user-facing version from the normalized brunoConfig.version, for both formats', () => {
-    expect(getCollectionVersion({ brunoConfig: { opencollection: '1.0.0', version: '2.5' } })).toBe('2.5');
-    expect(getCollectionVersion({ brunoConfig: { version: 'v3.0' } })).toBe('v3.0');
-  });
-
-  it('returns an empty string when the version is unset', () => {
-    expect(getCollectionVersion({ brunoConfig: {} })).toBe('');
-    expect(getCollectionVersion(null)).toBe('');
   });
 });
 

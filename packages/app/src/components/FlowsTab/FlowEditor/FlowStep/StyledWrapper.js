@@ -17,6 +17,33 @@ const StyledWrapper = styled.div`
     opacity: 0.6;
   }
 
+  &.dragging {
+    opacity: 0.4;
+  }
+
+  &.drop-target {
+    border-color: ${(props) => props.theme.accents.primary};
+    box-shadow: 0 -2px 0 ${(props) => props.theme.accents.primary};
+  }
+
+  .step-grip {
+    display: inline-flex;
+    flex-shrink: 0;
+    margin-right: -0.5rem;
+    color: ${(props) => props.theme.colors.text.muted};
+    cursor: grab;
+
+    &.disabled {
+      cursor: not-allowed;
+      opacity: 0.4;
+    }
+  }
+
+  .extraction-picker {
+    flex: 1;
+    min-width: 0;
+  }
+
   .step-head {
     display: flex;
     align-items: center;
