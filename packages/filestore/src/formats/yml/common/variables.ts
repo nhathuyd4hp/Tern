@@ -1,6 +1,6 @@
 import { Variable, VariableTypedValue } from '@opencollection/types/common/variables';
-import { FolderRequest as BrunoFolderRequest } from '@usebruno/schema-types/collection/folder';
-import { Variable as BrunoVariable, Variables as BrunoVariables } from '@usebruno/schema-types/common/variables';
+import { FolderRequest as BrunoFolderRequest } from '@tern/schema-types/collection/folder';
+import { Variable as BrunoVariable, Variables as BrunoVariables } from '@tern/schema-types/common/variables';
 import { uuid, ensureString } from '../../../utils';
 import {
   isTypedValue,

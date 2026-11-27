@@ -1,4 +1,4 @@
-import type { HttpRequestParam as BrunoHttpRequestParam } from '@usebruno/schema-types/requests/http';
+import type { HttpRequestParam as BrunoHttpRequestParam } from '@tern/schema-types/requests/http';
 import type { HttpRequestParam } from '@opencollection/types/requests/http';
 import { uuid, ensureString } from '../../../utils';
 

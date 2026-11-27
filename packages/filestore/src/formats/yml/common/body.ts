@@ -1,4 +1,4 @@
-import type { HttpRequestBody as BrunoHttpRequestBody } from '@usebruno/schema-types/requests/http';
+import type { HttpRequestBody as BrunoHttpRequestBody } from '@tern/schema-types/requests/http';
 import type {
   HttpRequestBody,
   RawBody,
@@ -9,9 +9,9 @@ import type {
   FileBody,
   FileBodyVariant
 } from '@opencollection/types/requests/http';
-import type { FileEntry as BrunoFileEntry } from '@usebruno/schema-types/common/file';
+import type { FileEntry as BrunoFileEntry } from '@tern/schema-types/common/file';
 
-import type { KeyValue as BrunoKeyValue } from '@usebruno/schema-types/common/key-value';
+import type { KeyValue as BrunoKeyValue } from '@tern/schema-types/common/key-value';
 import { uuid, ensureString } from '../../../utils';
 
 export const toOpenCollectionBody = (body: BrunoHttpRequestBody | null | undefined): HttpRequestBody | undefined => {

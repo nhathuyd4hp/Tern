@@ -1,6 +1,6 @@
 import type { OpenCollection } from '@opencollection/types';
-import type { FolderRoot } from '@usebruno/schema-types/collection/folder';
-import { normalizeOpenApiSyncConfigs } from '@usebruno/common';
+import type { FolderRoot } from '@tern/schema-types/collection/folder';
+import { normalizeOpenApiSyncConfigs } from '@tern/common';
 import { parseYml } from './utils';
 import { toBrunoAuth } from './common/auth';
 import { toBrunoHttpHeaders } from './common/headers';

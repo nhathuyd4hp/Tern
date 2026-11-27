@@ -1,5 +1,5 @@
-import type { Item as BrunoItem, HttpItemSettings as BrunoHttpItemSettings } from '@usebruno/schema-types/collection/item';
-import type { HttpRequest as BrunoHttpRequest } from '@usebruno/schema-types/requests/http';
+import type { Item as BrunoItem, HttpItemSettings as BrunoHttpItemSettings } from '@tern/schema-types/collection/item';
+import type { HttpRequest as BrunoHttpRequest } from '@tern/schema-types/requests/http';
 import type { GraphQLRequest, GraphQLRequestSettings, GraphQLBody } from '@opencollection/types/requests/graphql';
 import { toBrunoAuth } from '../common/auth';
 import { toBrunoHttpHeaders } from '../common/headers';
@@ -9,7 +9,7 @@ import { toBrunoPostResponseVariables } from '../common/actions';
 import { toBrunoScripts } from '../common/scripts';
 import { toBrunoAssertions } from '../common/assertions';
 import { uuid, ensureString } from '../../../utils';
-import { utils } from '@usebruno/common';
+import { utils } from '@tern/common';
 const { toBool, toMaxRedirects } = utils;
 
 const parseGraphQLRequest = (ocRequest: GraphQLRequest): BrunoItem => {

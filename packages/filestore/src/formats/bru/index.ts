@@ -6,8 +6,8 @@ import {
   envJsonToBruV2,
   collectionBruToJson as _collectionBruToJson,
   jsonToCollectionBru as _jsonToCollectionBru
-} from '@usebruno/lang';
-import { normalizeTags } from '@usebruno/common';
+} from '@tern/lang';
+import { normalizeTags } from '@tern/common';
 import { getOauth2AdditionalParameters } from './utils/oauth2-additional-params';
 
 export const parseBruRequest = (data: string | any, parsed: boolean = false): any => {

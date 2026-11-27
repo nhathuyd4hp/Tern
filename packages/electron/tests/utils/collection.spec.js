@@ -1,9 +1,9 @@
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
-const { runScriptInNodeVm } = require('@usebruno/js');
+const { runScriptInNodeVm } = require('@tern/js');
 const { parseBruFileMeta, wrapAndJoinScripts, mergeScripts } = require('../../src/utils/collection');
-const { executeQuickJsVmAsync } = require('@usebruno/js/src/sandbox/quickjs');
+const { executeQuickJsVmAsync } = require('@tern/js/src/sandbox/quickjs');
 
 describe('parseBruFileMeta', () => {
   test('parses valid meta block correctly', () => {

@@ -1,5 +1,5 @@
-import type { Item as BrunoItem, HttpItemSettings as BrunoHttpItemSettings } from '@usebruno/schema-types/collection/item';
-import type { HttpRequest as BrunoHttpRequest } from '@usebruno/schema-types/requests/http';
+import type { Item as BrunoItem, HttpItemSettings as BrunoHttpItemSettings } from '@tern/schema-types/collection/item';
+import type { HttpRequest as BrunoHttpRequest } from '@tern/schema-types/requests/http';
 import type { HttpRequest, HttpRequestSettings, HttpRequestExample, HttpRequestInfo, HttpRequestDetails, HttpRequestRuntime, HttpRequestHeader } from '@opencollection/types/requests/http';
 import type { Auth } from '@opencollection/types/common/auth';
 import type { Scripts } from '@opencollection/types/common/scripts';
@@ -19,8 +19,8 @@ import { toOpenCollectionScripts } from '../common/scripts';
 import { toOpenCollectionAssertions } from '../common/assertions';
 import { normalizeOmitHeaders } from '../common/omit-headers';
 import { isNonEmptyString } from '../../../utils';
-import { resolveTimeoutSetting, toMaxRedirects } from '@usebruno/common/utils';
-import { HTTP_SCRIPT_KEYS } from '@usebruno/common';
+import { resolveTimeoutSetting, toMaxRedirects } from '@tern/common/utils';
+import { HTTP_SCRIPT_KEYS } from '@tern/common';
 
 const stringifyHttpRequest = (item: BrunoItem): string => {
   try {

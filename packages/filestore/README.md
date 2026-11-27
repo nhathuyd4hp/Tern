@@ -23,7 +23,7 @@ const {
   parseEnvironment,
   stringifyEnvironment,
   parseDotEnv
-} = require('@usebruno/filestore');
+} = require('@tern/filestore');
 
 // Parse a .bru request file
 const requestData = parseRequest(bruContent);

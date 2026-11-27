@@ -1,4 +1,4 @@
-import type { GrpcRequest as BrunoGrpcRequest } from '@usebruno/schema-types/requests/grpc';
+import type { GrpcRequest as BrunoGrpcRequest } from '@tern/schema-types/requests/grpc';
 import stringifyItem from './stringifyItem';
 import parseItem from './parseItem';
 

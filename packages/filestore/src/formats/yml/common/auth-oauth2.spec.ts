@@ -2,7 +2,7 @@ import type { AuthOAuth2 } from '@opencollection/types/common/auth';
 import type {
   OAuth2 as BrunoOAuth2,
   OAuthAdditionalParameter as BrunoOAuthAdditionalParameter
-} from '@usebruno/schema-types/common/auth';
+} from '@tern/schema-types/common/auth';
 import { toBrunoOAuth2, toOpenCollectionOAuth2 } from './auth-oauth2';
 
 // Hand-written yml can hold any scalar, or nothing, where the schema expects a string.

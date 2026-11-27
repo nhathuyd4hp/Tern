@@ -1,4 +1,4 @@
-import type { Item as BrunoItem } from '@usebruno/schema-types/collection/item';
+import type { Item as BrunoItem } from '@tern/schema-types/collection/item';
 import { uuid } from '../../../utils';
 
 export interface AppFile {

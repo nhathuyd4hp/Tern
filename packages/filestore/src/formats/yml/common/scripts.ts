@@ -1,9 +1,9 @@
 import type { Script as OpenCollectionScript, Scripts } from '@opencollection/types/common/scripts';
-import type { FolderRequest as BrunoFolderRequest } from '@usebruno/schema-types/collection/folder';
-import type { HttpRequest as BrunoHttpRequest } from '@usebruno/schema-types/requests/http';
-import type { WebSocketRequest as BrunoWebSocketRequest } from '@usebruno/schema-types/requests/websocket';
-import type { GrpcRequest as BrunoGrpcRequest } from '@usebruno/schema-types/requests/grpc';
-import type { Script as BrunoScript } from '@usebruno/schema-types/common/scripts';
+import type { FolderRequest as BrunoFolderRequest } from '@tern/schema-types/collection/folder';
+import type { HttpRequest as BrunoHttpRequest } from '@tern/schema-types/requests/http';
+import type { WebSocketRequest as BrunoWebSocketRequest } from '@tern/schema-types/requests/websocket';
+import type { GrpcRequest as BrunoGrpcRequest } from '@tern/schema-types/requests/grpc';
+import type { Script as BrunoScript } from '@tern/schema-types/common/scripts';
 
 export const toOpenCollectionScripts = (request: BrunoFolderRequest | BrunoHttpRequest | BrunoWebSocketRequest | BrunoGrpcRequest | null | undefined, allowedKeys: string[]): Scripts | undefined => {
   const ocScripts: Scripts = [];

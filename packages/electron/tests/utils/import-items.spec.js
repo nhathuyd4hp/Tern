@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 
-jest.mock('@usebruno/filestore', () => ({
+jest.mock('@tern/filestore', () => ({
   stringifyRequestViaWorker: jest.fn(async (item) => `request ${item.name}`),
   stringifyFolder: jest.fn(async (root) => `folder ${root.meta.name}`)
 }));

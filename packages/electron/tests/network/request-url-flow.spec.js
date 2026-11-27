@@ -1,5 +1,5 @@
 const { describe, it, expect } = require('@jest/globals');
-const BrunoRequest = require('@usebruno/js/src/bruno-request');
+const BrunoRequest = require('@tern/js/src/bruno-request');
 const interpolateVars = require('../../src/ipc/network/interpolate-vars');
 
 const runFlow = (url, { pathParams = [], envVars = {} } = {}) => {

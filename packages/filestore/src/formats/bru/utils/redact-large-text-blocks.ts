@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { outdentString } from '@usebruno/lang';
+import { outdentString } from '@tern/lang';
 
 export interface RedactedBlock {
   token: string;

@@ -1,5 +1,5 @@
-import type { Item as BrunoItem, HttpItemSettings as BrunoHttpItemSettings } from '@usebruno/schema-types/collection/item';
-import type { HttpRequest as BrunoHttpRequest } from '@usebruno/schema-types/requests/http';
+import type { Item as BrunoItem, HttpItemSettings as BrunoHttpItemSettings } from '@tern/schema-types/collection/item';
+import type { HttpRequest as BrunoHttpRequest } from '@tern/schema-types/requests/http';
 import type { HttpRequest, HttpRequestBody } from '@opencollection/types/requests/http';
 import { toBrunoAuth } from '../common/auth';
 import { toBrunoHttpHeaders } from '../common/headers';
@@ -12,7 +12,7 @@ import { toBrunoAssertions } from '../common/assertions';
 import { toBrunoApp } from '../common/app';
 import { normalizeOmitHeaders } from '../common/omit-headers';
 import { uuid, ensureString } from '../../../utils';
-import { utils } from '@usebruno/common';
+import { utils } from '@tern/common';
 const { toBool, toMaxRedirects } = utils;
 
 const parseHttpRequest = (ocRequest: HttpRequest): BrunoItem => {

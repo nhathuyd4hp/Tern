@@ -1,5 +1,5 @@
-import type { Item as BrunoItem } from '@usebruno/schema-types/collection/item';
-import type { WebSocketRequest as BrunoWebSocketRequest } from '@usebruno/schema-types/requests/websocket';
+import type { Item as BrunoItem } from '@tern/schema-types/collection/item';
+import type { WebSocketRequest as BrunoWebSocketRequest } from '@tern/schema-types/requests/websocket';
 import type { WebSocketRequest, WebSocketRequestInfo, WebSocketRequestDetails, WebSocketRequestRuntime, WebSocketMessage, WebSocketMessageVariant } from '@opencollection/types/requests/websocket';
 import type { Auth } from '@opencollection/types/common/auth';
 import type { Scripts } from '@opencollection/types/common/scripts';
@@ -11,7 +11,7 @@ import { toOpenCollectionAuth } from '../common/auth';
 import { toOpenCollectionHttpHeaders } from '../common/headers';
 import { toOpenCollectionVariables } from '../common/variables';
 import { toOpenCollectionScripts } from '../common/scripts';
-import { HTTP_SCRIPT_KEYS } from '@usebruno/common';
+import { HTTP_SCRIPT_KEYS } from '@tern/common';
 
 const stringifyWebsocketRequest = (item: BrunoItem): string => {
   try {

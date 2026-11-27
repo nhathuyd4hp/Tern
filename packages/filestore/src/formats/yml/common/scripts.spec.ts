@@ -1,5 +1,5 @@
 import { toOpenCollectionScripts, toBrunoScripts } from './scripts';
-import { HTTP_SCRIPT_KEYS, GRPC_SCRIPT_KEYS } from '@usebruno/common';
+import { HTTP_SCRIPT_KEYS, GRPC_SCRIPT_KEYS } from '@tern/common';
 
 describe('toOpenCollectionScripts', () => {
   it('returns undefined when there is nothing to write', () => {

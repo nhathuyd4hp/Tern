@@ -1,4 +1,4 @@
-import type { App as BrunoApp } from '@usebruno/schema-types/collection/item';
+import type { App as BrunoApp } from '@tern/schema-types/collection/item';
 
 export interface OpenCollectionApp {
   enabled?: boolean;

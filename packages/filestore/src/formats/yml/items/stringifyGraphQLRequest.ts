@@ -1,5 +1,5 @@
-import type { Item as BrunoItem, HttpItemSettings as BrunoHttpItemSettings } from '@usebruno/schema-types/collection/item';
-import type { HttpRequest as BrunoHttpRequest } from '@usebruno/schema-types/requests/http';
+import type { Item as BrunoItem, HttpItemSettings as BrunoHttpItemSettings } from '@tern/schema-types/collection/item';
+import type { HttpRequest as BrunoHttpRequest } from '@tern/schema-types/requests/http';
 import type { GraphQLRequest, GraphQLRequestSettings, GraphQLBody, GraphQLRequestInfo, GraphQLRequestDetails, GraphQLRequestRuntime } from '@opencollection/types/requests/graphql';
 import type { Auth } from '@opencollection/types/common/auth';
 import type { Scripts } from '@opencollection/types/common/scripts';
@@ -16,8 +16,8 @@ import { toOpenCollectionVariables } from '../common/variables';
 import { toOpenCollectionActions } from '../common/actions';
 import { toOpenCollectionScripts } from '../common/scripts';
 import { toOpenCollectionAssertions } from '../common/assertions';
-import { resolveTimeoutSetting, toMaxRedirects } from '@usebruno/common/utils';
-import { HTTP_SCRIPT_KEYS } from '@usebruno/common';
+import { resolveTimeoutSetting, toMaxRedirects } from '@tern/common/utils';
+import { HTTP_SCRIPT_KEYS } from '@tern/common';
 
 const stringifyGraphQLRequest = (item: BrunoItem): string => {
   try {

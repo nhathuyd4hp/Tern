@@ -1,6 +1,6 @@
-import type { Item as BrunoItem } from '@usebruno/schema-types/collection/item';
-import type { KeyValue as BrunoKeyValue } from '@usebruno/schema-types/common/key-value';
-import type { GrpcRequest as BrunoGrpcRequest } from '@usebruno/schema-types/requests/grpc';
+import type { Item as BrunoItem } from '@tern/schema-types/collection/item';
+import type { KeyValue as BrunoKeyValue } from '@tern/schema-types/common/key-value';
+import type { GrpcRequest as BrunoGrpcRequest } from '@tern/schema-types/requests/grpc';
 import type { GrpcRequest, GrpcMetadata, GrpcMessageVariant, GrpcMessage, GrpcRequestInfo, GrpcRequestDetails, GrpcRequestRuntime } from '@opencollection/types/requests/grpc';
 import type { Auth } from '@opencollection/types/common/auth';
 import type { Scripts } from '@opencollection/types/common/scripts';
@@ -12,7 +12,7 @@ import { toOpenCollectionAuth } from '../common/auth';
 import { toOpenCollectionVariables } from '../common/variables';
 import { toOpenCollectionScripts } from '../common/scripts';
 import { toOpenCollectionAssertions } from '../common/assertions';
-import { GRPC_SCRIPT_KEYS } from '@usebruno/common';
+import { GRPC_SCRIPT_KEYS } from '@tern/common';
 
 const stringifyGrpcRequest = (item: BrunoItem): string => {
   try {

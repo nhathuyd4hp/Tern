@@ -14,7 +14,7 @@ import type {
 import type {
   OAuth2 as BrunoOAuth2,
   OAuthAdditionalParameter as BrunoOAuthAdditionalParameter
-} from '@usebruno/schema-types/common/auth';
+} from '@tern/schema-types/common/auth';
 import { isString, isNonEmptyString, ensureString } from '../../../utils';
 
 const normalizeBoolean = (value?: boolean | null): boolean | undefined =>
