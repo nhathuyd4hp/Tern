@@ -9,8 +9,7 @@ const DropOverlay = () => (
       </span>
       <span className="drop-overlay-title">Drop to open</span>
       <span className="drop-overlay-text">
-        Application folders open in place. Files (.yml, .zip, Postman, Insomnia, OpenAPI, WSDL) go to Import,
-        where you choose where the new applications go.
+        Application folders open in place. An application .zip is unpacked into Tern's data folder and opened.
       </span>
     </div>
   </StyledWrapper>

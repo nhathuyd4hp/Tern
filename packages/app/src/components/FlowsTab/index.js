@@ -35,7 +35,7 @@ const FlowsTab = ({ collection }) => {
           >
             <IconRoute size={14} strokeWidth={1.5} />
             <span className="flow-list-name">{flow.name}</span>
-            <span className="flow-list-count">{flow.steps.length}</span>
+            <span className="flow-list-count">{flow.nodes.length}</span>
           </button>
         ))}
       </aside>
@@ -47,7 +47,7 @@ const FlowsTab = ({ collection }) => {
           <div className="flow-empty">
             <IconRoute size={32} strokeWidth={1.25} />
             <h4>No flows yet</h4>
-            <p>A flow runs several requests in order and passes values from one response to the next, such as a login token.</p>
+            <p>A flow connects requests on a canvas: the status of each response picks the next request, and values such as a login token pass from one response to the next.</p>
             <Button onClick={addFlow}>Create a flow</Button>
           </div>
         )}

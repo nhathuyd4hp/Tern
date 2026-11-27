@@ -1,7 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import toast from 'react-hot-toast';
 import { callIpc } from 'utils/common/ipc';
-import { browseDirectories, mountCollection, openMultipleCollections } from 'providers/ReduxStore/slices/collections/actions';
+import { browseDirectories, browseFiles, mountCollection, openMultipleCollections } from 'providers/ReduxStore/slices/collections/actions';
 import { updatePreferences } from 'providers/ReduxStore/slices/app';
 import { expandCollection } from 'providers/ReduxStore/slices/collections';
 import { addTab } from 'providers/ReduxStore/slices/tabs';
@@ -13,6 +13,7 @@ import {
   openCollectionModal,
   openCollectionsFromModal,
   openDroppedItems,
+  pickApplicationZip,
   pickCollectionFolders,
   saveAutoOpenFolderPicker,
   switchToCollection
@@ -31,6 +32,7 @@ jest.mock('react-hot-toast', () => {
 jest.mock('utils/common/ipc', () => ({ callIpc: jest.fn() }));
 jest.mock('providers/ReduxStore/slices/collections/actions', () => ({
   browseDirectories: jest.fn(),
+  browseFiles: jest.fn(),
   mountCollection: jest.fn(),
   openMultipleCollections: jest.fn()
 }));
@@ -484,12 +486,66 @@ describe('open collection modal actions', () => {
       expect(modalState(store).chooseFolder.result.note.text).toContain('2 dropped files weren’t opened.');
     });
 
+    describe('with a zip', () => {
+      beforeEach(() => {
+        window.ipcRenderer = { getFilePath: jest.fn((file) => `/downloads/${file.name}`) };
+      });
+
+      afterEach(() => {
+        delete window.ipcRenderer;
+      });
+
+      it('unpacks a dropped zip and opens the new application', async () => {
+        callIpc.mockResolvedValue({ path: '/data/orders' });
+        openingReturns(Promise.resolve({ opened: ['/data/orders'], failed: [], invalid: [] }));
+        const { store } = createStore({ modal: openOn('choose-folder') });
+
+        await store.dispatch(openDroppedItems({ folderPaths: [], hasFolders: false, files: [{ name: 'orders.ZIP' }] }));
+
+        expect(callIpc).toHaveBeenCalledWith('renderer:import-application-zip', '/downloads/orders.ZIP');
+        expect(openMultipleCollections).toHaveBeenCalledWith(['/data/orders'], expect.anything());
+        expect(modalState(store).isOpen).toBe(false);
+      });
+
+      it('says why a zip could not be imported and opens nothing', async () => {
+        callIpc.mockRejectedValue(new Error('Error invoking remote method \'renderer:import-application-zip\': Error: This zip is not a Tern application'));
+        const { store } = createStore({ modal: openOn('choose-folder') });
+
+        await store.dispatch(openDroppedItems({ folderPaths: [], hasFolders: false, files: [{ name: 'photos.zip' }] }));
+
+        expect(toast.error).toHaveBeenCalledWith('Could not import photos.zip. This zip is not a Tern application');
+        expect(openMultipleCollections).not.toHaveBeenCalled();
+        expect(modalState(store).openingId).toBeNull();
+      });
+
+      it('imports the zip chosen in the file picker', async () => {
+        browseFiles.mockReturnValue(() => Promise.resolve(['/downloads/orders.zip']));
+        callIpc.mockResolvedValue({ path: '/data/orders' });
+        openingReturns(Promise.resolve({ opened: ['/data/orders'], failed: [], invalid: [] }));
+        const { store } = createStore({ modal: openOn('choose-folder') });
+
+        await store.dispatch(pickApplicationZip());
+
+        expect(browseFiles).toHaveBeenCalledWith([{ name: 'Zip files', extensions: ['zip'] }], []);
+        expect(callIpc).toHaveBeenCalledWith('renderer:import-application-zip', '/downloads/orders.zip');
+      });
+
+      it('does nothing when the file picker is cancelled', async () => {
+        browseFiles.mockReturnValue(() => Promise.resolve([]));
+        const { store } = createStore({ modal: openOn('choose-folder') });
+
+        await store.dispatch(pickApplicationZip());
+
+        expect(callIpc).not.toHaveBeenCalledWith('renderer:import-application-zip', expect.anything());
+      });
+    });
+
     it('says importing from a file is not supported when only files were dropped', async () => {
       const { store } = createStore({ modal: openOn('choose-folder') });
 
       await store.dispatch(openDroppedItems({ folderPaths: [], hasFolders: false, files: [droppedFile] }));
 
-      expect(toast.error).toHaveBeenCalledWith('Importing an application from a file is not supported');
+      expect(toast.error).toHaveBeenCalledWith('Importing an application from a file is not supported. Drop a folder or a .zip');
       expect(modalState(store).page).toBe('choose-folder');
       expect(callIpc).not.toHaveBeenCalledWith(FIND_IN_FOLDERS, expect.anything());
     });

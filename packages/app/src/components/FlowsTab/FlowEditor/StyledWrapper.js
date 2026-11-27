@@ -2,6 +2,10 @@ import styled from 'styled-components';
 import { rgba } from 'utils/color';
 
 const StyledWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
   .flow-header {
     display: flex;
     align-items: center;
@@ -27,14 +31,10 @@ const StyledWrapper = styled.div`
   }
 
   .flow-hint {
-    margin: 0.5rem 0 1rem;
+    margin: 0.5rem 0 0.75rem;
     font-size: ${(props) => props.theme.font.size.sm};
     line-height: 1.5;
     color: ${(props) => props.theme.colors.text.muted};
-
-    code {
-      font-family: monospace;
-    }
   }
 
   .flow-summary {
@@ -52,38 +52,18 @@ const StyledWrapper = styled.div`
       color: ${(props) => props.theme.colors.text.danger};
       background: ${(props) => rgba(props.theme.colors.text.danger, 0.1)};
     }
+
+    &.stopped {
+      color: ${(props) => props.theme.colors.text.muted};
+      background: ${(props) => rgba(props.theme.colors.text.muted, 0.1)};
+    }
   }
 
   .flow-body {
     display: flex;
-    align-items: flex-start;
-    gap: 1.25rem;
-  }
-
-  .flow-main {
     flex: 1;
-    min-width: 0;
-  }
-
-  .flow-drop-end {
-    margin-top: 0.75rem;
-    padding: 0.75rem;
-    border: 1px dashed ${(props) => props.theme.input.border};
-    border-radius: ${(props) => props.theme.border.radius.md};
-    text-align: center;
-    font-size: ${(props) => props.theme.font.size.sm};
-    color: ${(props) => props.theme.colors.text.muted};
-
-    &.over {
-      border-color: ${(props) => props.theme.accents.primary};
-      color: ${(props) => props.theme.text};
-    }
-  }
-
-  .flow-steps {
-    display: flex;
-    flex-direction: column;
     gap: 0.75rem;
+    min-height: 420px;
   }
 `;
 

@@ -2,9 +2,10 @@ import toast from 'react-hot-toast';
 import { uuid } from 'utils/common';
 import { formatIpcError } from 'utils/common/error';
 import { callIpc } from 'utils/common/ipc';
+import { importApplicationZip } from 'utils/application-archive';
 import { selectCollections } from 'src/selectors/collections';
 import { savePreferences } from 'providers/ReduxStore/slices/app';
-import { browseDirectories, mountCollection, openMultipleCollections } from 'providers/ReduxStore/slices/collections/actions';
+import { browseDirectories, browseFiles, mountCollection, openMultipleCollections } from 'providers/ReduxStore/slices/collections/actions';
 import { expandCollection } from 'providers/ReduxStore/slices/collections';
 import { addTab } from 'providers/ReduxStore/slices/tabs';
 import {
@@ -150,6 +151,25 @@ export const cancelCollectionSearch = () => (dispatch, getState) => {
   dispatch(folderPickEnded());
 };
 
+export const importApplicationFromZip = (zipPath) => async (dispatch, getState) => {
+  if (getState().openCollectionModal.openingId) {
+    return;
+  }
+  const openingId = uuid();
+  dispatch(collectionsOpeningStarted(openingId));
+
+  let imported;
+  try {
+    imported = await importApplicationZip(zipPath);
+  } catch (error) {
+    toast.error(`Could not import ${getFolderName(zipPath)}. ${formatIpcError(error)}`);
+    return;
+  } finally {
+    dispatch(collectionsOpeningEnded(openingId));
+  }
+  await dispatch(openCollectionsFromModal([imported.path]));
+};
+
 export const openDroppedItems = ({ folderPaths, hasFolders, files }) => async (dispatch, getState) => {
   if (getState().openCollectionModal.openingId) {
     return;
@@ -162,7 +182,30 @@ export const openDroppedItems = ({ folderPaths, hasFolders, files }) => async (d
     dispatch(showOpenCollectionPage(CHOOSE_FOLDER_PAGE));
     await dispatch(findCollectionsInFolders(folderPaths, files.length));
   } else if (files.length > 0) {
-    toast.error('Importing an application from a file is not supported');
+    const zipPaths = files.filter((file) => file.name.toLowerCase().endsWith('.zip')).map((file) => window.ipcRenderer.getFilePath(file));
+    if (zipPaths.length === 0) {
+      toast.error('Importing an application from a file is not supported. Drop a folder or a .zip');
+      return;
+    }
+    for (const zipPath of zipPaths) {
+      await dispatch(importApplicationFromZip(zipPath));
+    }
+  }
+};
+
+export const pickApplicationZip = () => async (dispatch, getState) => {
+  if (getState().openCollectionModal.openingId) {
+    return;
+  }
+  let zipPaths;
+  try {
+    zipPaths = await dispatch(browseFiles([{ name: 'Zip files', extensions: ['zip'] }], []));
+  } catch (error) {
+    toast.error('An error occurred while opening the file picker');
+    return;
+  }
+  if (zipPaths.length > 0) {
+    await dispatch(importApplicationFromZip(zipPaths[0]));
   }
 };
 

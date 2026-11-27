@@ -6,6 +6,7 @@ import {
   cancelCollectionSearch,
   closeOpenCollectionModal,
   openCollectionsFromModal,
+  pickApplicationZip,
   pickCollectionFolders,
   saveAutoOpenFolderPicker
 } from 'providers/ReduxStore/slices/open-collection-modal/actions';
@@ -45,7 +46,7 @@ const ChooseFolderPage = () => {
           <div className="choose-folder-start">
             <DropZone
               icon={IconFolder}
-              title="Drop Tern application folders here"
+              title="Drop Tern application folders or a .zip here"
               hint={(
                 <>
                   Tern Application folder has <code>opencollection.yml</code> at the root
@@ -62,6 +63,15 @@ const ChooseFolderPage = () => {
                 data-testid="choose-folder-choose-link"
               >
                 choose folders
+              </button>
+              {' '}or{' '}
+              <button
+                type="button"
+                className="text-link hover:underline whitespace-nowrap"
+                onClick={() => dispatch(pickApplicationZip())}
+                data-testid="choose-folder-import-zip-link"
+              >
+                import a .zip
               </button>
             </DropZone>
             <Checkbox

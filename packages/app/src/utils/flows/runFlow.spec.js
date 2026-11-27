@@ -10,7 +10,7 @@ const request = (name, extra = {}) => ({
   type: 'http-request',
   name,
   pathname: `/apps/Shop/${name}.yml`,
-  request: { method: 'GET', url: `{{baseUrl}}/${name}`, vars: { res: [] } },
+  request: { method: 'GET', url: `{{baseUrl}}/${name}`, params: [], headers: [], body: { mode: 'none' }, vars: { res: [] } },
   ...extra
 });
 
@@ -20,16 +20,27 @@ const makeStore = (items) => {
   return { state, dispatch, application: state.collections.collections[0] };
 };
 
-// The pipeline answers with a response and sets the variables the step asked for.
-const respondWith = (store, { status = 200, variables = {} } = {}) => {
+// The pipeline answers each request with its status (200 unless told otherwise) and sets the variables it was asked for.
+const respondWith = (store, { statuses = {}, variables = {} } = {}) => {
   mockSendRequest.mockImplementation((sent) => async () => {
     const item = store.application.items.find((candidate) => candidate.uid === sent.uid);
-    item.response = { status, statusText: 'x', duration: 12 };
+    item.response = { status: statuses[sent.name] ?? 200, statusText: 'x', duration: 12 };
     Object.assign(store.application.runtimeVariables, variables);
   });
 };
 
-const flowOf = (...steps) => ({ id: 'f1', name: 'Flow', steps: steps.map((step, index) => ({ id: `s${index}`, extractions: [], ...step })) });
+const node = (name, extra = {}) => ({
+  id: name,
+  requestPath: `${name}.yml`,
+  position: { x: 0, y: 0 },
+  inputs: { params: {}, headers: {}, body: null },
+  extractions: [],
+  ...extra
+});
+const edge = (source, sourceHandle, target) => ({ id: `${source}-${sourceHandle}-${target}`, source, sourceHandle, target });
+const flowOf = (nodes, edges = []) => ({ id: 'f1', name: 'Flow', nodes: nodes.map((entry, index) => ({ ...entry, position: { x: index * 300, y: 0 } })), edges });
+
+const ranOrder = () => mockSendRequest.mock.calls.map(([sent]) => sent.name);
 
 describe('runFlow', () => {
   beforeEach(() => mockSendRequest.mockReset());
@@ -37,62 +48,139 @@ describe('runFlow', () => {
   it('sends the extractions as post-response variables and reports the values it got', async () => {
     const store = makeStore([request('login')]);
     respondWith(store, { variables: { token: 'abc' } });
+    const progress = [];
 
-    const results = await store.dispatch(runFlow(flowOf({ requestPath: 'login.yml', extractions: [{ name: 'token', expression: 'res.body.token' }] }), 'app-1'));
+    const outcome = await store.dispatch(runFlow(flowOf([node('login', { extractions: [{ name: 'token', expression: 'res.body.token' }] })]), 'app-1', {
+      onNode: (id, result) => progress.push([id, result.status])
+    }));
 
     const sent = mockSendRequest.mock.calls[0][0];
     expect(sent.request.vars.res).toEqual([expect.objectContaining({ name: 'token', value: 'res.body.token', enabled: true })]);
-    expect(results[0]).toMatchObject({ status: 'passed', httpStatus: 200, extracted: { token: 'abc' } });
+    expect(outcome).toMatchObject({ status: 'passed', results: { login: { status: 'passed', httpStatus: 200, extracted: { token: 'abc' } } } });
+    expect(progress).toEqual([['login', 'running'], ['login', 'passed']]);
   });
 
-  it('runs the steps in order, the later ones seeing the variables of the earlier', async () => {
-    const store = makeStore([request('login'), request('info')]);
+  it('follows the connection of the status that came back, the later request seeing earlier variables', async () => {
+    const store = makeStore([request('login'), request('info'), request('retry')]);
     const seen = [];
     mockSendRequest.mockImplementation((sent) => async () => {
-      seen.push({ uid: sent.uid, token: store.application.runtimeVariables.token });
+      seen.push({ name: sent.name, token: store.application.runtimeVariables.token });
       store.application.items.find((candidate) => candidate.uid === sent.uid).response = { status: 200 };
-      if (sent.uid === 'uid-login') store.application.runtimeVariables.token = 'abc';
+      if (sent.name === 'login') store.application.runtimeVariables.token = 'abc';
     });
 
-    const results = await store.dispatch(runFlow(flowOf(
-      { requestPath: 'login.yml', extractions: [{ name: 'token', expression: 'res.body.token' }] },
-      { requestPath: 'info.yml' }
+    const outcome = await store.dispatch(runFlow(flowOf(
+      [node('login', { extractions: [{ name: 'token', expression: 'res.body.token' }] }), node('info'), node('retry')],
+      [edge('login', '200', 'info'), edge('login', 'other', 'retry')]
     ), 'app-1'));
 
-    expect(seen).toEqual([{ uid: 'uid-login', token: undefined }, { uid: 'uid-info', token: 'abc' }]);
-    expect(results.map((result) => result.status)).toEqual(['passed', 'passed']);
+    expect(seen).toEqual([{ name: 'login', token: undefined }, { name: 'info', token: 'abc' }]);
+    expect(outcome.status).toBe('passed');
+    expect(outcome.results.info.via).toBe('200');
   });
 
-  it('stops at the first failing step and skips the rest', async () => {
+  it('takes the other connection when the status has none of its own', async () => {
+    const store = makeStore([request('login'), request('info'), request('recover')]);
+    respondWith(store, { statuses: { login: 401 } });
+
+    const outcome = await store.dispatch(runFlow(flowOf(
+      [node('login'), node('info'), node('recover')],
+      [edge('login', '200', 'info'), edge('login', 'other', 'recover')]
+    ), 'app-1'));
+
+    expect(ranOrder()).toEqual(['login', 'recover']);
+    expect(outcome.status).toBe('passed');
+    expect(outcome.results.login.status).toBe('passed');
+  });
+
+  it('prefers the connection of the exact status over other', async () => {
+    const store = makeStore([request('login'), request('created'), request('recover')]);
+    respondWith(store, { statuses: { login: 201 } });
+
+    await store.dispatch(runFlow(flowOf(
+      [node('login'), node('created'), node('recover')],
+      [edge('login', 'other', 'recover'), edge('login', '201', 'created')]
+    ), 'app-1'));
+
+    expect(ranOrder()).toEqual(['login', 'created']);
+  });
+
+  it('ends when nothing is connected, failed if the last status is an error', async () => {
     const store = makeStore([request('login'), request('info')]);
-    respondWith(store, { status: 401 });
+    respondWith(store, { statuses: { login: 404 } });
 
-    const progress = [];
-    const results = await store.dispatch(runFlow(flowOf({ requestPath: 'login.yml' }, { requestPath: 'info.yml' }), 'app-1', { onStep: (index, result) => progress.push([index, result.status]) }));
+    const outcome = await store.dispatch(runFlow(flowOf([node('login'), node('info')], [edge('login', '200', 'info')]), 'app-1'));
 
-    expect(results.map((result) => result.status)).toEqual(['failed', 'skipped']);
-    expect(results[0].error).toBe('401 x');
-    expect(mockSendRequest).toHaveBeenCalledTimes(1);
-    expect(progress).toEqual([[0, 'running'], [0, 'failed'], [1, 'skipped']]);
+    expect(ranOrder()).toEqual(['login']);
+    expect(outcome).toMatchObject({ status: 'failed', message: 'Ended with status 404', results: { login: { status: 'failed', httpStatus: 404 } } });
   });
 
-  it('fails a step whose test failed even though the response was fine', async () => {
-    const store = makeStore([request('login', { testResults: [{ status: 'fail', description: 'has a token' }] })]);
+  it('starts at the leftmost request nothing leads to', async () => {
+    const store = makeStore([request('login'), request('info')]);
     respondWith(store);
 
-    const [result] = await store.dispatch(runFlow(flowOf({ requestPath: 'login.yml' }), 'app-1'));
+    // 'info' is listed first but 'login' is the one nothing leads to
+    await store.dispatch(runFlow(flowOf([node('info'), node('login')], [edge('login', '200', 'info')]), 'app-1'));
+    expect(ranOrder()).toEqual(['login', 'info']);
 
-    expect(result).toMatchObject({ status: 'failed', error: 'has a token' });
+    // two requests nothing leads to: the leftmost runs
+    mockSendRequest.mockClear();
+    await store.dispatch(runFlow(flowOf([node('login'), node('info')]), 'app-1'));
+    expect(ranOrder()).toEqual(['login']);
   });
 
-  it('fails when a request of the flow no longer exists, or is not an http request', async () => {
-    const store = makeStore([request('stream', { type: 'grpc-request' })]);
+  it('stops after too many requests when the flow goes round', async () => {
+    const store = makeStore([request('start'), request('a'), request('b')]);
     respondWith(store);
 
-    const results = await store.dispatch(runFlow(flowOf({ requestPath: 'gone.yml' }, { requestPath: 'stream.yml' }), 'app-1'));
+    const outcome = await store.dispatch(runFlow(flowOf(
+      [node('start'), node('a'), node('b')],
+      [edge('start', '200', 'a'), edge('a', '200', 'b'), edge('b', '200', 'a')]
+    ), 'app-1'));
 
-    expect(results[0]).toMatchObject({ status: 'failed', error: 'Request not found: gone.yml' });
-    expect(results[1].status).toBe('skipped');
+    expect(outcome.status).toBe('failed');
+    expect(outcome.message).toMatch(/loop/);
+    expect(mockSendRequest).toHaveBeenCalledTimes(50);
+  });
+
+  it('keeps going on a failed test but reports the flow as failed', async () => {
+    const store = makeStore([request('login', { testResults: [{ status: 'fail', description: 'has a token' }] }), request('info')]);
+    respondWith(store);
+
+    const outcome = await store.dispatch(runFlow(flowOf([node('login'), node('info')], [edge('login', '200', 'info')]), 'app-1'));
+
+    expect(ranOrder()).toEqual(['login', 'info']);
+    expect(outcome).toMatchObject({ status: 'failed', message: 'has a token', results: { login: { status: 'failed' }, info: { status: 'passed' } } });
+  });
+
+  it('stops at a request that gets no response', async () => {
+    const store = makeStore([request('login'), request('info')]);
+    mockSendRequest.mockImplementation((sent) => async () => {
+      store.application.items.find((candidate) => candidate.uid === sent.uid).response = { isError: true, error: 'connect ECONNREFUSED' };
+    });
+
+    const outcome = await store.dispatch(runFlow(flowOf([node('login'), node('info')], [edge('login', 'other', 'info')]), 'app-1'));
+
+    expect(ranOrder()).toEqual(['login']);
+    expect(outcome).toMatchObject({ status: 'failed', message: 'connect ECONNREFUSED' });
+  });
+
+  it('fails when a request of the flow no longer exists', async () => {
+    const store = makeStore([]);
+    respondWith(store);
+
+    const outcome = await store.dispatch(runFlow(flowOf([node('gone')]), 'app-1'));
+
+    expect(outcome).toMatchObject({ status: 'failed', message: 'Request not found: gone.yml' });
+    expect(mockSendRequest).not.toHaveBeenCalled();
+  });
+
+  it('fails an empty flow and one without a first request', async () => {
+    const store = makeStore([request('a'), request('b')]);
+    respondWith(store);
+
+    expect((await store.dispatch(runFlow(flowOf([]), 'app-1'))).message).toBe('Add a request to the flow');
+    expect((await store.dispatch(runFlow(flowOf([node('a'), node('b')], [edge('a', '200', 'b'), edge('b', '200', 'a')]), 'app-1'))).status).toBe('failed');
     expect(mockSendRequest).not.toHaveBeenCalled();
   });
 
@@ -100,30 +188,61 @@ describe('runFlow', () => {
     const store = makeStore([request('login', { draft: { request: { url: 'changed' } } })]);
     respondWith(store);
 
-    await store.dispatch(runFlow(flowOf({ requestPath: 'login.yml' }), 'app-1'));
+    await store.dispatch(runFlow(flowOf([node('login')]), 'app-1'));
 
     expect(mockSendRequest.mock.calls[0][0].draft).toBeUndefined();
   });
 
-  it('skips the remaining steps once asked to stop', async () => {
+  it('stops before the next request once asked to', async () => {
     const store = makeStore([request('login'), request('info')]);
     respondWith(store);
     let stop = false;
 
-    const results = await store.dispatch(runFlow(flowOf({ requestPath: 'login.yml' }, { requestPath: 'info.yml' }), 'app-1', {
-      onStep: (index, result) => { if (result.status === 'passed') stop = true; },
+    const outcome = await store.dispatch(runFlow(flowOf([node('login'), node('info')], [edge('login', '200', 'info')]), 'app-1', {
+      onNode: (id, result) => { if (result.status === 'passed') stop = true; },
       shouldStop: () => stop
     }));
 
-    expect(results.map((result) => result.status)).toEqual(['passed', 'skipped']);
+    expect(ranOrder()).toEqual(['login']);
+    expect(outcome.status).toBe('stopped');
   });
 
-  it('fails a step that could not take a value it was asked for', async () => {
+  it('fails a request that could not take a value it was asked for', async () => {
     const store = makeStore([request('login')]);
     respondWith(store);
 
-    const [result] = await store.dispatch(runFlow(flowOf({ requestPath: 'login.yml', extractions: [{ name: 'token', expression: 'res.body.nope' }] }), 'app-1'));
+    const outcome = await store.dispatch(runFlow(flowOf([node('login', { extractions: [{ name: 'token', expression: 'res.body.nope' }] })]), 'app-1'));
 
-    expect(result).toMatchObject({ status: 'failed', error: 'Could not take token from the response' });
+    expect(outcome).toMatchObject({ status: 'failed', message: 'Could not take token from the response' });
   }, 10000);
+
+  it('sends the inputs of the node instead of the saved params, headers and body', async () => {
+    const store = makeStore([request('login', {
+      request: {
+        method: 'POST',
+        url: '{{baseUrl}}/login/:id?page=1&sort=asc',
+        params: [
+          { uid: 'p1', name: 'page', value: '1', type: 'query', enabled: true },
+          { uid: 'p2', name: 'id', value: '7', type: 'path', enabled: true }
+        ],
+        headers: [{ uid: 'h1', name: 'Accept', value: 'text/plain', enabled: true }],
+        body: { mode: 'none' },
+        vars: { res: [] }
+      }
+    })]);
+    respondWith(store);
+
+    await store.dispatch(runFlow(flowOf([node('login', {
+      inputs: { params: { page: '{{page}}', id: '9' }, headers: { 'accept': 'application/json', 'X-Trace': '1' }, body: '{"user":"a"}' }
+    })]), 'app-1'));
+
+    const { request: sent } = mockSendRequest.mock.calls[0][0];
+    expect(sent.url).toBe('{{baseUrl}}/login/:id?page={{page}}&sort=asc');
+    expect(sent.params.map((param) => [param.name, param.value])).toEqual([['page', '{{page}}'], ['id', '9']]);
+    expect(sent.headers).toEqual([
+      expect.objectContaining({ name: 'Accept', value: 'application/json' }),
+      expect.objectContaining({ name: 'X-Trace', value: '1', enabled: true })
+    ]);
+    expect(sent.body).toMatchObject({ mode: 'json', json: '{"user":"a"}' });
+  });
 });

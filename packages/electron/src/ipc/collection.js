@@ -1274,78 +1274,6 @@ const registerRendererEventHandlers = (mainWindow, watcher) => {
     return importItemsIntoFolder(payload);
   });
 
-  ipcMain.handle('renderer:clone-folder', async (event, itemFolder, collectionPath, collectionPathname) => {
-    try {
-      validatePathIsInsideCollection(collectionPath);
-
-      // Recursive function to parse the folder and create files/folders.
-      const parseCollectionItems = async (items = [], currentPath) => {
-        for (const item of items) {
-          if (['http-request', 'graphql-request', 'grpc-request'].includes(item.type)) {
-            const content = await stringifyRequestViaWorker(item);
-
-            const baseName = path.parse(item.filename).name;
-
-            if (!validateName(baseName)) {
-              throw new Error(`${baseName} is not a valid filename`);
-            }
-
-            const newFilename = `${baseName}.yml`;
-            const filePath = path.join(currentPath, newFilename);
-
-            validatePathIsInsideCollection(filePath);
-            safeWriteFileSync(filePath, content);
-          }
-          if (item.type === 'folder') {
-            const folderName = path.basename(item.filename);
-
-            if (!validateName(folderName)) {
-              throw new Error(`${folderName} is not a valid collection name`);
-            }
-
-            const folderPath = path.join(currentPath, folderName);
-            validatePathIsInsideCollection(folderPath);
-            fs.mkdirSync(folderPath);
-
-            // If folder has a root element, then I should write its folder file
-            if (item.root) {
-              const folderContent = await stringifyFolder(item.root);
-              folderContent.name = item.name;
-              if (folderContent) {
-                const folderFilePath = path.join(folderPath, 'folder.yml');
-                safeWriteFileSync(folderFilePath, folderContent);
-              }
-            }
-
-            if (item.items && item.items.length) {
-              await parseCollectionItems(item.items, folderPath);
-            }
-          }
-        }
-      };
-
-      // Resolve the top-level folder name atomically; collisions get a numeric
-      // suffix instead of throwing. Children go into the freshly-created dir.
-      const { pathname: resolvedPath } = await mkdirUnique(path.dirname(collectionPath), path.basename(collectionPath));
-
-      // If initial folder has a root element, then I should write its folder file
-      if (itemFolder.root) {
-        const folderContent = await stringifyFolder(itemFolder.root);
-        if (folderContent) {
-          const folderFilePath = path.join(resolvedPath, 'folder.yml');
-          safeWriteFileSync(folderFilePath, folderContent);
-        }
-      }
-
-      // create folder and files based on another folder
-      await parseCollectionItems(itemFolder.items, resolvedPath);
-
-      return { pathname: resolvedPath, filename: path.basename(resolvedPath) };
-    } catch (error) {
-      return Promise.reject(error);
-    }
-  });
-
   ipcMain.handle('renderer:resequence-items', async (event, itemsToResequence, collectionPathname) => {
     try {
       for (const item of itemsToResequence) {
@@ -2191,7 +2119,7 @@ const registerRendererEventHandlers = (mainWindow, watcher) => {
               if (!ignoredDirectories.includes(entry.name.toLowerCase())) {
                 addDirectoryToArchive(fullPath, entryArchivePath);
               }
-            } else {
+            } else if (entry.name !== '.DS_Store') {
               archive.file(fullPath, { name: entryArchivePath });
             }
           }

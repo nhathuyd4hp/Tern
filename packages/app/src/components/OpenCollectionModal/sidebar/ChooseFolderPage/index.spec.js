@@ -6,7 +6,7 @@ import { VirtuosoMockContext } from 'react-virtuoso';
 import toast from 'react-hot-toast';
 import { ThemeProvider } from 'providers/Theme';
 import { callIpc } from 'utils/common/ipc';
-import { browseDirectories, openMultipleCollections } from 'providers/ReduxStore/slices/collections/actions';
+import { browseDirectories, browseFiles, openMultipleCollections } from 'providers/ReduxStore/slices/collections/actions';
 import appReducer from 'providers/ReduxStore/slices/app';
 import openCollectionModalReducer, { folderSearchStarted } from 'providers/ReduxStore/slices/open-collection-modal';
 import ChooseFolderPage from './index';
@@ -21,6 +21,7 @@ jest.mock('react-hot-toast', () => {
 jest.mock('utils/common/ipc', () => ({ callIpc: jest.fn() }));
 jest.mock('providers/ReduxStore/slices/collections/actions', () => ({
   browseDirectories: jest.fn(),
+  browseFiles: jest.fn(),
   mountCollection: jest.fn(),
   openMultipleCollections: jest.fn()
 }));
@@ -82,7 +83,7 @@ describe('ChooseFolderPage', () => {
   it('shows the drop zone with the folder picker setting on by default', () => {
     renderPage();
 
-    expect(screen.getByTestId('choose-folder-drop-zone')).toHaveTextContent('Drop Tern application folders here');
+    expect(screen.getByTestId('choose-folder-drop-zone')).toHaveTextContent('Drop Tern application folders or a .zip here');
     expect(autoOpenCheckbox()).toBeChecked();
   });
 
@@ -100,6 +101,18 @@ describe('ChooseFolderPage', () => {
     });
 
     expect(browseDirectories).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens the file picker from the import a .zip link', async () => {
+    browseFiles.mockReturnValue(() => Promise.resolve([]));
+    renderPage();
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('choose-folder-import-zip-link'));
+    });
+
+    expect(browseFiles).toHaveBeenCalledWith([{ name: 'Zip files', extensions: ['zip'] }], []);
+    expect(browseDirectories).not.toHaveBeenCalled();
   });
 
   it('saves the setting and does not open the folder picker', async () => {

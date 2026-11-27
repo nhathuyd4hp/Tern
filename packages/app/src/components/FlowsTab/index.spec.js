@@ -1,17 +1,40 @@
 import '@testing-library/jest-dom';
 import React from 'react';
-import { fireEvent } from '@testing-library/react';
+import { act, fireEvent } from '@testing-library/react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { renderWithTheme } from 'components/OpenAPISyncTab/testUtils';
+import { flushFlowWrites, mockFlowFiles } from 'utils/flows/testUtils';
 import FlowsTab from './index';
+
+jest.mock('react-hot-toast', () => ({ __esModule: true, default: { error: jest.fn() } }));
+
+// the canvas measures its container and its nodes
+beforeAll(() => {
+  global.ResizeObserver = class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  };
+  global.DOMMatrixReadOnly = class {
+    constructor() {
+      this.m22 = 1;
+    }
+  };
+});
 
 const application = {
   uid: 'app-1',
   pathname: '/apps/FlowsSpec',
   items: [
-    { uid: 'r1', type: 'http-request', request: { method: 'POST', url: '{{baseUrl}}/sign-in' }, pathname: '/apps/FlowsSpec/login.yml' },
-    { uid: 'r2', type: 'http-request', request: { method: 'GET', url: '{{baseUrl}}/me' }, pathname: '/apps/FlowsSpec/info.yml' }
+    {
+      uid: 'r1',
+      type: 'http-request',
+      request: { method: 'POST', url: '{{baseUrl}}/sign-in', params: [], headers: [{ uid: 'h1', name: 'Accept', value: 'application/json', enabled: true }], body: { mode: 'json', json: '{"user":""}' } },
+      examples: [{ response: { status: 200 } }, { response: { status: 401 } }],
+      pathname: '/apps/FlowsSpec/login.yml'
+    },
+    { uid: 'r2', type: 'http-request', request: { method: 'GET', url: '{{baseUrl}}/me', params: [], headers: [] }, pathname: '/apps/FlowsSpec/info.yml' }
   ]
 };
 
@@ -22,9 +45,22 @@ const applicationAt = (name) => ({
   items: application.items.map((item) => ({ ...item, pathname: item.pathname.replace('/apps/FlowsSpec/', `/apps/${name}/`) }))
 });
 
+// the flows come from the application file, which is read after the first render
+const renderTab = async (collection) => {
+  const view = renderWithTheme(<DndProvider backend={HTML5Backend}><FlowsTab collection={collection} /></DndProvider>);
+  await act(async () => {});
+  return view;
+};
+
 describe('FlowsTab', () => {
-  it('invites to create a flow, then shows its editor with Run off until there is a step', () => {
-    const { getByText, getByTestId, queryByText } = renderWithTheme(<DndProvider backend={HTML5Backend}><FlowsTab collection={application} /></DndProvider>);
+  let ipc;
+
+  beforeEach(() => {
+    ipc = mockFlowFiles();
+  });
+
+  it('invites to create a flow, then shows its editor with Run off until there is a request', async () => {
+    const { getByText, getByTestId, queryByText } = await renderTab(application);
 
     expect(getByText('No flows yet')).toBeInTheDocument();
 
@@ -35,8 +71,8 @@ describe('FlowsTab', () => {
     expect(getByTestId('flow-run')).toBeDisabled();
   });
 
-  it('renames and deletes a flow', () => {
-    const { getByLabelText, getByTestId, getByText } = renderWithTheme(<DndProvider backend={HTML5Backend}><FlowsTab collection={{ ...application, pathname: '/apps/FlowsSpecTwo' }} /></DndProvider>);
+  it('renames and deletes a flow', async () => {
+    const { getByLabelText, getByTestId, getByText } = await renderTab(applicationAt('FlowsSpecTwo'));
 
     fireEvent.click(getByText('Create a flow'));
     fireEvent.change(getByLabelText('Flow name'), { target: { value: 'Login and get info' } });
@@ -46,31 +82,52 @@ describe('FlowsTab', () => {
     expect(getByText('No flows yet')).toBeInTheDocument();
   });
 
-  it('adds a request of the palette as a step, then moves and removes it', () => {
-    const { getByText, getAllByTestId, queryAllByTestId, getAllByTitle, getByTestId } = renderWithTheme(
-      <DndProvider backend={HTML5Backend}><FlowsTab collection={applicationAt('FlowsSpecThree')} /></DndProvider>
-    );
+  it('adds requests of the palette to the canvas with a handle per documented status, and removes one', async () => {
+    const { getByText, getAllByTestId, queryAllByTestId, queryByTestId, getByTestId, getByTitle } = await renderTab(applicationAt('FlowsSpecThree'));
 
     fireEvent.click(getByText('Create a flow'));
     fireEvent.click(getByText('login.yml', { selector: '.palette-path' }));
     fireEvent.click(getByText('info.yml', { selector: '.palette-path' }));
 
-    const paths = () => getAllByTestId('flow-step').map((step) => step.querySelector('.step-request').textContent);
-    expect(paths()).toEqual(['login.yml', 'info.yml']);
+    expect(getAllByTestId('flow-node')).toHaveLength(2);
     expect(getByTestId('flow-run')).toBeEnabled();
+    // login documents 200 and 401; info documents nothing, so it gets the 200 assumed
+    expect(getAllByTestId('flow-status-401')).toHaveLength(1);
+    expect(getAllByTestId('flow-status-200')).toHaveLength(2);
+    expect(getAllByTestId('flow-status-other')).toHaveLength(2);
 
-    fireEvent.click(getAllByTitle('Move down')[0]);
-    expect(paths()).toEqual(['info.yml', 'login.yml']);
+    // the node just added is selected: remove it from its panel
+    fireEvent.click(getByTitle('Remove request'));
+    expect(getAllByTestId('flow-node')).toHaveLength(1);
 
-    fireEvent.click(getAllByTitle('Remove step')[0]);
-    fireEvent.click(getAllByTitle('Remove step')[0]);
-    expect(queryAllByTestId('flow-step')).toHaveLength(0);
+    expect(queryByTestId('node-panel')).not.toBeInTheDocument();
+    fireEvent.click(getAllByTestId('flow-node')[0]);
+    fireEvent.click(getByTitle('Remove request'));
+    expect(queryAllByTestId('flow-node')).toHaveLength(0);
   });
 
-  it('filters the palette', () => {
-    const { getByLabelText, getByText, queryByText } = renderWithTheme(
-      <DndProvider backend={HTML5Backend}><FlowsTab collection={applicationAt('FlowsSpecFour')} /></DndProvider>
-    );
+  it('shows the inputs of the selected request and keeps only what was changed', async () => {
+    const { getByText, getByLabelText } = await renderTab(applicationAt('FlowsSpecFive'));
+
+    fireEvent.click(getByText('Create a flow'));
+    fireEvent.click(getByText('login.yml', { selector: '.palette-path' }));
+
+    expect(getByLabelText('Headers Accept')).toHaveValue('application/json');
+    expect(getByLabelText('Body')).toHaveValue('{"user":""}');
+
+    fireEvent.change(getByLabelText('Headers Accept'), { target: { value: 'text/plain' } });
+    fireEvent.change(getByLabelText('Body'), { target: { value: '{"user":"{{name}}"}' } });
+
+    await act(async () => flushFlowWrites());
+    expect(ipc.files['/apps/FlowsSpecFive'][0].nodes[0].inputs).toEqual({ params: {}, headers: { Accept: 'text/plain' }, body: '{"user":"{{name}}"}' });
+
+    fireEvent.change(getByLabelText('Headers Accept'), { target: { value: 'application/json' } });
+    await act(async () => flushFlowWrites());
+    expect(ipc.files['/apps/FlowsSpecFive'][0].nodes[0].inputs.headers).toEqual({});
+  });
+
+  it('filters the palette', async () => {
+    const { getByLabelText, getByText, queryByText } = await renderTab(applicationAt('FlowsSpecFour'));
 
     fireEvent.click(getByText('Create a flow'));
     fireEvent.change(getByLabelText('Search requests'), { target: { value: 'info' } });

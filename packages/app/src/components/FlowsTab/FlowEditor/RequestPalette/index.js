@@ -20,7 +20,7 @@ const PaletteItem = ({ requestPath, method, disabled, onAdd }) => {
       className={`palette-item ${dragging ? 'dragging' : ''}`}
       disabled={disabled}
       onClick={() => onAdd(requestPath)}
-      title="Drag into the flow, or click to add as the last step"
+      title="Drag onto the canvas, or click to add"
     >
       <MethodBadge method={method} />
       <span className="palette-path">{requestPath}</span>
