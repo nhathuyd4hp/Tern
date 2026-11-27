@@ -14,7 +14,7 @@ const externalSecrets = {
 const makeEnvironment = (overrides = {}) => ({
   uid: ENV_UID,
   name: 'test_env',
-  pathname: '/coll/environments/test_env.bru',
+  pathname: '/coll/environments/test_env.yml',
   variables: [
     { uid: 'var-1', name: 'env_str', value: 'env_string', type: 'text', enabled: true, secret: false },
     { uid: 'var-2', name: 'env_num', value: '300', type: 'text', dataType: 'number', enabled: true, secret: false },

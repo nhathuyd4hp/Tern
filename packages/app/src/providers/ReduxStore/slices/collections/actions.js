@@ -114,7 +114,6 @@ import { safeParseJSON, safeStringifyJSON } from 'utils/common/index';
 import { resolveInheritedAuth } from 'utils/auth';
 import { addTab } from 'providers/ReduxStore/slices/tabs';
 import { updateSettingsSelectedTab } from './index';
-import { migrationStarted, migrationCancelRequested, migrationEnded } from 'providers/ReduxStore/slices/collection-migration';
 import { flushSnapshotNow } from 'providers/ReduxStore/middlewares/snapshot/middleware';
 import { saveGlobalEnvironment, clearGlobalEnvironmentDraft, _clearScriptGlobalEnvBaseline } from 'providers/ReduxStore/slices/global-environments';
 import { getTabToFocusForCurrentWorkspace } from 'providers/ReduxStore/slices/workspaces/getTabToFocusForCurrentWorkspace';
@@ -165,7 +164,7 @@ export const saveRequest = (itemUid, collectionUid, silent = false) => (dispatch
 
     itemSchema
       .validate(itemToSave)
-      .then((validatedItem) => ipcRenderer.invoke('renderer:save-request', item.pathname, validatedItem, collection.format))
+      .then((validatedItem) => ipcRenderer.invoke('renderer:save-request', item.pathname, validatedItem))
       .then(() => {
         if (!silent) {
           toast.success('Request saved successfully');
@@ -197,8 +196,8 @@ export const saveFile = (content, itemUid, collectionUid, silent = false) => asy
   const collectionCopy = cloneDeep(collection);
   const item = findItemInCollection(collectionCopy, itemUid);
 
-  // Item is not used to save the bru file
-  // This is to validate if the bru content is associated with a valid item
+  // Item is not used to save the file
+  // This is to validate if the content is associated with a valid item
   if (!item) {
     throw new Error('Not able to locate item');
   }
@@ -214,7 +213,7 @@ export const saveFile = (content, itemUid, collectionUid, silent = false) => asy
   const { ipcRenderer } = window;
   try {
     if (['http-request', 'graphql-request'].includes(item?.type)) {
-      const json = await ipcRenderer.invoke('renderer:convert-to-json', item, content, collection.format);
+      const json = await ipcRenderer.invoke('renderer:convert-to-json', item, content);
       delete json.isTransient;
       await itemSchema.validate(json);
     }
@@ -252,8 +251,7 @@ export const saveMultipleRequests = (items) => (dispatch, getState) => {
         if (validatedItem) {
           itemsToSave.push({
             item: validatedItem,
-            pathname: item.pathname,
-            format: collection.format
+            pathname: item.pathname
           });
         }
       }
@@ -368,8 +366,7 @@ export const saveMultipleCollections = (collectionDrafts) => async (dispatch, ge
         const collectionRootToSave = transformCollectionRootToSave(collection);
         const brunoConfigToSave = collection.draft?.brunoConfig;
 
-        // In yml both calls rewrite the single opencollection.yml (root + config), unlike bru where they
-        // write collection.bru and bruno.json. Pass the same draft-aware data to both and await sequentially.
+        // Root and config both live in opencollection.yml; pass the same draft-aware data to both.
         await ipcRenderer.invoke(
           'renderer:save-collection-root',
           collection.pathname,
@@ -769,7 +766,7 @@ export const newFolder = (folderName, directoryName, collectionUid, itemUid) => 
 
     const { ipcRenderer } = window;
     ipcRenderer
-      .invoke('renderer:new-folder', { pathname: fullName, folderData, format: collection.format })
+      .invoke('renderer:new-folder', { pathname: fullName, folderData })
       .then(resolve)
       .catch((error) => {
         toast.error('Failed to create a new collection!');
@@ -811,7 +808,7 @@ export const renameItem
           if (item.type === 'folder') {
             newPath = path.join(dirname, trim(newFilename));
           } else {
-            const filename = resolveRequestFilename(newFilename, collection.format);
+            const filename = resolveRequestFilename(newFilename);
             newPath = path.join(dirname, filename);
           }
 
@@ -871,7 +868,7 @@ export const cloneItem = (newName, newFilename, itemUid, collectionUid) => (disp
     }
 
     const parentItem = findParentItemInCollection(collectionCopy, itemUid);
-    const filename = resolveRequestFilename(newFilename, collection.format);
+    const filename = resolveRequestFilename(newFilename);
     const itemToSave = refreshUidsInItem(transformRequestToSaveToFilesystem(item));
     set(itemToSave, 'name', trim(newName));
     set(itemToSave, 'filename', trim(filename));
@@ -984,7 +981,7 @@ export const pasteItem = (targetCollectionUid, targetItemUid = null) => (dispatc
           const newName = nextCopyName(copiedItem.name, map(existingItems, (i) => i.name));
           const newFilename = sanitizeName(newName);
 
-          const filename = resolveRequestFilename(newFilename, targetCollection.format);
+          const filename = resolveRequestFilename(newFilename);
           const itemToSave = refreshUidsInItem(transformRequestToSaveToFilesystem(copiedItem));
           set(itemToSave, 'name', trim(newName));
           set(itemToSave, 'filename', trim(filename));
@@ -995,7 +992,7 @@ export const pasteItem = (targetCollectionUid, targetItemUid = null) => (dispatc
           itemToSave.seq = requestItems ? requestItems.length + 1 : 1;
 
           const validatedItem = await itemSchema.validate(itemToSave);
-          const result = await ipcRenderer.invoke('renderer:new-request', fullPathname, validatedItem, targetCollection.format);
+          const result = await ipcRenderer.invoke('renderer:new-request', fullPathname, validatedItem);
 
           dispatch(insertTaskIntoQueue({
             uid: uuid(),
@@ -1112,33 +1109,20 @@ export const handleMultipleCollectionItemsDrop
             draggedItemDirectory,
             newPathname,
             sourceCollectionUid,
-            sourceFormat,
-            targetFormat,
-            isCrossFormatMove,
             currentSourceItems,
             currentTargetItems
           }) => {
             const newDirname = path.dirname(newPathname);
             let finalNewPathname = newPathname;
 
-            if (isCrossFormatMove && isItemARequest(draggedItem)) {
-              const result = await ipcRenderer.invoke('renderer:move-item-cross-format', {
-                targetDirname: newDirname,
-                sourcePathname: draggedItemPathname,
-                sourceFormat,
-                targetFormat
-              });
+            const result = await dispatch(moveItem({
+              targetDirname: newDirname,
+              sourcePathname: draggedItemPathname
+            }));
+            // Reconcile to the path electron actually used (it may have suffixed
+            // the name to resolve a collision), so the optimistic node is correct.
+            if (result?.newPathname) {
               finalNewPathname = result.newPathname;
-            } else {
-              const result = await dispatch(moveItem({
-                targetDirname: newDirname,
-                sourcePathname: draggedItemPathname
-              }));
-              // Reconcile to the path electron actually used (it may have suffixed
-              // the name to resolve a collision), so the optimistic node is correct.
-              if (result?.newPathname) {
-                finalNewPathname = result.newPathname;
-              }
             }
 
             // Update sequences in the source directory
@@ -1211,9 +1195,6 @@ export const handleMultipleCollectionItemsDrop
             const sourceCollectionUid = draggedItem.sourceCollectionUid;
             const isCrossCollectionMove = sourceCollectionUid && collectionUid !== sourceCollectionUid;
             const sourceCollection = isCrossCollectionMove ? findCollectionByUid(state.collections.collections, sourceCollectionUid) : collection;
-            const sourceFormat = sourceCollection?.format || 'bru';
-            const targetFormat = collection?.format || 'bru';
-            const isCrossFormatMove = isCrossCollectionMove && sourceFormat !== targetFormat;
 
             const { uid: draggedItemUid, pathname: draggedItemPathname } = draggedItem;
 
@@ -1232,10 +1213,6 @@ export const handleMultipleCollectionItemsDrop
 
             if (!newPathname) continue;
             if (isPathOrDescendant(targetItemPathname, draggedItemPathname)) continue;
-            if (isCrossFormatMove && isItemAFolder(draggedItem)) {
-              toast.error('Moving collections between applications with different formats is not supported');
-              continue;
-            }
 
             const draggedItemDirectory = findParentItemInCollection(sourceCollection, draggedItemUid) || sourceCollection;
             const isTargetTheCollection = targetItemPathname === collection.pathname;
@@ -1255,9 +1232,6 @@ export const handleMultipleCollectionItemsDrop
                 draggedItemDirectory,
                 newPathname,
                 sourceCollectionUid,
-                sourceFormat,
-                targetFormat,
-                isCrossFormatMove,
                 currentSourceItems,
                 currentTargetItems
               });
@@ -1397,7 +1371,7 @@ export const newHttpRequest = (options) => (dispatch, getState) => {
 
     // itemUid is null when we are creating a new request at the root level
     // For transient requests, itemUid is always null
-    const resolvedFilename = resolveRequestFilename(filename, collection.format);
+    const resolvedFilename = resolveRequestFilename(filename);
 
     if (isTransient) {
       // Transient requests are always created in temp directory
@@ -1531,7 +1505,7 @@ export const newGrpcRequest = (params) => (dispatch, getState) => {
 
     // itemUid is null when we are creating a new request at the root level
     // For transient requests, itemUid is always null
-    const resolvedFilename = resolveRequestFilename(filename, collection.format);
+    const resolvedFilename = resolveRequestFilename(filename);
 
     if (isTransient) {
       // Transient requests are always created in temp directory
@@ -1639,7 +1613,7 @@ export const newWsRequest = (params) => (dispatch, getState) => {
 
     // itemUid is null when we are creating a new request at the root level
     // For transient requests, itemUid is always null
-    const resolvedFilename = resolveRequestFilename(filename, collection.format);
+    const resolvedFilename = resolveRequestFilename(filename);
 
     if (isTransient) {
       // Transient requests are always created in temp directory
@@ -2138,7 +2112,7 @@ const updateVariableInFile = (pathname, variable, scopeType, collectionUid, item
     const collectionCopy = cloneDeep(collection);
 
     ipcRenderer
-      .invoke('renderer:update-variable-in-file', pathname, variable, scopeType, collectionCopy.root, collectionCopy.format)
+      .invoke('renderer:update-variable-in-file', pathname, variable, scopeType, collectionCopy.root)
       .then(() => {
         // Update Redux state to reflect the change
         if (scopeType === 'request') {
@@ -2768,8 +2742,7 @@ export const saveCollectionSettings = (collectionUid, brunoConfig = null, silent
   const brunoConfigToSave = brunoConfig || collection.draft?.brunoConfig;
 
   try {
-    // In yml both calls rewrite the single opencollection.yml (root + config), unlike bru where they
-    // write collection.bru and bruno.json. Pass the same draft-aware data to both and await sequentially.
+    // Root and config both live in opencollection.yml; pass the same draft-aware data to both.
     await ipcRenderer.invoke(
       'renderer:save-collection-root',
       collection.pathname,
@@ -3611,106 +3584,4 @@ export const closeTabs = ({ tabUids }) => async (dispatch, getState) => {
 export const reopenClosedTab = ({ collectionUid } = {}) => async (dispatch) => {
   dispatch(reopenLastClosedTab({ collectionUid }));
   await dispatch(ensureActiveTabInCurrentWorkspace());
-};
-
-const waitForCollectionInStore = (getState, collectionUid, { timeoutMs = 15000, intervalMs = 50 } = {}) => {
-  return new Promise((resolve, reject) => {
-    const startedAt = Date.now();
-    const check = () => {
-      const collection = findCollectionByUid(getState().collections.collections, collectionUid);
-      if (collection) {
-        return resolve(collection);
-      }
-      if (Date.now() - startedAt >= timeoutMs) {
-        return reject(new Error('Application did not reopen after migration'));
-      }
-      setTimeout(check, intervalMs);
-    };
-    check();
-  });
-};
-
-export const migrateCollectionToYml = (collectionUid) => async (dispatch, getState) => {
-  const { ipcRenderer } = window;
-  const state = getState();
-
-  if (state.collectionMigration.status === 'migrating' || state.collectionMigration.status === 'cancelling') {
-    return;
-  }
-
-  const collection = findCollectionByUid(state.collections.collections, collectionUid);
-  if (!collection) {
-    throw new Error('Application not found');
-  }
-  const collectionPathname = collection.pathname;
-  const { workspaces } = state;
-  const activeWorkspace = workspaces.workspaces.find((w) => w.uid === workspaces.activeWorkspaceUid);
-  const workspacePathname = activeWorkspace?.pathname || null;
-
-  // The collection re-opens through the normal main:collection-opened flow, but that event
-  // arrives before this thunk regains control and openCollectionEvent awaits nested IPC —
-  // so poll for the collection to land in the store, then mount it (nothing else mounts a
-  // freshly opened collection outside boot hydration and sidebar clicks).
-  const remountReopenedCollection = async () => {
-    const reopenedCollection = await waitForCollectionInStore(getState, collectionUid);
-    await dispatch(mountCollection({
-      collectionUid,
-      collectionPathname: reopenedCollection.pathname,
-      brunoConfig: reopenedCollection.brunoConfig,
-      skipTabRestore: true,
-      workspacePathname
-    }));
-  };
-
-  dispatch(migrationStarted());
-  dispatch(closeAllCollectionTabs({ collectionUid }));
-  dispatch(ensureActiveTabInCurrentWorkspace());
-  // Flush the snapshot while the collection is still in the store: its entry serializes
-  // with the now-empty tab list, replacing any stale .bru tabs on disk for the active
-  // workspace. Inactive workspace entries for a shared collection are remapped in main
-  // (remapCollectionTabPaths) after the disk convert — force-flush alone cannot touch them.
-  await flushSnapshotNow(getState);
-  // Drop the collection from the store only — not from the workspace file — so it
-  // disappears from the ui during migration and comes back on reopen.
-  dispatch(_removeCollection({ collectionUid }));
-
-  try {
-    await ipcRenderer.invoke('renderer:migrate-collection-to-yml', collectionPathname, collectionUid);
-
-    await remountReopenedCollection();
-    // Freshly created collections start collapsed; expand it back like before migration
-    const migratedCollection = findCollectionByUid(getState().collections.collections, collectionUid);
-    if (migratedCollection?.collapsed) {
-      dispatch(toggleCollection(collectionUid));
-    }
-    dispatch(updateSettingsSelectedTab({ collectionUid, tab: 'overview' }));
-    dispatch(addTab({
-      uid: collectionUid,
-      collectionUid,
-      type: 'collection-settings'
-    }));
-    toast.success('Application migrated to YML format successfully');
-  } catch (err) {
-    const wasCancelled = getState().collectionMigration.status === 'cancelling'
-      || /migration cancelled/i.test(err?.message || '');
-    if (wasCancelled) {
-      toast('Migration cancelled');
-    } else {
-      toast.error(`Migration failed: ${err?.message || 'Unknown error'}`);
-    }
-    // Main restored the disk and re-opened the original collection; hold the locked
-    // modal open until it is back in the store so the sidebar never sits empty.
-    await remountReopenedCollection().catch(() => {
-      toast.error('Application could not be reopened automatically. Please reopen it manually.');
-    });
-    throw err;
-  } finally {
-    dispatch(migrationEnded());
-  }
-};
-
-export const cancelMigrateCollectionToYml = (collectionUid) => (dispatch) => {
-  const { ipcRenderer } = window;
-  dispatch(migrationCancelRequested());
-  return ipcRenderer.invoke('renderer:cancel-migrate-collection-to-yml', collectionUid);
 };

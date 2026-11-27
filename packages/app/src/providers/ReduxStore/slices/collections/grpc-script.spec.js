@@ -29,8 +29,8 @@ const makeState = ({ item = {}, items } = {}) => ({
         {
           uid: ITEM_UID,
           name: 'say_hello',
-          filename: 'say_hello.bru',
-          pathname: '/coll/say_hello.bru',
+          filename: 'say_hello.yml',
+          pathname: '/coll/say_hello.yml',
           type: 'grpc-request',
           seq: 1,
           draft: null,
@@ -248,10 +248,10 @@ describe('updateGrpcScript', () => {
 describe('grpcScriptError', () => {
   const errorContext = {
     errorType: 'ReferenceError',
-    filePath: 'say_hello.bru',
+    filePath: 'say_hello.yml',
     errorLine: 2,
     lines: [{ lineNumber: 2, content: 'undefinedVar.foo;', isError: true }],
-    stack: '    at say_hello.bru:2:1'
+    stack: '    at say_hello.yml:2:1'
   };
 
   it('records a before-call-start failure with its context', () => {
@@ -556,10 +556,10 @@ describe('grpcTestResults', () => {
 describe('initRunRequestEvent', () => {
   const errorContext = {
     errorType: 'ReferenceError',
-    filePath: 'say_hello.bru',
+    filePath: 'say_hello.yml',
     errorLine: 2,
     lines: [{ lineNumber: 2, content: 'undefinedVar.foo;', isError: true }],
-    stack: '    at say_hello.bru:2:1'
+    stack: '    at say_hello.yml:2:1'
   };
 
   const previousRun = {

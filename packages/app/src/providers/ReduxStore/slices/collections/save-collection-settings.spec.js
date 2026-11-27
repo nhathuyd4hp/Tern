@@ -64,7 +64,6 @@ const makeCollection = (uid, pathname, name) => ({
   uid,
   name,
   pathname,
-  format: 'yml',
   root: {
     request: {
       headers: [],

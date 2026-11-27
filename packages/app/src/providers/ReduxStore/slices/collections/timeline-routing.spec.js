@@ -34,7 +34,7 @@ const scriptedRequestEvent = (overrides = {}) => ({
   requestUid: REQUEST_UID,
   phase: 'pre-request',
   source: 'sendRequest',
-  scope: { type: 'collection', sourceFile: 'collection.bru' },
+  scope: { type: 'collection', sourceFile: 'collection.yml' },
   timestamp: 1000,
   data: {
     request: { method: 'GET', url: 'https://example.com/ping', headers: {}, data: undefined },
@@ -60,7 +60,7 @@ describe('runRequestEvent — single-request flow', () => {
         requestUid: REQUEST_UID,
         phase: 'pre-request',
         source: 'sendRequest',
-        scope: { type: 'collection', sourceFile: 'collection.bru' },
+        scope: { type: 'collection', sourceFile: 'collection.yml' },
         timestamp: 1000
       })
     );

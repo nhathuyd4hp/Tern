@@ -628,7 +628,7 @@ const buildFolderA = (overrides = {}) => ({
   pathname: '/colA/folderA',
   collapsed: false,
   items: [
-    { uid: 'reqA1', type: 'http-request', request: {}, name: 'Alpha', seq: 1, pathname: '/colA/folderA/Alpha.bru' }
+    { uid: 'reqA1', type: 'http-request', request: {}, name: 'Alpha', seq: 1, pathname: '/colA/folderA/Alpha.yml' }
   ],
   ...overrides
 });
@@ -639,7 +639,7 @@ const buildCollectionA = (overrides = {}) => ({
   collapsed: false,
   items: [
     buildFolderA(overrides.folderA),
-    { uid: 'reqRoot', type: 'http-request', request: {}, name: 'Root', seq: 2, pathname: '/colA/Root.bru' }
+    { uid: 'reqRoot', type: 'http-request', request: {}, name: 'Root', seq: 2, pathname: '/colA/Root.yml' }
   ],
   ...overrides.collection
 });
@@ -649,7 +649,7 @@ const buildCollectionB = () => ({
   pathname: '/colB',
   collapsed: true,
   items: [
-    { uid: 'reqB1', type: 'http-request', request: {}, name: 'Bravo', seq: 1, pathname: '/colB/Bravo.bru' }
+    { uid: 'reqB1', type: 'http-request', request: {}, name: 'Bravo', seq: 1, pathname: '/colB/Bravo.yml' }
   ]
 });
 
@@ -689,7 +689,7 @@ describe('getVisibleSidebarUidsInOrder', () => {
     request: {},
     name: 'Root',
     seq: 2,
-    pathname: '/colA/Root.bru',
+    pathname: '/colA/Root.yml',
     examples: [{ uid: 'ex1', itemUid: 'reqRoot', name: 'Example 1', type: 'http-request' }],
     ...overrides
   });
@@ -769,7 +769,7 @@ describe('getSelectionInfo', () => {
           items: [
             buildFolderA({
               items: [
-                { uid: 'reqA1', type: 'http-request', request: {}, name: 'Alpha', seq: 1, pathname: '/colA/folderA/Alpha.bru', examples: [{ uid: 'exNested', itemUid: 'reqA1', name: 'Nested Example', type: 'http-request' }] }
+                { uid: 'reqA1', type: 'http-request', request: {}, name: 'Alpha', seq: 1, pathname: '/colA/folderA/Alpha.yml', examples: [{ uid: 'exNested', itemUid: 'reqA1', name: 'Nested Example', type: 'http-request' }] }
               ]
             }),
             {
@@ -778,7 +778,7 @@ describe('getSelectionInfo', () => {
               request: {},
               name: 'Root',
               seq: 2,
-              pathname: '/colA/Root.bru',
+              pathname: '/colA/Root.yml',
               examples: [{ uid: 'ex1', itemUid: 'reqRoot', name: 'Example 1', type: 'http-request' }]
             }
           ]

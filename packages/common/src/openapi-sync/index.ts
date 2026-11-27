@@ -20,6 +20,8 @@ interface OpenApiSyncConfig {
   autoCheck: boolean;
   autoCheckInterval: number;
   autoApply?: boolean;
+  // Path of the collection (relative to the application, with / separators) the entry is scoped to.
+  folder?: string;
 }
 
 const SUPPORTED_GROUP_BY = ['tags', 'path'];
@@ -45,6 +47,7 @@ export const normalizeOpenApiSyncConfigs = (entries: unknown): OpenApiSyncConfig
     autoCheck: entry.autoCheck !== false,
     autoCheckInterval: entry.autoCheckInterval || 5,
     // Opt-in: only written when on, so existing files stay byte-identical.
-    ...(entry.autoApply === true && { autoApply: true })
+    ...(entry.autoApply === true && { autoApply: true }),
+    ...(typeof entry.folder === 'string' && entry.folder !== '' && { folder: entry.folder })
   }));
 };

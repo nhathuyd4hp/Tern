@@ -33,8 +33,8 @@ const makeInitialState = ({ fileMode = false, item = {} } = {}) => ({
         {
           uid: ITEM_UID,
           name: 'user_info',
-          filename: 'user_info.bru',
-          pathname: '/coll/user_info.bru',
+          filename: 'user_info.yml',
+          pathname: '/coll/user_info.yml',
           type: 'http-request',
           seq: 1,
           raw: 'meta {\n  name: user_info\n}',
@@ -132,8 +132,8 @@ describe('collectionChangeFileEvent — raw content', () => {
     file: {
       meta: {
         collectionUid: COLLECTION_UID,
-        pathname: '/coll/user_info.bru',
-        name: 'user_info.bru'
+        pathname: '/coll/user_info.yml',
+        name: 'user_info.yml'
       },
       data: {
         uid: ITEM_UID,
@@ -240,8 +240,8 @@ describe('collectionChangeFileEvent — raw content', () => {
         file: {
           meta: {
             collectionUid: COLLECTION_UID,
-            pathname: '/coll/user_info.bru',
-            name: 'user_info.bru'
+            pathname: '/coll/user_info.yml',
+            name: 'user_info.yml'
           },
           data: {
             uid: ITEM_UID,
@@ -265,8 +265,8 @@ describe('collectionChangeFileEvent — failed parse', () => {
     file: {
       meta: {
         collectionUid: COLLECTION_UID,
-        pathname: '/coll/user_info.bru',
-        name: 'user_info.bru'
+        pathname: '/coll/user_info.yml',
+        name: 'user_info.yml'
       },
       data: {
         uid: ITEM_UID,
@@ -285,8 +285,8 @@ describe('collectionChangeFileEvent — failed parse', () => {
     file: {
       meta: {
         collectionUid: COLLECTION_UID,
-        pathname: '/coll/user_info.bru',
-        name: 'user_info.bru'
+        pathname: '/coll/user_info.yml',
+        name: 'user_info.yml'
       },
       data: {
         uid: ITEM_UID,

@@ -51,7 +51,6 @@ async function importSampleCollection(collectionLocation, mainWindow) {
       collectionLocation,
       mainWindow,
       collectionName,
-      undefined, // format - use default
       { skipOpenEvent: true } // Don't send event yet - renderer isn't ready
     );
 

@@ -286,13 +286,13 @@ describe('open collection modal actions', () => {
 
     it('does not leave the last search’s note on screen when the next pick opens straight away and fails', async () => {
       searchReturns(Promise.resolve(pickedCollection));
-      openingReturns(Promise.resolve({ opened: [], failed: [{ path: '/work/api', error: 'Unable to parse bruno.json' }], invalid: [] }));
+      openingReturns(Promise.resolve({ opened: [], failed: [{ path: '/work/api', error: 'Unable to parse opencollection.yml' }], invalid: [] }));
       const lastResult = { id: 'search-0', type: 'message', note: { tone: 'info', text: 'docs isn’t a Tern application.' } };
       const { store } = createStore({ modal: openOn('choose-folder', { ...closedModal.chooseFolder, result: lastResult }) });
 
       await store.dispatch(findCollectionsInFolders(['/work/api']));
 
-      expect(toast.error).toHaveBeenCalledWith('Failed to open api. Unable to parse bruno.json');
+      expect(toast.error).toHaveBeenCalledWith('Failed to open api. Unable to parse opencollection.yml');
       expect(modalState(store)).toMatchObject({ isOpen: true, chooseFolder: { status: 'idle', result: null } });
     });
 

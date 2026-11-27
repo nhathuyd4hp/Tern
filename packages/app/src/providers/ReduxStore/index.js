@@ -8,7 +8,6 @@ import globalEnvironmentsReducer from './slices/global-environments';
 import workspacesReducer from './slices/workspaces';
 import openapiSyncReducer from './slices/openapi-sync';
 import openCollectionModalReducer from './slices/open-collection-modal';
-import collectionMigrationReducer from './slices/collection-migration';
 import { draftDetectMiddleware } from './middlewares/draft/middleware';
 import { autosaveMiddleware } from './middlewares/autosave/middleware';
 import { snapshotMiddleware } from './middlewares/snapshot/middleware';
@@ -31,8 +30,7 @@ export const store = configureStore({
     globalEnvironments: globalEnvironmentsReducer,
     workspaces: workspacesReducer,
     openapiSync: openapiSyncReducer,
-    openCollectionModal: openCollectionModalReducer,
-    collectionMigration: collectionMigrationReducer
+    openCollectionModal: openCollectionModalReducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware()

@@ -13,23 +13,23 @@ export const getErrorSourceTabUid = (source, item, collection) => {
   return null;
 };
 
-const collectionFileNames = ['collection.bru', 'opencollection.yml'];
+const collectionFileName = 'opencollection.yml';
 
-// Matches a folder.bru or folder.yml at any depth: 'folder.yml', 'users/folder.bru', but not 'myfolder.bru'
-const folderYmlOrBruPattern = /(?:^|\/)folder\.(?:bru|yml)$/;
+// Matches a folder.yml at any depth: 'folder.yml', 'users/folder.yml', but not 'myfolder.yml'
+const folderYmlPattern = /(?:^|\/)folder\.yml$/;
 
 const getErrorSourceInfo = (filePath, collection) => {
   if (!filePath) return null;
 
-  if (collectionFileNames.includes(filePath)) {
+  if (filePath === collectionFileName) {
     return { sourceType: 'collection', label: 'Application' };
   }
 
-  if (!folderYmlOrBruPattern.test(filePath)) {
+  if (!folderYmlPattern.test(filePath)) {
     return { sourceType: 'request', label: 'Request' };
   }
 
-  // Located the way collectionAddFileEvent locates the folder a folder.bru or folder.yml belongs to
+  // Located the way collectionAddFileEvent locates the folder a folder.yml belongs to
   const folder = findItemInCollectionByPathname(collection, path.dirname(path.join(collection.pathname, filePath)));
 
   if (!folder) {

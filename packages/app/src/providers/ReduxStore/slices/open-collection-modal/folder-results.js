@@ -1,7 +1,7 @@
 import { pluralizeWord } from 'utils/common';
 import { getFolderName, toPathKey } from './collection-paths';
 
-const COLLECTION_FOLDER_HINT = 'An application folder has a bruno.json or opencollection.yml at its top level.';
+const COLLECTION_FOLDER_HINT = 'An application folder has an opencollection.yml at its top level.';
 const STOPPED_EARLY_TEXT = 'Tern stopped searching after too many folders, so some applications may be missing.';
 const UNREADABLE_STATUSES = ['not-found', 'no-access', 'unreadable'];
 
@@ -10,7 +10,7 @@ const FOLDER_PROBLEMS = {
   'no-access': (name) => `Tern can’t read ${name}. Check its permissions.`,
   'not-a-folder': (name) => `${name} isn’t a folder.`,
   'unreadable': (name) => `Tern couldn’t read ${name}.`,
-  'broken-collection': (name) => `Tern can’t open ${name} because its config can’t be read. Check its bruno.json or opencollection.yml.`
+  'broken-collection': (name) => `Tern can’t open ${name} because its config can’t be read. Check its opencollection.yml.`
 };
 
 const IMPORTABLE_FILE_LABELS = {

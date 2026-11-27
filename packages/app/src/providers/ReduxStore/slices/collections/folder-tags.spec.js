@@ -12,7 +12,7 @@ const COLLECTION_UID = 'col-1';
 const FOLDER_UID = 'folder-1';
 const COLLECTION_PATH = path.join(path.sep, 'coll');
 const FOLDER_PATH = path.join(COLLECTION_PATH, 'my-folder');
-const FOLDER_ROOT_PATH = path.join(FOLDER_PATH, 'folder.bru');
+const FOLDER_ROOT_PATH = path.join(FOLDER_PATH, 'folder.yml');
 
 const makeFolder = (overrides = {}) => ({
   uid: FOLDER_UID,

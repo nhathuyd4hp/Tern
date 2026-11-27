@@ -10,7 +10,7 @@ const searchResult = ({ folders, collections = [], brokenCollectionPaths = [], u
   stoppedEarly
 });
 
-const HINT = 'An application folder has a bruno.json or opencollection.yml at its top level.';
+const HINT = 'An application folder has an opencollection.yml at its top level.';
 const STOPPED_EARLY = 'Tern stopped searching after too many folders, so some applications may be missing.';
 const nothingOpen = new Set();
 
@@ -24,7 +24,7 @@ describe('getFolderSearchOutcome with one folder', () => {
     ['no-access', 'Tern can’t read api. Check its permissions.'],
     ['not-a-folder', 'api isn’t a folder.'],
     ['unreadable', 'Tern couldn’t read api.'],
-    ['broken-collection', 'Tern can’t open api because its config can’t be read. Check its bruno.json or opencollection.yml.']
+    ['broken-collection', 'Tern can’t open api because its config can’t be read. Check its opencollection.yml.']
   ])('explains a %s folder', (status, text) => {
     const outcome = getFolderSearchOutcome(searchResult({ folders: [folder('/work/api', status)] }), nothingOpen);
 

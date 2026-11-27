@@ -296,11 +296,6 @@ export const transformCollectionToSaveToExportAsFile = (collection, options = {}
     });
   };
 
-  const normalizeFilenameToBru = (filename) => {
-    if (!filename) return filename;
-    return filename.replace(/\.(yml|yaml)$/i, '.bru');
-  };
-
   const copyItems = (sourceItems, destItems) => {
     each(sourceItems, (si) => {
       if (!isItemAFolder(si) && !isItemARequest(si) && si.type !== 'js') {
@@ -318,7 +313,7 @@ export const transformCollectionToSaveToExportAsFile = (collection, options = {}
         uid: si.uid,
         type: si.type,
         name: si.name,
-        filename: isItemARequest(si) ? normalizeFilenameToBru(si.filename) : si.filename,
+        filename: si.filename,
         seq: si.seq,
         settings: si.settings,
         tags: si.tags,
@@ -1271,8 +1266,6 @@ const getPathParams = (item) => {
   }
   return pathParams;
 };
-
-export const isOpenCollectionFormat = (collection) => Boolean(collection?.brunoConfig?.opencollection);
 
 export const getCollectionVersion = (collection) => collection?.brunoConfig?.version || '';
 
@@ -2292,8 +2285,7 @@ export const generateUniqueRequestName = async (collection, baseName = 'Untitled
   const parentItem = itemUid ? findItemInCollection(collection, itemUid) : null;
   const parentItems = parentItem ? (parentItem.items || []) : (collection.items || []);
   const baseNamePattern = new RegExp(`^${baseName}(\\d+)?$`);
-  // Support .bru, .yml, and .yaml file extensions
-  const requestExtensions = /\.(bru|yml|yaml)$/i;
+  const requestExtensions = /\.ya?ml$/i;
   const matchingItems = parentItems
     .filter((item) => {
       if (item.type === 'folder') return false;

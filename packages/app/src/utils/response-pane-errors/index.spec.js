@@ -146,13 +146,11 @@ describe('getResponsePaneErrors', () => {
     });
   });
 
-  it('detects an collection-level source for collection.bru and opencollection.yml', () => {
-    expect(sourceOf('collection.bru')).toEqual({ sourceType: 'collection', label: 'Application' });
+  it('detects an collection-level source for opencollection.yml', () => {
     expect(sourceOf('opencollection.yml')).toEqual({ sourceType: 'collection', label: 'Application' });
   });
 
-  it('detects a folder-level source for folder.bru and folder.yml and resolves the collection uid and name from its path', () => {
-    expect(sourceOf('users/folder.bru')).toEqual({ sourceType: 'folder', label: 'Collection: users', sourceUid: 'folder-1' });
+  it('detects a folder-level source for folder.yml and resolves the collection uid and name from its path', () => {
     expect(sourceOf('users/folder.yml')).toEqual({ sourceType: 'folder', label: 'Collection: users', sourceUid: 'folder-1' });
   });
 

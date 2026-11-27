@@ -39,7 +39,6 @@
     "@usebruno/node-machine-id": "^2.0.0",
     "@tern/requests": "^0.1.0",
     "@tern/schema": "0.7.0",
-    "@tern/sqlite": "0.1.0",
     "adm-zip": "0.6.1",
     "archiver": "^7.0.1",
     "aws4-axios": "^3.3.15",

@@ -554,14 +554,7 @@ export const tabsSlice = createSlice({
         state.activeTabUid = null;
       }
 
-      // Drop request tabs remapped by bru↔yml migrate that no longer match collection format
-      const staleExt = collection.format === 'yml' ? /\.bru$/i : /\.ya?ml$/i;
-
       (snapshotTabs || []).forEach((snapshotTab) => {
-        if (typeof snapshotTab.pathname === 'string' && staleExt.test(snapshotTab.pathname)) {
-          return;
-        }
-
         const tab = deserializeTab(snapshotTab, collection);
 
         ensureTabUid(tab);

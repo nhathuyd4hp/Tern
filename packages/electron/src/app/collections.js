@@ -15,7 +15,7 @@ const registerScratchCollectionPath = (scratchPath) => {
   scratchCollectionPaths.add(path.normalize(scratchPath));
 };
 
-// todo: bruno.json config schema validation errors must be propagated to the UI
+// todo: opencollection.yml config schema validation errors must be propagated to the UI
 const configSchema = Yup.object({
   name: Yup.string().max(256, 'name must be 256 characters or less').required('name is required'),
   type: Yup.string().oneOf(['collection']).required('type is required'),
@@ -42,49 +42,27 @@ const configSchema = Yup.object({
   ).notRequired()
 });
 
-const readConfigFile = async (pathname) => {
-  try {
-    const jsonData = fs.readFileSync(pathname, 'utf8');
-    return JSON.parse(jsonData);
-  } catch (err) {
-    return Promise.reject(new Error(`Unable to parse json in bruno.json in ${pathname}`));
-  }
-};
-
 const validateSchema = async (config) => {
   try {
     await configSchema.validate(config);
   } catch (err) {
-    return Promise.reject(new Error('bruno.json format is invalid in ' + config?.name));
+    return Promise.reject(new Error('opencollection.yml format is invalid in ' + config?.name));
   }
 };
 
 const getCollectionConfigFile = async (pathname) => {
-  // Check for opencollection.yml first
   const ocYmlPath = path.join(pathname, 'opencollection.yml');
-  if (fs.existsSync(ocYmlPath)) {
-    try {
-      const content = fs.readFileSync(ocYmlPath, 'utf8');
-      const {
-        brunoConfig
-      } = parseCollection(content, { format: 'yml' });
-      await validateSchema(brunoConfig);
-      return brunoConfig;
-    } catch (err) {
-      throw new Error(`Unable to parse opencollection.yml: ${err.message}`);
-    }
+  if (!fs.existsSync(ocYmlPath)) {
+    throw new Error('The application is not valid (opencollection.yml not found)');
   }
-
-  // Fall back to bruno.json
-  const configFilePath = path.join(pathname, 'bruno.json');
-  if (!fs.existsSync(configFilePath)) {
-    throw new Error(`The application is not valid (neither bruno.json nor opencollection.yml found)`);
+  try {
+    const content = fs.readFileSync(ocYmlPath, 'utf8');
+    const { brunoConfig } = parseCollection(content);
+    await validateSchema(brunoConfig);
+    return brunoConfig;
+  } catch (err) {
+    throw new Error(`Unable to parse opencollection.yml: ${err.message}`);
   }
-
-  const config = await readConfigFile(configFilePath);
-  await validateSchema(config);
-
-  return config;
 };
 
 const openCollection = async (win, watcher, collectionPath, options = {}) => {

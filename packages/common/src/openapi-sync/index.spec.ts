@@ -15,6 +15,13 @@ describe('normalizeOpenApiSyncConfigs', () => {
     ]);
   });
 
+  it('keeps the folder an entry is scoped to', () => {
+    expect(normalizeOpenApiSyncConfigs([
+      { sourceUrl: 'https://example.com/pets.json', folder: 'Pets/v2' },
+      { sourceUrl: 'https://example.com/all.json' }
+    ]).map((entry) => entry.folder)).toEqual(['Pets/v2', undefined]);
+  });
+
   it('preserves explicitly configured auto-check settings', () => {
     expect(normalizeOpenApiSyncConfigs([
       {

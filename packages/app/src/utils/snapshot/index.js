@@ -377,8 +377,7 @@ export const getCollectionEnvironmentPath = (collection, environment, defaultVal
     return environment.name || defaultValue;
   }
 
-  const extension = collection.format === 'yml' ? 'yml' : 'bru';
-  return normalizePath(path.join(collection.pathname, 'environments', `${environment.name}.${extension}`));
+  return normalizePath(path.join(collection.pathname, 'environments', `${environment.name}.yml`));
 };
 
 export const findCollectionEnvironmentFromSnapshot = (collection, snapshotData = {}) => {

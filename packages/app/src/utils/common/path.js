@@ -10,13 +10,13 @@ const isWindowsOS = () => {
 /**
  * Cross-Platform Path Standardization for Bruno Configuration Files
  *
- * Bruno stores relative paths in configuration files (bruno.json) that are committed to version control.
+ * Bruno stores relative paths in configuration files (opencollection.yml) that are committed to version control.
  * This creates cross-platform compatibility challenges when Windows and Unix users collaborate on the same project.
  *
  * PROBLEM:
  * - Windows users naturally create paths with backslashes (e.g., "certs\\client.pem")
  * - Unix systems don't recognize backslashes as path separators
- * - When a Windows user commits a bruno.json with Windows-style paths, Unix users cannot resolve these paths
+ * - When a Windows user commits an opencollection.yml with Windows-style paths, Unix users cannot resolve these paths
  * - This forces manual path conversion before git commits, which is error-prone and inconvenient
  *
  * SOLUTION:

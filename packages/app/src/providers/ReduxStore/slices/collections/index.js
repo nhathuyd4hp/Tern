@@ -44,13 +44,6 @@ const FILE_DERIVED_REQUEST_FIELDS = [
   'isTransient'
 ];
 
-// Derive from the config on disk only — never keep a previous collection.format.
-// After a migrate-to-yml followed by a git revert to bru, a stale 'yml' would hide
-// the "Convert to YML" action forever.
-const deriveCollectionFormat = (brunoConfig) => {
-  return brunoConfig?.opencollection ? 'yml' : brunoConfig?.format || 'bru';
-};
-
 // gRPC status code meanings
 const grpcStatusCodes = {
   0: 'OK',
@@ -221,9 +214,6 @@ export const collectionsSlice = createSlice({
       // values can be 'unmounted', 'mounting', 'mounted'
       collection.mountStatus = 'unmounted';
 
-      // YAML collections have an 'opencollection' field, BRU collections a 'version' field
-      collection.format = deriveCollectionFormat(collection.brunoConfig);
-
       // TODO: move this to use the nextAction approach
       // last action is used to track the last action performed on the collection
       // this is optional
@@ -289,7 +279,6 @@ export const collectionsSlice = createSlice({
 
       if (collection) {
         collection.brunoConfig = brunoConfig;
-        collection.format = deriveCollectionFormat(brunoConfig);
       }
     },
     renameCollection: (state, action) => {
@@ -3090,7 +3079,7 @@ export const collectionsSlice = createSlice({
           currentSubItems = childItem.items;
         }
 
-        if (file.meta.name != 'folder.bru' && !currentSubItems.find((f) => f.name === file.meta.name)) {
+        if (file.meta.name != 'folder.yml' && !currentSubItems.find((f) => f.name === file.meta.name)) {
           // this happens when you rename a file
           // the add event might get triggered first, before the unlink event
           // this results in duplicate uids causing react renderer to go mad

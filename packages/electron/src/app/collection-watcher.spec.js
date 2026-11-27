@@ -19,8 +19,7 @@ jest.mock('../utils/filesystem', () => ({
   hasRequestExtension: jest.fn(),
   isWSLPath: jest.fn(() => false),
   normalizeAndResolvePath: jest.fn((pathname) => pathname),
-  sizeInMB: jest.fn(),
-  getCollectionFormat: jest.fn(() => 'bru')
+  sizeInMB: jest.fn()
 }));
 
 jest.mock('@tern/filestore', () => ({
@@ -56,10 +55,6 @@ jest.mock('../services/snapshot', () => ({
 jest.mock('../utils/collection', () => ({
   parseFileMeta: jest.fn(),
   hydrateRequestWithUuid: jest.fn()
-}));
-
-jest.mock('../utils/parse', () => ({
-  parseLargeRequestWithRedaction: jest.fn()
 }));
 
 jest.mock('../utils/transformBrunoConfig', () => ({

@@ -1058,8 +1058,8 @@ describe('renderVarInfo', () => {
     });
 
     it('should open the target request before navigating to its variable definition', () => {
-      const renderedItem = { uid: 'req-current', type: 'http-request', pathname: '/current.bru' };
-      const targetItem = { uid: 'req-target', type: 'http-request', pathname: '/target.bru' };
+      const renderedItem = { uid: 'req-current', type: 'http-request', pathname: '/current.yml' };
+      const targetItem = { uid: 'req-target', type: 'http-request', pathname: '/target.yml' };
       getVariableScope.mockReturnValue({
         type: 'request',
         value: 'test-value',
@@ -1076,7 +1076,7 @@ describe('renderVarInfo', () => {
           uid: 'req-target',
           collectionUid: 'col-1',
           type: 'http-request',
-          pathname: '/target.bru',
+          pathname: '/target.yml',
           requestPaneTab: 'vars'
         }
       }));

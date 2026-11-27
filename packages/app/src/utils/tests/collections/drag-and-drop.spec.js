@@ -9,7 +9,7 @@ import path from 'utils/common/path';
 
 const collectionPathname = path.join(path.sep, 'collections', 'my-collection');
 const folderPathname = path.join(collectionPathname, 'users');
-const requestPathname = path.join(folderPathname, 'get-users.bru');
+const requestPathname = path.join(folderPathname, 'get-users.yml');
 
 const folderItem = {
   uid: 'folder-1',
@@ -22,7 +22,7 @@ const requestItem = {
   uid: 'request-1',
   type: 'http-request',
   name: 'get-users',
-  filename: 'get-users.bru',
+  filename: 'get-users.yml',
   pathname: requestPathname,
   request: { method: 'GET', url: 'https://example.com' }
 };
@@ -31,8 +31,8 @@ const draggedRequest = {
   uid: 'request-2',
   type: 'http-request',
   name: 'create-user',
-  filename: 'create-user.bru',
-  pathname: path.join(collectionPathname, 'create-user.bru'),
+  filename: 'create-user.yml',
+  pathname: path.join(collectionPathname, 'create-user.yml'),
   request: { method: 'POST', url: 'https://example.com' },
   sourceCollectionUid: 'collection-1'
 };
@@ -126,7 +126,7 @@ describe('calculateDraggedItemNewPathname', () => {
       collectionPathname
     });
 
-    expect(result).toBe(path.join(folderPathname, 'create-user.bru'));
+    expect(result).toBe(path.join(folderPathname, 'create-user.yml'));
   });
 
   it('returns a sibling path for above/below drops', () => {
@@ -137,7 +137,7 @@ describe('calculateDraggedItemNewPathname', () => {
       collectionPathname
     });
 
-    expect(result).toBe(path.join(folderPathname, 'create-user.bru'));
+    expect(result).toBe(path.join(folderPathname, 'create-user.yml'));
   });
 
   it('returns null when dropping inside a request', () => {

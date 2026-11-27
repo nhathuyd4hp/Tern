@@ -27,14 +27,14 @@ describe('tab selectors', () => {
           {
             uid: 'example-1',
             type: 'response-example',
-            pathname: '/c/req.bru',
+            pathname: '/c/req.yml',
             collectionUid: 'c1'
           }
         ]
       }
     };
 
-    const selector = getTabUidForItem({ itemUid: 'request-1', itemPathname: '/c/req.bru', collectionUid: 'c1' });
+    const selector = getTabUidForItem({ itemUid: 'request-1', itemPathname: '/c/req.yml', collectionUid: 'c1' });
     expect(selector(state)).toBeNull();
   });
 
@@ -47,14 +47,14 @@ describe('tab selectors', () => {
           {
             uid: 'example-1',
             type: 'response-example',
-            pathname: '/c/req.bru',
+            pathname: '/c/req.yml',
             collectionUid: 'c1'
           }
         ]
       }
     };
 
-    const selector = isTabForItemActive({ itemUid: 'request-1', itemPathname: '/c/req.bru', collectionUid: 'c1' });
+    const selector = isTabForItemActive({ itemUid: 'request-1', itemPathname: '/c/req.yml', collectionUid: 'c1' });
     expect(selector(state)).toBe(false);
   });
 
@@ -67,14 +67,14 @@ describe('tab selectors', () => {
           {
             uid: 'example-1',
             type: 'response-example',
-            pathname: '/c/req.bru',
+            pathname: '/c/req.yml',
             collectionUid: 'c1'
           }
         ]
       }
     };
 
-    const selector = getTabUidForItem({ itemUid: 'request-1', itemPathname: '/c/req.bru', collectionUid: 'c1' });
+    const selector = getTabUidForItem({ itemUid: 'request-1', itemPathname: '/c/req.yml', collectionUid: 'c1' });
     expect(selector(state)).toBeNull();
   });
 
@@ -87,14 +87,14 @@ describe('tab selectors', () => {
           {
             uid: 'request-1',
             type: 'http-request',
-            pathname: '/c/req.bru',
+            pathname: '/c/req.yml',
             collectionUid: 'c1'
           }
         ]
       }
     };
 
-    const selector = getTabUidForItem({ itemUid: 'missing-uid', itemPathname: '/c/req.bru', collectionUid: 'c1' });
+    const selector = getTabUidForItem({ itemUid: 'missing-uid', itemPathname: '/c/req.yml', collectionUid: 'c1' });
     expect(selector(state)).toBe('request-1');
   });
 });

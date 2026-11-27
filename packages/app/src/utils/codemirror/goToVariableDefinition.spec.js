@@ -43,7 +43,7 @@ describe('goToVariableDefinition', () => {
   });
 
   it('opens the target request on its Variables tab for a request-scoped variable', () => {
-    const targetItem = { uid: 'req-target', type: 'http-request', pathname: '/target.bru' };
+    const targetItem = { uid: 'req-target', type: 'http-request', pathname: '/target.yml' };
     const scopeInfo = { type: 'request', data: { item: targetItem } };
 
     goToVariableDefinition(scopeInfo, collection, { uid: 'req-current' }, 'apiKey');

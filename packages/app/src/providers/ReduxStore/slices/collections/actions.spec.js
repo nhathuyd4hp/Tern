@@ -42,7 +42,6 @@ describe('collection actions', () => {
             {
               uid: 'collection-uid',
               pathname: 'C:\\bruno\\collection',
-              format: 'bru',
               items: []
             }
           ]
@@ -69,7 +68,7 @@ describe('collection actions', () => {
 
       expect(window.ipcRenderer.invoke).toHaveBeenCalledWith(
         'renderer:new-request',
-        expect.stringContaining('demo.pdf.bru'),
+        expect.stringContaining('demo.pdf.yml'),
         expect.objectContaining({
           uid: 'request-uid',
           isTransient: true,
@@ -313,7 +312,6 @@ describe('collection actions', () => {
           {
             uid: 'collection-uid',
             pathname: '/bruno/collection',
-            format: 'yml',
             items: [
               {
                 uid: 'item-uid',
