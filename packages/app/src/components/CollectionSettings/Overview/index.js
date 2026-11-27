@@ -3,6 +3,7 @@ import Docs from '../Docs';
 import Info from './Info';
 import { IconBox } from '@tabler/icons';
 import RequestsNotLoaded from './RequestsNotLoaded';
+import CollectionList from './CollectionList';
 
 const Overview = ({ collection }) => {
   return (
@@ -15,6 +16,7 @@ const Overview = ({ collection }) => {
               {collection?.name}
             </span>
           </div>
+          <CollectionList collection={collection} />
           <Info collection={collection} />
           <RequestsNotLoaded collection={collection} />
         </div>

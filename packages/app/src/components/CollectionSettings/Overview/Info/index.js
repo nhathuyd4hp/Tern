@@ -37,8 +37,8 @@ const Info = ({ collection }) => {
 
   return (
     <StyledWrapper className="w-full flex flex-col h-fit">
-      <div className="rounded-lg py-6">
-        <div className="grid gap-5">
+      <div className="rounded-lg py-8">
+        <div className="grid gap-8">
           {/* Location Row */}
           <div className="flex items-start">
             <div className="icon-box location flex-shrink-0 p-3 rounded-lg">
