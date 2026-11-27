@@ -5,11 +5,11 @@ paths:
 
 # Co-Related Features & Parity Surfaces
 
-Bruno implements the same behaviour more than once — `.bru` vs `.yml`, filestore vs
+Bruno implements the same behaviour more than once — filestore vs
 converters, implementation vs QuickJS shim. **A change to one side of a pair is not a finished
 change**: the other side silently keeps the old behaviour and ships. The symptom is never a broken
 build — it's a field that survives save but
-vanishes on export or migration, a `bru.*` method that is `undefined` in the default sandbox.
+vanishes on export, a `bru.*` method that is `undefined` in the default sandbox.
 
 This rule maps *which* surfaces pair up. `.claude/rules/dsl-changes.md` owns the on-disk contract
 in depth.
@@ -37,15 +37,10 @@ hand:
 | Types | `schema-types/src/collection/item.ts` | type drift |
 | Yup schema | `schema/src/collections/index.js` — `.noUnknown(true)`, cast output is persisted | **silently stripped on save** |
 | App save transform | `app/src/utils/collections/index.js` — `transformRequestToSaveToFilesystem`, `transform{Collection,Folder}RootToSave`, `transformCollectionToSaveToExportAsFile` | dropped before reaching disk / Bruno JSON export |
-| On-disk formats | `filestore/src/formats/{bru,yml}` (+ `lang`) — parse **and** stringify | lost in one format |
-| BRU → YML migration | `electron/src/ipc/yml-migration.js` (bru parse → yml stringify) | lost when a user migrates |
-| Collection config | `bruno.json` ↔ `opencollection.yml` — `utils/transformBrunoConfig.js`, `stringifyCollection`, migration's config transform (e.g. `transformProxyConfig`) | config lost or misread |
+| On-disk formats | `filestore/src/formats/yml` — parse **and** stringify | field dropped on disk |
+| Collection config | `opencollection.yml` — `utils/transformBrunoConfig.js`, `stringifyCollection` | config lost or misread |
 | OpenCollection import/export | `converters/src/opencollection/items/{http,graphql,grpc,websocket}.ts`, `folder.ts`, `environment.ts` — **both** directions; app entry `app/src/utils/exporters/opencollection.js` | lost on export or import |
 | Other converters | `postman/{postman-to-bruno,bruno-to-postman}.js`, `insomnia/`, `openapi/`, `wsdl/`; app exporters `postman-collection.js`, `bruno-environment.js` | lost on import/export where the target can represent it |
-
-The migration also rewrites content, not just shape: `bru.runRequest("x.bru")` paths are stripped
-of `.bru`, and tab snapshots are remapped. A new script API that takes a file path, a new file
-type, or a new `bruno.json` key needs a matching migration step.
 
 ## 2. Scripting API ↔ QuickJS shim
 
@@ -82,7 +77,7 @@ A new auth mode or a setting that changes the wire request should change the gen
 
 - [ ] Every twin in the tables opened; updated, or listed to the user with a reason
 - [ ] Shared logic moved to a leaf package where the DAG allows, instead of patched twice
-- [ ] Persisted field carried through every layer in §1 — including migration and converters (both directions)
+- [ ] Persisted field carried through every layer in §1 — including converters (both directions)
 - [ ] New/changed `bru.*`, `req.*`, `res.*` API bridged in the QuickJS shim
 - [ ] Its JSDoc written and `types/script-api.d.ts` regenerated, with no generator warnings
 - [ ] Collection / folder / request levels and `inherit` each decided

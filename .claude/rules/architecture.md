@@ -14,12 +14,12 @@ it before non-trivial cross-package or architectural work.
 
 ## Dependency direction & ownership boundaries
 
-- **Leaf libs — zero internal `@tern/*` deps:** common, lang, query,
+- **Leaf libs — zero internal `@tern/*` deps:** common, query,
   requests, graphql-docs, schema, schema-types, sqlite
   (a leaf, but *not* platform-neutral — see guardrail 6).
 - **Mid consumers:** js → (common, query); converters → (common, schema; schema-types
-  as devDep); filestore → (common, lang; schema-types as devDep).
-- **Top consumers (things flow *into* them, never out):** electron → (common, converters, filestore, js, lang,
+  as devDep); filestore → (common; schema-types as devDep).
+- **Top consumers (things flow *into* them, never out):** electron → (common, converters, filestore, js,
   requests, schema, sqlite); app → (common, converters, graphql-docs, schema).
 
 Guardrails this enforces:

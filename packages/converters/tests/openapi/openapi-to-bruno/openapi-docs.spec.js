@@ -55,7 +55,7 @@ describe('OpenAPI Import - Docs (collection & folder descriptions)', () => {
     expect(result.root.docs).toBe(md);
   });
 
-  it('matches folder docs after tag-name sanitization (spaces -> underscores)', () => {
+  it('matches folder docs by tag name', () => {
     const spec = buildSpec({ tags: [{ name: 'Pet Store', description: 'Pet store docs.' }] });
     spec.paths = {
       '/pets': {
@@ -64,7 +64,7 @@ describe('OpenAPI Import - Docs (collection & folder descriptions)', () => {
     };
     const result = openApiToBruno(spec);
 
-    const folder = findFolderByName(result.items, 'Pet_Store');
+    const folder = findFolderByName(result.items, 'Pet Store');
     expect(folder).toBeDefined();
     expect(folder.root.docs).toBe('Pet store docs.');
   });

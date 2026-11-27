@@ -2,7 +2,6 @@
 paths:
   - "packages/app/**"
   - "packages/electron/**"
-  - "packages/lang/**"
   - "packages/filestore/**"
   - "packages/schema/**"
   - "packages/schema-types/**"
@@ -12,18 +11,10 @@ paths:
 # On-Disk DSL & Serialization Changes
 
 Bruno persists everything users create — collections, requests, environments, folders, and
-config — as plain-text files on the user's disk and in their Git repos. Two on-disk formats
-exist:
-
-- **`.bru`** — the Bru DSL. Read/write goes through the **v2 (ohm-js)** grammar in
-  `packages/lang/v2/src`, via `packages/filestore/src/formats/bru`
-  (`bruToJsonV2` / `jsonToBruV2`). Make all `.bru` changes in v2.
-- **`.yml`** — OpenCollection YAML, handled by `packages/filestore/src/formats/yml`. This is
-  the current `DEFAULT_COLLECTION_FORMAT` (canonical: `packages/filestore/src/constants.ts`,
-  duplicated for the renderer in `packages/app/src/utils/common/constants.js`), so new
-  collections are `.yml` unless the user chooses otherwise.
-- Plus `bruno.json` (per-collection config, passed through `stringifyCollection`) and `.env` files
-  (`parseDotEnv` / `dotenvToJson`).
+config — as plain-text files on the user's disk and in their Git repos. The only on-disk format is
+**`.yml`** — OpenCollection YAML (`opencollection.yml`, `<name>.yml`, `folder.yml`,
+`environments/*.yml`), handled by `packages/filestore/src/formats/yml`. The legacy `.bru` format
+no longer exists. Plus `.env` files (`parseDotEnv`).
 
 (`preferences.json` is app-level electron-store
 state under `userData`, not part of a collection's on-disk contract, so it is out of scope here.)
@@ -59,52 +50,28 @@ current meaning.
 never drop fields it doesn't recognize. A file written by a newer version, opened and
 re-saved by an older one, must not lose the newer fields.
 
-**Prove escaping on the written bytes, not in memory.** When a value is embedded in a
-delimited block (`.bru` multiline `'''…'''`, annotation args), an in-memory `escape`/`unescape`
-round-trip can pass while the on-disk file still corrupts — the parser terminates at the first
-re-introduced delimiter. Test `parse(read(serialize(x)))` on the actual bytes, and fuzz across
-quote/backslash runs. Escape at single-character granularity: escaping a multi-character
-delimiter by splitting on the whole delimiter (`split("'''")`) leaves fragments that recombine
-on runs of length ≥ the delimiter; escape the backslash first, then every single delimiter char.
-Ref: `escapeMultilineDescription` in `lang/v2/src/utils.js`.
-
-**New syntax breaks older parsers — not just older fields.** The additive-and-optional rule
-protects field-level compat, but adding new `.bru` *syntax* (a new escape form, block delimiter,
-or annotation grammar) makes files written by the new version fail to *parse* in older versions,
-which have no handling for it. This is a forward-compat break beyond field loss; it needs an
-explicit decision and a compatibility path before shipping.
-
 **Descriptions are string-only internally.** Every inline `description` field (headers, params,
 assertions, variables, body entries, ...) is stored as a plain `string`. On the **yml** side,
 parsers accept a bare string *or* a legacy `{ content }` object on read and normalize to the
 string (`formats/yml/common/{headers,variables,assertions,actions}.ts`, `parseEnvironment.ts`,
 `body.ts`); writers emit a bare string. This read-accepts-object / write-emits-string asymmetry is
 an established convention — not a lossy round-trip — proven by `formats/yml/common/variables.spec.ts`.
-The `.bru` side has no `{ content }` handling; it stores descriptions as annotation/textblock
-strings straight from the grammar. New inline description-like fields should follow this
+New inline description-like fields should follow this
 string-only shape.
 
 *Exception — `docs` is not string-only.* Collection/folder documentation (`docs`) is written by
 the **yml** layer as an **object** `{ content, type: 'text/markdown' }`
 (`formats/yml/stringifyCollection.ts`, `stringifyFolder.ts`) and normalized back to a string on
-read; the `.bru` side writes it as a plain textblock. So "follow the string-only shape" applies to
+read. So "follow the string-only shape" applies to
 inline `description`, *not* to `docs`-style documentation fields — check which family a new field
 belongs to before copying either pattern.
 
-**Keep both formats in lockstep.** Any field added or changed must be handled in *both*
-`bru` and `yml` — parse and stringify on each side — or the same collection behaves
-differently depending on its format. There is **no dedicated `bru`↔`yml` converter**: a request
-moves between formats by being parsed in its source format to the shared in-memory object and
-re-stringified in the target format (see `SaveTransientRequest` passing `sourceFormat` +
-`targetFormat` to `renderer:save-transient-request`). So a field handled in only one format is
-**silently dropped** the moment a request is copied/saved from a `.bru` collection into a `.yml`
-one (or vice-versa). Pay attention to the *unset* case: a field that defaults or persists one way
-in `.bru` and another in `.yml` (e.g. one path returns `''`, the other `'1'`) is a divergence bug.
-The default app-data workspace and custom-filesystem workspaces are a second such twin — a value
-that persists in one but is silently dropped in the other is the same class of bug. Update every
-layer the field touches: `schema-types` (types), `schema` (Yup validation),
-`filestore` (both formats), `converters` (import/export), and the grammar in
-`lang` **v2** if `.bru` syntax itself changes.
+**Update every layer a field touches.** `schema-types` (types), `schema` (Yup validation),
+`filestore` (parse and stringify), and `converters` (import/export) — a field handled in only some
+of them is silently dropped. The default app-data workspace and custom-filesystem workspaces are a
+twin too: a value that persists in one but is silently dropped in the other is the same class of
+bug. Pay attention to the *unset* case: a field that defaults or persists differently on parse vs
+stringify (e.g. one path returns `''`, the other `'1'`) is a divergence bug.
 
 **`schema` (Yup) is not optional — it is the write-time allow-list.** The collection/request/
 environment Yup schemas are declared `.noUnknown(true)` (not `.strict()`), and the save paths
@@ -124,8 +91,7 @@ a pass/fail filter and keeps the original object. Two consequences:
 
 **When a shape must change, migrate on read — never make users edit files.** Add a
 read-time compatibility shim that upgrades the old shape as it is parsed, following the
-existing patterns: `ensureAuthV3Rc1BackwardsCompatibility` in `formats/yml/parseItem.ts`,
-and the pre-v3 status/statusText swap in `formats/bru/index.ts`. Gate any eventual removal
+existing pattern: `ensureAuthV3Rc1BackwardsCompatibility` in `formats/yml/parseItem.ts`. Gate any eventual removal
 behind a major version bump and leave a dated `TODO(remove after vN)`.
 
 **Design for scale and consistency.** New keys follow the naming and nesting of the existing
@@ -133,31 +99,25 @@ behind a major version bump and leave a dated `TODO(remove after vN)`.
 structures that extend cleanly — a keyed list over a positional one, an object over a
 widening union — and match how neighbouring fields are already modelled. Note the on-disk
 `meta {}` block does **not** map 1:1 to the type: in `schema-types` those keys are flattened
-onto `Item` (`seq`, `name`, `type`, `tags`, `description` directly on the item), and the v2 ohm
-grammar treats `meta` as an open dictionary — the four names above are the *modeled* ones, not a
-closed set.
+onto `Item` (`seq`, `name`, `type`, `tags`, `description` directly on the item).
 
 **Name properties like they're permanent — because they are.** A DSL key is written once and
 effectively forever: renaming it breaks every existing file and forces a compat shim. These
-names are also user-facing — people read and hand-edit `.bru`/`.yml` — and are read by AI
+names are also user-facing — people read and hand-edit `.yml` — and are read by AI
 agents reasoning over collections. Choose clear, descriptive, fully spelled-out names, with
 no cryptic abbreviations or ambiguity, consistent with existing keys, and get it right the
 first time. A property name deserves stricter scrutiny than an ordinary variable.
 
-**Test the contract.** Add round-trip tests (parse → stringify → parse) for the new field in
-*both* formats, plus a golden fixture of the *old* format that must still parse unchanged. The
+**Test the contract.** Add round-trip tests (parse → stringify → parse) for the new field,
+plus a golden fixture of the *old* format that must still parse unchanged. The
 paired `parseItem.spec.ts` / `stringifyItem.spec.ts` (and `parse*`/`stringify*` for collection,
 folder, environment) next to each serializer in `filestore/src/formats/yml` are the pattern;
 `common/variables.spec.ts` and `common/datatype.spec.ts` show field-level cases.
 
 ## A new persisted field — the files it usually touches
 
-Adding a single field tends to span several packages (a `.bru`-centric change lands mostly in
-`lang/v2`):
+Adding a single field tends to span several packages:
 
-- `lang/v2/src` — the `.bru` entry points: `bruToJson.js`, `collectionBruToJson.js`,
-  `envToJson.js`, `jsonToBru.js`, `jsonToCollectionBru.js`, `jsonToEnv.js`, plus `utils.js` for
-  shared helpers.
 - `filestore/src/formats/yml` — parse **and** stringify for the `.yml` side.
 - `schema/src/collections/index.js` — the Yup schema (skip this and the field is silently stripped on save).
 - `schema-types/src/collection/item.ts` — the TypeScript type.
@@ -167,8 +127,6 @@ Adding a single field tends to span several packages (a `.bru`-centric change la
   through filestore but not here round-trips on disk and is silently lost on export.
 - `app/src/utils/collections/index.js` — `transformRequestToSaveToFilesystem` and siblings
   whitelist fields before save; a field missing here never reaches the serializer.
-- `electron/src/ipc/yml-migration.js` — BRU → YML migration (bru parse → yml stringify, plus
-  `bruno.json` → `opencollection.yml` config transforms); verify the field survives migration.
 - the collection utils in `electron` / `app` that build the object.
 - Round-trip specs next to the serializers (`formats/yml/parseItem.spec.ts` + `stringifyItem.spec.ts`).
 
@@ -178,14 +136,12 @@ Find a comparable field already in the code and follow how it's wired before add
 
 - [ ] Change is genuinely necessary (can't be solved in memory / UI)
 - [ ] New field is optional with a safe default; nothing renamed, removed, or retyped
-- [ ] Handled in both `bru` and `yml`, parse **and** stringify
+- [ ] Handled in `yml` parse **and** stringify
 - [ ] Types (`schema-types`), Yup schema (`schema`), and converters updated —
       "converters" means `converters/src/opencollection/items/*` in **both** directions,
       which is a different field list from `filestore`
-- [ ] Field survives the app save transform and BRU → YML migration (see `feature-parity.md` §1)
+- [ ] Field survives the app save transform (see `feature-parity.md` §1)
 - [ ] Old files still parse — read-time compat shim added if the shape changed
-- [ ] No new `.bru` syntax that older parsers can't read (or a forward-compat path decided)
-- [ ] Any new escaping proven via on-disk reparse + fuzz, escaping single chars not the delimiter
-- [ ] `bru`/`yml` (and default vs custom workspace) behave identically, including the unset case
+- [ ] Default vs custom workspace behave identically, including the unset case
 - [ ] Round-trip + old-format fixture tests added
 - [ ] Naming/structure consistent with existing blocks and scalable

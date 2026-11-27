@@ -8,7 +8,7 @@ describe('Bruno to Postman Converter with Tests and Scripts', () => {
       {
         name: 'Request With Scripts and Tests',
         type: 'http-request',
-        filename: 'request-with-scripts.bru',
+        filename: 'request-with-scripts.yml',
         seq: 1,
         settings: {
           encodeUrl: true,
@@ -67,7 +67,7 @@ describe('Bruno to Postman Converter with Tests and Scripts', () => {
           {
             type: 'http',
             name: 'Request In Scripts Folder',
-            filename: 'scripts-folder-echo.bru',
+            filename: 'scripts-folder-echo.yml',
             seq: 1,
             settings: {
               encodeUrl: true,
@@ -126,7 +126,7 @@ describe('Bruno to Postman Converter with Tests and Scripts', () => {
               {
                 type: 'http',
                 name: 'Request In Scripts Inner Folder',
-                filename: 'scripts-inner-folder-echo.bru',
+                filename: 'scripts-inner-folder-echo.yml',
                 seq: 2,
                 settings: {
                   encodeUrl: true,

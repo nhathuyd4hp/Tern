@@ -165,7 +165,7 @@ describe('swagger2-to-bruno grouping', () => {
       const collection = swagger2ToBruno(spec);
 
       expect(collection.items.map((i) => i.name)).toEqual(['Items', 'Items']);
-      expect(collection.items.map((i) => i.filename)).toEqual([undefined, 'Items (POST).bru']);
+      expect(collection.items.map((i) => i.filename)).toEqual([undefined, 'Items (POST).yml']);
     });
 
     it('should keep duplicate operation names across tag folders and append the method to the file name only', () => {
@@ -189,7 +189,7 @@ describe('swagger2-to-bruno grouping', () => {
       // Tag-based grouping shares a global usedNames set, so second occurrence gets a suffix in its file name
       expect(usersFolder.items[0].name).toBe('List items');
       expect(petsFolder.items[0].name).toBe('List items');
-      expect(petsFolder.items[0].filename).toBe('List items (GET).bru');
+      expect(petsFolder.items[0].filename).toBe('List items (GET).yml');
     });
 
     it('should not add suffixes to the file names of duplicates in different path-based folders', () => {

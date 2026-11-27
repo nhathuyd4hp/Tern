@@ -8,9 +8,7 @@ This package abstracts the file format operations for Bruno, providing a clean i
 
 ## Features
 
-- Format-agnostic APIs for file operations
-- Currently supports Bruno's custom `.bru` format
-- Designed for future extensibility to support YAML and other formats
+- YAML (OpenCollection `.yml`) is the only supported file format
 
 ## Usage
 
@@ -25,26 +23,23 @@ const {
   parseDotEnv
 } = require('@tern/filestore');
 
-// Parse a .bru request file
-const requestData = parseRequest(bruContent);
+// Parse a .yml request file
+const requestData = parseRequest(ymlContent);
 
-// Stringify request data to .bru format
-const bruContent = stringifyRequest(requestData);
-
-// Example with future format support (not yet implemented)
-const requestData = parseRequest(yamlContent, { format: 'yaml' });
+// Stringify request data to .yml format
+const ymlContent = stringifyRequest(requestData);
 ```
 
 ## API
 
 The package provides the following functions:
 
-- `parseRequest(content, options = { format: 'bru' })`: Parse request file content
-- `stringifyRequest(requestObj, options = { format: 'bru' })`: Convert request object to file content
-- `parseCollection(content, options = { format: 'bru' })`: Parse collection file content
-- `stringifyCollection(collectionObj, options = { format: 'bru' })`: Convert collection object to file content
-- `parseFolder(content, options = { format: 'bru' })`: Parse folder file content
-- `stringifyFolder(folderObj, options = { format: 'bru' })`: Convert folder object to file content
-- `parseEnvironment(content, options = { format: 'bru' })`: Parse environment file content
-- `stringifyEnvironment(envObj, options = { format: 'bru' })`: Convert environment object to file content
+- `parseRequest(content, options = { format: 'yml' })`: Parse request file content
+- `stringifyRequest(requestObj, options = { format: 'yml' })`: Convert request object to file content
+- `parseCollection(content, options = { format: 'yml' })`: Parse collection file content
+- `stringifyCollection(collectionObj, options = { format: 'yml' })`: Convert collection object to file content
+- `parseFolder(content, options = { format: 'yml' })`: Parse folder file content
+- `stringifyFolder(folderObj, options = { format: 'yml' })`: Convert folder object to file content
+- `parseEnvironment(content, options = { format: 'yml' })`: Parse environment file content
+- `stringifyEnvironment(envObj, options = { format: 'yml' })`: Convert environment object to file content
 - `parseDotEnv(content)`: Parse .env file content

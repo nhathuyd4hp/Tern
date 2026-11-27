@@ -2,8 +2,8 @@ import { describe, it, expect } from '@jest/globals';
 import openApiToBruno from '../../../src/openapi/openapi-to-bruno';
 import { findRequestByName, findFolderByName } from '../../common/find-items';
 
-describe('OpenAPI Import - Tag Sanitization', () => {
-  it('should replace spaces with underscores in tags', () => {
+describe('OpenAPI Import - Tags', () => {
+  it('should preserve spaces in tags', () => {
     const openApiSpec = {
       openapi: '3.0.0',
       info: {
@@ -30,10 +30,10 @@ describe('OpenAPI Import - Tag Sanitization', () => {
     const request = findRequestByName(result.items, 'Get users');
     expect(request).toBeDefined();
     // Spaces are replaced with underscores for BRU format compatibility
-    expect(request.tags).toEqual(['User_Management']);
+    expect(request.tags).toEqual(['User Management']);
   });
 
-  it('should sanitize tags with dots', () => {
+  it('should preserve dots in tags', () => {
     const openApiSpec = {
       openapi: '3.0.0',
       info: {
@@ -60,10 +60,10 @@ describe('OpenAPI Import - Tag Sanitization', () => {
     const request = findRequestByName(result.items, 'Get users');
     expect(request).toBeDefined();
     // Dots should be replaced with underscores
-    expect(request.tags).toEqual(['api_v1', 'user_service']);
+    expect(request.tags).toEqual(['api.v1', 'user.service']);
   });
 
-  it('should sanitize tags with special characters', () => {
+  it('should preserve special characters in tags', () => {
     const openApiSpec = {
       openapi: '3.0.0',
       info: {
@@ -91,7 +91,7 @@ describe('OpenAPI Import - Tag Sanitization', () => {
     expect(request).toBeDefined();
     // Parentheses, colons, and spaces should be replaced with underscores
     // 'API (v1)' becomes 'API_v1' (space and parentheses become underscores, collapsed)
-    expect(request.tags).toEqual(['API_v1', 'user-service_v2']);
+    expect(request.tags).toEqual(['API (v1)', 'user-service:v2']);
   });
 
   it('should preserve valid tags', () => {
@@ -180,7 +180,7 @@ describe('OpenAPI Import - Tag Sanitization', () => {
     expect(request.tags).toEqual([]);
   });
 
-  it('should remove duplicate tags after sanitization', () => {
+  it('should remove duplicate tags', () => {
     const openApiSpec = {
       openapi: '3.0.0',
       info: {
@@ -206,11 +206,11 @@ describe('OpenAPI Import - Tag Sanitization', () => {
     const result = openApiToBruno(JSON.stringify(openApiSpec));
     const request = findRequestByName(result.items, 'Get users');
     expect(request).toBeDefined();
-    // 'User Management' becomes 'User_Management', which is different from 'user-management'
-    expect(request.tags).toEqual(['User_Management', 'user-management']);
+    // 'User Management' becomes 'User Management', which is different from 'user-management'
+    expect(request.tags).toEqual(['User Management', 'user-management']);
   });
 
-  it('should filter out tags that become empty after sanitization', () => {
+  it('should keep punctuation-only tags', () => {
     const openApiSpec = {
       openapi: '3.0.0',
       info: {
@@ -236,10 +236,10 @@ describe('OpenAPI Import - Tag Sanitization', () => {
     const result = openApiToBruno(JSON.stringify(openApiSpec));
     const request = findRequestByName(result.items, 'Get users');
     expect(request).toBeDefined();
-    expect(request.tags).toEqual(['valid-tag']);
+    expect(request.tags).toEqual(['...', 'valid-tag', '---']);
   });
 
-  it('should use sanitized tag names for folder grouping', () => {
+  it('should use tag names verbatim for folder grouping', () => {
     const openApiSpec = {
       openapi: '3.0.0',
       info: {
@@ -275,14 +275,14 @@ describe('OpenAPI Import - Tag Sanitization', () => {
     };
 
     const result = openApiToBruno(JSON.stringify(openApiSpec));
-    // Find the folder created from the tag - spaces replaced with underscores
-    const folder = findFolderByName(result.items, 'User_Management');
+    // Find the folder created from the tag
+    const folder = findFolderByName(result.items, 'User Management');
     expect(folder).toBeDefined();
-    expect(folder.name).toBe('User_Management');
+    expect(folder.name).toBe('User Management');
     expect(folder.items).toHaveLength(2);
   });
 
-  it('should sanitize folder names from tags with dots', () => {
+  it('should keep dots in folder names from tags', () => {
     const openApiSpec = {
       openapi: '3.0.0',
       info: {
@@ -306,10 +306,10 @@ describe('OpenAPI Import - Tag Sanitization', () => {
     };
 
     const result = openApiToBruno(JSON.stringify(openApiSpec));
-    // Find the folder created from the tag - dots should be replaced
-    const folder = findFolderByName(result.items, 'api_v1');
+    // Find the folder created from the tag - dots preserved
+    const folder = findFolderByName(result.items, 'api.v1');
     expect(folder).toBeDefined();
-    expect(folder.name).toBe('api_v1');
+    expect(folder.name).toBe('api.v1');
   });
 
   it('should handle utf characters as well', () => {
@@ -361,7 +361,7 @@ describe('OpenAPI Import - Tag Sanitization', () => {
   });
 });
 
-describe('OpenAPI Import - yml (opencollection) tag preservation (BRU-3175)', () => {
+describe('OpenAPI Import - tag preservation (BRU-3175)', () => {
   const buildSpec = (tag) => ({
     openapi: '3.0.0',
     info: { title: 'Test API', version: '1.0.0' },
@@ -383,23 +383,14 @@ describe('OpenAPI Import - yml (opencollection) tag preservation (BRU-3175)', ()
     ['&', '&'],
     ['API (v1)', 'API (v1)'],
     ['api.v1', 'api.v1']
-  ])('preserves tag %p verbatim on request and folder for yml format', (sourceTag, expected) => {
-    const result = openApiToBruno(JSON.stringify(buildSpec(sourceTag)), { collectionFormat: 'yml' });
+  ])('preserves tag %p verbatim on request and folder ', (sourceTag, expected) => {
+    const result = openApiToBruno(JSON.stringify(buildSpec(sourceTag)));
 
     const request = findRequestByName(result.items, 'Get X');
     expect(request).toBeDefined();
     expect(request.tags).toEqual([expected]);
 
     const folder = findFolderByName(result.items, expected);
-    expect(folder).toBeDefined();
-  });
-
-  it('keeps bru-format sanitization unchanged when collectionFormat is omitted', () => {
-    const result = openApiToBruno(JSON.stringify(buildSpec('Pets & Dogs')));
-    const request = findRequestByName(result.items, 'Get X');
-    expect(request.tags).toEqual(['Pets_Dogs']);
-
-    const folder = findFolderByName(result.items, 'Pets_Dogs');
     expect(folder).toBeDefined();
   });
 });

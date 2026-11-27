@@ -23,7 +23,6 @@ const mainLintFiles = [
   'packages/filestore/**/*.ts',
   'packages/schema-types/**/*.ts',
   'packages/js/**/*.js',
-  'packages/lang/**/*.js',
   'packages/requests/**/*.ts',
   'packages/requests/**/*.js',
   'packages/sqlite/**/*.{js,ts}'
@@ -232,23 +231,6 @@ module.exports = runESMImports().then(() => defineConfig([
         self: false,
         HTMLElement: false,
         typeDetectGlobalObject: false
-      },
-      parserOptions: {
-        ecmaVersion: 'latest',
-        sourceType: 'module'
-      }
-    },
-    rules: {
-      'no-undef': 'error'
-    }
-  },
-  {
-    files: ['packages/lang/**/*.js'],
-    ignores: ['**/*.config.js', '**/dist/**/*'],
-    languageOptions: {
-      globals: {
-        ...globals.node,
-        ...globals.jest
       },
       parserOptions: {
         ecmaVersion: 'latest',

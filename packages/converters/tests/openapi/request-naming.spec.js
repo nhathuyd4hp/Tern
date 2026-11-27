@@ -67,7 +67,7 @@ describe.each([
       const [item] = openApiToBruno(buildSpec({ '/pet/{petId}': { get: { responses: {} } } })).items;
 
       expect(item.name).toBe('/pet/{petId}');
-      expect(item.filename).toBe('GET /pet/{petId}.bru');
+      expect(item.filename).toBe('GET /pet/{petId}.yml');
     });
 
     it('leaves the file name to the request name when a field names the request', () => {
@@ -305,7 +305,7 @@ describe.each([
       }));
 
       expect(items.map((item) => item.name)).toEqual(['Lists pets', 'Lists pets']);
-      expect(items.map((item) => item.filename)).toEqual([undefined, 'Lists pets (POST).bru']);
+      expect(items.map((item) => item.filename)).toEqual([undefined, 'Lists pets (POST).yml']);
     });
 
     it.each(['summary', 'operationId', 'description'])('shows a duplicate %s as written and adds the method, then a number, only to its file name', (requestNameSource) => {
@@ -317,7 +317,7 @@ describe.each([
       }), { requestNameSource });
 
       expect(items.map((item) => item.name)).toEqual(['Pets', 'Pets', 'Pets', 'Pets']);
-      expect(items.map((item) => item.filename)).toEqual([undefined, 'Pets (POST).bru', 'Pets (GET).bru', 'Pets (1).bru']);
+      expect(items.map((item) => item.filename)).toEqual([undefined, 'Pets (POST).yml', 'Pets (GET).yml', 'Pets (1).yml']);
     });
 
     it('keeps names that differ only by case or by characters a file name cannot hold, with a file each', () => {
@@ -327,7 +327,7 @@ describe.each([
         '/a': { get: { summary: 'a/b', responses: {} } },
         '/b': { get: { summary: 'a:b', responses: {} } }
       }));
-      const files = items.map((item) => sanitizeName(item.filename || `${item.name}.bru`).toLowerCase());
+      const files = items.map((item) => sanitizeName(item.filename || `${item.name}.yml`).toLowerCase());
 
       expect(items.map((item) => item.name)).toEqual(['List Pets', 'list pets', 'a/b', 'a:b']);
       expect(new Set(files).size).toBe(4);
@@ -342,7 +342,7 @@ describe.each([
       }));
 
       expect(items.map((item) => item.name)).toEqual(['listPets', '/pets']);
-      expect(items.map((item) => item.filename)).toEqual([undefined, 'POST /pets.bru']);
+      expect(items.map((item) => item.filename)).toEqual([undefined, 'POST /pets.yml']);
     });
 
     it('shows the same name when a fallback field matches a name already used, with its own file', () => {
@@ -355,7 +355,7 @@ describe.each([
       }));
 
       expect(items.map((item) => item.name)).toEqual(['Pets', 'Pets', 'Pets']);
-      expect(items.map((item) => item.filename)).toEqual([undefined, 'Pets (POST).bru', 'Pets (PUT).bru']);
+      expect(items.map((item) => item.filename)).toEqual([undefined, 'Pets (POST).yml', 'Pets (PUT).yml']);
     });
 
     it('names every operation on a shared path after the path and gives each method its own file', () => {
@@ -368,7 +368,7 @@ describe.each([
       }), { requestNameSource: 'path' });
 
       expect(items.map((item) => item.name)).toEqual(['/pet/{petId}', '/pet/{petId}', '/pet/{petId}']);
-      expect(items.map((item) => item.filename)).toEqual(['GET /pet/{petId}.bru', 'POST /pet/{petId}.bru', 'DELETE /pet/{petId}.bru']);
+      expect(items.map((item) => item.filename)).toEqual(['GET /pet/{petId}.yml', 'POST /pet/{petId}.yml', 'DELETE /pet/{petId}.yml']);
     });
 
     it('keeps a trailing slash in the path name and its file name', () => {
@@ -378,7 +378,7 @@ describe.each([
       }), { requestNameSource: 'path' });
 
       expect(items.map((item) => item.name)).toEqual(['/pets', '/pets/']);
-      expect(items.map((item) => item.filename)).toEqual(['GET /pets.bru', 'GET /pets/.bru']);
+      expect(items.map((item) => item.filename)).toEqual(['GET /pets.yml', 'GET /pets/.yml']);
     });
 
     it('gives each request its own file when paths become the same file once sanitized or compared without case', () => {
@@ -391,7 +391,7 @@ describe.each([
       const files = items.map((item) => item.filename);
 
       expect(items.map((item) => item.name)).toEqual(['/a/b', '/a-b', '/Users', '/users']);
-      expect(files).toEqual(['GET /a/b.bru', 'GET /a-b (GET).bru', 'GET /Users.bru', 'GET /users (GET).bru']);
+      expect(files).toEqual(['GET /a/b.yml', 'GET /a-b (GET).yml', 'GET /Users.yml', 'GET /users (GET).yml']);
       expect(new Set(files.map((file) => sanitizeName(file).toLowerCase())).size).toBe(4);
     });
 
@@ -402,7 +402,7 @@ describe.each([
           post: { summary: 'GET /pets', responses: {} }
         }
       }));
-      const files = items.map((item) => sanitizeName(item.filename || `${item.name}.bru`).toLowerCase());
+      const files = items.map((item) => sanitizeName(item.filename || `${item.name}.yml`).toLowerCase());
 
       expect(items.find((item) => item.request.method === 'GET').name).toBe('/pets');
       expect(items.find((item) => item.request.method === 'POST').name).toBe('GET /pets');
@@ -413,14 +413,14 @@ describe.each([
       const [item] = openApiToBruno(buildSpec({ '/': { get: { responses: {} } } }), { requestNameSource: 'path' }).items;
 
       expect(item.name).toBe('/');
-      expect(sanitizeName(item.filename)).toBe('GET -.bru');
+      expect(sanitizeName(item.filename)).toBe('GET -.yml');
     });
 
     it.each(['', '...'])('names a request after its method when the path %p leaves no name', (emptyPath) => {
       const [item] = openApiToBruno(buildSpec({ [emptyPath]: { get: { responses: {} } } }), { requestNameSource: 'path' }).items;
 
       expect(item.name).toBe('GET');
-      expect(item.filename || `${item.name}.bru`).toBe('GET.bru');
+      expect(item.filename || `${item.name}.yml`).toBe('GET.yml');
     });
   });
 

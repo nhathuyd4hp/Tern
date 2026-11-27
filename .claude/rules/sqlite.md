@@ -26,7 +26,7 @@ memory.
 It is **not** the right home for:
 
 - **Anything the user authored.** Collections, requests, environments, folders and `bruno.json` live
-  on disk as `.bru`/`.yml` — see `.claude/rules/dsl-changes.md`. Never mirror or migrate a
+  on disk as `.yml` — see `.claude/rules/dsl-changes.md`. Never mirror or migrate a
   serialized field into SQLite.
 - **App preferences and small keyed state** — those are electron-store JSON files under
   `src/store/` (see `.claude/rules/electron-ipc.md`).
@@ -216,7 +216,7 @@ statements. Run the tests through the npm script: bare `jest` misses the
 
 ## Before you call it done
 
-- [ ] New persistence genuinely belongs here — not `.bru`/`.yml`, electron-store, or Redux
+- [ ] New persistence genuinely belongs here — not `.yml`, electron-store, or Redux
 - [ ] No merged migration edited; new schema added as a new migration with a working `down`
 - [ ] `npm run generate` output shows the expected statements
 - [ ] `migration:verify` run against a real `bruno.db` copy

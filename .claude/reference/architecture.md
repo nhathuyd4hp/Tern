@@ -17,10 +17,9 @@ packages/
   common/       Shared utilities — the base leaf (rollup → dist/cjs+esm)
   converters/   Import/export (Postman, Insomnia, OpenAPI, …) (rollup)
   requests/     Shared HTTP/gRPC/WS request building blocks (rollup)
-  filestore/    .bru/.yml serialization (rollup + tsc --emitDeclarationOnly)
+  filestore/    .yml serialization (rollup + tsc --emitDeclarationOnly)
   sqlite/       Local SQLite SDK — main-process only (codegen + rollup)
   query/        JSONPath-style query engine (rollup)
-  lang/         Bru DSL grammars — v1 (arcsecond, legacy) + v2 (ohm-js, current)
   schema/       Yup runtime validation of collections/requests
   schema-types/ TypeScript type definitions only (tsc, types-only)
   graphql-docs/ GraphQL documentation generator (rollup)
@@ -34,12 +33,12 @@ Build tool per package (matters for the "rebuild shared packages" step in `.clau
   `migrations/*.ts` + `statements/*.sql` into the gitignored `src/generated/`.
 - **tsc only**: schema-types.
 - **rsbuild**: app.
-- **no build step (consumed straight from `src/`)**: js, lang, schema,
+- **no build step (consumed straight from `src/`)**: js, schema,
   electron.
 
 The 8 packages that must be rebuilt after editing (they emit `dist/`): common,
 requests, filestore, sqlite, converters, query,
-graphql-docs, schema-types. Editing js / lang / schema
+graphql-docs, schema-types. Editing js / schema
 needs no rebuild.
 
 ## Dependency direction & ownership boundaries
@@ -80,11 +79,8 @@ auto-loaded rule — see `.claude/rules/architecture.md`.
 ## File format system
 
 - `filestore` is the central parse/serialize entry (`src/index.ts`), delegating to
-  `formats/bru` and `formats/yml`.
-- Two on-disk formats: **`.bru`** (Bru DSL) and **`.yml`** (OpenCollection YAML). New collections
-  default to **`.yml`** (`DEFAULT_COLLECTION_FORMAT = 'yml'`).
-- The current `.bru` grammar is **v2 (ohm-js)** (`lang/v2/src/`, used by filestore via
-  `bruToJsonV2`/`jsonToBruV2`). **v1 (arcsecond)** (`lang/v1/src/`) is legacy.
+  `formats/yml`.
+- The only on-disk format is **`.yml`** (OpenCollection YAML; `DEFAULT_COLLECTION_FORMAT = 'yml'`).
 - Collections live on the filesystem and are watched by chokidar.
 
 Any on-disk shape change → follow `.claude/rules/dsl-changes.md`.
@@ -133,7 +129,6 @@ Several are pinned to majors below the latest — do **not** assume the newest A
   requests, **not** electron.)
 - Storage (`sqlite`): no runtime dependencies — the driver is Node's built-in **`node:sqlite`**
   (synchronous `DatabaseSync`); **tsx** is build-time (codegen) only.
-- Parsing (`lang`): **arcsecond ^5** (v1, legacy), **ohm-js ^16.6** (v2, current).
 - **Hard pins in root `package.json` `overrides`: axios `1.16.0`, rollup `3.30.0`.** Bumping these
   in a leaf package has no effect — change the root override.
 - **TypeScript is not uniform**: common `^5.8`, schema-types `^5.0`, but

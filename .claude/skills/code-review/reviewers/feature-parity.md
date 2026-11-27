@@ -13,7 +13,7 @@ is in the diff. Report with `file:line`, severity:
 - **blocker** — a scripting API added or changed in `js/src/{bru,bruno-request,bruno-response}.js`
   without the matching bridge in `js/src/sandbox/quickjs/shims/`.
 - **blocker** — a persisted field that skips a §1 layer: missing from `schema` (throws on
-  save), the app save transform, one on-disk format, the BRU → YML migration, or OpenCollection
+  save), the app save transform, the on-disk format, or OpenCollection
   import/export (either direction). Flag the missing surface only — the on-disk contract itself
   (compat, escaping, round-trip) belongs to the `dsl-changes` lens; don't duplicate its findings.
 - **suggestion** — identical logic patched in both runtimes that has no Electron-only

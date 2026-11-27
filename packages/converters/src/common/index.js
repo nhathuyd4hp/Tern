@@ -43,16 +43,13 @@ export const uuid = () => {
 };
 
 /**
- * Sanitizes a tag name for BRU format compatibility.
- * BRU format only supports tag names containing alphanumeric characters,
- * hyphens (-), and underscores (_). Spaces are replaced with underscores.
+ * Normalizes a tag name. The OpenCollection schema imposes no character restriction on tags,
+ * so the source value is preserved verbatim (only trimmed) and folder names round-trip.
  *
- * @param {string} tag - The tag to sanitize
- * @param {Object} options - Sanitization options
- * @param {string} options.collectionFormat - The collection format ('yml' for OpenCollection YAML)
- * @returns {string|null} - The sanitized tag, or null if the result is empty
+ * @param {string|{name: string}} tag - The tag to sanitize
+ * @returns {string|null} - The trimmed tag, or null if the result is empty
  */
-export const sanitizeTag = (tag, options = {}) => {
+export const sanitizeTag = (tag) => {
   const typeofTag = typeof tag;
   if (!tag || !['string', 'object'].includes(typeofTag)) {
     return null;
@@ -60,53 +57,23 @@ export const sanitizeTag = (tag, options = {}) => {
 
   const usableTagString = typeof tag == 'string' ? tag : 'name' in tag ? tag.name : '';
 
-  const trimmed = usableTagString.trim();
-
-  // OpenCollection (yml) schema imposes no character restriction on tags.
-  // Preserve the source value verbatim so folder names round-trip (BRU-3175).
-  if (options.collectionFormat === 'yml') {
-    return trimmed || null;
-  }
-
-  // BRU format only supports alphanumeric, hyphens, and underscores in tags
-  // The BRU grammar defines listitem as: (alnum | "_" | "-")+
-  // Spaces are NOT allowed, so we replace them with underscores
-  let sanitized = trimmed;
-
-  // Replace spaces with underscores first
-  sanitized = sanitized.replace(/\s+/g, '_');
-
-  // Replace any character that's NOT alphanumeric, hyphen, or underscore with underscore
-  sanitized = sanitized.replace(/[^\p{L}\p{N}\-_]/gu, '_');
-
-  // Collapse multiple consecutive underscores into one
-  sanitized = sanitized.replace(/_+/g, '_');
-
-  // Remove leading characters that aren't alphanumeric
-  sanitized = sanitized.replace(/^[^\p{L}\p{N}]+/gu, '');
-
-  // Remove trailing characters that aren't alphanumeric
-  sanitized = sanitized.replace(/[^\p{L}\p{N}]+$/gu, '');
-
-  // Return null if the result is empty
-  return sanitized || null;
+  return usableTagString.trim() || null;
 };
 
 /**
  * Sanitizes an array of tags, removing duplicates and null values.
  *
  * @param {string[]} tags - Array of tags to sanitize
- * @param {Object} options - Sanitization options
  * @returns {string[]} - Array of unique sanitized tags
  */
-export const sanitizeTags = (tags, options = {}) => {
+export const sanitizeTags = (tags) => {
   if (!Array.isArray(tags)) {
     return [];
   }
 
   return [...new Set(
     tags
-      .map((tag) => sanitizeTag(tag, options))
+      .map((tag) => sanitizeTag(tag))
       .filter((tag) => tag !== null)
   )];
 };

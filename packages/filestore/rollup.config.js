@@ -9,7 +9,6 @@ const os = require('os');
 const packageJson = require('./package.json');
 
 const externalDeps = [
-  '@tern/lang',
   '@tern/schema-types',
   /@usebruno\/schema-types\/.*/,
   '@tern/common',
@@ -20,6 +19,7 @@ const externalDeps = [
   'lodash',
   'yaml',
   'ajv',
+  'dotenv',
   // Node built-ins
   'worker_threads',
   'path'

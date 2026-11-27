@@ -677,16 +677,15 @@ export const createBrunoExample = ({ brunoRequestItem, exampleValue, exampleName
 /**
  * Groups requests by their first tag
  * @param {Array} requests - Array of parsed request objects
- * @param {Object} options - Sanitization options (forwarded to sanitizeTag)
  * @returns {Array} Tuple of [tagGroups, ungroupedRequests]
  */
-export const groupRequestsByTags = (requests, options = {}) => {
+export const groupRequestsByTags = (requests) => {
   const _groups = {};
   const ungrouped = [];
   each(requests, (request) => {
     const tags = request.operationObject.tags || [];
     if (tags.length > 0) {
-      const tag = sanitizeTag(tags[0].trim(), options); // take first tag, trim whitespace, and sanitize
+      const tag = sanitizeTag(tags[0].trim()); // take first tag, trim whitespace, and sanitize
 
       if (tag) {
         if (!_groups[tag]) {
@@ -918,7 +917,7 @@ export const getRequestName = (request, requestNameSource, usedNames) => {
   const fieldName = fields.reduce((name, field) => name || usableName(requestNameByField[field](request)), '');
   const name = fieldName || pathName(request) || methodAndPathName(request);
   const fileBase = uniqueFileBase(fieldName || methodAndPathName(request), request.method, usedNames);
-  return fileBase === name ? { name } : { name, filename: `${fileBase}.bru` };
+  return fileBase === name ? { name } : { name, filename: `${fileBase}.yml` };
 };
 
 /**
@@ -926,15 +925,14 @@ export const getRequestName = (request, requestNameSource, usedNames) => {
  * Folders are named from the sanitized first tag (see groupRequestsByTags), so the
  * spec's top-level tags[] descriptions are keyed the same way to line up with folder names.
  * @param {Array} tags - The spec's top-level tags array (each { name, description })
- * @param {Object} options - Sanitization options (forwarded to sanitizeTag)
  * @returns {Object} Map of sanitized tag name -> description
  */
-export const getTagDescriptions = (tags, options = {}) => {
+export const getTagDescriptions = (tags) => {
   const descriptions = Object.create(null);
   each(tags || [], (tag) => {
     if (tag && typeof tag === 'object' && typeof tag.name === 'string') {
       const docs = toSpecString(tag.description);
-      const key = sanitizeTag(tag.name, options);
+      const key = sanitizeTag(tag.name);
       if (key && docs) {
         descriptions[key] = docs;
       }

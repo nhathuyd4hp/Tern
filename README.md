@@ -14,7 +14,7 @@ Tern dùng để thử API nhanh trong lúc phát triển backend: REST, GraphQL
 - **Collection:** một nhóm request (REST, GraphQL, gRPC, WebSocket) liên quan với nhau, ví dụ một service gRPC hay một nhóm endpoint. Collection có thể lồng nhau.
 - **Request:** một lời gọi cụ thể: một endpoint REST hoặc một method gRPC.
 
-Application và Collection là thư mục chứa file văn bản (`.bru` hoặc `.yml`), nên đưa vào Git cùng mã nguồn, review và merge như code.
+Application và Collection là thư mục chứa file văn bản (`.yml`), nên đưa vào Git cùng mã nguồn, review và merge như code.
 
 ## Chức năng
 
@@ -46,7 +46,6 @@ Application và Collection là thư mục chứa file văn bản (`.bru` hoặc 
 
 - Trang Home dạng card hoặc bảng, sidebar dạng cây, tab request, tìm kiếm nhanh.
 - Import Application có sẵn từ thư mục; import và export Environment.
-- Chuyển định dạng Application từ `.bru` sang `.yml`.
 - Nhiều theme sáng/tối.
 
 ## Cài đặt và chạy
@@ -71,6 +70,6 @@ Monorepo (npm workspaces) trong `packages/`:
 | `electron` | Tiến trình chính của Electron: file, mạng, IPC |
 | `requests` | Gửi request (HTTP, gRPC, WebSocket) |
 | `js` | Sandbox chạy script và test |
-| `filestore`, `lang` | Đọc, ghi file `.bru` và `.yml` |
+| `filestore` | Đọc, ghi file `.yml` |
 | `converters` | Chuyển đổi OpenAPI sang request |
 | `common`, `schema`, `schema-types`, `query`, `sqlite`, `graphql-docs` | Thư viện dùng chung |

@@ -148,11 +148,9 @@ describe('naming utils', () => {
 
   describe('getFilenameWithFormat', () => {
     it.each([
-      [{ name: 'List pets' }, 'bru', 'List pets.bru'],
-      [{ name: 'List pets', filename: 'List pets (POST).bru' }, 'bru', 'List pets (POST).bru'],
-      [{ name: 'List pets', filename: 'List pets (POST).bru' }, 'yml', 'List pets (POST).yml'],
-      [{ name: 'List pets', filename: 'list-pets.yml' }, 'bru', 'list-pets.bru'],
-      [{ name: '/export.bru', filename: 'GET /export.bru.bru' }, 'yml', 'GET /export.bru.yml'],
+      [{ name: 'List pets' }, 'yml', 'List pets.yml'],
+      [{ name: 'List pets', filename: 'List pets (POST).yml' }, 'yml', 'List pets (POST).yml'],
+      [{ name: '/export.yml', filename: 'GET /export.yml.yml' }, 'yml', 'GET /export.yml.yml'],
       [{ name: 'Get users', filename: 'get-users' }, 'yml', 'get-users.yml'],
       [{ name: 'Get users', filename: null }, 'yml', 'Get users.yml']
     ])('names %j in %s as %s', (item, format, filename) => {

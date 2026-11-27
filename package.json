@@ -10,7 +10,6 @@
     "packages/schema-types",
     "packages/query",
     "packages/js",
-    "packages/lang",
     "packages/graphql-docs",
     "packages/requests",
     "packages/filestore",

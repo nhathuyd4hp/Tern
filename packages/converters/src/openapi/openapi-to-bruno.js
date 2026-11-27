@@ -290,7 +290,7 @@ const transformOpenapiRequestItem = (request, usedNames = new Set(), options = {
     settings: {
       forwardAuthorizationHeader: false
     },
-    tags: sanitizeTags(request.operationObject.tags || [], options),
+    tags: sanitizeTags(request.operationObject.tags || []),
     request: {
       docs: toSpecString(_operationObject.description),
       url: ensureUrl(request.global.server + path),
@@ -1211,8 +1211,8 @@ export const parseOpenApiCollection = (data, options = {}) => {
       brunoCollection.items = groupRequestsByPath(allRequests, transformOpenapiRequestItem, requestOptions);
     } else {
       // Default tag-based grouping
-      const [groups, ungroupedRequests] = groupRequestsByTags(allRequests, options);
-      const tagDescriptions = getTagDescriptions(collectionData.tags, options);
+      const [groups, ungroupedRequests] = groupRequestsByTags(allRequests);
+      const tagDescriptions = getTagDescriptions(collectionData.tags);
       const brunoFolders = groups.map((group) => {
         const folder = {
           uid: uuid(),

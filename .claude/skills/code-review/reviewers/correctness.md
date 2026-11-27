@@ -24,8 +24,7 @@ defect without resolving it are a **blocker**:
 - Beyond bug fixes, check ordinary correctness: off-by-one and boundary errors, unhandled
   promise rejections / missing `await`, swallowed errors, incorrect null/undefined handling,
   and edge cases the change introduces.
-- **Check the twin path.** Bruno keeps parallel implementations of the same behavior — `.bru`
-  vs `.yml` serializers, the default app-data workspace vs custom-filesystem workspaces, the
+- **Check the twin path.** Bruno keeps parallel implementations of the same behavior — the default app-data workspace vs custom-filesystem workspaces, the
   scripting API vs its QuickJS shim,
   `filestore` vs the `converters` export. A change that touches one path must be
   verified against its twin; behavior that diverges between them (a value that persists or

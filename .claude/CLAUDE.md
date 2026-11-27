@@ -63,7 +63,7 @@ Path-scoped rules in `.claude/rules/` auto-attach when you touch matching files:
 `architecture.md` (`@tern/*` dependency boundaries, manifests), `app-layout.md` (app
 module layout), `electron-ipc.md` (IPC handlers + startup), `redux-store.md` (slices/middleware),
 `sqlite.md` (`@tern/sqlite` — migrations, statements, per-statement IPC), `cross-platform.md` (Windows file/process/path pitfalls), `dsl-changes.md`
-(on-disk `.bru`/`.yml` format & backward compat), `feature-parity.md` (co-related features —
+(on-disk `.yml` format & backward compat), `feature-parity.md` (co-related features —
 converter/shim/level/protocol pairs), `conventions.md` (readability, reuse,
 replacement & pre-submit hygiene).
 

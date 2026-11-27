@@ -17,7 +17,7 @@ const buildSwaggerSpec = (paths) => ({
   paths
 });
 
-// A name ending in a dot becomes `<name>..bru` on disk, because the import writers append
+// A name ending in a dot becomes `<name>..yml` on disk, because the import writers append
 // the extension before the filesystem sanitizer trims trailing dots. That filename then
 // disagrees with the name-derived path the app computes, producing a duplicate request.
 describe.each([
@@ -62,7 +62,7 @@ describe.each([
     );
 
     expect(collection.items.map((item) => item.name)).toEqual(['Add a new pet to the store', 'Add a new pet to the store']);
-    expect(collection.items.map((item) => item.filename)).toEqual([undefined, 'Add a new pet to the store (GET).bru']);
+    expect(collection.items.map((item) => item.filename)).toEqual([undefined, 'Add a new pet to the store (GET).yml']);
   });
 
   it('falls back to the path when the summary is only dots and whitespace', () => {

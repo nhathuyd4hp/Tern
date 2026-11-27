@@ -2,8 +2,8 @@ import { describe, it, expect } from '@jest/globals';
 import { swagger2ToBruno } from '../../../src/openapi/swagger2-to-bruno';
 import { findRequestByName, findFolderByName } from '../../common/find-items';
 
-describe('Swagger 2.0 Import - Tag Sanitization', () => {
-  it('should replace spaces with underscores in tags', () => {
+describe('Swagger 2.0 Import - Tags', () => {
+  it('should preserve spaces in tags', () => {
     const spec = {
       swagger: '2.0',
       info: { title: 'Tags API', version: '1.0' },
@@ -22,10 +22,10 @@ describe('Swagger 2.0 Import - Tag Sanitization', () => {
     const result = swagger2ToBruno(spec);
     const request = findRequestByName(result.items, 'Get users');
     expect(request).toBeDefined();
-    expect(request.tags).toEqual(['User_Management']);
+    expect(request.tags).toEqual(['User Management']);
   });
 
-  it('should sanitize tags with dots', () => {
+  it('should preserve dots in tags', () => {
     const spec = {
       swagger: '2.0',
       info: { title: 'Tags API', version: '1.0' },
@@ -45,10 +45,10 @@ describe('Swagger 2.0 Import - Tag Sanitization', () => {
     const request = findRequestByName(result.items, 'Get users');
     expect(request).toBeDefined();
     // Dots are replaced with underscores for BRU format compatibility
-    expect(request.tags).toEqual(['api_v1_users']);
+    expect(request.tags).toEqual(['api.v1.users']);
   });
 
-  it('should sanitize tags with special characters', () => {
+  it('should preserve special characters in tags', () => {
     const spec = {
       swagger: '2.0',
       info: { title: 'Tags API', version: '1.0' },
@@ -66,12 +66,7 @@ describe('Swagger 2.0 Import - Tag Sanitization', () => {
     const result = swagger2ToBruno(spec);
     const request = findRequestByName(result.items, 'Get users');
     expect(request).toBeDefined();
-    // Tags should be sanitized (special chars removed/replaced)
-    request.tags.forEach((tag) => {
-      expect(tag).not.toContain('/');
-      expect(tag).not.toContain('@');
-      expect(tag).not.toContain('#');
-    });
+    expect(request.tags).toEqual(['users/admin', 'data@v2', 'test#tag']);
   });
 
   it('should preserve valid tags', () => {
@@ -160,7 +155,7 @@ describe('Swagger 2.0 Import - Tag Sanitization', () => {
     expect(uniqueTags.size).toBe(request.tags.length);
   });
 
-  it('should use sanitized tag names for folder grouping', () => {
+  it('should use tag names verbatim for folder grouping', () => {
     const spec = {
       swagger: '2.0',
       info: { title: 'Tags API', version: '1.0' },
@@ -177,8 +172,8 @@ describe('Swagger 2.0 Import - Tag Sanitization', () => {
     };
     const result = swagger2ToBruno(spec);
 
-    // The folder name should be sanitized (first tag)
-    const folder = findFolderByName(result.items, 'User_Management');
+    // The folder name is the first tag, verbatim
+    const folder = findFolderByName(result.items, 'User Management');
     expect(folder).toBeDefined();
   });
 

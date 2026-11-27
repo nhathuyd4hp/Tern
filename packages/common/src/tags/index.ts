@@ -1,7 +1,7 @@
 /**
  * Shape of any node that can carry tags. A request node *is* its file, so its tags sit at the item
  * level and mirror into `draft.tags`. A folder node is a directory that may have no root file behind
- * it at all, so its tags stay on `root.meta.tags` - the in-memory image of `folder.bru`/`folder.yml` -
+ * it at all, so its tags stay on `root.meta.tags` - the in-memory image of `folder.yml` -
  * and a folder draft, being a clone of that root, carries them at `draft.meta.tags`.
  */
 export interface TaggedTreeNode {

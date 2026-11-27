@@ -601,8 +601,8 @@ describe('x-bruno-variants import', () => {
       name: folder.name,
       requests: folder.items.map((request) => request.name)
     }))).toEqual([
-      { name: 'Active_Users', requests: ['Get active users'] },
-      { name: 'Inactive_Users', requests: ['Get inactive users'] }
+      { name: 'Active Users', requests: ['Get active users'] },
+      { name: 'Inactive Users', requests: ['Get inactive users'] }
     ]);
   });
 });
