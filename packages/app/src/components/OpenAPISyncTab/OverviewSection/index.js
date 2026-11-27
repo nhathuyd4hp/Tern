@@ -239,7 +239,7 @@ const OverviewSection = ({ collection, storedSpec, collectionDrift, specDrift, r
           </label>
           <Help icon="info" size={11} placement="left" width={240}>
             {autoCheckEnabled
-              ? 'Apply spec changes automatically, without asking. New and changed endpoints are updated; your local edits and local-only requests are kept.'
+              ? 'Apply spec changes automatically, without asking: new endpoints are added, changed ones updated and removed ones deleted. Your local edits to kept endpoints and requests you added yourself are preserved.'
               : 'Turn on auto-check in Edit connection settings to use auto reload.'}
           </Help>
         </div>

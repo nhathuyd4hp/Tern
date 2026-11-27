@@ -5,8 +5,8 @@ import { getWorkspaceCollections } from 'utils/collections';
 import { listSyncEntries } from 'utils/openapi-sync-scope';
 
 // Tick rate only; each collection is checked at its own autoCheckInterval inside the thunk.
-// Must not exceed the shortest selectable interval (1 minute).
-const POLL_INTERVAL = 60 * 1000;
+// Must not exceed the shortest selectable interval (30 seconds).
+const POLL_INTERVAL = 15 * 1000;
 
 const useOpenAPISyncPolling = () => {
   const dispatch = useDispatch();

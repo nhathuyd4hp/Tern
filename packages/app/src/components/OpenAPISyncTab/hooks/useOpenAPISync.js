@@ -5,6 +5,7 @@ import { addTab, focusTab } from 'providers/ReduxStore/slices/tabs';
 import { closeTabs } from 'providers/ReduxStore/slices/collections/actions';
 import { getDefaultRequestPaneTab } from 'utils/collections';
 import {
+  autoApplySpecChanges,
   clearCollectionState,
   setCollectionUpdate,
   setStoredSpec,
@@ -126,7 +127,7 @@ const useOpenAPISync = (collection) => {
     }
   };
 
-  const checkForUpdates = async ({ sourceUrlOverride } = {}) => {
+  const checkForUpdates = async ({ sourceUrlOverride, autoApplyOverride, skipAutoApply = false } = {}) => {
     const effectiveUrl = (sourceUrlOverride ?? sourceUrl).trim();
     if (!effectiveUrl) {
       setError('Please enter a URL or select a file');
@@ -185,6 +186,13 @@ const useOpenAPISync = (collection) => {
       // Refresh collection drift (stored spec vs collection) — skip if no stored spec
       if (!result.storedSpecMissing) {
         await loadCollectionDrift({ clear: true });
+      }
+
+      // With Auto Reload on, a spec change is applied here instead of asking; the re-check shows the result.
+      const autoReload = (autoApplyOverride ?? openApiSyncConfig?.autoApply === true) && openApiSyncConfig?.autoCheck !== false;
+      if (autoReload && !skipAutoApply && result.isValid !== false && result.hasChanges) {
+        await dispatch(autoApplySpecChanges(collection, collection.syncFolder || '', { ...openApiSyncConfig, sourceUrl: effectiveUrl }));
+        await checkForUpdates({ sourceUrlOverride: effectiveUrl, skipAutoApply: true });
       }
     } catch (err) {
       console.error('Error checking for updates:', err);
@@ -390,7 +398,7 @@ const useOpenAPISync = (collection) => {
       setFileNotFound(false);
       toast.success('Settings saved');
       // Re-check with new settings — pass newUrl directly to avoid stale closure
-      await checkForUpdates({ sourceUrlOverride: newUrl });
+      await checkForUpdates({ sourceUrlOverride: newUrl, autoApplyOverride: autoApply });
     } catch (err) {
       console.error('Error saving settings:', err);
       toast.error('Failed to save settings');

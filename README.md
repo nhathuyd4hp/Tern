@@ -38,7 +38,7 @@ Application và Collection là thư mục chứa file văn bản (`.yml`), nên 
 **Tạo từ OpenAPI và Proto**
 
 - Tạo Application gồm nhiều Collection; mỗi Collection lấy từ OpenAPI spec hoặc file `.proto`, bằng URL hoặc file.
-- Đồng bộ từng Collection với OpenAPI spec theo chu kỳ (1 đến 60 phút) và xem trước thay đổi (thêm, sửa, xóa) trước khi áp dụng.
+- Đồng bộ từng Collection với OpenAPI spec theo chu kỳ (30 giây đến 60 phút) và xem trước thay đổi (thêm, sửa, xóa) trước khi áp dụng.
 - Xem spec trong trình duyệt bằng Swagger UI.
 
 **Quản lý**

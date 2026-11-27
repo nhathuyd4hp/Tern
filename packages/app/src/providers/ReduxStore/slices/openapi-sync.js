@@ -164,9 +164,10 @@ export const {
 
 const autoApplyingKeys = new Set();
 
-// Applies a changed spec without review: new and changed endpoints are written; removed endpoints,
-// local-only requests and locally edited requests are left alone, since nobody is there to confirm them.
-const autoApplySpecChanges = (collection, folder, syncConfig) => async (dispatch) => {
+// Applies a changed spec without review (Auto Reload is meant for a spec that is being developed against):
+// new and changed endpoints are written and endpoints removed from the spec are deleted. Requests the user
+// added locally are never touched, and locally edited values are preserved.
+export const autoApplySpecChanges = (collection, folder, syncConfig) => async (dispatch) => {
   const collectionUid = syncKeyOf(collection.uid, folder);
   if (autoApplyingKeys.has(collectionUid)) return;
   autoApplyingKeys.add(collectionUid);
@@ -194,8 +195,8 @@ const autoApplySpecChanges = (collection, folder, syncConfig) => async (dispatch
       collectionPath: collection.pathname,
       folder,
       addNewRequests: true,
-      removeDeletedRequests: false,
-      diff: { ...specDrift, removed: [] },
+      removeDeletedRequests: true,
+      diff: specDrift,
       localOnlyToRemove: [],
       driftedToReset: [],
       mode: 'sync',

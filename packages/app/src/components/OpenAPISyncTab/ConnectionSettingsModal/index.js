@@ -6,8 +6,9 @@ import { isHttpUrl } from 'utils/url/index';
 import { getAbsoluteFilePath } from 'utils/common/path';
 import SpecSourcePicker from 'components/OpenAPISyncTab/SpecSourcePicker';
 import { isSpecSourceReady } from 'components/OpenAPISyncTab/SpecSourcePicker/utils';
+import { formatCheckInterval } from '../utils';
 
-const INTERVALS = [1, 5, 15, 30, 60];
+const INTERVALS = [0.5, 1, 5, 15, 30, 60];
 
 const resolveInitialSource = (sourceUrl, collectionPath) => {
   const source = (sourceUrl || '').trim();
@@ -98,7 +99,7 @@ const ConnectionSettingsModal = ({ collection, sourceUrl, onSave, onDisconnect, 
                     className={checkInterval === mins ? 'active' : ''}
                     onClick={() => setCheckInterval(mins)}
                   >
-                    {mins} min
+                    {formatCheckInterval(mins)}
                   </button>
                 ))}
               </div>
