@@ -3,15 +3,14 @@ import toast from 'react-hot-toast';
 import get from 'lodash/get';
 import { useDispatch, useSelector, useStore } from 'react-redux';
 import {
-  IconFileZip,
   IconFolder,
   IconPlus,
   IconBox
 } from '@tabler/icons';
 
 import { newHttpRequest } from 'providers/ReduxStore/slices/collections/actions';
-import { pickApplicationZip } from 'providers/ReduxStore/slices/open-collection-modal/actions';
-import { savePreferences, setIsCreatingCollection, setIsOpeningCollection } from 'providers/ReduxStore/slices/app';
+import { folderResultCleared, showOpenCollectionModal } from 'providers/ReduxStore/slices/open-collection-modal';
+import { savePreferences, setIsCreatingCollection } from 'providers/ReduxStore/slices/app';
 import { flattenItems, isItemTransientRequest } from 'utils/collections';
 import { selectCollections, selectActiveWorkspace } from 'src/selectors/collections';
 import { sanitizeName } from 'utils/common/regex';
@@ -57,8 +56,10 @@ const CollectionsSection = () => {
     });
   };
 
+  // A dialog with the two ways to import: a folder or a .zip file.
   const handleOpenCollection = () => {
-    dispatch(setIsOpeningCollection(true));
+    dispatch(folderResultCleared());
+    dispatch(showOpenCollectionModal('choose-folder'));
   };
 
   const handleStartRequest = () => {
@@ -127,12 +128,6 @@ const CollectionsSection = () => {
       onClick: () => {
         handleOpenCollection();
       }
-    },
-    {
-      id: 'import-zip',
-      leftSection: IconFileZip,
-      label: 'Import application from .zip',
-      onClick: () => dispatch(pickApplicationZip())
     }
   ];
 

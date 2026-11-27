@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
-import { IconFolder } from '@tabler/icons';
+import { IconFileZip, IconFolder } from '@tabler/icons';
+import Button from 'ui/Button';
 import Checkbox from 'ui/Checkbox';
 import {
   cancelCollectionSearch,
@@ -54,25 +55,25 @@ const ChooseFolderPage = () => {
               )}
               data-testid="choose-folder-drop-zone"
             >
-              Or{' '}
-              <button
-                ref={focusWhenFocusIsLost}
-                type="button"
-                className="text-link hover:underline whitespace-nowrap"
-                onClick={pickFolders}
-                data-testid="choose-folder-choose-link"
-              >
-                choose folders
-              </button>
-              {' '}or{' '}
-              <button
-                type="button"
-                className="text-link hover:underline whitespace-nowrap"
-                onClick={() => dispatch(pickApplicationZip())}
-                data-testid="choose-folder-import-zip-link"
-              >
-                import a .zip
-              </button>
+              <span className="flex items-center justify-center gap-2 mt-1">
+                <Button
+                  ref={focusWhenFocusIsLost}
+                  variant="outline"
+                  icon={<IconFolder size={16} />}
+                  onClick={pickFolders}
+                  data-testid="choose-folder-choose-link"
+                >
+                  Choose folder
+                </Button>
+                <Button
+                  variant="outline"
+                  icon={<IconFileZip size={16} />}
+                  onClick={() => dispatch(pickApplicationZip())}
+                  data-testid="choose-folder-import-zip-link"
+                >
+                  Choose .zip file
+                </Button>
+              </span>
             </DropZone>
             <Checkbox
               className="choose-folder-auto-open"
