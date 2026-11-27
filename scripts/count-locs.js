@@ -103,7 +103,7 @@ function printTable(data) {
 }
 
 function main() {
-  console.log('Counting lines of code in Kevin packages...\n');
+  console.log('Counting lines of code in Tern packages...\n');
   
   const packages = getPackages();
   const results = [];
