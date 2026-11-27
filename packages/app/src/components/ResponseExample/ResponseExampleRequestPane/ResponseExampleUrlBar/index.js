@@ -3,6 +3,7 @@ import { useDispatch } from 'react-redux';
 import { updateResponseExampleRequest, updateResponseExampleRequestUrl } from 'providers/ReduxStore/slices/collections';
 import SingleLineEditor from 'components/SingleLineEditor';
 import HttpMethodSelector from 'components/RequestPane/QueryUrl/HttpMethodSelector';
+import MethodBadge from 'ui/MethodBadge';
 import StyledWrapper from './StyledWrapper';
 import get from 'lodash/get';
 
@@ -42,30 +43,9 @@ const ResponseExampleUrlBar = ({ item, collection, editMode, onSave, exampleUid,
     }));
   };
 
-  const getMethodClass = () => {
-    switch ((method || 'GET').toUpperCase()) {
-      case 'GET':
-        return 'method-get';
-      case 'POST':
-        return 'method-post';
-      case 'PUT':
-        return 'method-put';
-      case 'DELETE':
-        return 'method-delete';
-      case 'PATCH':
-        return 'method-patch';
-      case 'OPTIONS':
-        return 'method-options';
-      case 'HEAD':
-        return 'method-head';
-      default:
-        return 'method-get';
-    };
-  };
-
   return (
     <StyledWrapper className="flex items-center">
-      <div className="url-bar-container w-full flex py-2 text-xs rounded-md items-center justify-between" data-testid="url-bar-container">
+      <div className="url-bar-container w-full flex py-2 px-3 text-xs rounded-md items-center justify-between" data-testid="url-bar-container">
         {allowMethodSelect ? (
           <div
             className={`flex-shrink-0 mr-2 ${editMode ? '' : 'pointer-events-none'}`}
@@ -79,9 +59,7 @@ const ResponseExampleUrlBar = ({ item, collection, editMode, onSave, exampleUid,
             />
           </div>
         ) : (
-          <div className={`method flex text-xs items-center justify-center px-2 rounded h-6 flex-shrink-0 mr-2 overflow-hidden whitespace-nowrap font-medium uppercase ${getMethodClass()}`}>
-            {method || 'GET'}
-          </div>
+          <MethodBadge method={method || 'GET'} className="flex-shrink-0 mr-2" />
         )}
 
         {urlPrefix ? (

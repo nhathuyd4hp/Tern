@@ -42,6 +42,7 @@ jest.mock('./StyledWrapper', () => {
   };
 });
 
+import themes from 'themes/index';
 import ResponseExampleUrlBar from './index';
 
 const collection = { uid: 'col-1' };
@@ -69,7 +70,7 @@ const renderUrlBar = (props = {}, itemOverride = item) => {
 
   return render(
     <Provider store={store}>
-      <ThemeProvider theme={{}}>
+      <ThemeProvider theme={themes.light}>
         <ResponseExampleUrlBar
           item={itemOverride}
           collection={collection}
