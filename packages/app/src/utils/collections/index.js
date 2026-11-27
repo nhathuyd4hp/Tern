@@ -1702,30 +1702,6 @@ export const transformExampleToDraft = (example, newExample) => {
 };
 
 /**
- * Generate an initial name for a new response example
- * @param {Object} item - The request item that will contain the example
- * @returns {string} - The suggested name for the new example
- */
-export const getInitialExampleName = (item) => {
-  const baseName = 'example';
-  const existingExamples = item.draft?.examples || item.examples || [];
-  const existingNames = new Set(existingExamples.map((example) => example.name || '').filter(Boolean));
-
-  if (!existingNames.has(baseName)) {
-    return baseName;
-  }
-
-  let counter = 1;
-  while (true) {
-    const candidateName = `${baseName} (${counter})`;
-    if (!existingNames.has(candidateName)) {
-      return candidateName;
-    }
-    counter++;
-  }
-};
-
-/**
  * Resolves the last enabled variable matching the given name.
  * Secret variables take precedence over plain variables, regardless of their
  * position in the array.

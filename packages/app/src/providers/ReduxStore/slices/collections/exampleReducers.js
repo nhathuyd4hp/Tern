@@ -3,59 +3,10 @@ import { parseQueryParams, buildQueryString as stringifyQueryParams, nextCopyNam
 import { uuid } from 'utils/common';
 import { findCollectionByUid, findItemInCollection } from 'utils/collections';
 import { parsePathParams, splitOnFirst } from 'utils/url';
-import statusCodePhraseMap from 'components/ResponsePane/StatusCode/get-status-code-phrase';
 
 const findItemForExampleEditor = (state, collectionUid, itemUid) => {
   const collection = findCollectionByUid(state.collections, collectionUid);
   return collection ? findItemInCollection(collection, itemUid) : null;
-};
-
-export const addResponseExample = (state, action) => {
-  const { itemUid, collectionUid, example } = action.payload;
-  const item = findItemForExampleEditor(state, collectionUid, itemUid);
-  if (!item) return;
-
-  if (!item.draft) {
-    item.draft = cloneDeep(item);
-  }
-  if (!item.draft.examples) {
-    item.draft.examples = [];
-  }
-
-  // Ensure body always has a mode field (default to 'none' if not present)
-  const requestBody = cloneDeep(item.draft.request.body || {});
-  if (!requestBody.mode) {
-    requestBody.mode = 'none';
-  }
-
-  const newExample = {
-    uid: example.uid || uuid(),
-    itemUid: item.uid,
-    name: example.name,
-    description: example.description,
-    type: item.draft.type,
-    request: {
-      url: item.draft.request.url,
-      method: item.draft.request.method,
-      headers: item.draft.request.headers,
-      params: item.draft.request.params,
-      body: requestBody
-    },
-    response: {
-      status: example.status ? Number(example.status) : null,
-      statusText: String(example.statusText ?? (example.status ? (statusCodePhraseMap[Number(example.status)] ?? '') : '')),
-      headers: (example.headers || []).map((header) => ({
-        uid: uuid(),
-        name: String(header.name),
-        value: String(header.value),
-        description: String(header.description),
-        enabled: header.enabled
-      })),
-      body: example.body
-    }
-  };
-
-  item.draft.examples.push(newExample);
 };
 
 export const cloneResponseExample = (state, action) => {

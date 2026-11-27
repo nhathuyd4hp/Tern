@@ -278,7 +278,6 @@ const ResponsePane = ({ item, collection }) => {
           <ResponsePaneActions
             item={item}
             collection={collection}
-            responseSize={responseSize}
             selectedFormat={selectedFormat}
             selectedTab={selectedViewTab}
             data={response.data}

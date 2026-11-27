@@ -70,7 +70,6 @@ const interpolateVars = require('./network/interpolate-vars');
 const { interpolateString } = require('./network/interpolate-string');
 const { getEnvVars, getTreePathFromCollectionToItem, mergeVars, parseFileMeta, hydrateRequestWithUuid, transformRequestToSaveToFilesystem } = require('../utils/collection');
 const { getProcessEnvVars } = require('../store/process-env');
-const { setBrunoConfig } = require('../store/bruno-config');
 const { getOAuth2TokenUsingAuthorizationCode, getOAuth2TokenUsingClientCredentials, getOAuth2TokenUsingPasswordCredentials, getOAuth2TokenUsingImplicitGrant, refreshOauth2Token } = require('../utils/oauth2');
 const { getCertsAndProxyConfig } = require('./network/cert-utils');
 const collectionWatcher = require('../app/collection-watcher');
@@ -1508,25 +1507,6 @@ const registerRendererEventHandlers = (mainWindow, watcher) => {
   ipcMain.handle('renderer:update-bruno-config', async (event, brunoConfig, collectionPath, collectionRoot) => {
     try {
       await writeBrunoConfig(brunoConfig, collectionPath, collectionRoot);
-    } catch (error) {
-      return Promise.reject(error);
-    }
-  });
-
-  ipcMain.handle('renderer:ignore-folder', async (event, collectionUid, collectionPath, collectionRoot, brunoConfig, folderPath) => {
-    try {
-      const relativePath = path.relative(collectionPath, folderPath).replace(/\\/g, '/');
-      const existingIgnores = brunoConfig?.ignore || [];
-      const updatedBrunoConfig = {
-        ...brunoConfig,
-        ignore: [...new Set([...existingIgnores, relativePath])]
-      };
-
-      await writeBrunoConfig(updatedBrunoConfig, collectionPath, collectionRoot);
-      setBrunoConfig(collectionUid, updatedBrunoConfig);
-      collectionWatcher.unlinkItemPathInWatcher(folderPath);
-
-      return updatedBrunoConfig;
     } catch (error) {
       return Promise.reject(error);
     }

@@ -48,16 +48,3 @@ export const getBodyType = (contentType = '') => {
 
   return 'text';
 };
-
-/**
- * Determines body type for response examples: uses sniffed mime if binary, else uses content-type header.
- * @param {string} contentType - The content-type header value
- * @param {string|null} sniffedMime - Mime type detected from the response bytes
- * @returns {string} - The body type (json, xml, html, text, binary)
- */
-export const getExampleBodyType = (contentType = '', sniffedMime = null) => {
-  if (sniffedMime && isBinaryContentType(sniffedMime)) {
-    return 'binary';
-  }
-  return getBodyType(contentType);
-};

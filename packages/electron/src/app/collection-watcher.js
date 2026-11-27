@@ -794,13 +794,6 @@ class CollectionWatcher {
     return watcherPath ? this.watchers[watcherPath] : null;
   }
 
-  unlinkItemPathInWatcher(itemPath) {
-    const watcher = this.getWatcherByItemPath(itemPath);
-    if (watcher) {
-      watcher.unwatch(itemPath);
-    }
-  }
-
   addItemPathInWatcher(itemPath) {
     const watcher = this.getWatcherByItemPath(itemPath);
     if (watcher && !watcher?.has?.(itemPath)) {

@@ -17,24 +17,21 @@ import {
   IconExternalLink,
   IconTrash,
   IconSettings,
-  IconInfoCircle,
-  IconEyeOff
+  IconInfoCircle
 } from '@tabler/icons';
 import { useSelector, useDispatch, useStore } from 'react-redux';
 import { addTab, focusTab, makeTabPermanent } from 'providers/ReduxStore/slices/tabs';
-import { handleMultipleCollectionItemsDrop, sendRequest, showInFolder, pasteItem, saveRequest, cloneItem } from 'providers/ReduxStore/slices/collections/actions';
+import { handleMultipleCollectionItemsDrop, sendRequest, showInFolder, pasteItem, cloneItem } from 'providers/ReduxStore/slices/collections/actions';
 import { sanitizeName } from 'utils/common/regex';
 import { formatIpcError } from 'utils/common/error';
-import { toggleCollectionItem, expandItem, collapseItem, addResponseExample } from 'providers/ReduxStore/slices/collections';
-import { uuid } from 'utils/common';
-import { copyRequest, setFocusedSidebarPath, insertTaskIntoQueue } from 'providers/ReduxStore/slices/app';
+import { toggleCollectionItem, expandItem, collapseItem } from 'providers/ReduxStore/slices/collections';
+import { copyRequest, setFocusedSidebarPath } from 'providers/ReduxStore/slices/app';
 import NewRequest from 'components/Sidebar/NewRequest';
 import NewFolder from 'components/Sidebar/NewFolder';
 import OpenAPISyncIcon from 'components/Icons/OpenAPISync';
 import { getFolderSyncPath, getSyncEntry } from 'utils/openapi-sync-scope';
 import RenameCollectionItem from '../RenameCollectionItem';
 import DeleteCollectionItems from '../DeleteCollectionItems';
-import IgnoreCollectionItem from '../IgnoreCollectionItem';
 import GenerateCodeItem from '../GenerateCodeItem';
 import { isItemARequest, isItemAFolder } from 'utils/tabs';
 import { doesRequestMatchSearchText, doesFolderHaveItemsMatchSearchText } from 'utils/collections/search';
@@ -45,7 +42,6 @@ import NetworkError from 'components/ResponsePane/NetworkError/index';
 import CollectionItemInfo from '../CollectionItemInfo/index';
 import CollectionItemIcon from '../CollectionItemIcon';
 import InvalidFilesBadge from '../../InvalidFilesBadge';
-import ExampleIcon from 'components/Icons/ExampleIcon';
 import {
   getTabUidForItem as getTabUidForItemSelector,
   isTabForItemActive as isTabForItemActiveSelector
@@ -55,13 +51,11 @@ import {
   canCollectionItemBeDropped,
   determineCollectionItemDrop,
   getCloneDisplayName,
-  getInitialExampleName,
   findParentItemInCollection,
   getSortedDraggedItems,
   isCollectionItemCollapsed
 } from 'utils/collections/index';
 import { getRevealInFolderLabel } from 'utils/common/platform';
-import CreateExampleModal from 'components/ResponseExample/CreateExampleModal';
 import ActionIcon from 'ui/ActionIcon';
 import MenuDropdown from 'ui/MenuDropdown';
 import { useSidebarAccordion } from 'components/Sidebar/SidebarAccordionContext';
@@ -118,8 +112,6 @@ const CollectionItemRow = ({
 
   const [renameItemModalOpen, setRenameItemModalOpen] = useState(false);
   const [deleteItemModalOpen, setDeleteItemModalOpen] = useState(false);
-  const [ignoreItemModalOpen, setIgnoreItemModalOpen] = useState(false);
-  const [createExampleModalOpen, setCreateExampleModalOpen] = useState(false);
   const [generateCodeItemModalOpen, setGenerateCodeItemModalOpen] = useState(false);
   const [newRequestModalOpen, setNewRequestModalOpen] = useState(false);
   const [newFolderModalOpen, setNewFolderModalOpen] = useState(false);
@@ -498,15 +490,6 @@ const CollectionItemRow = ({
       });
     }
 
-    if (!isFolder && isItemARequest(item) && item.type === 'http-request') {
-      items.push({
-        id: 'create-example',
-        leftSection: ExampleIcon,
-        label: 'Create Example',
-        onClick: () => setCreateExampleModalOpen(true)
-      });
-    }
-
     items.push(
       {
         id: 'show-in-folder',
@@ -515,15 +498,6 @@ const CollectionItemRow = ({
         onClick: handleShowInFolder
       }
     );
-
-    if (isFolder) {
-      items.push({
-        id: 'ignore',
-        leftSection: IconEyeOff,
-        label: 'Ignore',
-        onClick: () => setIgnoreItemModalOpen(true)
-      });
-    }
 
     items.push({ id: 'separator-1', type: 'divider' });
 
@@ -586,51 +560,6 @@ const CollectionItemRow = ({
       console.error('Error opening the folder', error);
       toast.error('Error opening the collection');
     });
-  };
-
-  const handleCreateExample = async (name, description = '') => {
-    const exampleData = {
-      name: name,
-      description: description,
-      status: 200,
-      statusText: 'OK',
-      headers: [],
-      body: {
-        type: 'text',
-        content: ''
-      }
-    };
-
-    // Calculate the index where the example will be saved
-    const existingExamples = item.draft?.examples || item.examples || [];
-    const exampleIndex = existingExamples.length;
-    const exampleUid = uuid();
-
-    dispatch(addResponseExample({
-      itemUid: item.uid,
-      collectionUid: collectionUid,
-      example: {
-        ...exampleData,
-        uid: exampleUid
-      }
-    }));
-
-    // Save the request
-    await dispatch(saveRequest(item.uid, collectionUid, true));
-
-    // Task middleware will track this and open the example in a new tab once the file is reloaded
-    dispatch(insertTaskIntoQueue({
-      uid: exampleUid,
-      type: 'OPEN_EXAMPLE',
-      collectionUid: collectionUid,
-      itemUid: item.uid,
-      exampleIndex: exampleIndex,
-      // Freshly created examples start blank, so open the tab in edit mode.
-      openInEditMode: true
-    }));
-
-    toast.success(`Example "${name}" created successfully`);
-    setCreateExampleModalOpen(false);
   };
 
   const handleGenerateCode = () => {
@@ -747,9 +676,6 @@ const CollectionItemRow = ({
           onClose={() => setDeleteItemModalOpen(false)}
         />
       )}
-      {ignoreItemModalOpen && (
-        <IgnoreCollectionItem item={item} collectionUid={collectionUid} onClose={() => setIgnoreItemModalOpen(false)} />
-      )}
       {newRequestModalOpen && (
         <NewRequest item={item} collectionUid={collectionUid} onClose={() => setNewRequestModalOpen(false)} />
       )}
@@ -762,13 +688,6 @@ const CollectionItemRow = ({
       {itemInfoModalOpen && (
         <CollectionItemInfo item={item} onClose={() => setItemInfoModalOpen(false)} />
       )}
-      <CreateExampleModal
-        isOpen={createExampleModalOpen}
-        onClose={() => setCreateExampleModalOpen(false)}
-        onSave={handleCreateExample}
-        title="Create Response Example"
-        initialName={getInitialExampleName(item)}
-      />
       <div
         className={itemRowClassName}
         ref={ref}
