@@ -27,7 +27,6 @@ const ConnectionSettingsModal = ({ collection, sourceUrl, onSave, onDisconnect, 
   const editSource = (update) => setEditedSource((current) => update(current || initialSource));
   const [autoCheck, setAutoCheck] = useState(openApiSyncConfig?.autoCheck !== false);
   const [checkInterval, setCheckInterval] = useState(openApiSyncConfig?.autoCheckInterval || 5);
-  const [autoApply, setAutoApply] = useState(openApiSyncConfig?.autoApply === true);
   const [isSaving, setIsSaving] = useState(false);
 
   const effectiveSource = sources[mode].trim();
@@ -36,7 +35,7 @@ const ConnectionSettingsModal = ({ collection, sourceUrl, onSave, onDisconnect, 
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      await onSave({ sourceUrl: effectiveSource, autoCheck, autoCheckInterval: checkInterval, autoApply: autoCheck && autoApply });
+      await onSave({ sourceUrl: effectiveSource, autoCheck, autoCheckInterval: checkInterval, autoApply: autoCheck && openApiSyncConfig?.autoApply === true });
       onClose();
     } catch (_) {
       // caller (handleSaveSettings) already shows a toast on failure
@@ -87,28 +86,6 @@ const ConnectionSettingsModal = ({ collection, sourceUrl, onSave, onDisconnect, 
               </button>
             </div>
           </div>
-
-          {autoCheck && (
-            <div className="settings-field">
-              <label className="settings-label">Auto reload</label>
-              <div className="settings-toggle-row">
-                <div className="toggle-info">
-                  <div className="toggle-description">
-                    Apply spec changes automatically, without asking. New and changed endpoints are updated;
-                    your local edits and local-only requests are kept.
-                  </div>
-                </div>
-                <button
-                  className={`toggle-switch ${autoApply ? 'active' : ''}`}
-                  onClick={() => setAutoApply(!autoApply)}
-                  type="button"
-                  data-testid="auto-apply-toggle"
-                >
-                  <span className="toggle-knob" />
-                </button>
-              </div>
-            </div>
-          )}
 
           {autoCheck && (
             <div className="settings-field">

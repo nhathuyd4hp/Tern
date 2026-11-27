@@ -111,11 +111,11 @@ const SpecStatusSection = ({
         </div>
       ) : specDrift?.storedSpecMissing && openApiSyncConfig?.lastSyncDate && !hasRemoteUpdates ? (
         <div className="sync-review-empty-state mt-5">
-          <IconCheck size={40} className="empty-state-icon" />
-          <h4>No updates from the spec</h4>
-          <p>The spec endpoints have not been updated since the last sync. You can restore the spec file to track local application changes.</p>
-          <Button className="mt-4" color="warning" onClick={handleRestoreSpec} loading={isSyncing}>
-            Restore Spec File
+          <IconRefresh size={40} className="empty-state-icon" />
+          <h4>The saved copy of the spec is missing</h4>
+          <p>The source has no new changes, but the copy Tern compares against is gone, so it cannot show what you changed locally. Download the spec again to fix this.</p>
+          <Button className="mt-4" onClick={handleRestoreSpec} loading={isSyncing}>
+            Download spec again
           </Button>
         </div>
       ) : (

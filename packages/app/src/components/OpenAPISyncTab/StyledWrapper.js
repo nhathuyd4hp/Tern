@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { rgba } from 'polished';
+import { rgba } from 'utils/color';
 
 const StyledWrapper = styled.div`
 
@@ -212,6 +212,116 @@ const StyledWrapper = styled.div`
       font-weight: 600;
       color: ${(props) => props.theme.text};
       margin-bottom: 6px;
+    }
+
+    .overview-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 6px;
+
+      .overview-section-title {
+        margin-bottom: 0;
+      }
+
+      .auto-reload-toggle {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+        font-size: ${(props) => props.theme.font.size.xs};
+        color: ${(props) => props.theme.colors.text.muted};
+
+        .auto-reload-label {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+      }
+    }
+
+    .endpoint-list-toggle {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      margin-bottom: 6px;
+      padding: 0;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: ${(props) => props.theme.text};
+
+      svg {
+        transition: transform 0.15s ease;
+
+        &.expanded {
+          transform: rotate(90deg);
+        }
+      }
+
+      .overview-section-title {
+        margin-bottom: 0;
+      }
+    }
+
+    .endpoint-list {
+      border: 1px solid ${(props) => props.theme.input.border};
+      border-radius: ${(props) => props.theme.border.radius.md};
+      overflow: hidden;
+      margin-bottom: 1rem;
+    }
+
+    .endpoint-list-head,
+    .endpoint-list-row {
+      display: grid;
+      grid-template-columns: 4.5rem minmax(0, 1fr) minmax(0, 2fr);
+      align-items: center;
+      column-gap: 1rem;
+    }
+
+    .endpoint-list-head {
+      padding: 0.5rem 1rem;
+      background: ${(props) => props.theme.background.mantle};
+      border-bottom: 1px solid ${(props) => props.theme.input.border};
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: ${(props) => props.theme.colors.text.muted};
+    }
+
+    .endpoint-list-row {
+      width: 100%;
+      padding: 0.5rem 1rem;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid ${(props) => props.theme.input.border};
+      text-align: left;
+      cursor: pointer;
+      font-size: ${(props) => props.theme.font.size.sm};
+      color: ${(props) => props.theme.text};
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &:hover {
+        background: ${(props) => props.theme.background.mantle};
+      }
+
+      .endpoint-list-name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .endpoint-list-path {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-family: monospace;
+        color: ${(props) => props.theme.colors.text.muted};
+      }
     }
 
     .spec-details-grid {
@@ -725,31 +835,45 @@ const StyledWrapper = styled.div`
   }
 
   .sync-review-empty-state {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas:
+      'icon title action'
+      'icon text action';
     align-items: center;
-    justify-content: center;
-    padding: 4rem 2rem;
-    text-align: center;
+    column-gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    border: 1px solid ${(props) => props.theme.input.border};
+    border-radius: ${(props) => props.theme.border.radius.md};
 
     .empty-state-icon {
+      grid-area: icon;
+      width: 32px;
+      height: 32px;
       color: var(--color-text-muted, #9ca3af);
-      margin-bottom: 1rem;
     }
 
     h4 {
+      grid-area: title;
+      align-self: end;
       font-size: ${(props) => props.theme.font.size.base};
       font-weight: 500;
       color: ${(props) => props.theme.text};
-      margin: 0 0 0.375rem 0;
+      margin: 0 0 0.25rem 0;
     }
 
     p {
+      grid-area: text;
+      align-self: start;
       font-size: ${(props) => props.theme.font.size.xs};
       line-height: 1.5;
-      max-width: 400px;
       margin: 0;
       color: ${(props) => props.theme.colors.text.muted};
+    }
+
+    > div {
+      grid-area: action;
+      margin: 0;
     }
   }
 

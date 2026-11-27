@@ -31,6 +31,7 @@ const OpenAPISyncTab = ({ collection: application, folder }) => {
     handleDisconnect,
     handleSaveSettings,
     openEndpointInTab,
+    openItemInTab,
     reloadDrift
   } = useOpenAPISync(collection);
 
@@ -52,7 +53,11 @@ const OpenAPISyncTab = ({ collection: application, folder }) => {
   const [showDisconnectModal, setShowDisconnectModal] = useState(false);
   // The sections share one page; the links that used to switch tabs now scroll to the section.
   const scrollToSection = (section) => {
-    document.getElementById(`sync-${section}`)?.scrollIntoView({ behavior: 'smooth' });
+    const element = document.getElementById(`sync-${section}`);
+    if (!element) return;
+    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // When the page is short nothing visibly scrolls, so pulse the section to show where the link led.
+    element.animate([{ opacity: 0.35 }, { opacity: 1 }], { duration: 700, easing: 'ease-out' });
   };
 
   const hasDriftData = collectionDrift && !collectionDrift.noStoredSpec;
@@ -116,8 +121,17 @@ const OpenAPISyncTab = ({ collection: application, folder }) => {
                 specDrift={specDrift}
                 remoteDrift={remoteDrift}
                 onTabSelect={scrollToSection}
+                onOpenItem={openItemInTab}
                 error={error}
                 onOpenSettings={() => setShowSettingsModal(true)}
+                onToggleAutoApply={(autoApply) => handleSaveSettings({
+                  sourceUrl,
+                  autoCheck: openApiSyncConfig?.autoCheck !== false,
+                  autoCheckInterval: openApiSyncConfig?.autoCheckInterval || 5,
+                  autoApply,
+                  // Write to the entry this screen reads, even when it is a folder entry shown at application level
+                  folder: openApiSyncConfig?.folder
+                })}
               />
             </div>
 

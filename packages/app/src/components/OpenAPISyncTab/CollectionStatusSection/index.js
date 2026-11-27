@@ -218,12 +218,14 @@ const CollectionStatusSection = ({
       ) : !hasStoredSpec ? (
         <div className="sync-review-empty-state mt-5">
           <IconAlertTriangle size={40} className="empty-state-icon" />
-          <h4>{lastSyncDate ? 'Cannot track application changes' : 'Waiting for initial sync'}</h4>
+          <h4>{lastSyncDate ? 'Local changes cannot be shown yet' : 'Not synced yet'}</h4>
           <p>{lastSyncDate
-            ? 'The last synced spec is missing. Go to the \'Spec Updates\' tab to restore it, or sync the application if updates are available to track future changes.'
-            : 'Once you sync your application with the spec, local changes will appear here.'}
+            ? 'The saved copy of the spec is missing, so there is nothing to compare your endpoints with. Download it again in Spec Updates, or sync if the spec has new changes.'
+            : 'Local changes will appear here after the first sync.'}
           </p>
-          <Button variant="outline" size="sm" className="mt-4" onClick={() => onTabSelect('spec-updates')}>Go to Spec Updates</Button>
+          {lastSyncDate && (
+            <Button size="sm" className="mt-4" onClick={() => onTabSelect('spec-updates')}>Open Spec Updates</Button>
+          )}
         </div>
       ) : null}
       {/* Action confirmation modal */}

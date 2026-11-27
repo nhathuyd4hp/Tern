@@ -80,9 +80,7 @@ const useOpenAPISync = (collection) => {
   }, [allHttpItems]);
 
   // Open an endpoint in a tab (focus existing or add new), same as sidebar click
-  const openEndpointInTab = (endpointId) => {
-    const itemUid = endpointUidMap[endpointId];
-    if (!itemUid) return;
+  const openItemInTab = (itemUid) => {
     const tabs = store.getState().tabs?.tabs || [];
     const existingTab = tabs.find((t) => t.uid === itemUid);
     if (existingTab) {
@@ -96,6 +94,11 @@ const useOpenAPISync = (collection) => {
         type: item?.type ?? 'request'
       }));
     }
+  };
+
+  const openEndpointInTab = (endpointId) => {
+    const itemUid = endpointUidMap[endpointId];
+    if (itemUid) openItemInTab(itemUid);
   };
 
   const isDriftLoadingRef = useRef(false);
@@ -352,7 +355,7 @@ const useOpenAPISync = (collection) => {
   };
 
   // Save connection settings from the modal
-  const handleSaveSettings = async ({ sourceUrl: newUrl, autoCheck, autoCheckInterval, autoApply }) => {
+  const handleSaveSettings = async ({ sourceUrl: newUrl, autoCheck, autoCheckInterval, autoApply, folder = collection.syncFolder }) => {
     const sourceUrlChanged = newUrl !== openApiSyncConfig?.sourceUrl;
 
     // Validate the spec before saving if source URL changed (URL only; files are validated at picker)
@@ -375,7 +378,7 @@ const useOpenAPISync = (collection) => {
       const { ipcRenderer } = window;
 
       await ipcRenderer.invoke('renderer:update-openapi-sync-config', {
-        collectionPath: collection.pathname, folder: collection.syncFolder,
+        collectionPath: collection.pathname, folder,
         config: {
           sourceUrl: newUrl,
           autoCheck,
@@ -412,6 +415,7 @@ const useOpenAPISync = (collection) => {
     handleDisconnect,
     handleSaveSettings,
     openEndpointInTab,
+    openItemInTab,
     reloadDrift
   };
 };

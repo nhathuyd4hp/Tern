@@ -1,21 +1,14 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { getTotalRequestCountInCollection } from 'utils/collections/';
+import { getTotalRequestCountInCollection, flattenItems } from 'utils/collections/';
 import { countEndpoints, formatCheckInterval } from '../utils';
 import moment from 'moment';
-import { IconCheck } from '@tabler/icons';
+import { IconCheck, IconChevronRight } from '@tabler/icons';
 import Button from 'ui/Button';
 import StatusBadge from 'ui/StatusBadge';
+import Toggle from 'ui/Toggle';
+import MethodBadge from 'ui/MethodBadge';
 import Help from 'components/Help';
-import { requestNameSourceLabels } from 'components/Sidebar/ImportSettings/RequestNameSourceOption';
-
-const capitalize = (str) => str ? str.charAt(0).toUpperCase() + str.slice(1) : str;
-const authPlacementLabels = { collection: 'Application', folder: 'Collection' };
-
-const authPlacementInfo = {
-  collection: 'Authentication is set at the application level and inherited by each request.',
-  request: 'Authentication is set separately on each request.'
-};
 
 const SUMMARY_CARDS = [
   {
@@ -46,8 +39,13 @@ const SUMMARY_CARDS = [
   }
 ];
 
-const OverviewSection = ({ collection, storedSpec, collectionDrift, specDrift, remoteDrift, onTabSelect, error, onOpenSettings }) => {
+const OverviewSection = ({ collection, storedSpec, collectionDrift, specDrift, remoteDrift, onTabSelect, error, onOpenSettings, onToggleAutoApply, onOpenItem }) => {
   const openApiSyncConfig = collection?.brunoConfig?.openapi?.[0];
+  const [endpointsExpanded, setEndpointsExpanded] = useState(true);
+  const endpoints = useMemo(
+    () => flattenItems(collection?.items || []).filter((item) => item.type === 'http-request'),
+    [collection?.items]
+  );
 
   const reduxError = useSelector((state) => state.openapiSync?.collectionUpdates?.[collection.syncKey || collection.uid]?.error);
   const specMeta = useSelector((state) => state.openapiSync?.storedSpecMeta?.[collection.syncKey || collection.uid] || null);
@@ -56,11 +54,8 @@ const OverviewSection = ({ collection, storedSpec, collectionDrift, specDrift, r
   const version = specMeta?.version;
   const endpointCount = specMeta?.endpointCount ?? null;
   const lastSyncDate = openApiSyncConfig?.lastSyncDate;
-  const groupBy = openApiSyncConfig?.groupBy || 'tags';
   const autoCheckEnabled = openApiSyncConfig?.autoCheck !== false;
   const autoCheckInterval = openApiSyncConfig?.autoCheckInterval || 5;
-  const requestNameSource = openApiSyncConfig?.requestNameSource;
-  const authPlacement = openApiSyncConfig?.authPlacement;
 
   // Endpoint Summary counts
   // Total: from collection items in Redux; In Sync: from remote spec comparison
@@ -119,17 +114,6 @@ const OverviewSection = ({ collection, storedSpec, collectionDrift, specDrift, r
             : 'Auto-check off'}
         </StatusBadge>
       )
-    },
-    { label: 'Collection Grouping', value: capitalize(groupBy) },
-    requestNameSource && {
-      label: 'Request Naming',
-      labelTooltip: 'Determines how requests are named using fields from the OpenAPI spec with fallback options when unavailable.',
-      value: requestNameSourceLabels[requestNameSource] || requestNameSource
-    },
-    authPlacement && {
-      label: 'Auth Placement',
-      value: authPlacementLabels[authPlacement] || capitalize(authPlacement),
-      tooltip: authPlacementInfo[authPlacement]
     }
   ].filter(Boolean);
 
@@ -240,7 +224,26 @@ const OverviewSection = ({ collection, storedSpec, collectionDrift, specDrift, r
         </div>
       )}
 
-      <h4 className="overview-section-title mt-5">Endpoint Summary</h4>
+      <div className="overview-title-row mt-5">
+        <h4 className="overview-section-title">Endpoint Summary</h4>
+        <div className="auto-reload-toggle">
+          <label className="auto-reload-label">
+            Auto Reload
+            <Toggle
+              size="small"
+              checked={autoCheckEnabled && openApiSyncConfig?.autoApply === true}
+              disabled={!autoCheckEnabled}
+              onChange={() => onToggleAutoApply(openApiSyncConfig?.autoApply !== true)}
+              data-testid="auto-apply-toggle"
+            />
+          </label>
+          <Help icon="info" size={11} placement="left" width={240}>
+            {autoCheckEnabled
+              ? 'Apply spec changes automatically, without asking. New and changed endpoints are updated; your local edits and local-only requests are kept.'
+              : 'Turn on auto-check in Edit connection settings to use auto reload.'}
+          </Help>
+        </div>
+      </div>
       <div className="sync-summary-cards">
         {SUMMARY_CARDS.map(({ key, label, tooltip, tab, color }) => {
           const count = summaryValues[key];
@@ -291,6 +294,41 @@ const OverviewSection = ({ collection, storedSpec, collectionDrift, specDrift, r
           </div>
         ))}
       </div>
+
+      {endpoints.length > 0 && (
+        <>
+          <button
+            type="button"
+            className="endpoint-list-toggle mt-7"
+            aria-expanded={endpointsExpanded}
+            onClick={() => setEndpointsExpanded((expanded) => !expanded)}
+          >
+            <IconChevronRight size={14} strokeWidth={2} className={endpointsExpanded ? 'expanded' : ''} />
+            <span className="overview-section-title">Endpoints ({endpoints.length})</span>
+          </button>
+          {endpointsExpanded && (
+            <div className="endpoint-list" data-testid="openapi-sync-endpoint-list">
+              <div className="endpoint-list-head">
+                <span>Method</span>
+                <span>Name</span>
+                <span>Path</span>
+              </div>
+              {endpoints.map((item) => (
+                <button
+                  type="button"
+                  key={item.uid}
+                  className="endpoint-list-row"
+                  onClick={() => onOpenItem?.(item.uid)}
+                >
+                  <MethodBadge method={item.request?.method} size="sm" />
+                  <span className="endpoint-list-name">{item.name}</span>
+                  <span className="endpoint-list-path">{(item.request?.url || '').replace(/^\{\{[^}]+\}\}/, '')}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 };

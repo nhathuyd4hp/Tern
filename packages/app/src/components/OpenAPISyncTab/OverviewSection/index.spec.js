@@ -18,54 +18,11 @@ const renderOverview = (syncConfig) => renderWithTheme(
 
 const detailItem = (getByText, label) => getByText(label).closest('.spec-detail-item');
 
-const detailValue = (getByText, label) => detailItem(getByText, label).querySelector('.spec-detail-value').textContent;
-
 describe('OverviewSection', () => {
-  it.each([
-    ['summary', 'Summary'],
-    ['operationId', 'operationId'],
-    ['description', 'Description'],
-    ['path', 'Path']
-  ])('shows the %s naming as %s', (requestNameSource, label) => {
-    const { getByText } = renderOverview({ requestNameSource });
+  it('does not show grouping, naming or auth placement details', () => {
+    const { queryByText } = renderOverview({ groupBy: 'tags', requestNameSource: 'summary', authPlacement: 'request' });
 
-    expect(detailValue(getByText, 'Request Naming')).toBe(label);
-  });
-
-  it.each([
-    ['request', 'Request'],
-    ['collection', 'Application']
-  ])('shows the %s auth placement as %s', (authPlacement, label) => {
-    const { getByText } = renderOverview({ authPlacement });
-
-    expect(detailValue(getByText, 'Auth Placement')).toBe(label);
-  });
-
-  it('explains Request Naming in a tooltip on its heading', () => {
-    const { getByText } = renderOverview({ requestNameSource: 'summary' });
-
-    fireEvent.mouseEnter(getByText('Request Naming').querySelector('svg').parentElement);
-
-    expect(getByText('Determines how requests are named using fields from the OpenAPI spec with fallback options when unavailable.')).toBeInTheDocument();
-  });
-
-  it.each([
-    ['collection', 'Authentication is set at the application level and inherited by each request.'],
-    ['request', 'Authentication is set separately on each request.']
-  ])('explains the %s auth placement in a tooltip next to its value, not on the heading', (authPlacement, explanation) => {
-    const { getByText } = renderOverview({ authPlacement });
-    const value = detailItem(getByText, 'Auth Placement').querySelector('.spec-detail-value');
-
-    expect(getByText('Auth Placement').querySelector('svg')).toBeNull();
-
-    fireEvent.mouseEnter(value.querySelector('svg').parentElement);
-
-    expect(getByText(explanation)).toBeInTheDocument();
-  });
-
-  it('hides naming and auth placement when the sync settings have neither', () => {
-    const { queryByText } = renderOverview({});
-
+    expect(queryByText('Collection Grouping')).not.toBeInTheDocument();
     expect(queryByText('Request Naming')).not.toBeInTheDocument();
     expect(queryByText('Auth Placement')).not.toBeInTheDocument();
   });
@@ -89,13 +46,5 @@ describe('OverviewSection', () => {
     const { getByText } = renderOverview({ autoCheck: false });
 
     expect(detailItem(getByText, 'Last Synced At')).toHaveTextContent('Auto-check off');
-  });
-
-  it('shows a value it does not recognise as written', () => {
-    const { getByText } = renderOverview({ requestNameSource: 'title', authPlacement: 'folder' });
-
-    expect(detailValue(getByText, 'Request Naming')).toBe('title');
-    expect(detailValue(getByText, 'Auth Placement')).toBe('Collection');
-    expect(detailItem(getByText, 'Auth Placement').querySelector('svg')).toBeNull();
   });
 });
