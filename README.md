@@ -8,7 +8,7 @@
 
 Tern dùng để thử và kiểm tra API trong lúc phát triển backend: REST, GraphQL, gRPC và WebSocket trong cùng một giao diện. Không cần tài khoản, không đăng nhập, hoạt động hoàn toàn offline; dữ liệu và khóa API không rời khỏi máy.
 
-https://github.com/user-attachments/assets/7beee4b1-9b13-4c3e-b701-8695bfba3d29
+https://github.com/user-attachments/assets/47ba2994-cf5f-4bf0-ba9f-4ee4a95c6277
 
 ## Cách tổ chức
 
