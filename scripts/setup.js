@@ -88,7 +88,6 @@ async function setup() {
     execCommand('npm run build:requests', 'Building requests');
     execCommand('npm run build:schema-types', 'Building schema-types');
     execCommand('npm run build:filestore', 'Building filestore');
-    execCommand('npm run build:sqlite', 'Building sqlite');
 
     // Bundle JS sandbox libraries
     execCommand('npm run sandbox:bundle-libraries --workspace=packages/js', 'Bundling JS sandbox libraries');
