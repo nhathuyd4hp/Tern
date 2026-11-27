@@ -90,9 +90,7 @@ const sanitizeSnapshotTabs = (tabsSnapshot) => {
 };
 
 export const shouldExcludeTab = (tab, transientDirectory) => {
-  // tabs of a folder-scoped OpenAPI sync are not restored: a snapshot cannot tell them from the application-wide one
   return IGNORED_TAB_TYPES.has(tab?.type)
-    || Boolean(tab?.syncFolder)
     || (transientDirectory && tab.pathname?.startsWith(transientDirectory));
 };
 
@@ -470,6 +468,12 @@ export const serializeTab = (tab, collection) => {
     }
   }
 
+  // a tab without syncFolder is the application-wide sync
+  if (tab.syncFolder) {
+    serialized.syncFolder = tab.syncFolder;
+    if (tab.tabName) serialized.tabName = tab.tabName;
+  }
+
   const isRequest = isRequestTab(tab.type);
   if (isRequest && tab.requestPaneTab !== undefined) {
     serialized.request = {
@@ -527,7 +531,7 @@ export const serializeActiveTab = (tab, collection) => {
     return { accessor, value: `${pathname}::-1` };
   }
 
-  return { accessor: 'type', value: tab.type };
+  return { accessor: 'type', value: tab.type, ...(tab.syncFolder ? { syncFolder: tab.syncFolder } : {}) };
 };
 
 export const isActiveTab = (tab, activeTab, collection) => {
@@ -536,7 +540,7 @@ export const isActiveTab = (tab, activeTab, collection) => {
   const { accessor, value } = activeTab;
 
   if (accessor === 'type') {
-    return tab.type === value;
+    return tab.type === value && (tab.syncFolder || null) === (activeTab.syncFolder || null);
   }
 
   if (accessor === 'pathname') {
@@ -674,6 +678,10 @@ export const deserializeTab = (snapshotTab, collection) => {
   if (!tab.uid && NON_REPLACEABLE_SINGLETON_TAB_TYPES.has(type)) {
     tab.uid = uuid();
   }
+  if (typeof snapshotTab.syncFolder === 'string' && snapshotTab.syncFolder.length > 0) {
+    tab.syncFolder = snapshotTab.syncFolder;
+    if (snapshotTab.tabName) tab.tabName = snapshotTab.tabName;
+  }
   if (snapshotTab.environment?.tab) {
     tab.tabState = { environment: { tab: snapshotTab.environment.tab } };
   }
@@ -742,7 +750,7 @@ export const getActiveTabFromSnapshot = async (collectionPathname, collection, s
   let snapshotTab = null;
 
   if (accessor === 'type') {
-    snapshotTab = tabsSnapshot.tabs.find((t) => t.type === value);
+    snapshotTab = tabsSnapshot.tabs.find((t) => t.type === value && (t.syncFolder || null) === (tabsSnapshot.activeTab.syncFolder || null));
   } else if (accessor === 'pathname') {
     snapshotTab = tabsSnapshot.tabs.find((t) => (
       t.pathname === value && t.type !== 'response-example'

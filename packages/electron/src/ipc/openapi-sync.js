@@ -527,6 +527,46 @@ const cleanupSpecFilesForCollection = (collectionPath) => {
 };
 
 /**
+ * Keeps sync entries in step with a collection (folder) that was renamed or deleted: every entry at or under
+ * `oldFolder` gets its `folder` moved under `newFolder`, or, when `newFolder` is omitted, is removed together with
+ * its stored spec copy. Both folders are relative to the application root.
+ */
+const syncEntriesAfterFolderChange = async ({ collectionPath, oldFolder, newFolder }) => {
+  const from = normalizeFolder(oldFolder);
+  if (!from) return;
+  const to = newFolder === undefined ? null : normalizeFolder(newFolder);
+  const isAffected = (entry) => {
+    const folder = normalizeFolder(entry?.folder);
+    return folder === from || folder.startsWith(`${from}/`);
+  };
+  const moved = (entry) => ({ ...entry, folder: `${to}${normalizeFolder(entry.folder).slice(from.length)}` });
+
+  const meta = loadSpecMetadata();
+  const storedEntries = meta[specKey(collectionPath)] || [];
+  if (!(loadBrunoConfig(collectionPath).brunoConfig.openapi || []).some(isAffected) && !storedEntries.some(isAffected)) return;
+
+  await updateConfigUnderLock(collectionPath, (brunoConfig) => {
+    const entries = brunoConfig.openapi || [];
+    const remaining = to === null ? entries.filter((entry) => !isAffected(entry)) : entries.map((entry) => (isAffected(entry) ? moved(entry) : entry));
+    if (remaining.length) brunoConfig.openapi = remaining;
+    else delete brunoConfig.openapi;
+  });
+
+  if (to === null) {
+    for (const entry of storedEntries.filter(isAffected)) {
+      const specPath = path.join(getSpecsDir(), entry.filename);
+      if (fs.existsSync(specPath)) fs.unlinkSync(specPath);
+    }
+    const kept = storedEntries.filter((entry) => !isAffected(entry));
+    if (kept.length) meta[specKey(collectionPath)] = kept;
+    else delete meta[specKey(collectionPath)];
+  } else {
+    meta[specKey(collectionPath)] = storedEntries.map((entry) => (isAffected(entry) ? moved(entry) : entry));
+  }
+  saveSpecMetadata(meta);
+};
+
+/**
  * Replace {{var}} tokens in a JSON string with placeholder strings so the
  * result can be passed to JSON.parse without syntax errors.
  *
@@ -2003,6 +2043,11 @@ const registerOpenAPISyncIpc = (mainWindow) => {
         if (entryIndex >= 0) {
           brunoConfig.openapi = brunoConfig.openapi.map((entry, index) => (index === entryIndex ? { ...entry, ...sanitizedConfig } : entry));
         } else {
+          // Collections of an application sync one by one; a second, application-wide entry beside them
+          // would check the same spec twice and read as a duplicate.
+          if (!folderKey && (brunoConfig.openapi || []).some((entry) => normalizeFolder(entry?.folder))) {
+            throw new Error('This application already syncs per collection; open the sync page of a collection instead');
+          }
           if (!('autoCheck' in sanitizedConfig)) sanitizedConfig.autoCheck = true;
           if (!('autoCheckInterval' in sanitizedConfig)) sanitizedConfig.autoCheckInterval = 5;
           brunoConfig.openapi = [...(brunoConfig.openapi || []), { ...sanitizedConfig, ...(folderKey && { folder: folderKey }) }];
@@ -2208,6 +2253,7 @@ module.exports = registerOpenAPISyncIpc;
 module.exports.saveSpecAndUpdateMetadata = saveSpecAndUpdateMetadata;
 module.exports.cleanupSpecFilesForCollection = cleanupSpecFilesForCollection;
 module.exports.addFolderSyncEntry = addFolderSyncEntry;
+module.exports.syncEntriesAfterFolderChange = syncEntriesAfterFolderChange;
 module.exports.fetchRemoteText = fetchRemoteText;
 
 /* istanbul ignore next */

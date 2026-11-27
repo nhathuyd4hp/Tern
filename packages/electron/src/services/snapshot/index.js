@@ -42,6 +42,7 @@ const tabSchema = yup.object({
   exampleIndex: yup.number().integer().min(0).optional(),
   exampleUid: yup.string().optional(),
   tabName: yup.string().optional(),
+  syncFolder: yup.string().optional(),
   request: yup.object({
     tab: yup.string(),
     width: yup.number().nullable(),
@@ -64,7 +65,8 @@ const activeTabSchema = yup.object({
     'pathname::exampleIndex',
     'type'
   ]).required(),
-  value: yup.string().required()
+  value: yup.string().required(),
+  syncFolder: yup.string().optional()
 });
 
 const collectionSchema = yup.object({
@@ -591,7 +593,8 @@ class SnapshotManager {
 
     return {
       accessor: activeTab.accessor,
-      value: activeTab.value
+      value: activeTab.value,
+      ...(typeof activeTab.syncFolder === 'string' && activeTab.syncFolder ? { syncFolder: activeTab.syncFolder } : {})
     };
   }
 

@@ -80,7 +80,21 @@ const { cancelOAuth2AuthorizationRequest, isOauth2AuthorizationRequestInProgress
 const { findUniqueFolderName } = require('../utils/collection-import');
 const { importItemsIntoFolder } = require('../utils/import-items');
 const { renameEnvironmentExtendsReferences } = require('../utils/environments');
-const { cleanupSpecFilesForCollection } = require('./openapi-sync');
+const { cleanupSpecFilesForCollection, syncEntriesAfterFolderChange } = require('./openapi-sync');
+
+// A failed sync-entry update must never fail the rename/delete that already happened on disk.
+const followFolderChangeInOpenApiSync = async (collectionPathname, oldPath, newPath) => {
+  try {
+    const relativeFolder = (folderPath) => path.relative(collectionPathname, folderPath).replace(/\\/g, '/');
+    await syncEntriesAfterFolderChange({
+      collectionPath: collectionPathname,
+      oldFolder: relativeFolder(oldPath),
+      ...(newPath ? { newFolder: relativeFolder(newPath) } : {})
+    });
+  } catch (error) {
+    console.error('Failed to update OpenAPI sync entries after a folder change:', error);
+  }
+};
 const {
   validateWorkspacePath,
   normalizeCollectionEntry,
@@ -1069,6 +1083,7 @@ const registerRendererEventHandlers = (mainWindow, watcher) => {
           await fs.renameSync(oldPath, newPath);
         }
 
+        await followFolderChangeInOpenApiSync(collectionPathname, oldPath, newPath);
         return newPath;
       }
 
@@ -1144,6 +1159,7 @@ const registerRendererEventHandlers = (mainWindow, watcher) => {
         }
 
         fs.rmSync(pathname, { recursive: true, force: true });
+        await followFolderChangeInOpenApiSync(collectionPathname, pathname);
       } else if (['http-request', 'graphql-request', 'grpc-request', 'ws-request'].includes(type)) {
         if (!fs.existsSync(pathname)) {
           return Promise.reject(new Error('The file does not exist'));

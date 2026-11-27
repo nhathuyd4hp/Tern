@@ -480,3 +480,32 @@ describe('hydrateSnapshotLookups', () => {
     ]);
   });
 });
+
+describe('folder-scoped openapi-sync tabs', () => {
+  const collection = { uid: 'c1', pathname: '/apps/a', items: [] };
+  const syncTab = { uid: 't1', collectionUid: 'c1', type: 'openapi-sync', syncFolder: 'api/users', tabName: 'users', preview: false };
+
+  it('is not excluded from the snapshot', () => {
+    expect(shouldExcludeTab(syncTab)).toBeFalsy();
+  });
+
+  it('round-trips syncFolder and tabName', () => {
+    const serialized = serializeTab(syncTab, collection);
+    expect(serialized).toMatchObject({ type: 'openapi-sync', syncFolder: 'api/users', tabName: 'users' });
+    expect(deserializeTab(serialized, collection)).toMatchObject({ type: 'openapi-sync', syncFolder: 'api/users', tabName: 'users' });
+  });
+
+  it('keeps an application-wide tab without syncFolder, and old snapshots restore as before', () => {
+    const serialized = serializeTab({ ...syncTab, syncFolder: undefined, tabName: undefined }, collection);
+    expect(serialized).not.toHaveProperty('syncFolder');
+    expect(deserializeTab({ type: 'openapi-sync', accessor: 'type', permanent: true }, collection).syncFolder).toBeUndefined();
+  });
+
+  it('tells the active folder tab from the application-wide one', () => {
+    const active = serializeActiveTab(syncTab, collection);
+    expect(active).toEqual({ accessor: 'type', value: 'openapi-sync', syncFolder: 'api/users' });
+    expect(isActiveTab(syncTab, active, collection)).toBe(true);
+    expect(isActiveTab({ type: 'openapi-sync' }, active, collection)).toBe(false);
+    expect(isActiveTab({ type: 'openapi-sync' }, { accessor: 'type', value: 'openapi-sync' }, collection)).toBe(true);
+  });
+});
