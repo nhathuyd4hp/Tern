@@ -60,7 +60,7 @@ describe('syncing with the saved request naming', () => {
   });
 });
 
-describe.each(['bru', 'yml'])('a request that sync adds next to a %s file with the same name', (format) => {
+describe('a request that sync adds next to a file with the same name', () => {
   const SOURCE_URL = 'https://example.com/pets.json';
   const OK = { 200: { description: 'OK' } };
   const listPets = { summary: 'List pets', responses: OK };
@@ -68,19 +68,15 @@ describe.each(['bru', 'yml'])('a request that sync adds next to a %s file with t
   const newSpec = { openapi: '3.0.3', info: { title: 'Pets', version: '2' }, paths: { '/pets': { post: listPets, get: listPets } } };
   let collectionPath;
 
-  const requestIn = (file) => parseRequest(fs.readFileSync(path.join(collectionPath, file), 'utf8'), { format }).request;
+  const requestIn = (file) => parseRequest(fs.readFileSync(path.join(collectionPath, file), 'utf8')).request;
 
   beforeEach(() => {
     mockUserData = fs.mkdtempSync(path.join(os.tmpdir(), 'bruno-sync-user-data-'));
     collectionPath = fs.mkdtempSync(path.join(os.tmpdir(), 'bruno-sync-collection-'));
     const config = { version: '1', name: 'Pets', type: 'collection', openapi: [{ sourceUrl: SOURCE_URL, groupBy: 'tags' }] };
-    if (format === 'yml') {
-      fs.writeFileSync(path.join(collectionPath, 'opencollection.yml'), stringifyCollection({}, { ...config, opencollection: '1.0.0' }, { format }));
-    } else {
-      fs.writeFileSync(path.join(collectionPath, 'bruno.json'), JSON.stringify(config));
-    }
+    fs.writeFileSync(path.join(collectionPath, 'opencollection.yml'), stringifyCollection({}, { ...config, opencollection: '1.0.0' }));
     const [listPetsRequest] = openApiToBruno(previousSpec).items;
-    fs.writeFileSync(path.join(collectionPath, `List pets.${format}`), stringifyRequest(listPetsRequest, { format }));
+    fs.writeFileSync(path.join(collectionPath, 'List pets.yml'), stringifyRequest(listPetsRequest));
     registerOpenAPISyncIpc({ webContents: { send: jest.fn() } });
   });
 
@@ -90,8 +86,8 @@ describe.each(['bru', 'yml'])('a request that sync adds next to a %s file with t
   });
 
   const expectBothRequestsKept = () => {
-    expect(requestIn(`List pets.${format}`).method).toBe('GET');
-    expect(requestIn(`List pets 1.${format}`).method).toBe('POST');
+    expect(requestIn('List pets.yml').method).toBe('GET');
+    expect(requestIn('List pets 1.yml').method).toBe('POST');
   };
 
   it('keeps the existing request when the sync adds a new one', async () => {
@@ -124,7 +120,7 @@ describe.each(['bru', 'yml'])('a request that sync adds next to a %s file with t
   });
 });
 
-describe.each(['bru', 'yml'])('requests whose files start with folder. or collection. in a %s collection', (format) => {
+describe('requests whose files start with folder. or collection.', () => {
   const SOURCE_URL = 'https://example.com/folders.json';
   const OK = { 200: { description: 'OK' } };
   const spec = {
@@ -137,12 +133,12 @@ describe.each(['bru', 'yml'])('requests whose files start with folder. or collec
     }
   };
   const endpoints = [{ method: 'POST', path: '/folders' }, { method: 'GET', path: '/collections' }, { method: 'GET', path: '/collections/{id}' }];
-  const requestFiles = [`folder.create.${format}`, path.join('Collections', `collection.list.${format}`), path.join('Collections', `collection.${format}`)].sort();
-  const folderAndCollectionFiles = [path.join('Collections', `folder.${format}`), format === 'yml' ? 'opencollection.yml' : 'collection.bru'].sort();
+  const requestFiles = ['folder.create.yml', path.join('Collections', 'collection.list.yml'), path.join('Collections', 'collection.yml')].sort();
+  const folderAndCollectionFiles = [path.join('Collections', 'folder.yml'), 'opencollection.yml'].sort();
   const allFiles = [...requestFiles, ...folderAndCollectionFiles].sort();
   let collectionPath;
 
-  const filesOnDisk = () => fs.readdirSync(collectionPath, { recursive: true }).filter((file) => file.endsWith(`.${format}`)).sort();
+  const filesOnDisk = () => fs.readdirSync(collectionPath, { recursive: true }).filter((file) => file.endsWith('.yml')).sort();
   const reset = () => ipcMain._getHandler('renderer:apply-openapi-sync')({}, { collectionPath, diff: { newSpec: spec }, mode: 'reset' });
   const sync = (diff, options) => ipcMain._getHandler('renderer:apply-openapi-sync')({}, {
     collectionPath,
@@ -155,12 +151,7 @@ describe.each(['bru', 'yml'])('requests whose files start with folder. or collec
     mockUserData = fs.mkdtempSync(path.join(os.tmpdir(), 'bruno-sync-user-data-'));
     collectionPath = fs.mkdtempSync(path.join(os.tmpdir(), 'bruno-sync-collection-'));
     const config = { version: '1', name: 'Folders', type: 'collection', openapi: [{ sourceUrl: SOURCE_URL, groupBy: 'tags' }] };
-    if (format === 'yml') {
-      fs.writeFileSync(path.join(collectionPath, 'opencollection.yml'), stringifyCollection({}, { ...config, opencollection: '1.0.0' }, { format }));
-    } else {
-      fs.writeFileSync(path.join(collectionPath, 'bruno.json'), JSON.stringify(config));
-      fs.writeFileSync(path.join(collectionPath, 'collection.bru'), stringifyCollection({ request: { auth: { mode: 'none' } } }, config, { format }));
-    }
+    fs.writeFileSync(path.join(collectionPath, 'opencollection.yml'), stringifyCollection({}, { ...config, opencollection: '1.0.0' }));
     registerOpenAPISyncIpc({ webContents: { send: jest.fn() } });
     await reset();
   });

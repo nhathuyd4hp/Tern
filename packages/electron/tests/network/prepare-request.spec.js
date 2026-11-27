@@ -93,7 +93,7 @@ describe('prepare-request: prepareRequest', () => {
       uid,
       type: 'http-request',
       name: uid,
-      pathname: path.join(COLLECTION_PATH, `${uid}.bru`),
+      pathname: path.join(COLLECTION_PATH, `${uid}.yml`),
       ...(tags !== undefined ? { tags } : {}),
       request: {
         method: 'GET',

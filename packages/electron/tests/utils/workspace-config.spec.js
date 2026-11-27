@@ -100,7 +100,7 @@ describe('getUnopenableWorkspaceCollections', () => {
   const ensureCollectionDir = (relativePath) => {
     const dir = path.join(workspacePath, relativePath);
     fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(path.join(dir, 'bruno.json'), JSON.stringify({ name: 'x', version: '1', type: 'collection' }));
+    fs.writeFileSync(path.join(dir, 'opencollection.yml'), 'opencollection: 1.0.0');
   };
 
   beforeEach(() => {

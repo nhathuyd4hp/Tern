@@ -38,7 +38,7 @@ const { makeAxiosInstance: makeRealAxiosInstance } = jest.requireActual('../../.
 
 const COLLECTION_PATH = path.join(os.tmpdir(), 'test-collection');
 const COLLECTION = { uid: 'collection-1', pathname: COLLECTION_PATH };
-const ITEM = { uid: 'item-1', pathname: path.join(COLLECTION_PATH, 'request.bru') };
+const ITEM = { uid: 'item-1', pathname: path.join(COLLECTION_PATH, 'request.yml') };
 const URL_ENCODED_FORM_FIELDS = 'name=John+Doe&role=admin';
 const FORM_CONTENT_TYPES = [
   'application/x-www-form-urlencoded',

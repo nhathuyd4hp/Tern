@@ -59,7 +59,7 @@ const newSpec = jsonSpec({ name: string, age: { type: 'integer' } });
 
 const withJsonBody = (body) => (request) => ({ ...request, body: { ...request.body, mode: 'json', json: JSON.stringify(body) } });
 
-describe.each(['bru', 'yml'])('openapi sync with preserve values in a %s collection', (format) => {
+describe('openapi sync with preserve values', () => {
   let collectionPath;
   let requestFile;
 
@@ -75,7 +75,7 @@ describe.each(['bru', 'yml'])('openapi sync with preserve values in a %s collect
   const writeUserRequestFrom = (spec, edit, { name = 'Create pet', file = requestFile } = {}) => {
     const item = openApiToBruno(spec).items.find((each) => each.name === name);
     item.request = edit(item.request);
-    fs.writeFileSync(file, stringifyRequest(item, { format }));
+    fs.writeFileSync(file, stringifyRequest(item));
   };
 
   const writeUserRequest = (body) => writeUserRequestFrom(newSpec, withJsonBody(body));
@@ -92,7 +92,7 @@ describe.each(['bru', 'yml'])('openapi sync with preserve values in a %s collect
     preserveValues
   });
 
-  const readRequest = (file = requestFile) => parseRequest(fs.readFileSync(file, 'utf8'), { format }).request;
+  const readRequest = (file = requestFile) => parseRequest(fs.readFileSync(file, 'utf8')).request;
 
   const modifiedPets = { modified: [{ method: 'POST', path: '/pets' }] };
 
@@ -114,13 +114,9 @@ describe.each(['bru', 'yml'])('openapi sync with preserve values in a %s collect
   beforeEach(() => {
     mockUserData = fs.mkdtempSync(path.join(os.tmpdir(), 'bruno-sync-user-data-'));
     collectionPath = fs.mkdtempSync(path.join(os.tmpdir(), 'bruno-sync-collection-'));
-    requestFile = path.join(collectionPath, `Create pet.${format}`);
+    requestFile = path.join(collectionPath, 'Create pet.yml');
     const config = { version: '1', name: 'Pets', type: 'collection', openapi: [{ sourceUrl: SOURCE_URL, groupBy: 'tags' }] };
-    if (format === 'yml') {
-      fs.writeFileSync(path.join(collectionPath, 'opencollection.yml'), stringifyCollection({}, { ...config, opencollection: '1.0.0' }, { format }));
-    } else {
-      fs.writeFileSync(path.join(collectionPath, 'bruno.json'), JSON.stringify(config));
-    }
+    fs.writeFileSync(path.join(collectionPath, 'opencollection.yml'), stringifyCollection({}, { ...config, opencollection: '1.0.0' }));
     registerOpenAPISyncIpc({ webContents: { send: jest.fn() } });
   });
 
@@ -721,8 +717,8 @@ describe.each(['bru', 'yml'])('openapi sync with preserve values in a %s collect
     expect(applied.url).toBe(`${base}?status=sold`);
 
     await apply(next, { added: [{ method: 'POST', path: '/pets' }] });
-    const requestFiles = fs.readdirSync(collectionPath).filter((file) => file.endsWith(`.${format}`) && !file.startsWith('opencollection'));
-    expect(requestFiles).toEqual([`Create pet.${format}`]);
+    const requestFiles = fs.readdirSync(collectionPath).filter((file) => file.endsWith('.yml') && !file.startsWith('opencollection'));
+    expect(requestFiles).toEqual(['Create pet.yml']);
     expect(readRequest().url).toBe(`${base}?status=sold`);
   });
 
@@ -774,7 +770,7 @@ describe.each(['bru', 'yml'])('openapi sync with preserve values in a %s collect
     });
     const previous = petsAndOwners(objectSchema({ name: string, legacy: string }), objectSchema({ email: string, nickname: string }));
     const next = petsAndOwners(objectSchema({ name: string, age: { type: 'integer' } }), { ...objectSchema({ email: string, phone: string, nickname: string }), example: { email: '', phone: '' } });
-    const ownerFile = path.join(collectionPath, `Create owner.${format}`);
+    const ownerFile = path.join(collectionPath, 'Create owner.yml');
     writeStoredSpec(previous);
     writeUserRequestFrom(previous, withJsonBody({ name: 'Rex', legacy: 'x', nickname: 'R' }));
     writeUserRequestFrom(previous, withJsonBody({ email: 'a@b.c', nickname: 'Al', legacy: 'y' }), { name: 'Create owner', file: ownerFile });
@@ -797,7 +793,7 @@ describe.each(['bru', 'yml'])('openapi sync with preserve values in a %s collect
       paths: { '/pets': operation('Create pet', petText), '/owners': operation('Create owner', ownerText) }
     });
     const previous = petsAndOwners('pet old', 'owner old');
-    const ownerFile = path.join(collectionPath, `Create owner.${format}`);
+    const ownerFile = path.join(collectionPath, 'Create owner.yml');
     writeStoredSpec(previous);
     writeUserRequestFrom(previous, (request) => request);
     writeUserRequestFrom(previous, (request) => request, { name: 'Create owner', file: ownerFile });

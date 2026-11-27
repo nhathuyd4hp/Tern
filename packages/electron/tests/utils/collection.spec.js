@@ -2,293 +2,22 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 const { runScriptInNodeVm } = require('@tern/js');
-const { parseBruFileMeta, wrapAndJoinScripts, mergeScripts } = require('../../src/utils/collection');
+const { parseFileMeta, wrapAndJoinScripts, mergeScripts } = require('../../src/utils/collection');
 const { executeQuickJsVmAsync } = require('@tern/js/src/sandbox/quickjs');
 
-describe('parseBruFileMeta', () => {
-  test('parses valid meta block correctly', () => {
-    const data = `meta {
-      name: 0.2_mb
-      type: http
-      seq: 1
-    }`;
+describe('parseFileMeta', () => {
+  it('parses a meta section into the request skeleton', () => {
+    const result = parseFileMeta('meta:\n  name: Get user\n  type: graphql\n  seq: 3\n  tags: [smoke]\n');
 
-    const result = parseBruFileMeta(data);
-
-    expect(result).toEqual({
-      type: 'http-request',
-      name: '0.2_mb',
-      seq: 1,
-      settings: {},
-      tags: [],
-      request: {
-        method: '',
-        url: '',
-        params: [],
-        headers: [],
-        auth: { mode: 'none' },
-        body: { mode: 'none' },
-        script: {},
-        vars: {},
-        assertions: [],
-        tests: '',
-        docs: ''
-      }
-    });
+    expect(result).toMatchObject({ type: 'graphql-request', name: 'Get user', seq: 3, tags: ['smoke'] });
   });
 
-  test('returns null for missing meta block', () => {
-    const data = `someOtherBlock {
-      key: value
-    }`;
-
-    const result = parseBruFileMeta(data);
-
-    expect(result).toBeNull();
+  it('defaults an unknown type to http-request and a missing seq to 1', () => {
+    expect(parseFileMeta('meta:\n  name: x\n  type: other\n')).toMatchObject({ type: 'http-request', seq: 1 });
   });
 
-  test('handles empty meta block gracefully', () => {
-    const data = `meta {}`;
-
-    const result = parseBruFileMeta(data);
-
-    expect(result).toEqual({
-      type: 'http-request',
-      name: undefined,
-      seq: 1,
-      settings: {},
-      tags: [],
-      request: {
-        method: '',
-        url: '',
-        params: [],
-        headers: [],
-        auth: { mode: 'none' },
-        body: { mode: 'none' },
-        script: {},
-        vars: {},
-        assertions: [],
-        tests: '',
-        docs: ''
-      }
-    });
-  });
-
-  test('ignores invalid lines in meta block', () => {
-    const data = `meta {
-      name: 0.2_mb
-      invalidLine
-      seq: 1
-    }`;
-
-    const result = parseBruFileMeta(data);
-
-    expect(result).toEqual({
-      type: 'http-request',
-      name: '0.2_mb',
-      seq: 1,
-      settings: {},
-      tags: [],
-      request: {
-        method: '',
-        url: '',
-        params: [],
-        headers: [],
-        auth: { mode: 'none' },
-        body: { mode: 'none' },
-        script: {},
-        vars: {},
-        assertions: [],
-        tests: '',
-        docs: ''
-      }
-    });
-  });
-
-  test('handles unexpected input gracefully', () => {
-    const data = null;
-
-    const result = parseBruFileMeta(data);
-
-    expect(result).toBeNull();
-  });
-
-  test('handles missing colon gracefully', () => {
-    const data = `meta {
-      name 0.2_mb
-      seq: 1
-    }`;
-
-    const result = parseBruFileMeta(data);
-
-    expect(result).toEqual({
-      type: 'http-request',
-      name: undefined,
-      seq: 1,
-      settings: {},
-      tags: [],
-      request: {
-        method: '',
-        url: '',
-        params: [],
-        headers: [],
-        auth: { mode: 'none' },
-        body: { mode: 'none' },
-        script: {},
-        vars: {},
-        assertions: [],
-        tests: '',
-        docs: ''
-      }
-    });
-  });
-
-  test('parses numeric values correctly', () => {
-    const data = `meta {
-      numValue: 1234
-      floatValue: 12.34
-      strValue: some_text
-      seq: 5
-    }`;
-
-    const result = parseBruFileMeta(data);
-
-    expect(result).toEqual({
-      type: 'http-request',
-      name: undefined,
-      seq: 5,
-      settings: {},
-      tags: [],
-      request: {
-        method: '',
-        url: '',
-        params: [],
-        headers: [],
-        auth: { mode: 'none' },
-        body: { mode: 'none' },
-        script: {},
-        vars: {},
-        assertions: [],
-        tests: '',
-        docs: ''
-      }
-    });
-  });
-
-  test('handles syntax error in meta block 1', () => {
-    const data = `meta 
-      name: 0.2_mb
-      type: http
-      seq: 1
-    }`;
-
-    const result = parseBruFileMeta(data);
-
-    expect(result).toBeNull();
-  });
-
-  test('handles syntax error in meta block 2', () => {
-    const data = `meta {
-      name: 0.2_mb
-      type: http
-      seq: 1
-    `;
-
-    const result = parseBruFileMeta(data);
-
-    expect(result).toBeNull();
-  });
-
-  test('handles graphql type correctly', () => {
-    const data = `meta {
-      name: graphql_query
-      type: graphql
-      seq: 2
-    }`;
-
-    const result = parseBruFileMeta(data);
-
-    expect(result).toEqual({
-      type: 'graphql-request',
-      name: 'graphql_query',
-      seq: 2,
-      settings: {},
-      tags: [],
-      request: {
-        method: '',
-        url: '',
-        params: [],
-        headers: [],
-        auth: { mode: 'none' },
-        body: { mode: 'none' },
-        script: {},
-        vars: {},
-        assertions: [],
-        tests: '',
-        docs: ''
-      }
-    });
-  });
-
-  test('handles unknown type correctly', () => {
-    const data = `meta {
-      name: unknown_request
-      type: unknown
-      seq: 3
-    }`;
-
-    const result = parseBruFileMeta(data);
-
-    expect(result).toEqual({
-      type: 'http-request',
-      name: 'unknown_request',
-      seq: 3,
-      settings: {},
-      tags: [],
-      request: {
-        method: '',
-        url: '',
-        params: [],
-        headers: [],
-        auth: { mode: 'none' },
-        body: { mode: 'none' },
-        script: {},
-        vars: {},
-        assertions: [],
-        tests: '',
-        docs: ''
-      }
-    });
-  });
-
-  test('handles missing seq gracefully', () => {
-    const data = `meta {
-      name: no_seq_request
-      type: http
-    }`;
-
-    const result = parseBruFileMeta(data);
-
-    expect(result).toEqual({
-      type: 'http-request',
-      name: 'no_seq_request',
-      seq: 1, // Default fallback
-      settings: {},
-      tags: [],
-      request: {
-        method: '',
-        url: '',
-        params: [],
-        headers: [],
-        auth: { mode: 'none' },
-        body: { mode: 'none' },
-        script: {},
-        vars: {},
-        assertions: [],
-        tests: '',
-        docs: ''
-      }
-    });
+  it('returns null without a meta section', () => {
+    expect(parseFileMeta('http:\n  method: GET\n')).toBeNull();
   });
 });
 
@@ -328,7 +57,7 @@ describe('wrapAndJoinScripts', () => {
 
   test('builds segments array from segmentSources', () => {
     const sources = [
-      { filePath: '/col/collection.bru', displayPath: 'collection.bru' },
+      { filePath: '/col/opencollection.yml', displayPath: 'opencollection.yml' },
       null,
       null
     ];
@@ -337,15 +66,15 @@ describe('wrapAndJoinScripts', () => {
     expect(result.metadata.segments[0]).toMatchObject({
       startLine: 1,
       endLine: 3,
-      filePath: '/col/collection.bru',
-      displayPath: 'collection.bru'
+      filePath: '/col/opencollection.yml',
+      displayPath: 'opencollection.yml'
     });
   });
 
   test('builds segments for collection + folder + request', () => {
     const sources = [
-      { filePath: '/col/collection.bru', displayPath: 'collection.bru' },
-      { filePath: '/col/sub/folder.bru', displayPath: 'sub/folder.bru' },
+      { filePath: '/col/opencollection.yml', displayPath: 'opencollection.yml' },
+      { filePath: '/col/sub/folder.yml', displayPath: 'sub/folder.yml' },
       null
     ];
     const result = wrapAndJoinScripts(
@@ -354,23 +83,23 @@ describe('wrapAndJoinScripts', () => {
       { segmentSources: sources }
     );
     expect(result.metadata.segments).toHaveLength(2);
-    expect(result.metadata.segments[0].displayPath).toBe('collection.bru');
-    expect(result.metadata.segments[1].displayPath).toBe('sub/folder.bru');
+    expect(result.metadata.segments[0].displayPath).toBe('opencollection.yml');
+    expect(result.metadata.segments[1].displayPath).toBe('sub/folder.yml');
     expect(result.metadata.requestStartLine).toBeGreaterThan(result.metadata.segments[1].endLine);
   });
 
   test('binds per-segment __dirname/__filename via IIFE args when filePath is provided', () => {
     const colDir = path.resolve('/col');
-    const collectionFile = path.join(colDir, 'collection.bru');
+    const collectionFile = path.join(colDir, 'opencollection.yml');
     const subDir = path.join(colDir, 'sub');
-    const folderFile = path.join(subDir, 'folder.bru');
-    const requestFile = path.join(subDir, 'req.bru');
+    const folderFile = path.join(subDir, 'folder.yml');
+    const requestFile = path.join(subDir, 'req.yml');
     const sources = [
-      { filePath: collectionFile, displayPath: 'collection.bru' },
-      { filePath: folderFile, displayPath: path.join('sub', 'folder.bru') },
+      { filePath: collectionFile, displayPath: 'opencollection.yml' },
+      { filePath: folderFile, displayPath: path.join('sub', 'folder.yml') },
       null
     ];
-    const requestSegmentSource = { filePath: requestFile, displayPath: path.join('sub', 'req.bru') };
+    const requestSegmentSource = { filePath: requestFile, displayPath: path.join('sub', 'req.yml') };
     const result = wrapAndJoinScripts(
       ['let a = 1;', 'let b = 2;', 'let c = 3;'],
       2,
@@ -385,14 +114,14 @@ describe('wrapAndJoinScripts', () => {
 
   test('preserves line counts when injecting IIFE args (opener stays on one line)', () => {
     const colDir = path.resolve('/col');
-    const collectionFile = path.join(colDir, 'collection.bru');
-    const requestFile = path.join(colDir, 'sub', 'req.bru');
+    const collectionFile = path.join(colDir, 'opencollection.yml');
+    const requestFile = path.join(colDir, 'sub', 'req.yml');
     const withPaths = wrapAndJoinScripts(
       ['let x = 1;', '', 'let y = 2;'],
       2,
       {
-        segmentSources: [{ filePath: collectionFile, displayPath: 'collection.bru' }, null, null],
-        requestSegmentSource: { filePath: requestFile, displayPath: path.join('sub', 'req.bru') }
+        segmentSources: [{ filePath: collectionFile, displayPath: 'opencollection.yml' }, null, null],
+        requestSegmentSource: { filePath: requestFile, displayPath: path.join('sub', 'req.yml') }
       }
     );
     const withoutPaths = wrapAndJoinScripts(['let x = 1;', '', 'let y = 2;'], 2);
@@ -421,7 +150,6 @@ describe('wrapAndJoinScripts', () => {
 
 const makeCollection = (scripts = {}, pathname = '/test/collection') => ({
   pathname,
-  format: 'bru',
   root: {
     request: {
       script: {
@@ -483,9 +211,9 @@ describe('mergeScripts metadata', () => {
     mergeScripts(collection, request, [request], 'sequential');
 
     expect(request.script.reqMetadata.segments).toHaveLength(1);
-    expect(request.script.reqMetadata.segments[0].displayPath).toBe('collection.bru');
+    expect(request.script.reqMetadata.segments[0].displayPath).toBe('opencollection.yml');
     expect(request.script.reqMetadata.segments[0].filePath).toBe(
-      path.join('/test/collection', 'collection.bru')
+      path.join('/test/collection', 'opencollection.yml')
     );
     expect(request.script.reqMetadata.requestStartLine).toBeGreaterThan(
       request.script.reqMetadata.segments[0].endLine
@@ -499,9 +227,9 @@ describe('mergeScripts metadata', () => {
     mergeScripts(collection, request, [folder, request], 'sequential');
 
     expect(request.script.reqMetadata.segments).toHaveLength(2);
-    expect(request.script.reqMetadata.segments[0].displayPath).toBe('collection.bru');
+    expect(request.script.reqMetadata.segments[0].displayPath).toBe('opencollection.yml');
     // displayPath is posixified by mergeScripts regardless of platform
-    expect(request.script.reqMetadata.segments[1].displayPath).toBe('subfolder/folder.bru');
+    expect(request.script.reqMetadata.segments[1].displayPath).toBe('subfolder/folder.yml');
   });
 
   test('non-sequential flow reverses post-res segment order', () => {
@@ -515,8 +243,8 @@ describe('mergeScripts metadata', () => {
     const segments = request.script.resMetadata.segments;
     expect(segments).toHaveLength(2);
     // Folder should come before collection in reversed order
-    expect(segments[0].displayPath).toBe('subfolder/folder.bru');
-    expect(segments[1].displayPath).toBe('collection.bru');
+    expect(segments[0].displayPath).toBe('subfolder/folder.yml');
+    expect(segments[1].displayPath).toBe('opencollection.yml');
   });
 
   test('handles tests metadata correctly', () => {
@@ -526,17 +254,8 @@ describe('mergeScripts metadata', () => {
 
     expect(request.testsMetadata).toBeDefined();
     expect(request.testsMetadata.segments).toHaveLength(1);
-    expect(request.testsMetadata.segments[0].displayPath).toBe('collection.bru');
+    expect(request.testsMetadata.segments[0].displayPath).toBe('opencollection.yml');
     expect(request.testsMetadata.requestStartLine).toBeGreaterThan(0);
-  });
-
-  test('defaults to bru format when collection.format is not set', () => {
-    const collection = makeCollection({ preReq: 'let x = 1;' });
-    delete collection.format;
-    const request = makeRequest({ preReq: 'let y = 2;' });
-    mergeScripts(collection, request, [request], 'sequential');
-
-    expect(request.script.reqMetadata.segments[0].displayPath).toBe('collection.bru');
   });
 
   test('includes requestScriptContent in metadata for pre-request scripts', () => {
@@ -610,15 +329,15 @@ describe('mergeScripts metadata', () => {
   test('injects hierarchical __dirname/__filename per script segment', () => {
     const collectionDir = path.resolve('/test/collection');
     const folderDir = path.join(collectionDir, 'subfolder');
-    const requestFile = path.join(folderDir, 'req.bru');
+    const requestFile = path.join(folderDir, 'req.yml');
     const collection = { ...makeCollection({ preReq: 'let col = 1;' }), pathname: collectionDir };
     const folder = { ...makeFolder('subfolder', { preReq: 'let fold = 2;' }), pathname: folderDir };
     const request = { ...makeRequest({ preReq: 'let req = 3;' }), pathname: requestFile };
     mergeScripts(collection, request, [folder, request], 'sequential');
 
     const code = request.script.req;
-    const collectionFile = path.join(collectionDir, 'collection.bru');
-    const folderFile = path.join(folderDir, 'folder.bru');
+    const collectionFile = path.join(collectionDir, 'opencollection.yml');
+    const folderFile = path.join(folderDir, 'folder.yml');
 
     expect(code).toContain(`)(${JSON.stringify(collectionDir)}, ${JSON.stringify(collectionFile)});`);
     expect(code).toContain(`)(${JSON.stringify(folderDir)}, ${JSON.stringify(folderFile)});`);
@@ -655,7 +374,7 @@ describe('mergeScripts and runScriptInNodeVm integration', () => {
   test('collection, folder, and request pre-request scripts each see their own __dirname/__filename', async () => {
     const collectionPath = path.resolve('/test/collection');
     const folderPath = path.join(collectionPath, 'subfolder');
-    const requestPath = path.join(folderPath, 'req.bru');
+    const requestPath = path.join(folderPath, 'req.yml');
 
     const collection = makeCollection({ preReq: setVar('col') }, collectionPath);
     const folder = makeFolder('subfolder', { preReq: setVar('folder') }, collectionPath);
@@ -665,9 +384,9 @@ describe('mergeScripts and runScriptInNodeVm integration', () => {
     const bru = await run(request.script.req, collectionPath, requestPath);
 
     expect(bru.setVar).toHaveBeenCalledWith('col_dir', collectionPath);
-    expect(bru.setVar).toHaveBeenCalledWith('col_file', path.join(collectionPath, 'collection.bru'));
+    expect(bru.setVar).toHaveBeenCalledWith('col_file', path.join(collectionPath, 'opencollection.yml'));
     expect(bru.setVar).toHaveBeenCalledWith('folder_dir', folderPath);
-    expect(bru.setVar).toHaveBeenCalledWith('folder_file', path.join(folderPath, 'folder.bru'));
+    expect(bru.setVar).toHaveBeenCalledWith('folder_file', path.join(folderPath, 'folder.yml'));
     expect(bru.setVar).toHaveBeenCalledWith('req_dir', folderPath);
     expect(bru.setVar).toHaveBeenCalledWith('req_file', requestPath);
   });
@@ -677,7 +396,7 @@ describe('mergeScripts and runScriptInNodeVm integration', () => {
     try {
       const folderPath = path.join(tmpRoot, 'subfolder');
       fs.mkdirSync(folderPath);
-      const requestPath = path.join(folderPath, 'read.bru');
+      const requestPath = path.join(folderPath, 'read.yml');
       fs.writeFileSync(path.join(folderPath, 'data.json'), '{"hello":"world"}');
 
       const script = `
@@ -717,7 +436,7 @@ describe('mergeScripts and runScriptInNodeVm integration', () => {
   test('post-response and tests scripts also receive per-segment __dirname/__filename', async () => {
     const collectionPath = path.resolve('/test/collection');
     const folderPath = path.join(collectionPath, 'subfolder');
-    const requestPath = path.join(folderPath, 'req.bru');
+    const requestPath = path.join(folderPath, 'req.yml');
 
     const collection = makeCollection(
       { postRes: setVar('col_post'), tests: setVar('col_test') },
