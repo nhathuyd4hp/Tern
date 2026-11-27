@@ -12,6 +12,12 @@ Tern dùng để thử và kiểm tra API trong lúc phát triển backend: REST
   <img src="docs/tern.gif" alt="Video giới thiệu Tern: phần đầu là tổng quan, phần sau quay từ ứng dụng thật (tạo Application, nạp OpenAPI, Environment, gửi request, Flow, đổi theme)" width="720">
 </p>
 
+<p align="center">
+  <video src="docs/tern.mp4" controls muted width="720"></video>
+  <br>
+  <a href="docs/tern.mp4">Xem bản MP4 (nét hơn, 1280x720, 30 fps)</a>
+</p>
+
 ## Cách tổ chức
 
 - **Application:** một dự án, tương ứng một thư mục trên đĩa. Một Application chứa nhiều Collection. Tên Application không được trùng nhau.
