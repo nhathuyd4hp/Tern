@@ -17,7 +17,7 @@ const easterEggResponse = (request) => {
     headers: {
       'content-type': 'text/plain; charset=utf-8',
       'x-good-boy': 'true',
-      'x-fetched-by': 'bruno'
+      'x-fetched-by': 'kevin'
     },
     data: body,
     dataBuffer: buffer.toString('base64'),

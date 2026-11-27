@@ -149,9 +149,9 @@ if (useSingleInstance && !gotTheLock) {
   // This is the primary instance (or single instance is disabled)
 
   // Try to remove any existing registrations
-  app.removeAsDefaultProtocolClient('bruno');
-  // Register as default handler for `bruno://` protocol URLs
-  app.setAsDefaultProtocolClient('bruno');
+  app.removeAsDefaultProtocolClient('kevin');
+  // Register as default handler for `kevin://` protocol URLs
+  app.setAsDefaultProtocolClient('kevin');
 
   if (isLinux) {
     try {

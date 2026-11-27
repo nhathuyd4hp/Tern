@@ -18,40 +18,21 @@ Mọi Application và Collection là thư mục chứa file văn bản (`.bru` h
 **Soạn request**
 
 - Params, headers, body (JSON, XML, form, multipart, file, ...), cookie.
-- Xác thực: Run npm run generate:script-api --workspace=packages/js -- --check
-- 
-- > @usebruno/js@0.12.0 generate:script-api
-  >
-- > node ./scripts/generate-script-api.js --check
-  >
-- 
-- generate-script-api: the generated script-api.d.ts does not compile:
-- Error: ../../../../../tmp/script-api-s3Pnov/script-api.d.ts(2,23): error TS2688: Cannot find type definition file for 'chai'.
-- Error: ../../../../../tmp/script-api-s3Pnov/script-api.d.ts(59,30): error TS2503: Cannot find namespace 'Chai'.
-- Error: ../../../../../tmp/script-api-s3Pnov/script-api.d.ts(71,30): error TS2503: Cannot find namespace 'Chai'.
-- 
-- npm error Lifecycle script `generate:script-api` failed with error:
-- npm error code 1
-- npm error path /home/runner/work/Kevin/Kevin/packages/js
-- npm error workspace @usebruno/js@0.12.0
-- npm error location /home/runner/work/Kevin/Kevin/packages/js
-- npm error command failed
-- npm error command sh -c node ./scripts/generate-script-api.js --check
-- Error: Process completed with exit code 1.nhiều kiểu auth, có thể đặt ở cấp collection hoặc folder và kế thừa (`inherit`) xuống request.
-- Environment và biến ở cấp collection, folder, request; biến bí mật không bị ghi ra file.
+- Xác thực: nhiều kiểu auth, có thể đặt ở cấp application hoặc collection và kế thừa (`inherit`) xuống request.
+- Environment và biến ở cấp application, collection, request; biến bí mật không bị ghi ra file.
 - Sinh code mẫu (snippet) cho request.
 
 **Script và test**
 
 - Script trước/sau request và test bằng JavaScript, chạy trong sandbox (QuickJS an toàn mặc định, hoặc chế độ developer).
-- Đặt ở cấp collection, folder hoặc request.
+- Đặt ở cấp application, collection hoặc request.
 
 **Import, export và đồng bộ**
 
-- Tạo Collection từ OpenAPI hoặc file `.proto` (gRPC).
+- Tạo Application gồm nhiều Collection, mỗi Collection lấy từ OpenAPI hoặc file `.proto` (gRPC), bằng URL hoặc file.
 - Đồng bộ Collection với OpenAPI spec theo chu kỳ, xem spec ngay trong app.
-- Import Collection từ Bruno, OpenAPI, `.proto`; import và export Environment (Bruno, Postman).
-- Chuyển Collection từ định dạng `.bru` sang `.yml`.
+- Import Application có sẵn từ thư mục; import và export Environment.
+- Chuyển Application từ định dạng `.bru` sang `.yml`.
 
 **Giao diện**
 

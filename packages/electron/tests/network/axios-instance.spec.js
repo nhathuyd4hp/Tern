@@ -66,13 +66,13 @@ describe('axios-instance: default headers', () => {
     expect(stubAdapter.getConfig().headers['Accept']).toMatch(/application\/json/);
   });
 
-  test('sets User-Agent header to bruno-runtime version', async () => {
+  test('sets User-Agent header to kevin-runtime version', async () => {
     const stubAdapter = createStubAdapter();
     const instance = makeAxiosInstance();
 
     await instance({ url: 'https://api.example.com/test', method: 'get', adapter: stubAdapter });
 
-    expect(stubAdapter.getConfig().headers['User-Agent']).toMatch(/^bruno-runtime\//);
+    expect(stubAdapter.getConfig().headers['User-Agent']).toMatch(/^kevin-runtime\//);
   });
 
   test('omits default headers listed in settings.omitHeaders', async () => {
@@ -735,7 +735,7 @@ describe('axios-instance: sent headers', () => {
     expect(error.response.sentHeaders).toMatchObject({
       'Host': `127.0.0.1:${server.address().port}`,
       'Connection': 'keep-alive',
-      'User-Agent': expect.stringMatching(/^bruno-runtime\//)
+      'User-Agent': expect.stringMatching(/^kevin-runtime\//)
     });
   });
 

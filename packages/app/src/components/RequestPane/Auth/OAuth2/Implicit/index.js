@@ -125,7 +125,7 @@ const OAuth2Implicit = ({ save, item = {}, request, handleRun, updateAuth, colle
               onRun={handleRun}
               collection={collection}
               item={item}
-              placeholder={useSystemBrowser ? 'https://localhost/callback' : undefined}
+              placeholder={useSystemBrowser ? 'kevin://app/oauth2/callback' : undefined}
               readOnly={readOnly}
               isCompact
             />

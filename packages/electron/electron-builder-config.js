@@ -52,7 +52,7 @@ const config = {
       {
         name: 'Kevin',
         schemes: [
-          'bruno'
+          'kevin'
         ]
       }
     ]
@@ -77,13 +77,13 @@ const config = {
     protocols: [
       {
         name: 'Kevin',
-        schemes: ['bruno']
+        schemes: ['kevin']
       }
     ],
     category: 'Development',
     desktop: {
       entry: {
-        MimeType: 'x-scheme-handler/bruno;'
+        MimeType: 'x-scheme-handler/kevin;'
       }
     }
   },

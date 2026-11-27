@@ -113,6 +113,6 @@ This documentation supports Markdown formatting! You can use:
 - **Bold** and *italic* text
 - \`code blocks\` and syntax highlighting
 - Tables and lists
-- [Links](https://usebruno.com)
+- [Links](https://example.com)
 - And more!
 `;
