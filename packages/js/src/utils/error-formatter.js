@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const YAML = require('yaml');
-const { SCRIPT_TYPES, normalizeLineEndings } = require('@usebruno/common');
+const { SCRIPT_TYPES, normalizeLineEndings } = require('@tern/common');
 const { NODEVM_SCRIPT_WRAPPER_OFFSET, QUICKJS_SCRIPT_WRAPPER_OFFSET } = require('./sandbox');
 
 // Scripts are normalised to LF before execution, so line numbers in errors count LF lines.

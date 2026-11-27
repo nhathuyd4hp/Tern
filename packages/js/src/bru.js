@@ -1,8 +1,8 @@
 const { cloneDeep, isEqual } = require('lodash');
 const xmlFormat = require('xml-formatter');
-const { interpolate: _interpolate } = require('@usebruno/common');
-const { createSendRequest } = require('@usebruno/requests').scripting;
-const { jar: createCookieJar, getCookiesForUrl } = require('@usebruno/requests').cookies;
+const { interpolate: _interpolate } = require('@tern/common');
+const { createSendRequest } = require('@tern/requests').scripting;
+const { jar: createCookieJar, getCookiesForUrl } = require('@tern/requests').cookies;
 const CookieList = require('./cookie-list');
 
 const variableNameRegex = /^[\w-.]*$/;

@@ -1,10 +1,10 @@
-# @usebruno/sqlite
+# @tern/sqlite
 
 SQLite storage for the Bruno API client. You author migrations as `.ts` and statements as `.sql`; the package compiles them into a typed data layer for the Electron main process.
 
 ## Entry point
 
-`@usebruno/sqlite` (or `/node`) — main process only. Owns the DB and runs statements, using the built-in `node:sqlite`.
+`@tern/sqlite` (or `/node`) — main process only. Owns the DB and runs statements, using the built-in `node:sqlite`.
 
 ## Add a migration
 
@@ -66,7 +66,7 @@ Run `npm run generate` (or `build`) to compile statements into the typed registr
 ## Use it — main process
 
 ```js
-const { createDatabase } = require('@usebruno/sqlite');
+const { createDatabase } = require('@tern/sqlite');
 
 const { db, statements } = createDatabase('/path/to/bruno.db');
 

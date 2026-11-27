@@ -1,5 +1,5 @@
 {
-  "name": "@usebruno/requests",
+  "name": "@tern/requests",
   "version": "0.1.0",
   "license": "MIT",
   "main": "dist/cjs/index.js",
@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "@faker-js/faker": "^9.7.0",
-    "@usebruno/common": "0.1.0",
+    "@tern/common": "0.1.0",
     "@grpc/grpc-js": "1.14.6",
     "@grpc/proto-loader": "^0.7.15",
     "@types/qs": "^6.9.18",

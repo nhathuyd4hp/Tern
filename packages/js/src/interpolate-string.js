@@ -1,4 +1,4 @@
-const { interpolate } = require('@usebruno/common');
+const { interpolate } = require('@tern/common');
 
 const interpolateString = (
   str,

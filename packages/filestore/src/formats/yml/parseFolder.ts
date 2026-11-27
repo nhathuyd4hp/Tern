@@ -1,4 +1,4 @@
-import type { FolderRoot } from '@usebruno/schema-types/collection/folder';
+import type { FolderRoot } from '@tern/schema-types/collection/folder';
 import type { Folder } from '@opencollection/types/collection/item';
 import { parseYml } from './utils';
 import { toBrunoAuth } from './common/auth';
@@ -6,7 +6,7 @@ import { toBrunoHttpHeaders } from './common/headers';
 import { toBrunoVariables } from './common/variables';
 import { toBrunoPostResponseVariables } from './common/actions';
 import { toBrunoScripts } from './common/scripts';
-import { normalizeTags } from '@usebruno/common';
+import { normalizeTags } from '@tern/common';
 import { ensureString } from '../../utils';
 
 const parseFolder = (ymlString: string): FolderRoot => {

@@ -1,9 +1,9 @@
-import type { Environment as BrunoEnvironment, EnvironmentVariable as BrunoEnvironmentVariable } from '@usebruno/schema-types/collection/environment';
+import type { Environment as BrunoEnvironment, EnvironmentVariable as BrunoEnvironmentVariable } from '@tern/schema-types/collection/environment';
 import type { Environment } from '@opencollection/types/config/environments';
 import type { Variable, SecretVariable } from '@opencollection/types/common/variables';
 import { stringifyYml } from './utils';
 import { hasTypedMetadata, toOpenCollectionTypedValue, serializeVariableValue } from './common/datatype';
-import { validatedEnvironmentExtendsFrom } from '@usebruno/common/utils';
+import { validatedEnvironmentExtendsFrom } from '@tern/common/utils';
 
 export const toOpenCollectionEnvironmentVariables = (variables: BrunoEnvironmentVariable[]): (Variable | SecretVariable)[] | undefined => {
   if (!variables?.length) {

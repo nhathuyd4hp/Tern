@@ -1,6 +1,6 @@
 // Mocked so bru.sendRequest doesn't hit the network.
-jest.mock('@usebruno/requests', () => {
-  const realCookies = jest.requireActual('@usebruno/requests').cookies;
+jest.mock('@tern/requests', () => {
+  const realCookies = jest.requireActual('@tern/requests').cookies;
   return {
     cookies: realCookies,
     scripting: {

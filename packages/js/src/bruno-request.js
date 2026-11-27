@@ -1,4 +1,4 @@
-const { getMediaType } = require('@usebruno/common').utils;
+const { getMediaType } = require('@tern/common').utils;
 const HeaderList = require('./header-list');
 const { parseUrl } = require('./utils/url');
 

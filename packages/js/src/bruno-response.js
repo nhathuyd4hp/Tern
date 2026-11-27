@@ -1,4 +1,4 @@
-const { get } = require('@usebruno/query');
+const { get } = require('@tern/query');
 const _ = require('lodash');
 const HeaderList = require('./header-list');
 

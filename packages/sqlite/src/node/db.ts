@@ -6,7 +6,7 @@ export type DatabaseOptions = DatabaseSyncOptions;
 
 export type DatabasePragmas = Record<string, string | number>;
 
-const MIGRATION_ERROR = Symbol.for('@usebruno/sqlite:migration-error');
+const MIGRATION_ERROR = Symbol.for('@tern/sqlite:migration-error');
 
 export class DatabaseMigrationError extends Error {
   readonly [MIGRATION_ERROR] = true;

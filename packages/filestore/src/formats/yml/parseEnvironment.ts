@@ -1,10 +1,10 @@
-import type { Environment as BrunoEnvironment, EnvironmentVariable as BrunoEnvironmentVariable } from '@usebruno/schema-types/collection/environment';
+import type { Environment as BrunoEnvironment, EnvironmentVariable as BrunoEnvironmentVariable } from '@tern/schema-types/collection/environment';
 import type { Environment } from '@opencollection/types/config/environments';
 import type { Variable, SecretVariable } from '@opencollection/types/common/variables';
 import { parseYml } from './utils';
 import { uuid, ensureString } from '../../utils';
 import { isTypedValue, fromOpenCollectionTypedValue } from './common/datatype';
-import { validatedEnvironmentExtendsFrom } from '@usebruno/common/utils';
+import { validatedEnvironmentExtendsFrom } from '@tern/common/utils';
 
 const isSecretVariable = (v: Variable | SecretVariable): v is SecretVariable => {
   return 'secret' in v && v.secret === true;

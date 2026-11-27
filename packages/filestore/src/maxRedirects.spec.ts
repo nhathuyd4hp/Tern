@@ -1,5 +1,5 @@
 import { parseRequest, stringifyRequest } from './index';
-import { DEFAULT_MAX_REDIRECTS } from '@usebruno/common/utils';
+import { DEFAULT_MAX_REDIRECTS } from '@tern/common/utils';
 import type { CollectionFormat } from './types';
 
 const FORMATS: CollectionFormat[] = ['bru', 'yml'];

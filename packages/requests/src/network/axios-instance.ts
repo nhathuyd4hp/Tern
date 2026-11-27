@@ -13,7 +13,7 @@ import https from 'node:https';
  *   maxRedirects: 0,
  *   proxy: false,
  *   headers: {
- *       "User-Agent": `kevin-runtime/_version_`
+ *       "User-Agent": `tern-runtime/_version_`
  *   },
  * });
  */
