@@ -4,10 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   IconCategory,
   IconBox,
-  IconChevronDown,
-  IconEye,
-  IconSettings,
-  IconDots
+  IconChevronDown
 } from '@tabler/icons';
 import OpenAPISyncIcon from 'components/Icons/OpenAPISync';
 import { getWorkspaceCollections } from 'utils/collections';
@@ -17,7 +14,6 @@ import { selectFirstTabUidByCollection } from 'src/selectors/tab';
 import { addTab, focusTab } from 'providers/ReduxStore/slices/tabs';
 import { uuid } from 'utils/common';
 import Dropdown from 'components/Dropdown';
-import MenuDropdown from 'ui/MenuDropdown';
 import EnvironmentSelector from 'components/Environments/EnvironmentSelector';
 import ToolHint from 'components/ToolHint';
 import JsSandboxMode from 'components/SecuritySettings/JsSandboxMode';
@@ -102,26 +98,6 @@ const CollectionHeader = ({ collection, isScratchCollection }) => {
   };
 
   // Collection action handlers
-  const viewVariables = () => {
-    dispatch(
-      addTab({
-        uid: uuid(),
-        collectionUid: collection.uid,
-        type: 'variables'
-      })
-    );
-  };
-
-  const viewCollectionSettings = () => {
-    dispatch(
-      addTab({
-        uid: collection.uid,
-        collectionUid: collection.uid,
-        type: 'collection-settings'
-      })
-    );
-  };
-
   const viewOpenApiSync = () => {
     dispatch(addTab({
       uid: uuid(),
@@ -129,15 +105,6 @@ const CollectionHeader = ({ collection, isScratchCollection }) => {
       type: 'openapi-sync'
     }));
   };
-
-  // Build overflow menu items for the "..." dropdown
-  const overflowMenuItems = [
-    { id: 'variables', label: 'Variables', leftSection: IconEye, onClick: viewVariables },
-    ...(!hasOpenApiSyncConfigured
-      ? [{ id: 'openapi-sync', label: 'OpenAPI', leftSection: OpenAPISyncIcon, onClick: viewOpenApiSync }]
-      : []),
-    { id: 'collection-settings', label: 'Application Settings', leftSection: IconSettings, onClick: viewCollectionSettings }
-  ];
 
   const handleDisplayIconClick = (e) => {
     const uid = isScratchCollection ? `${collection.uid}-overview` : collection.uid;
@@ -239,12 +206,6 @@ const CollectionHeader = ({ collection, isScratchCollection }) => {
               )}
               {/* JS Sandbox Mode - always visible */}
               <JsSandboxMode collection={collection} />
-              {/* Overflow menu */}
-              <MenuDropdown items={overflowMenuItems} placement="bottom-end" data-testid="more-actions">
-                <ActionIcon label="More actions" size="sm" style={{ border: `1px solid ${theme.border.border1}`, borderRadius: theme.border.radius.base, width: 24, marginRight: 4, marginLeft: 4 }}>
-                  <IconDots size={16} strokeWidth={1.5} />
-                </ActionIcon>
-              </MenuDropdown>
               {/* Environment Selector - always visible */}
               <span>
                 <EnvironmentSelector collection={collection} />

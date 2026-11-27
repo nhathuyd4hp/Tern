@@ -56,9 +56,9 @@ const Wrapper = styled.div`
 
   .tippy-box {
     width: ${(props) => props.width}px;
-    min-width: 12rem;
+    min-width: 19rem;
     max-width: 650px !important;
-    min-height: 15.5rem;
+    min-height: 16rem;
     max-height: 75vh;
     font-size: ${(props) => props.theme.font.size.base};
     position: relative;
@@ -145,20 +145,20 @@ const Wrapper = styled.div`
   }
 
   .empty-state {
-    max-width: 20rem;
+    max-width: 24rem;
     margin: 0 auto;
-    padding: 0.35rem 0.6rem;
+    padding: 1.5rem 1.5rem 2rem;
     text-align: center;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 12.5rem;
+    min-height: 15rem;
 
     h3 {
       color: ${(props) => props.theme.text};
-      font-size: 1rem;
-      font-weight: 500;
+      font-size: 1.25rem;
+      font-weight: 600;
       margin-bottom: 0.5rem;
       line-height: 1.4;
     }
@@ -166,12 +166,10 @@ const Wrapper = styled.div`
     p {
       color: ${(props) => props.theme.text};
       opacity: 0.75;
-      font-size: ${(props) => props.theme.font.size.xs};
+      font-size: ${(props) => props.theme.font.size.base};
       line-height: 1.5;
-      margin-bottom: 1rem;
-      max-width: 11.875rem;
-      margin: 0 auto;
-      margin-bottom: 1rem;
+      max-width: 18rem;
+      margin: 0 auto 1.5rem;
     }
 
     .space-y-2 {
@@ -183,11 +181,11 @@ const Wrapper = styled.div`
       border: 0.0625rem solid ${(props) => props.theme.text};
       background: transparent;
       color: ${(props) => props.theme.text};
-      padding: 0.5rem 1rem;
-      border-radius: 0.375rem;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
       width: 100%;
-      margin-bottom: 0.5rem;
-      font-size: ${(props) => props.theme.font.size.sm};
+      margin-bottom: 0.75rem;
+      font-size: ${(props) => props.theme.font.size.base};
       font-weight: 500;
       display: flex;
       align-items: center;

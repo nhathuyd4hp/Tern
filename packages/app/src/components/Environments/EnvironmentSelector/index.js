@@ -283,7 +283,7 @@ const EnvironmentSelector = ({ collection }) => {
             {TABS.map((tab) => (
               <button
                 key={tab.id}
-                className={`tab-button whitespace-nowrap pb-[0.375rem] border-b-[0.125rem] bg-transparent flex align-center cursor-pointer transition-all duration-200 mr-[1.25rem] ${
+                className={`tab-button whitespace-nowrap pb-[0.375rem] border-b-[0.125rem] bg-transparent flex flex-1 justify-center align-center cursor-pointer transition-all duration-200 ${
                   activeTab === tab.id ? 'active' : 'inactive'
                 }`}
                 onClick={() => {

@@ -31,7 +31,6 @@ const OpenAPISyncTab = ({ collection: application, folder }) => {
     handleDisconnect,
     handleSaveSettings,
     openEndpointInTab,
-    openItemInTab,
     reloadDrift
   } = useOpenAPISync(collection);
 
@@ -121,7 +120,6 @@ const OpenAPISyncTab = ({ collection: application, folder }) => {
                 specDrift={specDrift}
                 remoteDrift={remoteDrift}
                 onTabSelect={scrollToSection}
-                onOpenItem={openItemInTab}
                 error={error}
                 onOpenSettings={() => setShowSettingsModal(true)}
                 onToggleAutoApply={(autoApply) => handleSaveSettings({

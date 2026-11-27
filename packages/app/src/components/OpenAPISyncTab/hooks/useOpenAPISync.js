@@ -423,7 +423,6 @@ const useOpenAPISync = (collection) => {
     handleDisconnect,
     handleSaveSettings,
     openEndpointInTab,
-    openItemInTab,
     reloadDrift
   };
 };

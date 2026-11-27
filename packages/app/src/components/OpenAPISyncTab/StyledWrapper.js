@@ -240,125 +240,66 @@ const StyledWrapper = styled.div`
       }
     }
 
-    .endpoint-list-toggle {
+    .method-chart {
       display: flex;
-      align-items: center;
-      gap: 0.25rem;
-      margin-bottom: 6px;
-      padding: 0;
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: ${(props) => props.theme.text};
-
-      svg {
-        transition: transform 0.15s ease;
-
-        &.expanded {
-          transform: rotate(90deg);
-        }
-      }
-
-      .overview-section-title {
-        margin-bottom: 0;
-      }
-    }
-
-    .endpoint-list {
-      border: 1px solid ${(props) => props.theme.input.border};
-      border-radius: ${(props) => props.theme.border.radius.md};
-      overflow: hidden;
+      flex-direction: column;
+      gap: 10px;
+      border: 1px solid ${(props) => props.theme.border.border1};
+      border-radius: 8px;
+      padding: 14px 16px;
+      background: ${(props) => props.theme.background.default};
       margin-bottom: 1rem;
     }
 
-    .endpoint-list-head,
-    .endpoint-list-row {
-      display: grid;
-      grid-template-columns: 4.5rem minmax(0, 1fr) minmax(0, 2fr);
+    .method-chart-row {
+      display: flex;
       align-items: center;
-      column-gap: 1rem;
+      gap: 12px;
     }
 
-    .endpoint-list-head {
-      padding: 0.5rem 1rem;
+    .method-chart-track {
+      flex: 1;
+      min-width: 0;
+      height: 10px;
+      border-radius: 5px;
       background: ${(props) => props.theme.background.mantle};
-      border-bottom: 1px solid ${(props) => props.theme.input.border};
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      color: ${(props) => props.theme.colors.text.muted};
+      overflow: hidden;
     }
 
-    .endpoint-list-row {
-      width: 100%;
-      padding: 0.5rem 1rem;
-      background: transparent;
-      border: none;
-      border-bottom: 1px solid ${(props) => props.theme.input.border};
-      text-align: left;
-      cursor: pointer;
-      font-size: ${(props) => props.theme.font.size.sm};
+    .method-chart-bar {
+      height: 100%;
+      min-width: 4px;
+      border-radius: 5px;
+    }
+
+    .method-chart-count {
+      width: 2.5rem;
+      text-align: right;
+      font-size: 13px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
       color: ${(props) => props.theme.text};
-
-      &:last-child {
-        border-bottom: none;
-      }
-
-      &:hover {
-        background: ${(props) => props.theme.background.mantle};
-      }
-
-      .endpoint-list-name {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-
-      .endpoint-list-path {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        font-family: monospace;
-        color: ${(props) => props.theme.colors.text.muted};
-      }
     }
 
     .spec-details-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
     }
 
     .spec-detail-item {
       display: flex;
+      flex: 1 1 180px;
       flex-direction: column;
-      padding: 12px 16px;
-      border-right: 0.0625rem solid ${(props) => props.theme.border.border1};
-      border-bottom: 0.0625rem solid ${(props) => props.theme.border.border1};
+      min-width: 0;
+      padding: 14px 16px;
+      border: 1px solid ${(props) => props.theme.border.border1};
+      border-radius: 8px;
+      background: ${(props) => props.theme.background.default};
 
-      &:nth-child(-n+3) {
-        border-top: 0.0625rem solid ${(props) => props.theme.border.border1};
-      }
-
-      &:nth-child(3n+1) {
-        border-left: 0.0625rem solid ${(props) => props.theme.border.border1};
-      }
-
-      &:first-child {
-        border-top-left-radius: ${(props) => props.theme.border.radius.md};
-      }
-
-      &:nth-child(3) {
-        border-top-right-radius: ${(props) => props.theme.border.radius.md};
-      }
-
-      &:nth-child(3n+1):nth-last-child(-n+3) {
-        border-bottom-left-radius: ${(props) => props.theme.border.radius.md};
-      }
-
-      &:nth-child(3n):nth-last-child(-n+3),
-      &:last-child {
-        border-bottom-right-radius: ${(props) => props.theme.border.radius.md};
+      .spec-detail-value {
+        max-width: 100%;
+        min-width: 0;
       }
     }
 

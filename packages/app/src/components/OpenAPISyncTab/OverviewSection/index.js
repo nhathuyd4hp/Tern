@@ -1,14 +1,14 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { getTotalRequestCountInCollection, flattenItems } from 'utils/collections/';
 import { countEndpoints, formatCheckInterval } from '../utils';
 import moment from 'moment';
-import { IconCheck, IconChevronRight } from '@tabler/icons';
+import { IconCheck, IconRefresh, IconRefreshOff } from '@tabler/icons';
 import Button from 'ui/Button';
-import StatusBadge from 'ui/StatusBadge';
 import Toggle from 'ui/Toggle';
 import MethodBadge from 'ui/MethodBadge';
 import Help from 'components/Help';
+import { useTheme } from 'providers/Theme';
 
 const SUMMARY_CARDS = [
   {
@@ -39,13 +39,21 @@ const SUMMARY_CARDS = [
   }
 ];
 
-const OverviewSection = ({ collection, storedSpec, collectionDrift, specDrift, remoteDrift, onTabSelect, error, onOpenSettings, onToggleAutoApply, onOpenItem }) => {
+const OverviewSection = ({ collection, storedSpec, collectionDrift, specDrift, remoteDrift, onTabSelect, error, onOpenSettings, onToggleAutoApply }) => {
   const openApiSyncConfig = collection?.brunoConfig?.openapi?.[0];
-  const [endpointsExpanded, setEndpointsExpanded] = useState(true);
-  const endpoints = useMemo(
-    () => flattenItems(collection?.items || []).filter((item) => item.type === 'http-request'),
-    [collection?.items]
-  );
+  const { theme } = useTheme();
+  const getMethodColor = (method) => theme.request.methods[method.toLowerCase()] || theme.colors.text.muted;
+  const methodCounts = useMemo(() => {
+    const counts = {};
+    flattenItems(collection?.items || [])
+      .filter((item) => item.type === 'http-request')
+      .forEach((item) => {
+        const method = (item.request?.method || 'GET').toUpperCase();
+        counts[method] = (counts[method] || 0) + 1;
+      });
+    return Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  }, [collection?.items]);
+  const maxMethodCount = methodCounts[0]?.[1] || 1;
 
   const reduxError = useSelector((state) => state.openapiSync?.collectionUpdates?.[collection.syncKey || collection.uid]?.error);
   const specMeta = useSelector((state) => state.openapiSync?.storedSpecMeta?.[collection.syncKey || collection.uid] || null);
@@ -92,6 +100,10 @@ const OverviewSection = ({ collection, storedSpec, collectionDrift, specDrift, r
   };
 
   const details = [
+    {
+      label: 'Spec Title',
+      value: specMeta?.title ? <span className="truncate" title={specMeta.title}>{specMeta.title}</span> : '–'
+    },
     { label: 'Spec Version', value: version ? `v${version}` : '–' },
     { label: 'Endpoints in Spec', value: endpointCount != null ? endpointCount : '–' },
     {
@@ -99,20 +111,16 @@ const OverviewSection = ({ collection, storedSpec, collectionDrift, specDrift, r
       value: lastSyncDate ? moment(lastSyncDate).fromNow() : '–',
       tooltip: lastSyncDate ? moment(lastSyncDate).format('MMMM D, YYYY [at] h:mm A') : undefined,
       headerExtra: (
-        <StatusBadge
-          radius="full"
-          rightSection={(
-            <Help icon="info" size={11} placement="left" width={220}>
-              {autoCheckEnabled
-                ? `Tern checks the spec for changes every ${formatCheckInterval(autoCheckInterval, { long: true })}. You can change this in Edit connection settings.`
-                : 'Tern does not check the spec for changes on its own. Use Check for updates, or turn it on in Edit connection settings.'}
-            </Help>
-          )}
-        >
+        <Help iconComponent={autoCheckEnabled ? IconRefresh : IconRefreshOff} size={14} placement="left" width={240}>
+          <div className="font-medium">
+            {autoCheckEnabled
+              ? `Auto-check every ${formatCheckInterval(autoCheckInterval)}${openApiSyncConfig?.autoApply ? ' · Auto reload' : ''}`
+              : 'Auto-check off'}
+          </div>
           {autoCheckEnabled
-            ? `Auto-check every ${formatCheckInterval(autoCheckInterval)}${openApiSyncConfig?.autoApply ? ' · Auto reload' : ''}`
-            : 'Auto-check off'}
-        </StatusBadge>
+            ? `Tern checks the spec for changes every ${formatCheckInterval(autoCheckInterval, { long: true })}. You can change this in Edit connection settings.`
+            : 'Tern does not check the spec for changes on its own. Use Check for updates, or turn it on in Edit connection settings.'}
+        </Help>
       )
     }
   ].filter(Boolean);
@@ -295,38 +303,23 @@ const OverviewSection = ({ collection, storedSpec, collectionDrift, specDrift, r
         ))}
       </div>
 
-      {endpoints.length > 0 && (
+      {methodCounts.length > 0 && (
         <>
-          <button
-            type="button"
-            className="endpoint-list-toggle mt-7"
-            aria-expanded={endpointsExpanded}
-            onClick={() => setEndpointsExpanded((expanded) => !expanded)}
-          >
-            <IconChevronRight size={14} strokeWidth={2} className={endpointsExpanded ? 'expanded' : ''} />
-            <span className="overview-section-title">Endpoints ({endpoints.length})</span>
-          </button>
-          {endpointsExpanded && (
-            <div className="endpoint-list" data-testid="openapi-sync-endpoint-list">
-              <div className="endpoint-list-head">
-                <span>Method</span>
-                <span>Name</span>
-                <span>Path</span>
+          <h4 className="overview-section-title mt-7">Requests by Method</h4>
+          <div className="method-chart" data-testid="openapi-sync-method-stats">
+            {methodCounts.map(([method, count]) => (
+              <div className="method-chart-row" key={method}>
+                <MethodBadge method={method} size="md" />
+                <div className="method-chart-track">
+                  <div
+                    className="method-chart-bar"
+                    style={{ width: `${(count / maxMethodCount) * 100}%`, backgroundColor: getMethodColor(method) }}
+                  />
+                </div>
+                <span className="method-chart-count">{count}</span>
               </div>
-              {endpoints.map((item) => (
-                <button
-                  type="button"
-                  key={item.uid}
-                  className="endpoint-list-row"
-                  onClick={() => onOpenItem?.(item.uid)}
-                >
-                  <MethodBadge method={item.request?.method} size="sm" />
-                  <span className="endpoint-list-name">{item.name}</span>
-                  <span className="endpoint-list-path">{(item.request?.url || '').replace(/^\{\{[^}]+\}\}/, '')}</span>
-                </button>
-              ))}
-            </div>
-          )}
+            ))}
+          </div>
         </>
       )}
     </div>

@@ -18,6 +18,10 @@ const renderOverview = (syncConfig) => renderWithTheme(
 
 const detailItem = (getByText, label) => getByText(label).closest('.spec-detail-item');
 
+const hoverAutoCheckIcon = (getByText) => {
+  fireEvent.mouseEnter(detailItem(getByText, 'Last Synced At').querySelector('.spec-detail-header svg').parentElement);
+};
+
 describe('OverviewSection', () => {
   it('does not show grouping, naming or auth placement details', () => {
     const { queryByText } = renderOverview({ groupBy: 'tags', requestNameSource: 'summary', authPlacement: 'request' });
@@ -27,24 +31,29 @@ describe('OverviewSection', () => {
     expect(queryByText('Auth Placement')).not.toBeInTheDocument();
   });
 
-  it('shows the auto-check interval next to the last synced time', () => {
+  it('shows the auto-check state as an icon that explains it on hover', () => {
     const { getByText, queryByText } = renderOverview({ autoCheck: true, autoCheckInterval: 15 });
 
-    expect(detailItem(getByText, 'Last Synced At')).toHaveTextContent('Auto-check every 15 min');
+    hoverAutoCheckIcon(getByText);
+
+    expect(getByText('Auto-check every 15 min')).toBeInTheDocument();
+    expect(getByText('Tern checks the spec for changes every 15 minutes.', { exact: false })).toBeInTheDocument();
     expect(queryByText('Auto Check for Updates')).not.toBeInTheDocument();
   });
 
-  it('explains the auto-check interval in a tooltip on the badge', () => {
-    const { getByText } = renderOverview({ autoCheck: true, autoCheckInterval: 15 });
+  it('adds auto reload to the auto-check tooltip when it is on', () => {
+    const { getByText } = renderOverview({ autoCheck: true, autoCheckInterval: 15, autoApply: true });
 
-    fireEvent.mouseEnter(getByText('Auto-check every 15 min').querySelector('svg').parentElement);
+    hoverAutoCheckIcon(getByText);
 
-    expect(getByText('Tern checks the spec for changes every 15 minutes.', { exact: false })).toBeInTheDocument();
+    expect(getByText('Auto-check every 15 min · Auto reload')).toBeInTheDocument();
   });
 
-  it('shows that auto-check is off next to the last synced time', () => {
+  it('shows that auto-check is off in the tooltip', () => {
     const { getByText } = renderOverview({ autoCheck: false });
 
-    expect(detailItem(getByText, 'Last Synced At')).toHaveTextContent('Auto-check off');
+    hoverAutoCheckIcon(getByText);
+
+    expect(getByText('Auto-check off')).toBeInTheDocument();
   });
 });
