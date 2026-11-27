@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import { rgba } from 'utils/color';
 
 const kindColor = (theme, kind) => ({
   ok: theme.colors.text.green,
@@ -16,20 +17,23 @@ const StyledWrapper = styled.div`
   background: ${(props) => props.theme.background.base};
   color: ${(props) => props.theme.text};
 
-  &.selected {
-    border-color: ${(props) => props.theme.accents.primary};
-  }
-
   &.passed {
     border-color: ${(props) => props.theme.colors.text.green};
+    background: ${(props) => rgba(props.theme.colors.text.green, 0.14)};
   }
 
   &.failed {
     border-color: ${(props) => props.theme.colors.text.danger};
+    background: ${(props) => rgba(props.theme.colors.text.danger, 0.14)};
   }
 
   &.running {
+    border-style: dashed;
     border-color: ${(props) => props.theme.colors.text.muted};
+  }
+
+  &.selected {
+    box-shadow: 0 0 0 2px ${(props) => props.theme.accents.primary};
   }
 
   .node-head {
@@ -55,33 +59,6 @@ const StyledWrapper = styled.div`
     &.missing {
       color: ${(props) => props.theme.colors.text.danger};
     }
-  }
-
-  .node-result {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    padding: 0.25rem 0.75rem 0;
-    font-size: ${(props) => props.theme.font.size.sm};
-
-    &.passed {
-      color: ${(props) => props.theme.colors.text.green};
-    }
-
-    &.failed {
-      color: ${(props) => props.theme.colors.text.danger};
-    }
-
-    &.running {
-      color: ${(props) => props.theme.colors.text.muted};
-    }
-  }
-
-  .node-error {
-    padding: 0.25rem 0.75rem 0;
-    font-size: ${(props) => props.theme.font.size.sm};
-    color: ${(props) => props.theme.colors.text.danger};
-    word-break: break-word;
   }
 
   .node-statuses {
@@ -110,9 +87,9 @@ const StyledWrapper = styled.div`
       color: ${(props) => props.theme.colors.text.muted};
     }
 
-    &.ok { border-left-color: ${(props) => kindColor(props.theme, 'ok')}; }
-    &.redirect { border-left-color: ${(props) => kindColor(props.theme, 'redirect')}; }
-    &.error { border-left-color: ${(props) => kindColor(props.theme, 'error')}; }
+    &.ok { border-left-color: ${(props) => kindColor(props.theme, 'ok')}; background: ${(props) => rgba(kindColor(props.theme, 'ok'), 0.1)}; }
+    &.redirect { border-left-color: ${(props) => kindColor(props.theme, 'redirect')}; background: ${(props) => rgba(kindColor(props.theme, 'redirect'), 0.1)}; }
+    &.error { border-left-color: ${(props) => kindColor(props.theme, 'error')}; background: ${(props) => rgba(kindColor(props.theme, 'error'), 0.1)}; }
     &.other { border-left-color: ${(props) => kindColor(props.theme, 'other')}; }
 
     &.ok .status-code { color: ${(props) => kindColor(props.theme, 'ok')}; }

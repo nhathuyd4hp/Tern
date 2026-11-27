@@ -6,8 +6,9 @@ import { flattenItems, isItemARequest } from 'utils/collections/index';
 // A flow is a graph of requests of one application. A node sends a request; the status of its response picks
 // the edge to follow (an edge leaves a node from the handle of a status, or from 'other'). Values taken from a
 // response become variables ({{name}}) for the nodes after it.
-//   Flow = { id, name, nodes: [{ id, requestPath, position: { x, y }, inputs: { params, headers, body }, extractions: [{ name, expression }] }],
+//   Flow = { id, name, nodes: [{ id, requestPath, position: { x, y }, inputs: { params, headers, body }, statuses: ['404', ...], extractions: [{ name, expression }] }],
 //            edges: [{ id, source, sourceHandle, target }] }
+//   statuses are the ones the user added to a node, besides those its request documents.
 //   inputs.params / inputs.headers map a name to the value to send instead of the saved one; inputs.body is a JSON text or null.
 // Flows are saved with their application, in its flows.json.
 
@@ -40,6 +41,7 @@ const sanitizeNode = (node) => ({
     headers: textMap(node?.inputs?.headers),
     body: typeof node?.inputs?.body === 'string' ? node.inputs.body : null
   },
+  statuses: [...new Set((Array.isArray(node?.statuses) ? node.statuses : []).map(String).filter((status) => /^[1-5]\d\d$/.test(status)))].sort(),
   extractions: (Array.isArray(node?.extractions) ? node.extractions : []).map((extraction) => ({
     name: text(extraction?.name),
     expression: text(extraction?.expression)
@@ -201,6 +203,75 @@ export const getFlowRequests = (application) => flattenItems(application?.items 
 export const findRequestByPath = (application, requestPath) => {
   const wanted = normalizePath(requestPath).toLowerCase();
   return getFlowRequests(application).find((entry) => entry.requestPath.toLowerCase() === wanted)?.item || null;
+};
+
+/** The nodes whose responses can reach this one: every node with a path of connections leading to it. */
+export const getUpstreamNodes = (flow, nodeId) => {
+  const seen = new Set();
+  const queue = [nodeId];
+  while (queue.length) {
+    const current = queue.shift();
+    flow.edges
+      .filter((edge) => edge.target === current && edge.source !== nodeId && !seen.has(edge.source))
+      .forEach((edge) => {
+        seen.add(edge.source);
+        queue.push(edge.source);
+      });
+  }
+  return flow.nodes.filter((node) => seen.has(node.id));
+};
+
+const VARIABLE_NAME = /^[A-Za-z0-9_.-]+$/;
+
+/** Why a value shared under this name is not allowed, or null: letters, digits, _ - and . only, and no two shared values with one name. */
+export const getVariableNameProblem = (flow, nodeId, position, name) => {
+  if (!name) return null;
+  if (!VARIABLE_NAME.test(name)) return 'Use only letters, digits, _ - and . (no spaces or accents)';
+  const clash = flow.nodes
+    .flatMap((node) => node.extractions.map((extraction, index) => ({ node, index, name: extraction.name })))
+    .find((entry) => entry.name === name && !(entry.node.id === nodeId && entry.index === position));
+  if (!clash) return null;
+  return `A value named "${name}" is already shared ${clash.node.id === nodeId ? 'by this request' : 'by another request'}`;
+};
+
+/** The first problem with the names of the shared values of a flow, or null. */
+export const getFlowNameProblem = (flow) => {
+  for (const node of flow.nodes) {
+    for (let index = 0; index < node.extractions.length; index++) {
+      const problem = getVariableNameProblem(flow, node.id, index, node.extractions[index].name);
+      if (problem) return problem;
+    }
+  }
+  return null;
+};
+
+/** A variable name not used yet in the flow: 'token', then 'token_2', 'token_3'... */
+export const freeVariableName = (flow, base) => {
+  const taken = new Set(flow.nodes.flatMap((node) => node.extractions.map((extraction) => extraction.name)));
+  if (!taken.has(base)) return base;
+  let counter = 2;
+  while (taken.has(`${base}_${counter}`)) counter += 1;
+  return `${base}_${counter}`;
+};
+
+/** How a status is coloured: 2xx 'ok' (green), 3xx 'redirect' (yellow), 4xx and 5xx 'error' (red), the rest 'other' (grey). */
+export const getStatusKind = (status) => {
+  const code = Number(status);
+  if (status === OTHER_STATUS || !Number.isFinite(code)) return 'other';
+  if (code >= 200 && code < 300) return 'ok';
+  if (code >= 300 && code < 400) return 'redirect';
+  if (code >= 400 && code < 600) return 'error';
+  return 'other';
+};
+
+/** The path of the URL a request calls, without host or query: '{{baseUrl}}/users/{{id}}?x=1' gives '/users/{{id}}'. */
+export const getRequestUrlPath = (item) => {
+  const path = String(item?.request?.url || '')
+    .trim()
+    .replace(/^[a-z][a-z0-9+.-]*:\/\/[^/?#]*/i, '')
+    .replace(/^\{\{[^}]*\}\}/, '')
+    .split(/[?#]/)[0];
+  return path || '/';
 };
 
 /** The statuses a request documents (from its examples, which come with the OpenAPI spec), plus 'other' for the rest. */

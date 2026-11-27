@@ -4,11 +4,12 @@ import { v4 as uuid } from 'uuid';
 import { ReactFlowProvider } from '@xyflow/react';
 import { IconPlayerPlay, IconPlayerStop, IconTrash } from '@tabler/icons';
 import Button from 'ui/Button';
-import { deleteFlow, getFlowRequests, saveFlow } from 'utils/flows';
+import { deleteFlow, getFlowNameProblem, getFlowRequests, getUpstreamNodes, saveFlow } from 'utils/flows';
 import { runFlow } from 'utils/flows/runFlow';
 import FlowCanvas from './FlowCanvas';
 import NodePanel from './NodePanel';
 import RequestPalette from './RequestPalette';
+import ResizeHandle from '../ResizeHandle';
 import StyledWrapper from './StyledWrapper';
 
 const NODE_SPACING = 300;
@@ -19,6 +20,8 @@ const FlowEditor = ({ application, flow, onDeleted }) => {
   const [outcome, setOutcome] = useState(null);
   const [running, setRunning] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
+  const [paletteWidth, setPaletteWidth] = useState(220);
+  const [panelWidth, setPanelWidth] = useState(340);
   const stopRequested = useRef(false);
 
   const requests = useMemo(() => getFlowRequests(application), [application]);
@@ -33,13 +36,24 @@ const FlowEditor = ({ application, flow, onDeleted }) => {
       requestPath,
       position: position || { x: rightmost + NODE_SPACING, y: 0 },
       inputs: { params: {}, headers: {}, body: null },
+      statuses: [],
       extractions: []
     };
     change({ nodes: [...flow.nodes, node] });
     setSelectedId(node.id);
   };
 
-  const changeNode = (next) => change({ nodes: flow.nodes.map((node) => (node.id === next.id ? next : node)) });
+  // A status taken away from a node takes the connection that left through it.
+  const changeNode = (next) => {
+    const previous = flow.nodes.find((node) => node.id === next.id);
+    const removed = (previous?.statuses || []).filter((status) => !next.statuses.includes(status));
+    change({
+      nodes: flow.nodes.map((node) => (node.id === next.id ? next : node)),
+      edges: flow.edges.filter((edge) => !(edge.source === next.id && removed.includes(edge.sourceHandle)))
+    });
+  };
+
+  const changeNodes = (nextNodes) => change({ nodes: flow.nodes.map((node) => nextNodes.find((next) => next.id === node.id) || node) });
 
   const removeNode = (nodeId) => {
     change({
@@ -56,10 +70,19 @@ const FlowEditor = ({ application, flow, onDeleted }) => {
     setRunning(true);
     try {
       const finished = await dispatch(runFlow(flow, application.uid, {
-        onNode: (nodeId, result) => setResults((current) => ({ ...current, [nodeId]: result })),
+        onNode: (nodeId, result) => {
+          setResults((current) => ({ ...current, [nodeId]: result }));
+          // the panel follows the request being run, so its response is there as soon as it comes back
+          setSelectedId(nodeId);
+        },
         shouldStop: () => stopRequested.current
       }));
       setOutcome({ status: finished.status, message: finished.message });
+      // at the end, show the request that failed, else the last one
+      const ran = Object.entries(finished.results || {});
+      const failed = ran.find(([, result]) => result.status === 'failed');
+      const shown = failed || ran[ran.length - 1];
+      if (shown) setSelectedId(shown[0]);
     } finally {
       setRunning(false);
     }
@@ -70,7 +93,12 @@ const FlowEditor = ({ application, flow, onDeleted }) => {
     onDeleted();
   };
 
+  const nameProblem = getFlowNameProblem(flow);
   const selected = flow.nodes.find((node) => node.id === selectedId) || null;
+  // the earlier requests whose responses a request can use
+  const upstream = selected
+    ? getUpstreamNodes(flow, selected.id).map((node) => ({ node, request: requestOf(node.requestPath) })).filter((entry) => entry.request)
+    : [];
 
   return (
     <StyledWrapper data-testid="flow-editor">
@@ -86,7 +114,7 @@ const FlowEditor = ({ application, flow, onDeleted }) => {
             Stop
           </Button>
         ) : (
-          <Button icon={<IconPlayerPlay size={14} />} disabled={flow.nodes.length === 0} onClick={run} data-testid="flow-run">
+          <Button icon={<IconPlayerPlay size={14} />} disabled={flow.nodes.length === 0 || Boolean(nameProblem)} title={nameProblem || undefined} onClick={run} data-testid="flow-run">
             Run
           </Button>
         )}
@@ -100,6 +128,10 @@ const FlowEditor = ({ application, flow, onDeleted }) => {
         Select a connection or a request and press Delete to remove it.
       </p>
 
+      {nameProblem && (
+        <div className="flow-summary failed" data-testid="flow-name-problem">{nameProblem}. Change one of the names to run the flow.</div>
+      )}
+
       {outcome && !running && (
         <div className={`flow-summary ${outcome.status}`} data-testid="flow-summary">
           {outcome.message}
@@ -107,7 +139,8 @@ const FlowEditor = ({ application, flow, onDeleted }) => {
       )}
 
       <div className="flow-body">
-        <RequestPalette requests={requests} disabled={running} onAdd={(requestPath) => addNode(requestPath)} />
+        <RequestPalette requests={requests} width={paletteWidth} disabled={running} onAdd={(requestPath) => addNode(requestPath)} />
+        <ResizeHandle label="Resize the list of requests" onResize={(delta) => setPaletteWidth((width) => Math.min(480, Math.max(140, width + delta)))} />
         <ReactFlowProvider>
           <FlowCanvas
             flow={flow}
@@ -121,15 +154,23 @@ const FlowEditor = ({ application, flow, onDeleted }) => {
           />
         </ReactFlowProvider>
         {selected && (
-          <NodePanel
-            key={selected.id}
-            node={selected}
-            request={requestOf(selected.requestPath)}
-            result={results[selected.id]}
-            disabled={running}
-            onChange={changeNode}
-            onRemove={() => removeNode(selected.id)}
-          />
+          <>
+            <ResizeHandle label="Resize the details of the request" onResize={(delta) => setPanelWidth((width) => Math.min(720, Math.max(260, width - delta)))} />
+            <NodePanel
+              key={selected.id}
+              width={panelWidth}
+              flow={flow}
+              node={selected}
+              upstream={upstream}
+              results={results}
+              onChangeMany={changeNodes}
+              request={requestOf(selected.requestPath)}
+              result={results[selected.id]}
+              disabled={running}
+              onChange={changeNode}
+              onRemove={() => removeNode(selected.id)}
+            />
+          </>
         )}
       </div>
     </StyledWrapper>

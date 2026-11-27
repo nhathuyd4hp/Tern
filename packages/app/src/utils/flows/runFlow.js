@@ -1,5 +1,7 @@
 import { findCollectionByUid, flattenItems } from 'utils/collections/index';
+import isEqual from 'lodash/isEqual';
 import { sendRequest } from 'providers/ReduxStore/slices/collections/actions';
+import { runtimeVariablesUpdateEvent } from 'providers/ReduxStore/slices/collections';
 import { findRequestByPath, OTHER_STATUS } from './index';
 
 const RESULT_LISTS = ['assertionResults', 'testResults', 'preRequestTestResults', 'postResponseTestResults'];
@@ -13,7 +15,10 @@ const applicationOf = (getState, collectionUid) => findCollectionByUid(getState(
 const fatalErrorOf = (item) => {
   const response = item?.response;
   if (!response) return 'No response';
-  if (response.isError || response.status === 'Error') return response.error || 'The request failed';
+  if (response.isError || response.status === 'Error' || response.error) {
+    return String(response.error?.message || response.error || 'The request failed');
+  }
+  if (typeof response.status !== 'number') return 'The request got no status back';
   return null;
 };
 
@@ -60,7 +65,68 @@ const applyInputs = (saved, inputs) => {
   return { ...original, url, params, headers, body };
 };
 
-const runNode = async (node, collectionUid, dispatch, getState) => {
+// What the panel of a request shows after a run.
+const responseOf = (response) => (response
+  ? { status: response.status, statusText: response.statusText, headers: response.headers, data: response.data, size: response.size, duration: response.duration }
+  : null);
+
+// 'res.body.data.user["id"][0]' -> ['data', 'user', 'id', 0]; null when the expression is not a plain path in the body.
+const bodyPathOf = (expression) => {
+  const match = /^res\.body((?:\.[A-Za-z_$][\w$]*|\["[^"]*"\]|\['[^']*'\]|\[\d+\])*)$/.exec(expression.trim());
+  if (!match) return null;
+  return [...match[1].matchAll(/\.([A-Za-z_$][\w$]*)|\["([^"]*)"\]|\['([^']*)'\]|\[(\d+)\]/g)].map((part) => (part[4] !== undefined ? Number(part[4]) : part[1] ?? part[2] ?? part[3]));
+};
+
+// Says why a value could not be taken, as far as the response shows: where the path stops being there.
+const explainMissing = ({ name, expression }, response) => {
+  const base = `Could not take ${name} (${expression})`;
+  const path = bodyPathOf(expression);
+  if (!path || !response) return `${base} from the response`;
+  let value = response.data;
+  if (typeof value === 'string') {
+    try {
+      value = JSON.parse(value);
+    } catch {
+      return `${base}: the response body is not JSON`;
+    }
+  }
+  let walked = 'res.body';
+  for (const key of path) {
+    if (value === null || value === undefined) return `${base}: ${walked} is ${value === null ? 'null' : 'missing'}`;
+    if (typeof value !== 'object') return `${base}: ${walked} is not an object`;
+    if (!(key in value)) return `${base}: ${walked} has no ${typeof key === 'number' ? `item ${key}` : `"${key}"`}`;
+    value = value[key];
+    walked += typeof key === 'number' ? `[${key}]` : `.${key}`;
+  }
+  return `${base}: ${walked} is ${value === null ? 'null' : 'missing'}`;
+};
+
+// The value a plain 'res.body...' path points to in the response; undefined when the path is not there.
+const readBodyPath = (response, path) => {
+  let value = response?.data;
+  if (typeof value === 'string') {
+    try {
+      value = JSON.parse(value);
+    } catch {
+      return undefined;
+    }
+  }
+  for (const key of path) {
+    if (value === null || typeof value !== 'object' || !(key in value)) return undefined;
+    value = value[key];
+  }
+  return value;
+};
+
+// Puts the values taken so far in the variables of the application, for the requests that follow. The pipeline
+// replaces them wholesale when a request ends, so they are put back before each request.
+const publishVariables = (dispatch, getState, collectionUid, variables) => {
+  const current = applicationOf(getState, collectionUid)?.runtimeVariables || {};
+  if (Object.entries(variables).every(([name, value]) => isEqual(current[name], value))) return;
+  dispatch(runtimeVariablesUpdateEvent({ collectionUid, runtimeVariables: { ...current, ...variables } }));
+};
+
+const runNode = async (node, collectionUid, dispatch, getState, flowVariables) => {
   const item = findRequestByPath(applicationOf(getState, collectionUid), node.requestPath);
   if (!item) return { status: 'failed', fatal: true, error: `Request not found: ${node.requestPath}` };
 
@@ -83,6 +149,7 @@ const runNode = async (node, collectionUid, dispatch, getState) => {
     }
   };
 
+  publishVariables(dispatch, getState, collectionUid, flowVariables);
   const startedAt = Date.now();
   try {
     await dispatch(sendRequest(request, collectionUid));
@@ -92,11 +159,20 @@ const runNode = async (node, collectionUid, dispatch, getState) => {
   await wait(30);
 
   const after = flattenItems(applicationOf(getState, collectionUid)?.items || []).find((candidate) => candidate.uid === item.uid);
-  const variables = await waitForVariables(getState, collectionUid, extractions.map((extraction) => extraction.name));
-  const extracted = Object.fromEntries(extractions.filter((extraction) => extraction.name in variables).map((extraction) => [extraction.name, variables[extraction.name]]));
-  const missing = extractions.filter((extraction) => !(extraction.name in extracted)).map((extraction) => extraction.name);
+  // A plain path in the body is read from the response itself; anything else is what the pipeline evaluated.
+  const fromBody = {};
+  extractions.forEach((extraction) => {
+    const path = bodyPathOf(extraction.expression);
+    const value = path ? readBodyPath(after?.response, path) : undefined;
+    if (value !== undefined && value !== null) fromBody[extraction.name] = value;
+  });
+  const rest = extractions.filter((extraction) => !(extraction.name in fromBody));
+  const variables = rest.length ? await waitForVariables(getState, collectionUid, rest.map((extraction) => extraction.name)) : {};
+  const extracted = { ...fromBody, ...Object.fromEntries(rest.filter((extraction) => extraction.name in variables).map((extraction) => [extraction.name, variables[extraction.name]])) };
+  publishVariables(dispatch, getState, collectionUid, { ...flowVariables, ...extracted });
+  const missing = extractions.filter((extraction) => !(extraction.name in extracted));
 
-  const fatal = fatalErrorOf(after) || (missing.length ? `Could not take ${missing.join(', ')} from the response` : null);
+  const fatal = fatalErrorOf(after) || (missing.length ? missing.map((extraction) => explainMissing(extraction, after?.response)).join('\n') : null);
   const error = fatal || testFailureOf(after);
   return {
     status: error ? 'failed' : 'passed',
@@ -105,7 +181,8 @@ const runNode = async (node, collectionUid, dispatch, getState) => {
     httpStatus: after?.response?.status,
     statusText: after?.response?.statusText,
     duration: after?.response?.duration ?? Date.now() - startedAt,
-    extracted
+    extracted,
+    response: responseOf(after?.response)
   };
 };
 
@@ -135,6 +212,7 @@ export const runFlow = (flow, collectionUid, { onNode = () => {}, shouldStop = (
   let node = startNodeOf(flow);
   if (!node) return { status: 'failed', message: flow.nodes.length ? 'Every request has a connection leading to it, so there is no first one' : 'Add a request to the flow', results };
 
+  const flowVariables = {};
   let via = null;
   let failure = null;
   for (let runs = 0; node; runs++) {
@@ -142,7 +220,8 @@ export const runFlow = (flow, collectionUid, { onNode = () => {}, shouldStop = (
     if (runs >= MAX_NODE_RUNS) return { status: 'failed', message: `Stopped after ${MAX_NODE_RUNS} requests: the flow goes round in a loop`, results };
 
     report(node, { status: 'running', via });
-    const result = { ...(await runNode(node, collectionUid, dispatch, getState)), via };
+    const result = { ...(await runNode(node, collectionUid, dispatch, getState, flowVariables)), via };
+    Object.assign(flowVariables, result.extracted);
     const edge = result.fatal ? null : nextEdge(flow, node, result.httpStatus);
     const endedOnError = !edge && typeof result.httpStatus === 'number' && result.httpStatus >= 400;
     report(node, endedOnError ? { ...result, status: 'failed', error: result.error || `Ended with status ${result.httpStatus}` } : result);

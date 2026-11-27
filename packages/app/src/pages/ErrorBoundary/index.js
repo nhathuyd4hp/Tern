@@ -12,6 +12,10 @@ class ErrorBoundary extends React.Component {
   componentDidMount() {
     // Add a global error event listener to capture client-side errors
     window.onerror = (message, source, lineno, colno, error) => {
+      // Browsers raise this when a resize observer (the Flow canvas) re-measures during a resize. It is harmless and nothing broke.
+      if (/^ResizeObserver loop/.test(String(message))) {
+        return true;
+      }
       this.setState({ hasError: true, error });
     };
   }

@@ -1,8 +1,7 @@
 import styled from 'styled-components';
 
 const StyledWrapper = styled.div`
-  flex: 0 1 220px;
-  min-width: 160px;
+  min-width: 140px;
   overflow-y: auto;
   padding: 0.75rem;
   border: 1px solid ${(props) => props.theme.input.border};
@@ -13,6 +12,10 @@ const StyledWrapper = styled.div`
     font-size: ${(props) => props.theme.font.size.sm};
     font-weight: 600;
     color: ${(props) => props.theme.text};
+  }
+
+  .palette-collection {
+    margin-bottom: 0.5rem;
   }
 
   .palette-search {

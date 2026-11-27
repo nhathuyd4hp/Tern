@@ -3,12 +3,16 @@ import { IconPlus, IconRoute } from '@tabler/icons';
 import Button from 'ui/Button';
 import { createFlow, saveFlow, useFlows } from 'utils/flows';
 import FlowEditor from './FlowEditor';
+import ResizeHandle from './ResizeHandle';
 import StyledWrapper from './StyledWrapper';
+
+const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
 // The flows of one application: pick one on the left, edit and run it on the right.
 const FlowsTab = ({ collection }) => {
   const flows = useFlows(collection);
   const [selectedId, setSelectedId] = useState(null);
+  const [listWidth, setListWidth] = useState(240);
   const selected = flows.find((flow) => flow.id === selectedId) || flows[0] || null;
 
   const addFlow = () => {
@@ -19,7 +23,7 @@ const FlowsTab = ({ collection }) => {
 
   return (
     <StyledWrapper className="flex h-full" data-testid="flows-tab">
-      <aside className="flow-list">
+      <aside className="flow-list" style={{ flex: `0 0 ${listWidth}px` }}>
         <div className="flow-list-header">
           <span className="flow-list-title">Flows</span>
           <Button size="xs" variant="outline" icon={<IconPlus size={14} />} onClick={addFlow} data-testid="flow-new">
@@ -39,6 +43,7 @@ const FlowsTab = ({ collection }) => {
           </button>
         ))}
       </aside>
+      <ResizeHandle label="Resize the list of flows" onResize={(delta) => setListWidth((width) => clamp(width + delta, 140, 480))} />
 
       <section className="flow-detail">
         {selected ? (

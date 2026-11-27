@@ -7,10 +7,6 @@ const StyledWrapper = styled.div`
     padding: 0.75rem;
     border-right: 1px solid ${(props) => props.theme.input.border};
     overflow-y: auto;
-
-    @media (max-width: 900px) {
-      flex-basis: 170px;
-    }
   }
 
   .flow-list-header {

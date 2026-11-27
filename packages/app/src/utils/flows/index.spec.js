@@ -1,12 +1,12 @@
 import { renderHook, act } from '@testing-library/react';
-import { createFlow, saveFlow, deleteFlow, useFlows, getRequestPath, getFlowRequests, findRequestByPath, getRequestStatuses } from './index';
+import { createFlow, saveFlow, deleteFlow, useFlows, getRequestPath, getFlowRequests, findRequestByPath, getRequestStatuses, getRequestUrlPath, getStatusKind, getUpstreamNodes, freeVariableName, getVariableNameProblem, getFlowNameProblem } from './index';
 import { flushFlowWrites, mockFlowFiles } from './testUtils';
 
 jest.mock('react-hot-toast', () => ({ __esModule: true, default: { error: jest.fn() } }));
 
 const application = { pathname: 'C:\\Apps\\Shop' };
 
-const node = (id, extra = {}) => ({ id, requestPath: `${id}.yml`, position: { x: 0, y: 0 }, inputs: { params: {}, headers: {}, body: null }, extractions: [], ...extra });
+const node = (id, extra = {}) => ({ id, requestPath: `${id}.yml`, position: { x: 0, y: 0 }, inputs: { params: {}, headers: {}, body: null }, statuses: [], extractions: [], ...extra });
 
 // the flows of an application, once the file has been read
 const loadFlows = async (target) => {
@@ -73,6 +73,14 @@ describe('flows store', () => {
       extractions: [{ name: '', expression: '' }]
     });
     expect(flow.edges).toEqual([]);
+  });
+
+  it('keeps the statuses added to a node, once each and only real codes', async () => {
+    await loadFlows(application);
+    act(() => saveFlow(application, { id: 6, name: 'Statuses', nodes: [node('a', { statuses: ['500', '404', '404', 'abc', '99', 700, 418] })], edges: [] }));
+    const flow = renderHook(() => useFlows(application)).result.current.at(-1);
+
+    expect(flow.nodes[0].statuses).toEqual(['404', '418', '500']);
   });
 
   it('lets a status leave a node through one connection only', async () => {
@@ -214,6 +222,80 @@ describe('request paths', () => {
     expect(getFlowRequests(app).map((entry) => entry.requestPath)).toEqual(['Auth/login.yml', 'Query.yml']);
     expect(findRequestByPath(app, 'auth/LOGIN.yml').uid).toBe('2');
     expect(findRequestByPath(app, 'Stream.yml')).toBeNull();
+  });
+});
+
+describe('getUpstreamNodes and freeVariableName', () => {
+  const flow = {
+    nodes: [node('a', { extractions: [{ name: 'token', expression: 'res.body.token' }] }), node('b'), node('c'), node('d')],
+    edges: [
+      { id: 'e1', source: 'a', sourceHandle: '200', target: 'b' },
+      { id: 'e2', source: 'b', sourceHandle: '200', target: 'c' },
+      { id: 'e3', source: 'c', sourceHandle: 'other', target: 'a' }
+    ]
+  };
+
+  it('finds every node whose response can reach a node, loops included, never the node itself', () => {
+    expect(getUpstreamNodes(flow, 'c').map((entry) => entry.id).sort()).toEqual(['a', 'b']);
+    expect(getUpstreamNodes(flow, 'a').map((entry) => entry.id).sort()).toEqual(['b', 'c']);
+    expect(getUpstreamNodes(flow, 'd')).toEqual([]);
+  });
+
+  it('gives a variable name no node of the flow uses yet', () => {
+    expect(freeVariableName(flow, 'id')).toBe('id');
+    expect(freeVariableName(flow, 'token')).toBe('token_2');
+    expect(freeVariableName({ nodes: [node('a', { extractions: [{ name: 'token', expression: 'x' }, { name: 'token_2', expression: 'y' }] })], edges: [] }, 'token')).toBe('token_3');
+  });
+});
+
+describe('names of shared values', () => {
+  const share = (...pairs) => ({
+    nodes: pairs.map(([id, ...names]) => node(id, { extractions: names.map((name) => ({ name, expression: 'res.body.x' })) })),
+    edges: []
+  });
+
+  it('refuses a name another shared value already has, in the same request or another', () => {
+    const flow = share(['a', 'username'], ['b', 'username', 'id']);
+
+    expect(getVariableNameProblem(flow, 'b', 0, 'username')).toBe('A value named "username" is already shared by another request');
+    expect(getVariableNameProblem(flow, 'a', 0, 'username')).toBe('A value named "username" is already shared by another request');
+    expect(getVariableNameProblem(share(['a', 'x', 'x']), 'a', 1, 'x')).toBe('A value named "x" is already shared by this request');
+    expect(getVariableNameProblem(flow, 'b', 1, 'id')).toBeNull();
+    expect(getFlowNameProblem(flow)).toMatch(/already shared/);
+    expect(getFlowNameProblem(share(['a', 'one'], ['b', 'two']))).toBeNull();
+  });
+
+  it('refuses a name the pipeline would not take, and ignores an empty one', () => {
+    const flow = share(['a', 'ten nv']);
+
+    expect(getVariableNameProblem(flow, 'a', 0, 'ten nv')).toMatch(/Use only letters/);
+    expect(getVariableNameProblem(flow, 'a', 0, 'tên')).toMatch(/Use only letters/);
+    expect(getVariableNameProblem(flow, 'a', 0, 'ma_nv-1.x')).toBeNull();
+    expect(getVariableNameProblem(flow, 'a', 0, '')).toBeNull();
+  });
+});
+
+describe('getStatusKind', () => {
+  it('colours 2xx green, 3xx yellow, 4xx and 5xx red and the rest grey', () => {
+    expect(['200', '299', 204].map(getStatusKind)).toEqual(['ok', 'ok', 'ok']);
+    expect(['301', '399'].map(getStatusKind)).toEqual(['redirect', 'redirect']);
+    expect(['400', '404', '500', '599'].map(getStatusKind)).toEqual(['error', 'error', 'error', 'error']);
+    expect(['100', '199', 'other', 'abc'].map(getStatusKind)).toEqual(['other', 'other', 'other', 'other']);
+  });
+});
+
+describe('getRequestUrlPath', () => {
+  const at = (url) => getRequestUrlPath({ request: { url } });
+
+  it('keeps the path, without host, variable host or query', () => {
+    expect(at('{{baseUrl}}/users/{{id}}?x=1')).toBe('/users/{{id}}');
+    expect(at('https://api.example.com/v1/orders#top')).toBe('/v1/orders');
+    expect(at('/sign-in')).toBe('/sign-in');
+  });
+
+  it('gives / when there is no path', () => {
+    expect(at('{{baseUrl}}')).toBe('/');
+    expect(getRequestUrlPath({})).toBe('/');
   });
 });
 

@@ -51,6 +51,12 @@ const StyledWrapper = styled.div`
     }
   }
 
+  .reload-row {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 0.75rem;
+  }
+
   .collection-table {
     border: 1px solid ${(props) => props.theme.input.border};
     border-radius: ${(props) => props.theme.border.radius.md};

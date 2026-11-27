@@ -16,7 +16,13 @@ const request = (name, extra = {}) => ({
 
 const makeStore = (items) => {
   const state = { collections: { collections: [{ uid: 'app-1', pathname: '/apps/Shop', items, runtimeVariables: {} }] } };
-  const dispatch = (action) => (typeof action === 'function' ? action(dispatch, () => state) : action);
+  const dispatch = (action) => {
+    if (typeof action === 'function') return action(dispatch, () => state);
+    if (action?.type === 'collections/runtimeVariablesUpdateEvent') {
+      state.collections.collections.find((app) => app.uid === action.payload.collectionUid).runtimeVariables = action.payload.runtimeVariables;
+    }
+    return action;
+  };
   return { state, dispatch, application: state.collections.collections[0] };
 };
 
@@ -24,7 +30,7 @@ const makeStore = (items) => {
 const respondWith = (store, { statuses = {}, variables = {} } = {}) => {
   mockSendRequest.mockImplementation((sent) => async () => {
     const item = store.application.items.find((candidate) => candidate.uid === sent.uid);
-    item.response = { status: statuses[sent.name] ?? 200, statusText: 'x', duration: 12 };
+    item.response = { status: statuses[sent.name] ?? 200, statusText: 'x', duration: 12, size: 7, headers: { 'content-type': 'application/json' }, data: { token: 'abc' } };
     Object.assign(store.application.runtimeVariables, variables);
   });
 };
@@ -57,7 +63,24 @@ describe('runFlow', () => {
     const sent = mockSendRequest.mock.calls[0][0];
     expect(sent.request.vars.res).toEqual([expect.objectContaining({ name: 'token', value: 'res.body.token', enabled: true })]);
     expect(outcome).toMatchObject({ status: 'passed', results: { login: { status: 'passed', httpStatus: 200, extracted: { token: 'abc' } } } });
+    // the whole response of each request is kept to be looked at
+    expect(outcome.results.login.response).toEqual({ status: 200, statusText: 'x', duration: 12, size: 7, headers: { 'content-type': 'application/json' }, data: { token: 'abc' } });
     expect(progress).toEqual([['login', 'running'], ['login', 'passed']]);
+  });
+
+  it('takes a plain path of the body from the response itself, whatever the pipeline did with the variables', async () => {
+    const store = makeStore([request('login'), request('info')]);
+    const seen = [];
+    mockSendRequest.mockImplementation((sent) => async () => {
+      seen.push({ name: sent.name, token: store.application.runtimeVariables.token });
+      // the pipeline answers but sets no variable at all
+      store.application.items.find((candidate) => candidate.uid === sent.uid).response = { status: 200, data: { data: { token: 'abc' } } };
+    });
+
+    const outcome = await store.dispatch(runFlow(flowOf([node('login', { extractions: [{ name: 'token', expression: 'res.body.data.token' }] }), node('info')], [edge('login', '200', 'info')]), 'app-1'));
+
+    expect(outcome).toMatchObject({ status: 'passed', results: { login: { extracted: { token: 'abc' } } } });
+    expect(seen).toEqual([{ name: 'login', token: undefined }, { name: 'info', token: 'abc' }]);
   });
 
   it('follows the connection of the status that came back, the later request seeing earlier variables', async () => {
@@ -165,6 +188,18 @@ describe('runFlow', () => {
     expect(outcome).toMatchObject({ status: 'failed', message: 'connect ECONNREFUSED' });
   });
 
+  it('stops at a failed request whose error carries no flag, such as an unresolved {{baseUrl}}', async () => {
+    const store = makeStore([request('login'), request('info')]);
+    mockSendRequest.mockImplementation((sent) => async () => {
+      store.application.items.find((candidate) => candidate.uid === sent.uid).response = { error: 'Invalid URL', duration: 3 };
+    });
+
+    const outcome = await store.dispatch(runFlow(flowOf([node('login'), node('info')], [edge('login', 'other', 'info')]), 'app-1'));
+
+    expect(ranOrder()).toEqual(['login']);
+    expect(outcome).toMatchObject({ status: 'failed', message: 'Invalid URL', results: { login: { status: 'failed' } } });
+  });
+
   it('fails when a request of the flow no longer exists', async () => {
     const store = makeStore([]);
     respondWith(store);
@@ -213,7 +248,18 @@ describe('runFlow', () => {
 
     const outcome = await store.dispatch(runFlow(flowOf([node('login', { extractions: [{ name: 'token', expression: 'res.body.nope' }] })]), 'app-1'));
 
-    expect(outcome).toMatchObject({ status: 'failed', message: 'Could not take token from the response' });
+    expect(outcome).toMatchObject({ status: 'failed', message: 'Could not take token (res.body.nope): res.body has no "nope"' });
+  }, 10000);
+
+  it('says where the path to a value stops being in the response', async () => {
+    const store = makeStore([request('login')]);
+    mockSendRequest.mockImplementation((sent) => async () => {
+      store.application.items.find((candidate) => candidate.uid === sent.uid).response = { status: 200, data: { success: false, data: null } };
+    });
+
+    const outcome = await store.dispatch(runFlow(flowOf([node('login', { extractions: [{ name: 'username', expression: 'res.body.data.user.username' }] })]), 'app-1'));
+
+    expect(outcome.message).toBe('Could not take username (res.body.data.user.username): res.body.data is null');
   }, 10000);
 
   it('sends the inputs of the node instead of the saved params, headers and body', async () => {

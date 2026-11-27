@@ -15,8 +15,10 @@ import {
   IconFoldDown,
   IconX,
   IconFolder,
-  IconFileExport
+  IconFileExport,
+  IconRefresh
 } from '@tabler/icons';
+import { reloadApplication } from 'providers/ReduxStore/slices/openapi-sync';
 import { toggleCollection, collapseFullCollection, clearSidebarSelection } from 'providers/ReduxStore/slices/collections';
 import { mountCollection, moveCollectionAndPersist, handleMultipleCollectionItemsDrop, showInFolder, saveCollectionSecurityConfig } from 'providers/ReduxStore/slices/collections/actions';
 import { useDispatch, useSelector, useStore } from 'react-redux';
@@ -346,6 +348,12 @@ const CollectionRow = ({ collection, openBulkMenu, children, isCollectionMultiDr
       leftSection: IconFoldDown,
       label: 'Collapse',
       onClick: handleCollapseFullCollection
+    },
+    {
+      id: 'reload',
+      leftSection: IconRefresh,
+      label: 'Reload application',
+      onClick: () => dispatch(reloadApplication(collection))
     },
     {
       id: 'show-in-folder',

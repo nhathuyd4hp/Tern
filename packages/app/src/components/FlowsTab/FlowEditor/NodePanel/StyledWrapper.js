@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import { rgba } from 'utils/color';
 
 const StyledWrapper = styled.div`
   flex: 0 1 340px;
@@ -38,6 +39,90 @@ const StyledWrapper = styled.div`
 
   .panel-section {
     margin-top: 0.75rem;
+  }
+
+  .panel-error {
+    margin-bottom: 0.375rem;
+    font-size: ${(props) => props.theme.font.size.sm};
+    color: ${(props) => props.theme.colors.text.danger};
+    word-break: break-word;
+  }
+
+  .share-table {
+    margin-bottom: 0.5rem;
+    border: 1px solid ${(props) => props.theme.input.border};
+    border-radius: ${(props) => props.theme.border.radius.sm};
+  }
+
+  .share-row {
+    display: grid;
+    grid-template-columns: minmax(5.5rem, 1fr) minmax(7rem, 1.6fr) minmax(5rem, 1fr);
+    align-items: center;
+    column-gap: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    border-bottom: 1px solid ${(props) => props.theme.input.border};
+    font-size: ${(props) => props.theme.font.size.sm};
+  }
+
+  .share-head {
+    background: ${(props) => props.theme.background.mantle};
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: ${(props) => props.theme.colors.text.muted};
+  }
+
+  .share-row.readonly {
+    background: ${(props) => rgba(props.theme.colors.text.muted, 0.06)};
+    color: ${(props) => props.theme.colors.text.muted};
+  }
+
+  .share-name {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    min-width: 0;
+    font-family: monospace;
+    font-weight: 600;
+  }
+
+  .share-value,
+  .share-from {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: monospace;
+    font-size: 11px;
+  }
+
+  .share-from.own {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.25rem;
+    font-family: inherit;
+    color: ${(props) => props.theme.colors.text.muted};
+  }
+
+  .share-last {
+    padding: 0 0.5rem 0.25rem;
+    font-family: monospace;
+    font-size: 10px;
+    color: ${(props) => props.theme.colors.text.muted};
+    border-bottom: 1px solid ${(props) => props.theme.input.border};
+  }
+
+  .panel-subtitle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.375rem;
+
+    .panel-subtitle {
+      margin-bottom: 0;
+    }
   }
 
   .panel-subtitle {
@@ -93,17 +178,28 @@ const StyledWrapper = styled.div`
   }
 
   .extraction-name {
-    width: 6rem;
+    width: 100%;
+    min-width: 0;
   }
 
   .extraction-expression,
   .extraction-picker {
-    flex: 1;
+    width: 100%;
     min-width: 0;
   }
 
   .extraction-row {
     flex-wrap: wrap;
+  }
+
+  .extraction-name.invalid {
+    border-color: ${(props) => props.theme.colors.text.danger};
+  }
+
+  .extraction-error {
+    margin: -0.125rem 0 0.375rem;
+    font-size: 11px;
+    color: ${(props) => props.theme.colors.text.danger};
   }
 
   .extraction-equals,

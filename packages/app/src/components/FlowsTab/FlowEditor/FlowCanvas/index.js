@@ -27,7 +27,7 @@ const FlowCanvas = ({ flow, requestOf, results, running, selectedId, onSelect, o
 
   const nodes = useMemo(() => flow.nodes.map((node) => {
     const request = requestOf(node.requestPath);
-    const handles = new Set([...getRequestStatuses(request), ...flow.edges.filter((edge) => edge.source === node.id).map((edge) => edge.sourceHandle)]);
+    const handles = new Set([...getRequestStatuses(request), ...node.statuses, ...flow.edges.filter((edge) => edge.source === node.id).map((edge) => edge.sourceHandle)]);
     return {
       id: node.id,
       type: 'request',
@@ -94,7 +94,8 @@ const FlowCanvas = ({ flow, requestOf, results, running, selectedId, onSelect, o
         connectionRadius={80}
         deleteKeyCode={running ? null : ['Backspace', 'Delete']}
         fitView
-        minZoom={0.3}
+        fitViewOptions={{ padding: 0.3, maxZoom: 0.7 }}
+        minZoom={0.2}
       >
         <Background />
         <Controls showInteractive={false} />

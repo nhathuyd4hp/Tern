@@ -37,25 +37,24 @@ export const getResponseFields = (item) => {
   }
 
   const fields = [];
+  // every key is offered, an object as well as what is inside it: 'data', then 'data.user', then 'data.user.id'
   const walk = (value, segments) => {
     if (fields.length >= MAX_FIELDS) return;
-    if (value !== null && typeof value === 'object' && segments.length < MAX_DEPTH) {
-      if (Array.isArray(value)) {
-        if (value.length) walk(value[0], [...segments, 0]);
-      } else {
-        Object.entries(value).forEach(([key, inner]) => walk(inner, [...segments, key]));
-      }
-      return;
+    if (segments.length) {
+      const path = segments.map((segment) => (typeof segment === 'number' ? `[${segment}]` : isIdentifier(segment) ? `.${segment}` : `[${JSON.stringify(segment)}]`)).join('');
+      fields.push({
+        expression: `res.body${path}`,
+        label: path.replace(/^\./, ''),
+        sample: sampleOf(value),
+        name: suggestVariableName(segments)
+      });
     }
-    if (!segments.length || (value !== null && typeof value === 'object')) return;
-
-    const path = segments.map((segment) => (typeof segment === 'number' ? `[${segment}]` : isIdentifier(segment) ? `.${segment}` : `[${JSON.stringify(segment)}]`)).join('');
-    fields.push({
-      expression: `res.body${path}`,
-      label: path.replace(/^\./, ''),
-      sample: sampleOf(value),
-      name: suggestVariableName(segments)
-    });
+    if (value === null || typeof value !== 'object' || segments.length >= MAX_DEPTH) return;
+    if (Array.isArray(value)) {
+      if (value.length) walk(value[0], [...segments, 0]);
+    } else {
+      Object.entries(value).forEach(([key, inner]) => walk(inner, [...segments, key]));
+    }
   };
 
   walk(parsed, []);

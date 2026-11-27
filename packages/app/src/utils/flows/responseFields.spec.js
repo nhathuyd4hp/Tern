@@ -4,20 +4,26 @@ const requestWith = (examples) => ({ examples });
 const json = (status, content) => ({ response: { status, body: { type: 'json', content: JSON.stringify(content) } } });
 
 describe('getResponseFields', () => {
-  it('lists the leaves of the success example with the expression to take each one', () => {
+  it('lists every key of the success example, an object before what is inside it, with the expression to take each one', () => {
     const fields = getResponseFields(requestWith([
       json(422, { detail: 'bad' }),
       json(200, { success: true, data: { token: 'abcdef', user: { 'id': 7, 'display-name': 'A' } }, items: [{ id: 1 }] })
     ]));
 
-    expect(fields.map((field) => field.expression)).toEqual([
-      'res.body.success',
-      'res.body.data.token',
-      'res.body.data.user.id',
-      'res.body.data.user["display-name"]',
-      'res.body.items[0].id'
+    expect(fields.map((field) => field.label)).toEqual([
+      'success',
+      'data',
+      'data.token',
+      'data.user',
+      'data.user.id',
+      'data.user["display-name"]',
+      'items',
+      'items[0]',
+      'items[0].id'
     ]);
-    expect(fields[1]).toMatchObject({ label: 'data.token', sample: 'abcdef', name: 'token' });
+    expect(fields.map((field) => field.expression)).toContain('res.body.data.user["display-name"]');
+    expect(fields.find((field) => field.label === 'data.token')).toMatchObject({ expression: 'res.body.data.token', sample: 'abcdef', name: 'token' });
+    expect(fields.find((field) => field.label === 'data')).toMatchObject({ expression: 'res.body.data', name: 'data' });
   });
 
   it('shortens a long sample and ignores what it cannot read', () => {
