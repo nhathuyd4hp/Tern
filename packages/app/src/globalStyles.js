@@ -1,5 +1,5 @@
 import { createGlobalStyle } from 'styled-components';
-import { rgba } from 'polished';
+import { rgba } from 'utils/color';
 
 const GlobalStyle = createGlobalStyle`
 

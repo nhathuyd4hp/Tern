@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { darken } from 'polished';
+import { darken } from 'utils/color';
 
 const StyledWrapper = styled.div`
   .setting-dropdown-trigger {

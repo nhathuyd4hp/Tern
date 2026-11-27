@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { rgba } from 'polished';
+import { rgba } from 'utils/color';
 
 const Wrapper = styled.div`
   .oauth2-icon-container {

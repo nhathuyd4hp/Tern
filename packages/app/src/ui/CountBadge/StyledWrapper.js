@@ -1,5 +1,5 @@
 import styled, { css } from 'styled-components';
-import { rgba } from 'polished';
+import { rgba } from 'utils/color';
 
 /** Variants: default (neutral surface), danger (status.danger), warning (brand tint, not status.warning). */
 const getVariantStyles = (props) => {

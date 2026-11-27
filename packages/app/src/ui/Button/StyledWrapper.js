@@ -1,5 +1,5 @@
 import styled, { css, keyframes } from 'styled-components';
-import { darken, rgba } from 'polished';
+import { darken, rgba } from 'utils/color';
 
 const spin = keyframes`
   from {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTheme } from 'providers/Theme';
-import { rgba } from 'polished';
+import { rgba } from 'utils/color';
 
 const Status = ({ statusCode }) => {
   const { theme } = useTheme();

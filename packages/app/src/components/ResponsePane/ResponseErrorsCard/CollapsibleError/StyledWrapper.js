@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { mix } from 'polished';
+import { mix } from 'utils/color';
 
 const StyledWrapper = styled.div`
   .error-row-line {

@@ -1,5 +1,5 @@
 import { isEqual } from 'lodash';
-import { parseToRgb } from 'polished';
+import { parseToRgb } from 'utils/color';
 import { getDuplicateSecretNames } from '@tern/common/utils';
 import { uuid } from './common/index';
 import { INVALID_VARIABLE_NAMES_ERROR_PREFIX } from './common/variables';
