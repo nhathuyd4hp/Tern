@@ -11,7 +11,7 @@ import styled, { css } from 'styled-components';
  * The 'muted' status falls back to surface/muted colors for neutral badges.
  *
  * @see packages/app/src/themes/schema/oss.js — status schema
- * @see packages/app/src/themes/light/light.js — light theme tokens
+ * @see packages/app/src/themes/light/vscode.js — light theme tokens
  */
 const getStatusTokens = (theme, status) => {
   switch (status) {
@@ -79,7 +79,7 @@ const getVariantStyles = (props) => {
  * shapes (9999px), or any raw CSS value (e.g. '20px').
  * Defaults to theme.border.radius.sm when no radius is specified.
  *
- * @see packages/app/src/themes/light/light.js — radius: { sm: '4px', base: '6px', md: '8px', lg: '10px', xl: '12px' }
+ * @see packages/app/src/themes/light/vscode.js — radius: { sm: '4px', base: '6px', md: '8px', lg: '10px', xl: '12px' }
  */
 const resolveRadius = (props) => {
   const { theme, $radius } = props;

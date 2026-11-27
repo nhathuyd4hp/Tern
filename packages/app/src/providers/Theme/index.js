@@ -2,7 +2,7 @@ import React from 'react';
 import { Validator } from 'jsonschema';
 import toast from 'react-hot-toast';
 import { parseToRgb } from 'polished';
-import themes from 'themes/index';
+import themes, { themeRegistry, DEFAULT_THEME_VARIANTS } from 'themes/index';
 import themeSchema from 'themes/schema';
 import useLocalStorage from 'hooks/useLocalStorage/index';
 
@@ -33,8 +33,11 @@ export const ThemeProvider = (props) => {
   const setStoredTheme = useCallback((next) => startTransition(() => setStoredThemeNow(next)), []);
   const [systemTheme, setSystemTheme] = useState(() => getEffectiveTheme('system'));
   const displayedTheme = storedTheme === 'system' ? systemTheme : storedTheme;
-  const [themeVariantLight, setThemeVariantLight] = useLocalStorage('bruno.themeVariantLight', 'light');
-  const [themeVariantDark, setThemeVariantDark] = useLocalStorage('bruno.themeVariantDark', 'dark');
+  // A stored variant that is no longer offered (removed themes) falls back to the default of its mode.
+  const [storedVariantLight, setThemeVariantLight] = useLocalStorage('bruno.themeVariantLight', DEFAULT_THEME_VARIANTS.light);
+  const [storedVariantDark, setThemeVariantDark] = useLocalStorage('bruno.themeVariantDark', DEFAULT_THEME_VARIANTS.dark);
+  const themeVariantLight = themeRegistry[storedVariantLight] ? storedVariantLight : DEFAULT_THEME_VARIANTS.light;
+  const themeVariantDark = themeRegistry[storedVariantDark] ? storedVariantDark : DEFAULT_THEME_VARIANTS.dark;
 
   // Track the OS theme; it only affects what is displayed in 'system' mode
   useEffect(() => {

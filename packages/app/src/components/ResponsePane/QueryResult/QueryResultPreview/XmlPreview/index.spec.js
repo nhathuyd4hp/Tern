@@ -2,7 +2,7 @@ import '@testing-library/jest-dom';
 import React from 'react';
 import { render, screen, within } from '@testing-library/react';
 import { ThemeProvider } from 'styled-components';
-import darkTheme from 'themes/dark/dark';
+import darkTheme from 'themes/dark/vscode';
 import XmlPreview from './index';
 
 const CANNOT_PREVIEW_TITLE = 'Cannot preview as XML';
