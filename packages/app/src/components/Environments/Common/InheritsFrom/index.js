@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { getInheritableEnvironments } from '@usebruno/common/utils';
+import { getInheritableEnvironments } from '@tern/common/utils';
 import { IconBinaryTree2, IconCaretDown } from '@tabler/icons';
 import MenuDropdown from 'ui/MenuDropdown';
 import ActionIcon from 'ui/ActionIcon';

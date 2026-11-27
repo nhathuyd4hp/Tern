@@ -11,7 +11,7 @@ non-trivial cross-package or architectural work. The dependency DAG and ownershi
 
 ```
 packages/
-  app/          React renderer (rsbuild, Redux Toolkit, styled-components)   [name @usebruno/app]
+  app/          React renderer (rsbuild, Redux Toolkit, styled-components)   [name @tern/app]
   electron/     Electron main process (electron-builder)                     [name "bruno" — NOT scoped]
   js/           JS sandbox for user scripts (QuickJS + node:vm)
   common/       Shared utilities — the base leaf (rollup → dist/cjs+esm)
@@ -44,19 +44,19 @@ needs no rebuild.
 
 ## Dependency direction & ownership boundaries
 
-The internal `@usebruno/*` dependency DAG and the guardrails that protect it (common
+The internal `@tern/*` dependency DAG and the guardrails that protect it (common
 browser-safe, js Electron-free, schema vs schema-types, no upward imports) are the
 auto-loaded rule — see `.claude/rules/architecture.md`.
 
 ## Request execution pipeline
 
 1. Renderer invokes `ipcMain.handle('send-http-request', …)` (`electron/src/ipc/network/index.js`).
-2. Variables are interpolated via `interpolate` from `@usebruno/common`
+2. Variables are interpolated via `interpolate` from `@tern/common`
    (`ipc/network/interpolate-vars.js`).
 3. Pre-request scripts run via `ScriptRuntime` (`js/src/runtime/script-runtime.js`).
 4. The request is built/sent — axios for HTTP, plus gRPC (`@grpc/grpc-js`) and WebSocket clients;
    shared building blocks (auth interceptors like `addDigestInterceptor`/`applyOAuth1ToRequest`,
-   cookies, `scripting.buildScriptedEntry`, grpc/ws helpers) come from `@usebruno/requests`.
+   cookies, `scripting.buildScriptedEntry`, grpc/ws helpers) come from `@tern/requests`.
    requests is a *library of request pieces*, not the orchestrator — orchestration lives in
    `ipc/network`.
 5. Post-response: **var extraction** via `VarsRuntime`, **tests** via `TestRuntime`, and
@@ -93,7 +93,7 @@ Any on-disk shape change → follow `.claude/rules/dsl-changes.md`.
 
 Two distinct mechanisms — pick by what the data is:
 
-- **`@usebruno/sqlite`** (`bruno.db` under `userData`) — the SDK for derived/bulky secondary state.
+- **`@tern/sqlite`** (`bruno.db` under `userData`) — the SDK for derived/bulky secondary state.
   Migrations (`migrations/*.ts`) and statements (`statements/*.sql`) are authored and compiled into
   a typed layer for the main process. `services/sqlite` owns the DB, and `ipc/sqlite.js` exposes
   selected statements to the renderer, one hand-written handler per statement on

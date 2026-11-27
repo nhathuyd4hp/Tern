@@ -45,10 +45,10 @@ const ChooseFolderPage = () => {
           <div className="choose-folder-start">
             <DropZone
               icon={IconFolder}
-              title="Drop Kevin application folders here"
+              title="Drop Tern application folders here"
               hint={(
                 <>
-                  Kevin Application folder has <code>opencollection.yml</code> or <code>bruno.json</code> at the root
+                  Tern Application folder has <code>opencollection.yml</code> or <code>bruno.json</code> at the root
                 </>
               )}
               data-testid="choose-folder-drop-zone"

@@ -54,7 +54,7 @@ jobs:
       - name: Upload installers
         uses: actions/upload-artifact@v4
         with:
-          name: kevin-windows
+          name: tern-windows
           path: packages/electron/out/*.exe
           if-no-files-found: error
           retention-days: 14
@@ -90,7 +90,7 @@ jobs:
       - name: Upload installers
         uses: actions/upload-artifact@v4
         with:
-          name: kevin-linux
+          name: tern-linux
           path: |
             packages/electron/out/*.AppImage
             packages/electron/out/*.deb
@@ -98,40 +98,9 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-  macos:
-    name: macOS (dmg, unsigned)
-    needs: lint
-    runs-on: macos-latest
-    timeout-minutes: 60
-    env:
-      CSC_IDENTITY_AUTO_DISCOVERY: 'false'
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Setup Node Dependencies
-        uses: ./.github/actions/common/setup-node-deps
-
-      - name: Build web app
-        run: npm run build:web
-
-      - name: Prepare web bundle
-        run: node scripts/build-electron.js --prepare-only
-
-      - name: Build dmg (x64 and arm64)
-        working-directory: packages/electron
-        run: npx electron-builder --mac dmg --x64 --arm64 --publish never --config electron-builder-config.js -c.mac.identity=null
-
-      - name: Upload installers
-        uses: actions/upload-artifact@v4
-        with:
-          name: kevin-macos
-          path: packages/electron/out/*.dmg
-          if-no-files-found: error
-          retention-days: 14
-
   release:
     name: Publish release
-    needs: [windows, linux, macos]
+    needs: [windows, linux]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
@@ -143,7 +112,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: installers
-          pattern: kevin-*
+          pattern: tern-*
           merge-multiple: true
 
       - name: Replace the latest release
@@ -153,5 +122,5 @@ jobs:
             --repo "$GITHUB_REPOSITORY" \
             --target "$GITHUB_SHA" \
             --prerelease \
-            --title "Kevin build ${{ github.run_number }}" \
+            --title "Tern build ${{ github.run_number }}" \
             --notes "Built from ${GITHUB_SHA::7} on main."

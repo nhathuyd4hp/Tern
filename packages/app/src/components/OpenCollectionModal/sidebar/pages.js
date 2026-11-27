@@ -26,7 +26,7 @@ export const OPEN_COLLECTION_PAGES = [
     id: 'choose-folder',
     label: 'Choose folder…',
     title: 'Choose folder',
-    description: 'Pick one or more application folders to open them in Kevin.',
+    description: 'Pick one or more application folders to open them in Tern.',
     icon: IconFolder,
     component: ChooseFolderPage
   },
@@ -42,7 +42,7 @@ export const OPEN_COLLECTION_PAGES = [
     id: 'my-computer',
     label: 'My computer',
     title: 'My computer',
-    description: 'Applications Kevin found on your computer',
+    description: 'Applications Tern found on your computer',
     icon: IconDeviceLaptop,
     group: 'sources',
     component: MyComputerPage

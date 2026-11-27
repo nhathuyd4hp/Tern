@@ -6,7 +6,7 @@ import { toggleSidebarCollapse } from 'providers/ReduxStore/slices/app';
 import { setLocalStorageValue, SIDEBAR_COLLAPSED_KEY } from 'utils/common/localStorage';
 import { focusTab } from 'providers/ReduxStore/slices/tabs';
 
-import Bruno from 'components/Bruno';
+import Logo from 'components/Logo';
 import ActionIcon from 'ui/ActionIcon';
 import IconSidebarToggle from 'components/Icons/IconSidebarToggle';
 
@@ -125,10 +125,10 @@ const AppTitleBar = () => {
           {showWindowControls && <AppMenu />}
         </div>
 
-        {/* Center section: Bruno logo + text */}
+        {/* Center section: Logo + text */}
         <div className="titlebar-center">
-          <Bruno width={18} />
-          <span className="bruno-text">Kevin</span>
+          <Logo width={18} />
+          <span className="bruno-text">Tern</span>
         </div>
 
         {/* Right section: Action buttons */}

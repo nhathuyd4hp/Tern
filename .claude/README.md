@@ -13,7 +13,7 @@ automatically when you launch from the project root.
 | Path | What it is | Loads |
 |------|------------|-------|
 | `CLAUDE.md` | Project overview — commands, key architecture, coding standards, index of rules/references. | Every session (auto). |
-| `rules/*.md` | Path-scoped engineering guidance: `architecture` (`@usebruno/*` dependency boundaries + manifests), `app-layout` (component directories, `src/ui` vs `src/components`), `redux-store`, `electron-ipc`, `sqlite` (`@usebruno/sqlite` — migrations, statements, per-statement IPC), `dsl-changes` (on-disk `.bru`/`.yml` format), `cross-platform`, `conventions` (readability, reuse, replacement hygiene, comment/diff hygiene). | When Claude touches files matching each rule's `paths:`. |
+| `rules/*.md` | Path-scoped engineering guidance: `architecture` (`@tern/*` dependency boundaries + manifests), `app-layout` (component directories, `src/ui` vs `src/components`), `redux-store`, `electron-ipc`, `sqlite` (`@tern/sqlite` — migrations, statements, per-statement IPC), `dsl-changes` (on-disk `.bru`/`.yml` format), `cross-platform`, `conventions` (readability, reuse, replacement hygiene, comment/diff hygiene). | When Claude touches files matching each rule's `paths:`. |
 | `reference/architecture.md` | The monorepo map — request pipeline, sandbox, file formats, core types, dependency versions. Too big to auto-load. | On demand only (Claude reads it when a task needs it). |
 | `skills/code-review/` | `/code-review` — reviews the current branch/PR via focused lenses in parallel. | On invocation / when relevant. |
 | `settings.json` | Shared project settings, checked in for the team. Denies `Read` on `**/dist/**` so Claude works from `src/`, not generated bundles. | At startup, from the launch directory. |

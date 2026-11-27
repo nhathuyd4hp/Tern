@@ -37,7 +37,7 @@ describe('serializeBody', () => {
       fd.append('file', new Blob(['x']));
       expect(() => serializeBody(fd)).toThrow(TypeError);
       expect(() => serializeBody(fd)).toThrow(/Multipart form data/);
-      expect(() => serializeBody(fd)).toThrow(/Create a Kevin request/);
+      expect(() => serializeBody(fd)).toThrow(/Create a Tern request/);
     });
 
     it('throws TypeError for Blob using "Binary file upload" subject', () => {
@@ -64,8 +64,8 @@ describe('serializeBody', () => {
       expect(() => serializeBody(u8)).toThrow(/Binary data/);
     });
 
-    it('message attributes the limitation to Kevin, not Swagger', () => {
-      expect(UNSUPPORTED_BODY_MESSAGE('FormData')).toMatch(/isn't supported in Kevin yet/);
+    it('message attributes the limitation to Tern, not Swagger', () => {
+      expect(UNSUPPORTED_BODY_MESSAGE('FormData')).toMatch(/isn't supported in Tern yet/);
     });
 
     it('message lists supported alternatives', () => {

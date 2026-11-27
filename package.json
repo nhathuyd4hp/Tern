@@ -1,5 +1,5 @@
 {
-  "name": "usebruno",
+  "name": "tern",
   "private": true,
   "workspaces": [
     "packages/app",
@@ -16,7 +16,7 @@
     "packages/filestore",
     "packages/sqlite"
   ],
-  "homepage": "https://usebruno.com",
+  "homepage": "https://github.com/nhathuyd4hp/Kevin",
   "devDependencies": {
     "@eslint/compat": "^1.3.2",
     "@faker-js/faker": "^7.6.0",

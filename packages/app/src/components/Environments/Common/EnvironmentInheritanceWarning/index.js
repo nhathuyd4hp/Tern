@@ -1,6 +1,6 @@
 import { Fragment, memo, useMemo } from 'react';
 import { IconAlertTriangle } from '@tabler/icons';
-import { getInheritedEnvironments } from '@usebruno/common/utils';
+import { getInheritedEnvironments } from '@tern/common/utils';
 import StyledWrapper from './StyledWrapper';
 
 const EnvironmentName = ({ name }) => <span className="environment-name">{name}</span>;

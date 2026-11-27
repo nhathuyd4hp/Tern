@@ -109,8 +109,8 @@ const OverviewSection = ({ collection, storedSpec, collectionDrift, specDrift, r
           rightSection={(
             <Help icon="info" size={11} placement="left" width={220}>
               {autoCheckEnabled
-                ? `Kevin checks the spec for changes every ${formatCheckInterval(autoCheckInterval, { long: true })}. You can change this in Edit connection settings.`
-                : 'Kevin does not check the spec for changes on its own. Use Check for updates, or turn it on in Edit connection settings.'}
+                ? `Tern checks the spec for changes every ${formatCheckInterval(autoCheckInterval, { long: true })}. You can change this in Edit connection settings.`
+                : 'Tern does not check the spec for changes on its own. Use Check for updates, or turn it on in Edit connection settings.'}
             </Help>
           )}
         >

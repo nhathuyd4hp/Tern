@@ -82,7 +82,7 @@ describe('OverviewSection', () => {
 
     fireEvent.mouseEnter(getByText('Auto-check every 15 min').querySelector('svg').parentElement);
 
-    expect(getByText('Kevin checks the spec for changes every 15 minutes.', { exact: false })).toBeInTheDocument();
+    expect(getByText('Tern checks the spec for changes every 15 minutes.', { exact: false })).toBeInTheDocument();
   });
 
   it('shows that auto-check is off next to the last synced time', () => {

@@ -23,7 +23,7 @@ in depth.
    list it in your reply to the user (and in the PR description) with the path and why it was left
    — never leave a one-sided change unmentioned.
 4. **Prefer unifying over copying.** If the logic has no Electron-only dependency, move it
-   into `@usebruno/requests` / `@usebruno/common` (respecting `.claude/rules/architecture.md`)
+   into `@tern/requests` / `@tern/common` (respecting `.claude/rules/architecture.md`)
    instead of patching twice. Where both copies must stay, note the
    pairing in a comment at both sites.
 

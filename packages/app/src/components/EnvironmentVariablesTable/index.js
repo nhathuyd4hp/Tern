@@ -21,7 +21,7 @@ import StyledWrapper, { CHECKBOX_COLUMN_WIDTH, ACTIONS_COLUMN_WIDTH } from './St
 import { uuid } from 'utils/common';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { BRUNO_VARIABLE_DATATYPES, valueToString, getDuplicateSecretNames } from '@usebruno/common/utils';
+import { BRUNO_VARIABLE_DATATYPES, valueToString, getDuplicateSecretNames } from '@tern/common/utils';
 import { variableNameRegex } from 'utils/common/regex';
 import { INVALID_VARIABLE_NAME_ERROR } from 'utils/common/variables';
 import toast from 'react-hot-toast';

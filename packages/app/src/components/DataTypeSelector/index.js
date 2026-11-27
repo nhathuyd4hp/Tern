@@ -8,7 +8,7 @@ import {
   IconToggleRight
 } from '@tabler/icons';
 import { Tooltip } from 'react-tooltip';
-import { BRUNO_VARIABLE_DATATYPES, validateVariableType } from '@usebruno/common/utils';
+import { BRUNO_VARIABLE_DATATYPES, validateVariableType } from '@tern/common/utils';
 import MenuDropdown from 'ui/MenuDropdown';
 import StyledWrapper from './StyledWrapper';
 

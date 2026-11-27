@@ -39,9 +39,9 @@ const mapBodyTypeToLabel = (typeName) => {
 };
 
 export const UNSUPPORTED_BODY_MESSAGE = (typeName) =>
-  `${mapBodyTypeToLabel(typeName)} via the Swagger Try-it-out panel isn't supported in Kevin yet. `
+  `${mapBodyTypeToLabel(typeName)} via the Swagger Try-it-out panel isn't supported in Tern yet. `
   + `Supported body types: JSON, URL-encoded forms, plain text. `
-  + `Create a Kevin request to test this endpoint.`;
+  + `Create a Tern request to test this endpoint.`;
 
 // Build a TypeError that carries the detected type as a property so downstream
 // catchers can branch on `err.code` / `err.bodyType` instead of regex-parsing

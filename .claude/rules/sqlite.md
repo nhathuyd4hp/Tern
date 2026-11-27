@@ -5,7 +5,7 @@ paths:
   - "packages/electron/src/services/sqlite/**/*"
 ---
 
-# SQLite SDK (`@usebruno/sqlite`)
+# SQLite SDK (`@tern/sqlite`)
 
 Bruno's local database layer. You author **migrations** (`migrations/*.ts`) and **statements**
 (`statements/*.sql`); a codegen step compiles them into a typed data layer for the Electron main
@@ -52,8 +52,8 @@ packages/sqlite/
   tests/node
 ```
 
-**`@usebruno/sqlite` (= `/node`) is main-process only** (it imports `node:sqlite`, `node:fs`,
-`node:crypto`); never import it from the renderer. The package has zero internal `@usebruno/*`
+**`@tern/sqlite` (= `/node`) is main-process only** (it imports `node:sqlite`, `node:fs`,
+`node:crypto`); never import it from the renderer. The package has zero internal `@tern/*`
 dependencies and must stay that way.
 
 `src/generated/` is produced from the authored migration and `.sql` files by `npm run generate`

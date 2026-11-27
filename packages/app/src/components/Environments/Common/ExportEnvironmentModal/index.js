@@ -6,7 +6,7 @@ import { browseDirectory } from 'providers/ReduxStore/slices/collections/actions
 import { useDispatch } from 'react-redux';
 import toast from 'react-hot-toast';
 import { IconAlertTriangle } from '@tabler/icons';
-import { getInheritedEnvironments } from '@usebruno/common/utils';
+import { getInheritedEnvironments } from '@tern/common/utils';
 import StyledWrapper from './StyledWrapper';
 import Button from 'ui/Button';
 
