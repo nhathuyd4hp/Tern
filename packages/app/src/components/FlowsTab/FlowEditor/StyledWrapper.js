@@ -32,6 +32,10 @@ const StyledWrapper = styled.div`
     color: ${(props) => props.theme.colors.text.muted};
   }
 
+  .flow-history {
+    width: 11rem;
+  }
+
   .flow-divider {
     align-self: stretch;
     width: 1px;
@@ -86,12 +90,15 @@ const StyledWrapper = styled.div`
     }
   }
 
+  /* one row of fixed height: the lists scroll inside their own column instead of making the page longer (a wrapping row would grow with its tallest list) */
   .flow-body {
     display: flex;
-    flex-wrap: wrap;
-    flex: 1;
     gap: 0.75rem;
-    min-height: 420px;
+    height: max(420px, calc(100vh - 240px));
+
+    > * {
+      min-height: 0;
+    }
   }
 `;
 

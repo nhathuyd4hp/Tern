@@ -1,5 +1,6 @@
 import styled from 'styled-components';
 import { rgba } from 'utils/color';
+import { paneIn } from './paneIn';
 
 const StyledWrapper = styled.div`
   .flow-list {
@@ -7,6 +8,7 @@ const StyledWrapper = styled.div`
     padding: 0.75rem;
     border-right: 1px solid ${(props) => props.theme.input.border};
     overflow-y: auto;
+    ${paneIn}
   }
 
   .flow-list-header {

@@ -7,6 +7,7 @@ import { sanitizeName } from 'utils/common/regex';
 import toast from 'react-hot-toast';
 import { useDispatch, useSelector } from 'react-redux';
 import { generateTransientRequestName } from 'utils/collections';
+import { selectCollectionByUid } from 'src/selectors/collections';
 import { get } from 'lodash';
 import { formatIpcError } from 'utils/common/error';
 import { PRESET_REQUEST_TYPES as REQUEST_TYPE } from 'utils/common/constants';
@@ -15,11 +16,7 @@ const CreateTransientRequest = ({ collectionUid }) => {
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const dropdownTippyRef = useRef();
   const dispatch = useDispatch();
-  const collections = useSelector((state) => state.collections.collections);
-
-  const collection = useMemo(() => {
-    return collections?.find((c) => c.uid === collectionUid);
-  }, [collections, collectionUid]);
+  const collection = useSelector((state) => selectCollectionByUid(state, collectionUid));
 
   const collectionPresets = useMemo(() => {
     return get(collection, collection?.draft?.brunoConfig ? 'draft.brunoConfig.presets' : 'brunoConfig.presets', {

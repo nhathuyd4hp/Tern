@@ -61,6 +61,21 @@ const StyledWrapper = styled.div`
     }
   }
 
+  .node-result {
+    padding: 0.125rem 0.5rem 0;
+    font-family: monospace;
+    font-size: 10px;
+    color: ${(props) => props.theme.colors.text.muted};
+  }
+
+  &.passed .node-result {
+    color: ${(props) => props.theme.colors.text.green};
+  }
+
+  &.failed .node-result {
+    color: ${(props) => props.theme.colors.text.danger};
+  }
+
   .node-statuses {
     margin-top: 0.25rem;
     border-top: 1px solid ${(props) => props.theme.input.border};

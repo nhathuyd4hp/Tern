@@ -147,7 +147,8 @@ describe('FlowsTab', () => {
     fireEvent.click(getByText('/sign-in', { selector: '.palette-path' }));
     expect(queryAllByTestId('flow-node')).toHaveLength(0);
     expect(getByTestId('request-details')).toHaveTextContent('/sign-in');
-    expect(getByTestId('request-details')).toHaveTextContent('login.yml');
+    expect(getByTestId('request-details')).toHaveTextContent('POST');
+    expect(getByTestId('request-details')).not.toHaveTextContent('login.yml');
 
     fireEvent.click(getByText('Add to flow'));
     expect(getAllByTestId('flow-node')).toHaveLength(1);
@@ -204,6 +205,32 @@ describe('FlowsTab', () => {
     fireEvent.click(getAllByTestId('flow-node')[0]);
     fireEvent.click(getByTitle('Remove request'));
     expect(queryAllByTestId('flow-node')).toHaveLength(0);
+  });
+
+  it('says what to do on an empty canvas, and arranges the requests once there are two', async () => {
+    const { getByText, getByTestId, queryByTestId } = await renderTab(applicationAt('FlowsSpecArrange'));
+
+    fireEvent.click(getByText('Create a flow'));
+    expect(getByTestId('flow-empty')).toBeInTheDocument();
+    expect(getByTestId('flow-arrange')).toBeDisabled();
+
+    addRequest(getByText, '/sign-in');
+    addRequest(getByText, '/me');
+
+    expect(queryByTestId('flow-empty')).not.toBeInTheDocument();
+    expect(getByTestId('flow-arrange')).toBeEnabled();
+    fireEvent.click(getByTestId('flow-arrange'));
+    expect(getByTestId('flow-editor')).toBeInTheDocument();
+  });
+
+  it('offers to run from the selected request, or only it', async () => {
+    const { getByText, getByTestId } = await renderTab(applicationAt('FlowsSpecRunFrom'));
+
+    fireEvent.click(getByText('Create a flow'));
+    addRequest(getByText, '/sign-in');
+
+    expect(getByTestId('run-from-here')).toBeEnabled();
+    expect(getByTestId('run-only-this')).toBeEnabled();
   });
 
   it('shows the inputs of the selected request and keeps only what was changed', async () => {

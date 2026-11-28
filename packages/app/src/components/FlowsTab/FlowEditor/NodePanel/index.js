@@ -1,5 +1,5 @@
 import { useMemo, useRef } from 'react';
-import { IconLock, IconPlus, IconTrash, IconX } from '@tabler/icons';
+import { IconAlertTriangle, IconLock, IconPlayerPlay, IconPlayerTrackNext, IconPlus, IconTrash, IconX } from '@tabler/icons';
 import Button from 'ui/Button';
 import MethodBadge from 'ui/MethodBadge';
 import Select from 'ui/Select';
@@ -56,7 +56,7 @@ const InputRows = ({ title, entries, overrides, disabled, onChange, renderPicker
 };
 
 // What a selected request of the flow sends, and which values it takes from the response.
-const NodePanel = ({ width, flow, node, request, upstream, environmentValues, results, result, disabled, onChange, onChangeMany, onRemove }) => {
+const NodePanel = ({ width, flow, node, request, requests, upstream, environmentValues, results, result, disabled, onChange, onChangeMany, onRemove, onRunFrom, onRunOnly }) => {
   const bodyRef = useRef(null);
   const fields = useMemo(() => getResponseFields(request), [request]);
   const environmentNames = useMemo(() => environmentValues.map((entry) => entry.name), [environmentValues]);
@@ -129,6 +129,31 @@ const NodePanel = ({ width, flow, node, request, upstream, environmentValues, re
         <span className="panel-request" title={request ? `${request.request?.url}\n${node.requestPath}` : node.requestPath}>{request ? shownAddress(request, environmentValues) : node.requestPath}</span>
         <Button size="xs" variant="ghost" color="danger" disabled={disabled} icon={<IconTrash size={14} />} onClick={onRemove} title="Remove request" />
       </div>
+
+      <div className="panel-run">
+        <Button size="sm" variant="outline" disabled={disabled || !request} icon={<IconPlayerPlay size={14} />} onClick={onRunFrom} title="Run the flow from this request, with the values of the last run" data-testid="run-from-here">
+          Run from here
+        </Button>
+        <Button size="sm" variant="outline" color="secondary" disabled={disabled || !request} icon={<IconPlayerTrackNext size={14} />} onClick={onRunOnly} title="Run only this request" data-testid="run-only-this">
+          Only this
+        </Button>
+      </div>
+
+      {!request && (
+        <div className="panel-missing" role="alert" data-testid="missing-request">
+          <div className="missing-title"><IconAlertTriangle size={14} /> This request is no longer in the application.</div>
+          <Select
+            data={requests.map((entry) => ({ value: entry.requestPath, label: entry.requestPath }))}
+            value=""
+            onChange={(requestPath) => onChange({ ...node, requestPath })}
+            placeholder="Use another request"
+            searchable
+            nothingFoundMessage="No request matches"
+            disabled={disabled}
+            aria-label="Use another request"
+          />
+        </div>
+      )}
 
       <p className="panel-hint">
         Fill the input of this request. The braces button puts in a value taken from an earlier request; you can also type <code>{'{{name}}'}</code>.

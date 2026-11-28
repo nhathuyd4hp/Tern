@@ -1,5 +1,4 @@
 import CodeEditor from 'components/CodeEditor/index';
-import get from 'lodash/get';
 import { useTheme } from 'providers/Theme/index';
 import StyledWrapper from './StyledWrapper';
 import { useSelector } from 'react-redux';
@@ -12,14 +11,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { generateSnippet } from '../utils/snippet-generator';
 const CodeView = ({ language, item }) => {
   const { displayedTheme } = useTheme();
-  const preferences = useSelector((state) => state.app.preferences);
+  const codeFont = useSelector((state) => state.app.preferences?.font?.codeFont);
+  const codeFontSize = useSelector((state) => state.app.preferences?.font?.codeFontSize);
   const { globalEnvironments, activeGlobalEnvironmentUid } = useSelector((state) => state.globalEnvironments);
   const generateCodePrefs = useSelector((state) => state.app.generateCode);
 
-  const collectionOriginal = findCollectionByItemUid(
-    useSelector((state) => state.collections.collections),
-    item.uid
-  );
+  const collectionOriginal = useSelector((state) => findCollectionByItemUid(state.collections.collections, item.uid));
 
   const collection = useMemo(() => {
     const c = cloneDeep(collectionOriginal);
@@ -69,8 +66,8 @@ const CodeView = ({ language, item }) => {
           collection={collection}
           item={item}
           value={snippet}
-          font={get(preferences, 'font.codeFont', 'default')}
-          fontSize={get(preferences, 'font.codeFontSize')}
+          font={codeFont ?? 'default'}
+          fontSize={codeFontSize}
           theme={displayedTheme}
           mode={language.language}
           enableVariableHighlighting={true}

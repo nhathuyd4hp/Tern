@@ -59,7 +59,12 @@ const FlowCanvas = ({ flow, requestOf, results, running, selectedId, onSelect, o
       animated: taken && results[edge.target].status === 'running',
       pathOptions: { borderRadius: 6 },
       ...(color ? { style: { stroke: color, strokeWidth: 2 } } : hasRun && !taken ? { style: { strokeDasharray: '6 4' } } : {}),
-      markerEnd: { type: MarkerType.ArrowClosed, ...(color ? { color } : {}) }
+      markerEnd: { type: MarkerType.ArrowClosed, ...(color ? { color } : {}) },
+      label: edge.sourceHandle === OTHER_STATUS ? 'Other' : edge.sourceHandle,
+      labelStyle: { fontSize: 10, fontFamily: 'monospace', fill: color || theme.colors.text.muted },
+      labelBgStyle: { fill: theme.background.mantle },
+      labelBgPadding: [4, 2],
+      labelBgBorderRadius: 4
     };
   }), [flow.edges, selectedEdgeId, results, theme]);
 
@@ -120,6 +125,12 @@ const FlowCanvas = ({ flow, requestOf, results, running, selectedId, onSelect, o
         <Background />
         <Controls showInteractive={false} />
       </ReactFlow>
+      {flow.nodes.length === 0 && (
+        <div className="canvas-empty" data-testid="flow-empty">
+          <strong>This flow has no requests yet</strong>
+          <span>Drag a request from the list onto the canvas, or press + beside it.</span>
+        </div>
+      )}
     </StyledWrapper>
   );
 };

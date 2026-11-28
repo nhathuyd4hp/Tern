@@ -1,11 +1,28 @@
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { useDrag } from 'react-dnd';
 import { IconChevronLeft, IconPlus, IconSearch } from '@tabler/icons';
 import Button from 'ui/Button';
 import MethodBadge from 'ui/MethodBadge';
 import Select from 'ui/Select';
-import { FLOW_DRAG, FLOW_REQUEST_TYPE_LABELS, OTHER_STATUS, getRequestLabel, getRequestStatuses } from 'utils/flows';
+import { FLOW_DRAG, FLOW_REQUEST_TYPE_LABELS, getRequestLabel } from 'utils/flows';
 import StyledWrapper from './StyledWrapper';
+
+// What a request is, shown under its row: the name, the kind, the method and the url.
+const RequestDetails = ({ request, disabled, onAdd }) => (
+  <div className="palette-details" data-testid="request-details">
+    <div className="details-head">
+      <span className="details-name">{request.item.name}</span>
+      <span className="details-type">{FLOW_REQUEST_TYPE_LABELS[request.item.type] || request.item.type}</span>
+    </div>
+    <div className="details-url" title={request.item.request?.url}>
+      <MethodBadge method={getRequestLabel(request.item).method} />
+      <span>{request.item.request?.url}</span>
+    </div>
+    <Button size="sm" disabled={disabled} icon={<IconPlus size={14} />} onClick={() => onAdd(request.requestPath)}>
+      Add to flow
+    </Button>
+  </div>
+);
 
 const PaletteItem = ({ requestPath, label, method, selected, disabled, onSelect, onAdd }) => {
   const [{ dragging }, drag] = useDrag({
@@ -95,32 +112,15 @@ const RequestPalette = ({ requests, width, disabled, onAdd, onCollapse }) => {
       </label>
       <div className="palette-list">
         {shown.map(({ item, requestPath }) => (
-          <PaletteItem key={item.uid} requestPath={requestPath} label={getRequestLabel(item).path} method={getRequestLabel(item).method} selected={requestPath === selectedPath} disabled={disabled} onSelect={setSelectedPath} onAdd={onAdd} />
+          <Fragment key={item.uid}>
+            <PaletteItem requestPath={requestPath} label={getRequestLabel(item).path} method={getRequestLabel(item).method} selected={requestPath === selectedPath} disabled={disabled} onSelect={(path) => setSelectedPath(path === selectedPath ? null : path)} onAdd={onAdd} />
+            {selected && requestPath === selectedPath && <RequestDetails request={selected} disabled={disabled} onAdd={onAdd} />}
+          </Fragment>
         ))}
         {shown.length === 0 && (
           <div className="palette-empty">{requests.length ? 'No request matches' : 'This application has no requests yet'}</div>
         )}
       </div>
-      {selected && (
-        <div className="palette-details" data-testid="request-details">
-          <div className="details-name">{selected.item.name}</div>
-          <dl>
-            <dt>Type</dt>
-            <dd>{FLOW_REQUEST_TYPE_LABELS[selected.item.type] || selected.item.type}</dd>
-            <dt>Method</dt>
-            <dd>{getRequestLabel(selected.item).method}</dd>
-            <dt>URL</dt>
-            <dd>{selected.item.request?.url}</dd>
-            <dt>File</dt>
-            <dd>{selected.requestPath}</dd>
-            <dt>Exits</dt>
-            <dd>{getRequestStatuses(selected.item).filter((status) => status !== OTHER_STATUS).join(', ')}</dd>
-          </dl>
-          <Button size="xs" disabled={disabled} icon={<IconPlus size={14} />} onClick={() => onAdd(selected.requestPath)}>
-            Add to flow
-          </Button>
-        </div>
-      )}
     </StyledWrapper>
   );
 };

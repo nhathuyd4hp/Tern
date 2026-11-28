@@ -8,6 +8,27 @@ const StyledWrapper = styled.div`
   border: 1px solid ${(props) => props.theme.input.border};
   border-radius: ${(props) => props.theme.border.radius.md};
   overflow: hidden;
+  position: relative;
+
+  .canvas-empty {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 1rem;
+    text-align: center;
+    pointer-events: none;
+    font-size: ${(props) => props.theme.font.size.sm};
+    color: ${(props) => props.theme.colors.text.muted};
+
+    strong {
+      color: ${(props) => props.theme.text};
+    }
+  }
 
   .react-flow {
     --xy-background-color: ${(props) => props.theme.background.mantle};

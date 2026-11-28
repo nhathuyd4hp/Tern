@@ -19,17 +19,16 @@ import { resolveApplicationName } from 'providers/ReduxStore/slices/open-collect
 import { sanitizeName, validateName, validateNameError } from 'utils/common/regex';
 import { resolveRequestFilename } from 'utils/common/platform';
 import path, { normalizePath } from 'utils/common/path';
-import { transformRequestToSaveToFilesystem, findCollectionByUid, findItemInCollection, areItemsLoading } from 'utils/collections';
+import { transformRequestToSaveToFilesystem, findItemInCollection, areItemsLoading } from 'utils/collections';
 import { itemSchema } from '@tern/schema';
 import { uuid } from 'utils/common';
+import { selectCollectionByUid, selectCollections } from 'src/selectors/collections';
 import { formatIpcError } from 'utils/common/error';
 
 const SaveTransientRequest = ({ item: itemProp, collection: collectionProp, isOpen = false, onClose, closeAfterSave = false }) => {
   const dispatch = useDispatch();
 
-  const latestCollection = useSelector((state) =>
-    collectionProp ? findCollectionByUid(state.collections.collections, collectionProp.uid) : null
-  );
+  const latestCollection = useSelector((state) => collectionProp ? selectCollectionByUid(state, collectionProp.uid) : null);
   const latestItem = latestCollection && itemProp ? findItemInCollection(latestCollection, itemProp.uid) : itemProp;
 
   const item = itemProp;
@@ -37,8 +36,9 @@ const SaveTransientRequest = ({ item: itemProp, collection: collectionProp, isOp
 
   const { workspaces, activeWorkspaceUid } = useSelector((state) => state.workspaces);
   const activeWorkspace = workspaces.find((w) => w.uid === activeWorkspaceUid);
-  const allCollections = useSelector((state) => state.collections.collections);
   const isScratchCollection = activeWorkspace?.scratchCollectionUid === collection?.uid;
+  // The full list is only needed to resolve the workspace's collections for the scratch-collection picker.
+  const allCollections = useSelector((state) => isScratchCollection ? selectCollections(state) : undefined);
 
   const availableCollections = useMemo(() => {
     if (!isScratchCollection || !activeWorkspace) return [];

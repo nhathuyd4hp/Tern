@@ -1,11 +1,15 @@
 import styled from 'styled-components';
+import { paneIn } from '../../paneIn';
 
 const StyledWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
   min-width: 140px;
-  overflow-y: auto;
+  overflow: hidden;
   padding: 0.75rem;
   border: 1px solid ${(props) => props.theme.input.border};
   border-radius: ${(props) => props.theme.border.radius.md};
+  ${paneIn}
 
   .palette-title {
     display: flex;
@@ -56,8 +60,9 @@ const StyledWrapper = styled.div`
   .palette-list {
     display: flex;
     flex-direction: column;
+    flex: 1 1 auto;
     gap: 0.125rem;
-    max-height: 60vh;
+    min-height: 6rem;
     overflow-y: auto;
   }
 
@@ -97,38 +102,58 @@ const StyledWrapper = styled.div`
     }
   }
 
+  /* opens under the row that was clicked: name, kind, method with url, and a wide button to add it */
   .palette-details {
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    gap: 0.375rem;
-    margin-top: 0.5rem;
-    padding: 0.5rem;
+    gap: 0.25rem;
+    margin: 0.125rem 0 0.5rem 0.75rem;
+    padding: 0.625rem;
     border: 1px solid ${(props) => props.theme.input.border};
     border-radius: ${(props) => props.theme.border.radius.md};
-    font-size: 11px;
+    background: ${(props) => props.theme.background.mantle};
+
+    /* the kind of request sits on the row of the name, so every kind takes the same number of rows */
+    .details-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
 
     .details-name {
+      min-width: 0;
       font-size: ${(props) => props.theme.font.size.sm};
       font-weight: 600;
+      word-break: break-word;
     }
 
-    dl {
-      display: grid;
-      grid-template-columns: auto minmax(0, 1fr);
-      gap: 0.125rem 0.5rem;
-      margin: 0;
-      width: 100%;
-    }
-
-    dt {
+    .details-type {
+      flex-shrink: 0;
+      font-size: 10px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
       color: ${(props) => props.theme.colors.text.muted};
     }
 
-    dd {
-      margin: 0;
-      word-break: break-all;
+    .details-url {
+      display: flex;
+      align-items: baseline;
+      gap: 0.375rem;
+      margin: 0.125rem 0 0.375rem;
+      font-family: monospace;
+      font-size: 11px;
+
+      span {
+        min-width: 0;
+        word-break: break-all;
+      }
+    }
+
+    button {
+      width: 100%;
+      justify-content: center;
     }
   }
 

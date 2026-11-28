@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { useDispatch, useSelector, useStore } from 'react-redux';
+import { selectCollectionByUid } from 'src/selectors/collections';
 import toast from 'react-hot-toast';
 import { IconCheck, IconChevronDown, IconCopy } from '@tabler/icons';
 import Dropdown from 'components/Dropdown';
@@ -36,12 +37,13 @@ const pickDefaultScope = (scopes) => {
 const SetAsVariablePopover = ({ selection, onClose }) => {
   const dispatch = useDispatch();
   const store = useStore();
-  const collections = useSelector((state) => state.collections.collections);
+  const currentCollection = useSelector((state) => selectCollectionByUid(state, selection.collection?.uid));
   const globalEnvironments = useSelector((state) => state.globalEnvironments);
   const { copied, copyToClipboard } = useCopyToClipboard(COPY_SUCCESS_TIMEOUT);
 
+  const scopeState = { collections: { collections: currentCollection ? [currentCollection] : [] }, globalEnvironments };
   const scopes = buildAddToScopes({
-    state: { collections: { collections }, globalEnvironments },
+    state: scopeState,
     collection: selection.collection,
     item: selection.item
   });
@@ -61,7 +63,7 @@ const SetAsVariablePopover = ({ selection, onClose }) => {
   const selectedScope = scopes.find((scope) => scope.type === scopeType) || null;
   const existingVariableNames = getScopeVariableNames({
     scopeType,
-    state: { collections: { collections }, globalEnvironments },
+    state: scopeState,
     collection: selection.collection,
     item: selection.item
   });

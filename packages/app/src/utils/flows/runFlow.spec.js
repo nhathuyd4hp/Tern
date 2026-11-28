@@ -72,6 +72,42 @@ describe('runFlow', () => {
     expect(progress).toEqual([['login', 'running'], ['login', 'passed']]);
   });
 
+  it('runs from a request with the values an earlier run took, and only that request when asked', async () => {
+    const store = makeStore([request('login'), request('info'), request('logout')]);
+    const seen = [];
+    mockSendRequest.mockImplementation((sent) => async () => {
+      seen.push({ name: sent.name, token: store.application.runtimeVariables.token });
+      store.application.items.find((candidate) => candidate.uid === sent.uid).response = { status: 200, data: {} };
+    });
+    const flow = flowOf([node('login'), node('info'), node('logout')], [edge('login', '200', 'info'), edge('info', '200', 'logout')]);
+
+    const fromHere = await store.dispatch(runFlow(flow, 'app-1', { startAt: 'info', variables: { token: 'kept' } }));
+    expect(fromHere.status).toBe('passed');
+    expect(seen).toEqual([{ name: 'info', token: 'kept' }, { name: 'logout', token: 'kept' }]);
+
+    seen.length = 0;
+    const alone = await store.dispatch(runFlow(flow, 'app-1', { startAt: 'info', only: true }));
+    expect(alone.status).toBe('passed');
+    expect(Object.keys(alone.results)).toEqual(['info']);
+    expect(seen.map((entry) => entry.name)).toEqual(['info']);
+  });
+
+  it('lists the messages a WebSocket node sent and received, with their time', async () => {
+    const store = makeStore([request('socket', { type: 'ws-request' })]);
+    mockSendRequest.mockImplementation((sent) => async () => {
+      const item = store.application.items.find((candidate) => candidate.uid === sent.uid);
+      item.requestSent = { timestamp: Date.now() };
+      item.response = { status: 'CONNECTED', responses: [{ type: 'outgoing', message: 'hi', seq: 1, timestamp: Date.now() }, { type: 'incoming', message: '{"ok":true}', seq: 2, timestamp: Date.now() }] };
+    });
+
+    const outcome = await store.dispatch(runFlow(flowOf([node('socket')]), 'app-1'));
+
+    expect(outcome.results.socket.response.messages).toEqual([
+      { direction: 'sent', message: 'hi', timestamp: expect.any(Number) },
+      { direction: 'received', message: '{"ok":true}', timestamp: expect.any(Number) }
+    ]);
+  });
+
   it('takes a plain path of the body from the response itself, whatever the pipeline did with the variables', async () => {
     const store = makeStore([request('login'), request('info')]);
     const seen = [];

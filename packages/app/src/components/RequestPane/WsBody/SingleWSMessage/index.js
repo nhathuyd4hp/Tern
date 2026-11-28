@@ -7,9 +7,10 @@ import { updateRequestBody } from 'providers/ReduxStore/slices/collections';
 import { saveRequest } from 'providers/ReduxStore/slices/collections/actions';
 import { useTheme } from 'providers/Theme';
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch, useSelector, useStore } from 'react-redux';
 import { queueWsMessage, ensureWsConnection } from 'utils/network/index';
-import { findCollectionByUid, findEnvironmentInCollection } from 'utils/collections/index';
+import { findEnvironmentInCollection } from 'utils/collections/index';
+import { selectCollectionByUid } from 'src/selectors/collections';
 import toast from 'react-hot-toast';
 import { REQUEST_BODY_EDITOR_CLASS } from 'utils/common/constants';
 import WSRequestBodyMode from '../BodyMode/index';
@@ -46,9 +47,10 @@ export const SingleWSMessage = ({
 }) => {
   const dispatch = useDispatch();
   const { displayedTheme } = useTheme();
-  const preferences = useSelector((state) => state.app.preferences);
+  const codeFont = useSelector((state) => state.app.preferences?.font?.codeFont);
+  const codeFontSize = useSelector((state) => state.app.preferences?.font?.codeFontSize);
   const body = item.draft ? get(item, 'draft.request.body') : get(item, 'request.body');
-  const collections = useSelector((state) => state.collections.collections);
+  const store = useStore();
 
   const { name, content, type } = message;
   const displayMode = typeToMode(type);
@@ -106,7 +108,7 @@ export const SingleWSMessage = ({
     setIsEditing(true);
   }, [displayName, onToggle]);
 
-  const fontSize = get(preferences, 'font.codeFontSize', 14);
+  const fontSize = codeFontSize ?? 14;
   const lineHeight = fontSize * 1.5;
 
   const HEADER_ALLOWANCE = 44;
@@ -163,7 +165,7 @@ export const SingleWSMessage = ({
 
   const onSendMessage = useCallback(async () => {
     try {
-      const col = findCollectionByUid(collections, collection.uid);
+      const col = selectCollectionByUid(store.getState(), collection.uid);
       const environment = resolveEnvironmentInheritance({
         environments: col?.environments,
         targetEnvironment: findEnvironmentInCollection(col, col?.activeEnvironmentUid)
@@ -179,7 +181,7 @@ export const SingleWSMessage = ({
     } catch (err) {
       toast.error(err.message || 'Failed to send message');
     }
-  }, [collections]);
+  }, [store, collection.uid, item, index]);
 
   return (
     <StyledWrapper
@@ -270,8 +272,8 @@ export const SingleWSMessage = ({
             collection={collection}
             item={item}
             theme={displayedTheme}
-            font={get(preferences, 'font.codeFont', 'default')}
-            fontSize={get(preferences, 'font.codeFontSize')}
+            font={codeFont ?? 'default'}
+            fontSize={codeFontSize}
             value={content}
             onEdit={onEdit}
             onRun={handleRun}

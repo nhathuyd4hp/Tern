@@ -1,6 +1,9 @@
 import StyledWrapper from './StyledWrapper';
 
 const MAX_BODY_CHARS = 20000;
+const MAX_MESSAGE_CHARS = 2000;
+
+const timeOf = (timestamp) => `${new Date(timestamp).toLocaleTimeString('en-GB')}.${String(timestamp % 1000).padStart(3, '0')}`;
 
 const headerEntries = (headers) => {
   if (!headers) return [];
@@ -45,7 +48,19 @@ const ResponseView = ({ response }) => {
           ))}
         </details>
       )}
-      <pre className="response-body" aria-label="Response body">{body || 'No body'}</pre>
+      {response.messages?.length > 0 && (
+        <div className="response-messages" data-testid="ws-messages">
+          <div className="messages-title">Messages ({response.messages.length})</div>
+          {response.messages.map((entry, position) => (
+            <div className={`message-line ${entry.direction}`} key={position}>
+              <span className="message-arrow" title={entry.direction}>{entry.direction === 'sent' ? '↑' : '↓'}</span>
+              <span className="message-time">{timeOf(entry.timestamp)}</span>
+              <span className="message-text">{entry.message.length > MAX_MESSAGE_CHARS ? `${entry.message.slice(0, MAX_MESSAGE_CHARS)}…` : entry.message}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      {(body || !response.messages?.length) && <pre className="response-body" aria-label="Response body">{body || 'No body'}</pre>}
     </StyledWrapper>
   );
 };

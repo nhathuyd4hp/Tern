@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import { paneIn } from '../paneIn';
 
 const StyledWrapper = styled.button`
   display: flex;
@@ -12,6 +13,7 @@ const StyledWrapper = styled.button`
   background: transparent;
   color: ${(props) => props.theme.colors.text.muted};
   cursor: pointer;
+  ${paneIn}
 
   &:hover {
     background: ${(props) => props.theme.background.mantle};

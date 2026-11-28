@@ -26,6 +26,38 @@ const StyledWrapper = styled.div`
     font-size: ${(props) => props.theme.font.size.sm};
   }
 
+  /* the two ways to run from here, side by side under the address and as wide as each other */
+  .panel-run {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    margin: 0.625rem 0 0.25rem;
+
+    button {
+      width: 100%;
+      justify-content: center;
+      white-space: nowrap;
+    }
+  }
+
+  .panel-missing {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: ${(props) => props.theme.border.radius.md};
+    background: ${(props) => rgba(props.theme.colors.text.danger, 0.1)};
+    font-size: ${(props) => props.theme.font.size.sm};
+
+    .missing-title {
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+      color: ${(props) => props.theme.colors.text.danger};
+    }
+  }
+
   .panel-hint {
     margin: 0.5rem 0;
     font-size: ${(props) => props.theme.font.size.sm};
