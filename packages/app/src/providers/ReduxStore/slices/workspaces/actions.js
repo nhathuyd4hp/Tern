@@ -1,4 +1,4 @@
-import path from 'utils/common/path';
+import path, { normalizePath } from 'utils/common/path';
 import {
   createWorkspace,
   setActiveWorkspace,
@@ -18,7 +18,6 @@ import {
   markSnapshotCollectionHydrated,
   clearSnapshotHydrationSession
 } from '../app';
-import { normalizePath } from 'utils/common/path';
 import { hydrateTabs, getActiveTabFromSnapshot, hydrateSnapshotLookups, getCollectionSnapshotFromLookups, WORKSPACE_TAB_UID_SUFFIX_BY_TYPE } from 'utils/snapshot';
 import toast from 'react-hot-toast';
 

@@ -50,8 +50,8 @@ if (!SERVER_RENDERED) {
       // JSHint error.character actually is a column index, this fixes underlining on lines using tabs for indentation
       options.indent = 1; // JSHint default value is 4
     JSHINT(text, options, options.globals);
-    let errors = JSHINT.data().errors,
-      result = [];
+    let errors = JSHINT.data().errors;
+    const result = [];
 
     /*
      * Filter out errors due to top level awaits
@@ -111,8 +111,8 @@ if (!SERVER_RENDERED) {
           continue;
         }
 
-        let start = error.character - 1,
-          end = start + 1;
+        const start = error.character - 1;
+        let end = start + 1;
         if (error.evidence) {
           const index = error.evidence.substring(start).search(/.\b/);
           if (index > -1) {

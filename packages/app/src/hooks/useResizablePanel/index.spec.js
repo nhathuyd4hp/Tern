@@ -59,7 +59,7 @@ describe('useResizablePanel', () => {
   });
 
   it('mouseup without an active drag does not call onResizeEnd', () => {
-    const { result, onResizeEnd } = renderResizablePanel();
+    const { onResizeEnd } = renderResizablePanel();
 
     fireMouse('mouseup', 300);
 

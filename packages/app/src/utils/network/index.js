@@ -56,7 +56,6 @@ const sendHttpRequest = async (item, collection, environment, runtimeVariables) 
 
 export const sendCollectionOauth2Request = async (collection, environment, runtimeVariables) => {
   return new Promise((resolve, reject) => {
-    const { ipcRenderer } = window;
     resolve({});
   });
 };

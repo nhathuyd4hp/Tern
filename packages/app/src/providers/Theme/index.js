@@ -1,10 +1,9 @@
-import React from 'react';
+import React, { createContext, useContext, useEffect, useLayoutEffect, useState, useMemo, useCallback, startTransition } from 'react';
 import { parseToRgb } from 'utils/color';
 import themes from 'themes/index';
 import { cssTheme, themeVariablesCss } from 'themes/cssVariables';
 import useLocalStorage from 'hooks/useLocalStorage/index';
 
-import { createContext, useContext, useEffect, useLayoutEffect, useState, useMemo, useCallback, startTransition } from 'react';
 import { ThemeProvider as SCThemeProvider } from 'styled-components';
 
 // Every color reaches styled-components as a CSS variable (see themes/cssVariables), so the variables are

@@ -14,9 +14,7 @@ jest.mock('nanoid', () => {
 const {
   deserializeTab,
   hydrateSnapshotLookups,
-  hydrateCollectionTabs,
   isActiveTab,
-  getActiveTabFromSnapshot,
   serializeTab,
   serializeActiveTab,
   shouldExcludeTab,

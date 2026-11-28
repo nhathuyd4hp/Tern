@@ -29,7 +29,7 @@ import {
   isPutObjectPresignedUrl
 } from 'utils/collections';
 import { uuid, waitForNextTick } from 'utils/common';
-import { cancelNetworkRequest, connectWS, sendGrpcRequest, sendNetworkRequest, sendWsRequest } from 'utils/network/index';
+import { cancelNetworkRequest, connectWS, sendGrpcRequest, sendNetworkRequest, sendWsRequest, sendCollectionOauth2Request as _sendCollectionOauth2Request } from 'utils/network/index';
 import { callIpc } from 'utils/common/ipc';
 
 import {
@@ -72,26 +72,24 @@ import {
   addTransientDirectory,
   addSaveTransientRequestModal,
   updatePathParam,
-  toggleCollection,
   expandCollection,
   expandItem,
-  setSidebarSelection
+  setSidebarSelection,
+  updateSettingsSelectedTab
 } from './index';
 
 import { each } from 'lodash';
-import { closeAllCollectionTabs, closeTabs as _closeTabs, focusTab, reopenLastClosedTab, restoreTabs, setSidebarRevealRequest } from 'providers/ReduxStore/slices/tabs';
+import { closeAllCollectionTabs, closeTabs as _closeTabs, focusTab, reopenLastClosedTab, restoreTabs, setSidebarRevealRequest, addTab } from 'providers/ReduxStore/slices/tabs';
 import { clearOpenApiSyncTabState } from 'providers/ReduxStore/slices/openapi-sync';
 import { syncKeyOf } from 'utils/openapi-sync-scope';
 import { removeCollectionFromWorkspace } from 'providers/ReduxStore/slices/workspaces';
 import { resolveRequestFilename } from 'utils/common/platform';
 import { interpolateUrl, parsePathParams, splitOnFirst } from 'utils/url/index';
-import { sendCollectionOauth2Request as _sendCollectionOauth2Request } from 'utils/network/index';
 import {
   getGlobalEnvironmentVariables,
   getGlobalEnvironmentName,
   findCollectionByPathname,
   getReorderedItemsInTargetDirectory,
-  resetSequencesInFolder,
   getReorderedItemsInSourceDirectory,
   calculateDraggedItemNewPathname,
   transformFolderRootToSave,
@@ -105,9 +103,6 @@ import { applyScriptEnvVars, getScriptModifiedKeys, writesCollidingSecrets, DUPL
 import { getInvalidVariableNames, invalidVariableNamesError } from 'utils/common/variables';
 import { safeParseJSON, safeStringifyJSON } from 'utils/common/index';
 import { resolveInheritedAuth } from 'utils/auth';
-import { addTab } from 'providers/ReduxStore/slices/tabs';
-import { updateSettingsSelectedTab } from './index';
-import { flushSnapshotNow } from 'providers/ReduxStore/middlewares/snapshot/middleware';
 import { saveGlobalEnvironment, clearGlobalEnvironmentDraft, _clearScriptGlobalEnvBaseline } from 'providers/ReduxStore/slices/global-environments';
 import { getTabToFocusForCurrentWorkspace } from 'providers/ReduxStore/slices/workspaces/getTabToFocusForCurrentWorkspace';
 import { clearPersistedScope } from 'hooks/usePersistedState/PersistedScopeProvider';
@@ -913,7 +908,6 @@ export const handleMultipleCollectionItemsDrop
 
       return new Promise(async (resolve, reject) => {
         try {
-          const { ipcRenderer } = window;
           const uidsToClose = [];
 
           // Moves the dragged item to a different directory (cross-folder or cross-collection),
@@ -1905,66 +1899,6 @@ export const saveEnvironmentExtends = ({ environmentUid, inheritedEnvironmentNam
       })
       .catch(reject);
   });
-};
-
-/**
- * Update a variable value directly in the file without affecting draft state
- * @param {string} pathname - File path
- * @param {Object} variable - Variable object with uid, name, value, type, enabled
- * @param {string} scopeType - Type of scope ('request', 'folder', 'collection')
- * @param {string} collectionUid - Collection UID
- * @param {string} itemUid - Item/Folder UID (for request/folder)
- */
-const updateVariableInFile = (pathname, variable, scopeType, collectionUid, itemUid) => (dispatch, getState) => {
-  return new Promise((resolve, reject) => {
-    const { ipcRenderer } = window;
-
-    const state = getState();
-    const collection = findCollectionByUid(state.collections.collections, collectionUid);
-    if (!collection) {
-      return reject(new Error('Application not found'));
-    }
-
-    const collectionCopy = cloneDeep(collection);
-
-    ipcRenderer
-      .invoke('renderer:update-variable-in-file', pathname, variable, scopeType, collectionCopy.root)
-      .then(() => {
-        // Update Redux state to reflect the change
-        if (scopeType === 'request') {
-          dispatch({
-            type: 'collections/updateRequestVarValue',
-            payload: { collectionUid, itemUid, variable }
-          });
-        } else if (scopeType === 'folder') {
-          dispatch({
-            type: 'collections/updateFolderVarValue',
-            payload: { collectionUid, folderUid: itemUid, variable }
-          });
-        } else if (scopeType === 'collection') {
-          dispatch({
-            type: 'collections/updateCollectionVarValue',
-            payload: { collectionUid, variable }
-          });
-        }
-
-        resolve();
-      })
-      .catch(reject);
-  });
-};
-
-/**
- * Helper: Execute update action with toast notification
- * @param {Function} action - The action to dispatch
- * @param {string} successMessage - Success toast message
- * @returns {Promise}
- */
-const executeVariableUpdate = (dispatch, action, successMessage) => {
-  return dispatch(action)
-    .then(() => {
-      toast.success(successMessage);
-    });
 };
 
 /**

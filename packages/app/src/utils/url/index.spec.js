@@ -204,7 +204,7 @@ describe('Url Utils - URN parsing', () => {
     expect(params).toEqual([]);
 
     // URN with percent-encoded characters
-    const params2 = parsePathParams('https://example.com/urn:uuid:6e8bc430%2D9c3a-11d9-9669-0800200c9a66');
+    parsePathParams('https://example.com/urn:uuid:6e8bc430%2D9c3a-11d9-9669-0800200c9a66');
     expect(params).toEqual([]);
   });
 

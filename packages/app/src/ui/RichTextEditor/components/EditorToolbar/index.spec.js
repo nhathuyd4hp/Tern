@@ -54,7 +54,7 @@ describe('EditorToolbar', () => {
   });
 
   it('renders all toolbar buttons', () => {
-    const { container } = render(
+    render(
       <ThemeProvider theme={mockTheme}>
         <EditorToolbar editor={editor} />
       </ThemeProvider>

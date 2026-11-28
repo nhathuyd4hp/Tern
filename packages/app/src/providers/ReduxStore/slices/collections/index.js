@@ -26,24 +26,6 @@ import { getUniqueTagsFromItems } from 'utils/collections/index';
 import { DEFAULT_HTTP_ITEM_SETTINGS, GRPC_SCRIPT_KEYS, SCRIPT_TYPES } from '@tern/common';
 import * as exampleReducers from './exampleReducers';
 
-const FILE_DERIVED_REQUEST_FIELDS = [
-  'name',
-  'type',
-  'seq',
-  'tags',
-  'request',
-  'settings',
-  'examples',
-  'raw',
-  'filename',
-  'pathname',
-  'partial',
-  'loading',
-  'size',
-  'error',
-  'isTransient'
-];
-
 // gRPC status code meanings
 const grpcStatusCodes = {
   0: 'OK',
@@ -304,7 +286,7 @@ export const collectionsSlice = createSlice({
       }
     },
     updateSettingsSelectedTab: (state, action) => {
-      const { collectionUid, folderUid, tab } = action.payload;
+      const { collectionUid, tab } = action.payload;
 
       const collection = findCollectionByUid(state.collections, collectionUid);
 
@@ -459,7 +441,7 @@ export const collectionsSlice = createSlice({
       }
     },
     scriptEnvironmentUpdateEvent: (state, action) => {
-      const { collectionUid, envVariables, requestUid } = action.payload;
+      const { collectionUid, envVariables } = action.payload;
       const collection = findCollectionByUid(state.collections, collectionUid);
 
       if (collection) {
@@ -570,7 +552,7 @@ export const collectionsSlice = createSlice({
       }
     },
     requestCancelled: (state, action) => {
-      const { itemUid, collectionUid, seq, timestamp } = action.payload;
+      const { itemUid, collectionUid, seq } = action.payload;
       const collection = findCollectionByUid(state.collections, collectionUid);
 
       if (collection) {
@@ -1494,7 +1476,7 @@ export const collectionsSlice = createSlice({
       }
     },
     setRequestHeaders: (state, action) => {
-      const { collectionUid, itemUid, headers } = action.payload;
+      const { collectionUid, itemUid } = action.payload;
 
       const collection = findCollectionByUid(state.collections, collectionUid);
       if (!collection) {
@@ -3697,8 +3679,6 @@ export const collectionsSlice = createSlice({
 
       const item = findItemInCollection(collection, itemUid);
       if (!item) return;
-      const request = item.draft ? item.draft.request : item.request;
-
       if (eventType === 'request') {
         item.requestSent = eventData;
         item.requestSent.timestamp = Date.now();

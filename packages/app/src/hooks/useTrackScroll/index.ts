@@ -1,5 +1,4 @@
-import type { RefObject } from 'react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type RefObject } from 'react';
 
 const SAVE_DEBOUNCE_MS = 200;
 
