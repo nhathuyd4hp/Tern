@@ -112,7 +112,6 @@ const SyncReviewPage = ({
   }, [specDrift, remoteDrift, collectionDrift]);
 
   const conflictCount = specUpdatedEndpoints.filter((ep) => ep.conflict).length;
-  const hasConflicts = conflictCount > 0;
 
   // Track decisions in Redux (persisted across navigations)
   const savedDecisions = tabUiState.reviewDecisions || {};

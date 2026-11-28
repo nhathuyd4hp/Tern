@@ -12,7 +12,6 @@ import { valueToString } from '@tern/common/utils';
 import EditableTable from 'components/EditableTable';
 import { createDescriptionColumn } from 'components/EditableTable/descriptionColumn';
 import StyledWrapper from './StyledWrapper';
-import toast from 'react-hot-toast';
 import { variableNameRegex } from 'utils/common/regex';
 import { getAllVariables } from 'utils/collections';
 import { findUsedVarsRowUids, plainVariableUsageWarning } from 'utils/sensitive-fields';

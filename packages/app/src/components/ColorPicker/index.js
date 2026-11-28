@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { IconBan, IconBrush } from '@tabler/icons';
 import Dropdown from 'components/Dropdown';
 import ColorBadge from 'components/ColorBadge';

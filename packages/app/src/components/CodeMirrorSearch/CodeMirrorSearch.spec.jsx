@@ -307,7 +307,6 @@ describe('CodeMirrorSearch', () => {
 
       // Simulate undo - document reverts, now no matches
       editor.getSearchCursor.mockImplementation(() => {
-        const i = -1;
         return { findNext: () => false, from: () => undefined, to: () => undefined };
       });
 

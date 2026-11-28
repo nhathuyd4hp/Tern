@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useRef } from 'react';
+import React, { useEffect, useCallback, useRef, useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import debounce from 'lodash/debounce';
@@ -8,7 +8,6 @@ import { savePreferences, refreshPacCache } from 'providers/ReduxStore/slices/ap
 import StyledWrapper from './StyledWrapper';
 import { useDispatch, useSelector } from 'react-redux';
 import { IconEye, IconEyeOff, IconRefresh, IconChevronDown } from '@tabler/icons';
-import { useState } from 'react';
 import SystemProxy from './SystemProxy';
 import Checkbox from 'ui/Checkbox';
 import MenuDropdown from 'ui/MenuDropdown';

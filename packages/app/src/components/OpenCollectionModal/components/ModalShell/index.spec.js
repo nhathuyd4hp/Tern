@@ -185,7 +185,7 @@ describe('ModalShell', () => {
 
     it('hides the overlay on drop and stays on the page when only files were dropped', async () => {
       window.ipcRenderer = { getFilePath: jest.fn(), send: jest.fn() };
-      const store = renderShell();
+      renderShell();
       const file = { name: 'notes.json', text: () => Promise.resolve('{}') };
       const item = { kind: 'file', webkitGetAsEntry: () => ({ isDirectory: false }), getAsFile: () => file };
 

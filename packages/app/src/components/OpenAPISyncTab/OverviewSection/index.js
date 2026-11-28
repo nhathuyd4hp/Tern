@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { getTotalRequestCountInCollection, flattenItems } from 'utils/collections/';
-import { countEndpoints, formatCheckInterval } from '../utils';
+import { formatCheckInterval } from '../utils';
 import moment from 'moment';
 import { IconCheck, IconRefresh, IconRefreshOff } from '@tabler/icons';
 import Button from 'ui/Button';

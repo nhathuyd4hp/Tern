@@ -23,19 +23,14 @@ const GrantTypeComponentMap = ({ collection }) => {
   switch (grantType) {
     case 'password':
       return <OAuth2PasswordCredentials save={save} request={request} updateAuth={updateCollectionAuth} collection={collection} />;
-      break;
     case 'authorization_code':
       return <OAuth2AuthorizationCode save={save} request={request} updateAuth={updateCollectionAuth} collection={collection} />;
-      break;
     case 'client_credentials':
       return <OAuth2ClientCredentials save={save} request={request} updateAuth={updateCollectionAuth} collection={collection} />;
-      break;
     case 'implicit':
       return <OAuth2Implicit save={save} request={request} updateAuth={updateCollectionAuth} collection={collection} />;
-      break;
     default:
       return <div>TBD</div>;
-      break;
   }
 };
 

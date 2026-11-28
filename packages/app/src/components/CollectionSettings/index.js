@@ -36,7 +36,6 @@ const CollectionSettings = ({ collection }) => {
   const root = collection?.draft?.root || collection?.root;
   const hasScripts = root?.request?.script?.res || root?.request?.script?.req;
   const hasTests = root?.request?.tests;
-  const hasDocs = root?.docs;
 
   const headers = collection.draft?.root
     ? get(collection, 'draft.root.request.headers', [])

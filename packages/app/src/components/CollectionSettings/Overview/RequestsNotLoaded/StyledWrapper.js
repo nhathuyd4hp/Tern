@@ -1,5 +1,4 @@
 import styled from 'styled-components';
-import { rgba } from 'utils/color';
 
 const StyledWrapper = styled.div`
   &.card {

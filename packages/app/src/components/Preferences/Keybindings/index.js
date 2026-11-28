@@ -381,16 +381,6 @@ const Keybindings = () => {
     return current !== def;
   };
 
-  // Whether any row differs from the default binding.
-  const hasDirtyRows = useMemo(() => {
-    for (const action of Object.keys(sectionDefaults)) {
-      if (isRowDirty(action)) {
-        return true;
-      }
-    }
-    return false;
-  }, [keyBindings, os, sectionDefaults]);
-
   // Build a set of exact normalized signatures for all shortcuts except the row being edited.
   // This allows:
   // - command + f

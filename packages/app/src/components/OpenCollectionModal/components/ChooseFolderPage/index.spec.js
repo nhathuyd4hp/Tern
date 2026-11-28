@@ -3,7 +3,6 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { VirtuosoMockContext } from 'react-virtuoso';
-import toast from 'react-hot-toast';
 import { ThemeProvider } from 'providers/Theme';
 import { callIpc } from 'utils/common/ipc';
 import { browseDirectories, browseFiles, openMultipleCollections } from 'providers/ReduxStore/slices/collections/actions';

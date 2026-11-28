@@ -150,7 +150,7 @@ const EnvVarValueCell = ({
   renderSensitiveWarning
 }) => {
   const editorRef = useRef(null);
-  const [compact, setCompact] = useState(true);
+  const [, setCompact] = useState(true);
 
   const showAsSecret = variable.secret && !isLastEmptyRow;
   const [masked, setMasked] = useState(showAsSecret);

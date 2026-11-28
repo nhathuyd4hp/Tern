@@ -237,9 +237,10 @@ class CodeEditor extends React.Component {
           let count = undefined;
           const internal = this.editor.getRange(from, to);
           if (this.props.mode == 'application/ld+json') {
+            let toParse;
             if (this.editor.getLine(from.line).endsWith('[')) {
-              var toParse = '[' + internal + ']';
-            } else var toParse = '{' + internal + '}';
+              toParse = '[' + internal + ']';
+            } else toParse = '{' + internal + '}';
             try {
               count = Object.keys(JSON.parse(toParse)).length;
             } catch (e) { }

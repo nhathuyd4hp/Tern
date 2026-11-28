@@ -3,8 +3,7 @@ import { useSelector } from 'react-redux';
 import {
   IconCheck,
   IconRefresh,
-  IconAlertTriangle,
-  IconClock
+  IconAlertTriangle
 } from '@tabler/icons';
 import Button from 'ui/Button';
 import StatusBadge from 'ui/StatusBadge';
