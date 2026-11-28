@@ -8,7 +8,6 @@ const {
   findYmlScriptBlockEndLine,
   adjustLineNumber,
   parseStackTrace,
-  parseErrorLocation,
   getSourceContextFromContent,
   getSourceContext,
   adjustStackTrace,

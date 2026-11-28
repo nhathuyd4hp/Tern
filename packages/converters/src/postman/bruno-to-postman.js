@@ -82,7 +82,7 @@ export const transformUrl = (url, params) => {
     if (urlParts.length === 1) {
       return { protocol: '', rawHostAndPath: urlParts[0] };
     } else if (urlParts.length === 2) {
-      const [hostAndPath, _] = urlParts[1].split(urlRegexPatterns.queryStringSeparator);
+      const [hostAndPath] = urlParts[1].split(urlRegexPatterns.queryStringSeparator);
       return { protocol: urlParts[0], rawHostAndPath: hostAndPath };
     } else {
       throw new Error(`Invalid URL format: ${url}`);

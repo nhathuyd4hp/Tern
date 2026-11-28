@@ -146,7 +146,6 @@ const getOAuth2TokenUsingAuthorizationCode = async ({ request, collectionUid, fo
     clientId,
     clientSecret,
     callbackUrl,
-    scope,
     pkce,
     credentialsPlacement,
     authorizationUrl,
@@ -249,7 +248,9 @@ const getOAuth2TokenUsingAuthorizationCode = async ({ request, collectionUid, fo
   }
 
   // Fetch new token process
-  let { authorizationCode, debugInfo } = await getOAuth2AuthorizationCode(requestCopy, codeChallenge, collectionUid);
+  const authorizationResult = await getOAuth2AuthorizationCode(requestCopy, codeChallenge, collectionUid);
+  const { authorizationCode } = authorizationResult;
+  let { debugInfo } = authorizationResult;
 
   const axiosRequestConfig = {};
   axiosRequestConfig.method = 'POST';

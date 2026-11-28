@@ -263,7 +263,6 @@ const interpolateVars = (request, envVariables = {}, runtimeVariables = {}, proc
   }
 
   if (request?.oauth2?.grantType) {
-    let username, password, scope, clientId, clientSecret;
     switch (request.oauth2.grantType) {
       case 'password':
         request.oauth2.accessTokenUrl = _interpolate(request.oauth2.accessTokenUrl) || '';

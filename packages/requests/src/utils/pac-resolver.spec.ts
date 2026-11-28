@@ -178,7 +178,7 @@ describe('pac-resolver (shared)', () => {
   test('re-downloads PAC after cache TTL expires', async () => {
     const axiosGetMock = jest.fn().mockResolvedValue({ data: 'script' });
     jest.doMock('axios', () => ({ get: axiosGetMock }));
-    const { createPacResolverMock } = setupPacMocks(async () => 'DIRECT');
+    setupPacMocks(async () => 'DIRECT');
 
     const { getPacResolver } = require('./pac-resolver');
     const pacSource = 'http://example.com/proxy.pac';

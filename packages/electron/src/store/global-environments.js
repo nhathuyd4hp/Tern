@@ -1,4 +1,3 @@
-const _ = require('lodash');
 const Store = require('electron-store');
 const { parseValueByDataType, valueToString } = require('@tern/common/utils');
 const { encryptStringSafe, decryptStringSafe } = require('../utils/encryption');

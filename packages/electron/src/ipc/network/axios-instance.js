@@ -264,11 +264,10 @@ function makeAxiosInstance({
 
   instance.interceptors.response.use(
     (response) => {
-      let timeline;
       redirectCount = 0;
 
       const config = response.config;
-      timeline = config?.metadata?.timeline || [];
+      const timeline = config?.metadata?.timeline || [];
 
       const sentHeaders = getSentHeaders(response.request);
 

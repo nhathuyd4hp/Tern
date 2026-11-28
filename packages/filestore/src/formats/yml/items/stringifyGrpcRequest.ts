@@ -1,7 +1,7 @@
 import type { Item as BrunoItem } from '@tern/schema-types/collection/item';
 import type { KeyValue as BrunoKeyValue } from '@tern/schema-types/common/key-value';
 import type { GrpcRequest as BrunoGrpcRequest } from '@tern/schema-types/requests/grpc';
-import type { GrpcRequest, GrpcMetadata, GrpcMessageVariant, GrpcMessage, GrpcRequestInfo, GrpcRequestDetails, GrpcRequestRuntime } from '@opencollection/types/requests/grpc';
+import type { GrpcRequest, GrpcMetadata, GrpcMessageVariant, GrpcRequestInfo, GrpcRequestDetails, GrpcRequestRuntime } from '@opencollection/types/requests/grpc';
 import type { Auth } from '@opencollection/types/common/auth';
 import type { Scripts } from '@opencollection/types/common/scripts';
 import type { Variable } from '@opencollection/types/common/variables';

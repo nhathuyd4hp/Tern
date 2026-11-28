@@ -1,9 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import http from 'node:http';
-import https from 'node:https';
-import type { Agent as HttpAgent } from 'node:http';
-import type { Agent as HttpsAgent } from 'node:https';
+import http, { type Agent as HttpAgent } from 'node:http';
+import https, { type Agent as HttpsAgent } from 'node:https';
 import { parse as parseUrl, type Url } from 'url';
 import { HttpsProxyAgent } from 'https-proxy-agent';
 import { SocksProxyAgent } from 'socks-proxy-agent';

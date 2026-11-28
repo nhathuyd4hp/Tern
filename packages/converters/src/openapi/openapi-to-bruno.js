@@ -4,7 +4,7 @@ import isPlainObject from 'lodash/isPlainObject';
 import omit from 'lodash/omit';
 import uniq from 'lodash/uniq';
 import jsyaml from 'js-yaml';
-import { validateSchema, transformItemsInCollection, hydrateSeqInCollection, uuid, sanitizeTag, sanitizeTags } from '../common';
+import { validateSchema, transformItemsInCollection, hydrateSeqInCollection, uuid, sanitizeTags } from '../common';
 import { swagger2ToBruno } from './swagger2-to-bruno';
 import { allowedDefault, resolveSchemaComposition, registerComponentNames, registerReferencePlaceholder } from './schema-composition';
 import {
@@ -33,15 +33,6 @@ const getContentLevelExample = (bodyContent) => {
 };
 
 // Extract a representative value from a schema property (used for request body properties)
-// Priority: prop.example > parentExample[propName] > prop.default > prop.enum[0] > ''
-const getSchemaPropertyExampleValue = (prop, propName, parentExample = {}) => {
-  if (prop.example !== undefined) return String(prop.example);
-  if (parentExample[propName] !== undefined) return String(parentExample[propName]);
-  if (prop.default !== undefined) return String(prop.default);
-  if (prop.enum && prop.enum.length > 0) return String(prop.enum[0]);
-  return '';
-};
-
 const withoutObjectValues = (schema) => {
   if (!schema || typeof schema !== 'object') return schema;
   const objectValued = ['example', 'default'].filter((keyword) => isPlainObject(schema[keyword]));
@@ -1080,7 +1071,6 @@ export const parseOpenApiCollection = (data, options = {}) => {
     const collectionData = resolveRefs(data);
     if (!collectionData) {
       throw new Error('Invalid OpenAPI collection. Failed to resolve refs.');
-      return;
     }
     registerComponentNames(collectionData.components?.schemas, data.components?.schemas);
 

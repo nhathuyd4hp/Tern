@@ -203,10 +203,10 @@ class DotEnvWatcher {
       } catch (err) {}
     };
 
-    for (const [path, watcher] of this.collectionWatchers) collect(watcher);
+    for (const watcher of this.collectionWatchers.values()) collect(watcher);
     this.collectionWatchers.clear();
 
-    for (const [path, watcher] of this.workspaceWatchers) collect(watcher);
+    for (const watcher of this.workspaceWatchers.values()) collect(watcher);
     this.workspaceWatchers.clear();
 
     return Promise.allSettled(pending);

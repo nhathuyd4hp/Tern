@@ -903,7 +903,7 @@ class CollectionWatcher {
 
   closeAllWatchers() {
     const pending = [];
-    for (const [watchPath, watcher] of Object.entries(this.watchers)) {
+    for (const watcher of Object.values(this.watchers)) {
       try {
         const result = watcher?.close();
         if (result && typeof result.then === 'function') pending.push(result);

@@ -402,7 +402,7 @@ const registerRendererEventHandlers = (mainWindow, watcher) => {
 
   ipcMain.handle('renderer:save-folder-root', async (event, folder) => {
     try {
-      const { name: folderName, root: folderRoot = {}, folderPathname, collectionPathname } = folder;
+      const { name: folderName, root: folderRoot = {}, folderPathname } = folder;
 
       validatePathIsInsideCollection(folderPathname);
 

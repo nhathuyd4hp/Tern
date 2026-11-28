@@ -465,7 +465,8 @@ const prepareRequest = async (item, collection = {}, abortController) => {
 
     const bodyFile = find(request.body.file, (param) => param.selected);
     if (bodyFile) {
-      let { filePath, contentType } = bodyFile;
+      const { contentType } = bodyFile;
+      let { filePath } = bodyFile;
 
       axiosRequest.headers['content-type'] = contentType;
       if (filePath) {

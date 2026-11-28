@@ -1,5 +1,4 @@
 import each from 'lodash/each';
-import get from 'lodash/get';
 
 interface Collection {
   items?: any[];

@@ -1,4 +1,3 @@
-const _ = require('lodash');
 const Store = require('electron-store');
 const { uuid, safeStringifyJSON, safeParseJSON } = require('../utils/common');
 const { encryptStringSafe, decryptStringSafe } = require('../utils/encryption');

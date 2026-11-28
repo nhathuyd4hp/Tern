@@ -3,8 +3,7 @@ const fs = require('fs');
 const os = require('os');
 const yaml = require('js-yaml');
 const {
-  reorderWorkspaceCollections,
-  getWorkspaceCollections
+  reorderWorkspaceCollections
 } = require('../../src/utils/workspace-config');
 
 const collection = (name, pathSegment, extra = {}) => ({ name, path: pathSegment, ...extra });

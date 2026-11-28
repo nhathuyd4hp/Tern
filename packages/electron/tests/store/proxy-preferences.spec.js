@@ -11,7 +11,7 @@ jest.mock('electron-store', () => {
   });
 });
 
-const { getPreferences, savePreferences } = require('../../src/store/preferences');
+const { getPreferences } = require('../../src/store/preferences');
 
 describe('Proxy Preferences Migration', () => {
   beforeEach(() => {

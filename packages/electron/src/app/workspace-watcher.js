@@ -205,10 +205,10 @@ class WorkspaceWatcher {
       } catch (err) {}
     };
 
-    for (const [watchPath, watcher] of Object.entries(this.watchers)) collect(watcher);
+    for (const watcher of Object.values(this.watchers)) collect(watcher);
     this.watchers = {};
 
-    for (const [watchPath, watcher] of Object.entries(this.environmentWatchers)) collect(watcher);
+    for (const watcher of Object.values(this.environmentWatchers)) collect(watcher);
     this.environmentWatchers = {};
 
     const dotEnvResult = dotEnvWatcher.closeAll();

@@ -1,6 +1,5 @@
-import http from 'node:http';
+import http, { type ClientRequest, type RequestOptions } from 'node:http';
 import https from 'node:https';
-import type { ClientRequest, RequestOptions } from 'node:http';
 
 type AxiosLikeHeaders = {
   set: (name: string, value: unknown) => void;

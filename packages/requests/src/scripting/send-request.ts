@@ -1,8 +1,7 @@
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { makeAxiosInstance } from '../network';
 import { getSentHeaders } from '../network/sent-headers';
-import { getHttpHttpsAgents } from '../utils/http-https-agents';
-import type { GetHttpHttpsAgentsParams } from '../utils/http-https-agents';
+import { getHttpHttpsAgents, type GetHttpHttpsAgentsParams } from '../utils/http-https-agents';
 
 type T_SendRequestCallback = (error: any, response: any) => void;
 

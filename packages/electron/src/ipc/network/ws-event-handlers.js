@@ -20,7 +20,6 @@ const {
   getOAuth2TokenUsingAuthorizationCode
 } = require('../../utils/oauth2');
 const { interpolateString } = require('./interpolate-string');
-const path = require('node:path');
 const { setAuthHeaders } = require('./prepare-request');
 const { addCookiesToWsRequest } = require('./ws-cookies');
 

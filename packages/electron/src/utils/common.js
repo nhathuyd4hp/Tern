@@ -73,7 +73,8 @@ const flattenDataForDotNotation = (data) => {
     if (Object(current) !== current) {
       result[prop] = current;
     } else if (Array.isArray(current)) {
-      for (var i = 0, l = current.length; i < l; i++) {
+      const l = current.length;
+      for (let i = 0; i < l; i++) {
         recurse(current[i], prop + '[' + i + ']');
       }
       if (l == 0) {

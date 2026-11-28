@@ -266,7 +266,6 @@ describe('brunoToPostman null checks and fallbacks', () => {
 
   it('should handle null or undefined url', () => {
     // Mock console.error to prevent it from logging during test
-    const originalConsoleError = console.error;
     console.error = jest.fn();
 
     const simpleCollection = {

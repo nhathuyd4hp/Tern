@@ -312,12 +312,12 @@ describe('Agent Cache', () => {
 
       // Simulate request 1 starting - this captures timeline1 in the closure
       agent1.timeline = timeline1;
-      const socket1 = agent1.createConnection({ host: 'example.com', port: 443 }, () => {});
+      agent1.createConnection({ host: 'example.com', port: 443 }, () => {});
 
       // Before request 1's events fire, request 2 starts and updates agent.timeline
       // This simulates the race condition
       agent1.timeline = timeline2;
-      const socket2 = agent1.createConnection({ host: 'other.com', port: 443 }, () => {});
+      agent1.createConnection({ host: 'other.com', port: 443 }, () => {});
 
       // Now fire events for both sockets - they should go to their respective timelines
       mockSocket1.emit('connect');
@@ -355,7 +355,7 @@ describe('Agent Cache', () => {
       jest.spyOn(https.Agent.prototype as any, 'createConnection').mockImplementation(() => mockSocket);
 
       // Start creating connection - this captures timeline1
-      const socket = agent.createConnection({ host: 'test.com', port: 443 }, () => {});
+      agent.createConnection({ host: 'test.com', port: 443 }, () => {});
 
       // Reassign agent.timeline (simulating another request coming in)
       agent.timeline = timeline2;

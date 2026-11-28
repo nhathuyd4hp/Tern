@@ -161,7 +161,7 @@ const convertV21Auth = (array) => {
 const constructUrlFromParts = (url) => {
   if (!url) return '';
 
-  const { protocol = 'http', host, path, port, query, hash } = url || {};
+  const { protocol = 'http', host, path, port, query } = url || {};
   const hostStr = Array.isArray(host) ? host.filter(Boolean).join('.') : host || '';
   const pathStr = Array.isArray(path) ? path.join('/') : path || '';
   const portStr = port ? `:${port}` : '';

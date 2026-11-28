@@ -297,7 +297,6 @@ describe('createOAuth1Authorizer', () => {
       });
 
       it('should produce a different signature than HMAC-SHA1 for the same input', () => {
-        const oauth1 = createOAuth1Authorizer({ consumer, signature_method: 'HMAC-SHA1' });
         const oauth256 = createOAuth1Authorizer({ consumer, signature_method: 'HMAC-SHA256' });
 
         // Use custom hash_function to inject fixed nonce/timestamp isn't possible,

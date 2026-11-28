@@ -1,12 +1,11 @@
 import type { Item as BrunoItem, HttpItemSettings as BrunoHttpItemSettings } from '@tern/schema-types/collection/item';
 import type { HttpRequest as BrunoHttpRequest } from '@tern/schema-types/requests/http';
-import type { HttpRequest, HttpRequestSettings, HttpRequestExample, HttpRequestInfo, HttpRequestDetails, HttpRequestRuntime, HttpRequestHeader } from '@opencollection/types/requests/http';
+import type { HttpRequest, HttpRequestSettings, HttpRequestExample, HttpRequestInfo, HttpRequestDetails, HttpRequestRuntime, HttpRequestHeader, HttpRequestParam, HttpRequestBody } from '@opencollection/types/requests/http';
 import type { Auth } from '@opencollection/types/common/auth';
 import type { Scripts } from '@opencollection/types/common/scripts';
 import type { Variable } from '@opencollection/types/common/variables';
 import type { Assertion } from '@opencollection/types/common/assertions';
 import type { Action } from '@opencollection/types/common/actions';
-import type { HttpRequestParam, HttpRequestBody } from '@opencollection/types/requests/http';
 import { stringifyYml } from '../utils';
 import { toOpenCollectionApp, OpenCollectionApp } from '../common/app';
 import { toOpenCollectionAuth } from '../common/auth';

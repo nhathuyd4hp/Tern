@@ -1,4 +1,4 @@
-const { getSystemProxy, SystemProxyResolver } = require('./index');
+const { SystemProxyResolver } = require('./index');
 const os = require('node:os');
 
 // Mock dependencies

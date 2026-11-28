@@ -15,7 +15,7 @@ if (isDev) {
   }
 }
 
-const { BrowserWindow, app, session, Menu, ipcMain, nativeTheme, shell } = require('electron');
+const { BrowserWindow, app, session, Menu, ipcMain, shell } = require('electron');
 const { setContentSecurityPolicy } = require('electron-util');
 const { getAppUrl, isAppUrl, restrictIpcToAppFrames } = require('./utils/trusted-url');
 
