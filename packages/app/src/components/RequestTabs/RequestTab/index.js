@@ -5,8 +5,7 @@ import { saveRequest, saveFolderRoot, saveEnvironment, saveCollectionSettings, c
 import useKeybinding from 'hooks/useKeybinding';
 import useKeybindingDisplayText from 'hooks/useKeybindingDisplayText';
 import { deleteRequestDraft, deleteCollectionDraft, deleteFolderDraft, clearEnvironmentsDraft, addSaveTransientRequestModal } from 'providers/ReduxStore/slices/collections';
-import { clearGlobalEnvironmentDraft } from 'providers/ReduxStore/slices/global-environments';
-import { saveGlobalEnvironment } from 'providers/ReduxStore/slices/global-environments';
+import { clearGlobalEnvironmentDraft, saveGlobalEnvironment } from 'providers/ReduxStore/slices/global-environments';
 import { useTheme } from 'providers/Theme';
 import { useDispatch, useSelector } from 'react-redux';
 import { findItemInCollection, findItemInCollectionByPathname, hasRequestChanges, areItemsLoading, isItemTransientRequest } from 'utils/collections';
@@ -682,7 +681,6 @@ function RequestTabMenu({ menuDropdownRef, tabLabelRef, collectionRequestTabs, t
   const totalTabs = collectionRequestTabs.length || 0;
   const currentTabUid = collectionRequestTabs[tabIndex]?.uid;
   const currentTabItem = findItemInCollection(collection, currentTabUid);
-  const currentTabHasChanges = useMemo(() => hasRequestChanges(currentTabItem), [currentTabItem]);
 
   const hasLeftTabs = tabIndex !== 0;
   const hasRightTabs = totalTabs > tabIndex + 1;

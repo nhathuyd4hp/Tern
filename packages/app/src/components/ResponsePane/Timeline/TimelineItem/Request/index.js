@@ -13,7 +13,8 @@ const safeStringifyJSONIfNotString = (obj) => {
 };
 
 const Request = ({ collection, request, item, response }) => {
-  let { headers, data, dataBuffer, error } = request || {};
+  const { headers, data, error } = request || {};
+  let { dataBuffer } = request || {};
 
   const sentHeaders = sentHeadersFromTimeline(response?.timeline);
   /** In case of `bru.sendRequest` it builds its own entry in timeline,

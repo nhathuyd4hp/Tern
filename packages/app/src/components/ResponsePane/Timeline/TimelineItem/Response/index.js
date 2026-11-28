@@ -43,7 +43,8 @@ const ResponseMeta = ({ code, statusText, duration, size }) => {
 };
 
 const Response = ({ collection, response, item }) => {
-  let { status, statusCode, statusText, dataBuffer, headers, data, error, duration, size } = response || {};
+  const { status, statusCode, statusText, headers, data, error, duration, size } = response || {};
+  let { dataBuffer } = response || {};
   const isLoaded = size > MAX_RENDERABLE_RESPONSE_BYTES;
   if (!dataBuffer) {
     dataBuffer = Buffer.from(safeStringifyJSONIfNotString(data))?.toString('base64');

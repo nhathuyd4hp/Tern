@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 
 const useFocusTrap = (modalRef) => {
   // refer to this implementation for modal focus: https://stackoverflow.com/a/38865836

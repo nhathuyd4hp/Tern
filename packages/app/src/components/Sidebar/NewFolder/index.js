@@ -12,12 +12,11 @@ import { isSpecSourceReady, PROTO_SOURCE_PICKER_PROPS } from 'components/OpenAPI
 import { buildOpenApiFolderImport, buildProtoFolderImport, parseSpecContent } from 'utils/importers/folder-source';
 import { loadProtoSource, materializeProtoSource } from 'utils/importers/proto-source';
 import { formatIpcError } from 'utils/common/error';
-import { IconArrowBackUp, IconEdit } from '@tabler/icons';
+import { IconArrowBackUp, IconEdit, IconCaretDown } from '@tabler/icons';
 import { sanitizeName, validateName, validateNameError } from 'utils/common/regex';
 import PathDisplay from 'components/PathDisplay/index';
 import Help from 'components/Help';
 import Dropdown from 'components/Dropdown';
-import { IconCaretDown } from '@tabler/icons';
 import StyledWrapper from './StyledWrapper';
 import Button from 'ui/Button';
 

@@ -8,11 +8,10 @@ import {
   moveMultipartFormParam,
   setMultipartFormParams
 } from 'providers/ReduxStore/slices/collections';
-import { browseFiles } from 'providers/ReduxStore/slices/collections/actions';
+import { browseFiles, sendRequest, saveRequest } from 'providers/ReduxStore/slices/collections/actions';
 import MultiLineEditor from 'components/MultiLineEditor';
 import SingleLineEditor from 'components/SingleLineEditor';
 import MultipartFileChipsCell from 'components/MultipartFileChipsCell';
-import { sendRequest, saveRequest } from 'providers/ReduxStore/slices/collections/actions';
 import { updateTableColumnWidths } from 'providers/ReduxStore/slices/tabs';
 import EditableTable from 'components/EditableTable';
 import { createDescriptionColumn } from 'components/EditableTable/descriptionColumn';

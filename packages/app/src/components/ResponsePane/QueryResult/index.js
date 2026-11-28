@@ -1,4 +1,3 @@
-import { debounce } from 'lodash';
 import { useTheme } from 'providers/Theme/index';
 import React, { useMemo, useState } from 'react';
 import { formatResponse, getContentType } from 'utils/common';

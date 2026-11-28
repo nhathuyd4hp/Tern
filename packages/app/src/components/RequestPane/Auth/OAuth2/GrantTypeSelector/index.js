@@ -1,12 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import get from 'lodash/get';
 import MenuDropdown from 'ui/MenuDropdown';
 import { useDispatch } from 'react-redux';
 import StyledWrapper from './StyledWrapper';
 import { IconCaretDown, IconKey } from '@tabler/icons';
 import { humanizeGrantType } from 'utils/collections';
-import { useEffect } from 'react';
-import { useState } from 'react';
 
 const GrantTypeSelector = ({ item = {}, request, updateAuth, collection, readOnly }) => {
   const dispatch = useDispatch();

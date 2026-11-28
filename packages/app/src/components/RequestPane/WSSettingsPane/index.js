@@ -2,13 +2,11 @@ import cn from 'classnames';
 import InfoTip from 'components/InfoTip/index';
 import SingleLineEditor from 'components/SingleLineEditor';
 import ToolHint from 'components/ToolHint/index';
-import { useFormik } from 'formik';
 import get from 'lodash/get';
 import { updateItemSettings } from 'providers/ReduxStore/slices/collections';
 import { useTheme } from 'providers/Theme';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import * as Yup from 'yup';
 import StyledWrapper from './StyledWrapper';
 import { AUTOCOMPLETE_TRIGGER } from 'utils/common/constants';
 

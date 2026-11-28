@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import Portal from 'components/Portal';
 import Modal from 'components/Modal';
 import StyledWrapper from './StyledWrapper';
-import { IconAlertTriangle } from '@tabler/icons';
 
 export default function PromptVariablesModal({ title = 'Input Required', prompts, onSubmit, onCancel }) {
   const [values, setValues] = useState({});

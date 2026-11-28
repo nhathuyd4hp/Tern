@@ -1,5 +1,4 @@
-import type { Dispatch, SetStateAction } from 'react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react';
 import { usePersistenceScope } from './PersistedScopeProvider';
 
 type Options<T> = {

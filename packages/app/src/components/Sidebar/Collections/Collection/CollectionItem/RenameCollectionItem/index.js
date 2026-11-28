@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState, forwardRef } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import Modal from 'components/Modal';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { isItemAFolder } from 'utils/tabs';
 import { getItemTypeLabel } from 'utils/collections';
 import { renameItem, saveRequest, closeTabs } from 'providers/ReduxStore/slices/collections/actions';
@@ -19,7 +19,6 @@ import Button from 'ui/Button';
 
 const RenameCollectionItem = ({ collectionUid, item, onClose }) => {
   const dispatch = useDispatch();
-  const collection = useSelector((state) => state.collections.collections?.find((c) => c.uid === collectionUid));
   const isFolder = isItemAFolder(item);
   const inputRef = useRef();
   const [isEditing, toggleEditing] = useState(false);

@@ -69,7 +69,6 @@ const HttpRequestPane = ({ item, collection }) => {
   const docs = getProperty('request.docs');
   const requestVars = getProperty('request.vars.req');
   const responseVars = getProperty('request.vars.res');
-  const auth = getProperty('request.auth');
   const tags = getProperty('tags');
 
   const activeCounts = useMemo(() => ({

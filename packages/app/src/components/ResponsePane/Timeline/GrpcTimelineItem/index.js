@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { RelativeTime } from '../TimelineItem/Common/Time/index';
 import Status from '../TimelineItem/Common/Status/index';
 import {
@@ -39,8 +38,8 @@ const GrpcTimelineItem = ({ timestamp, request, response, eventType, collection,
   const effectiveRequest = item.requestSent || request || item.request || {};
 
   // Extract relevant data from request and response
-  const { method, url = '' } = effectiveRequest;
-  const { statusCode, duration } = response || {};
+  const { url = '' } = effectiveRequest;
+  const { statusCode } = response || {};
 
   // Get event-specific icon and class names
   const getEventIcon = () => {

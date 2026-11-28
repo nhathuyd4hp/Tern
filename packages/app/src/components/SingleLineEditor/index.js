@@ -50,11 +50,6 @@ class SingleLineEditor extends Component {
         this.props.onRun();
       }
     };
-    const saveHandler = () => {
-      if (this.props.onSave) {
-        this.props.onSave();
-      }
-    };
     const noopHandler = () => { };
 
     this.editor = CodeMirror(this.editorRef.current, {

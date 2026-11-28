@@ -7,7 +7,7 @@ import GrpcRequestPane from 'components/RequestPane/GrpcRequestPane/index';
 import ResponsePane from 'components/ResponsePane';
 import GrpcResponsePane from 'components/ResponsePane/GrpcResponsePane';
 import { findItemInCollection, findItemInCollectionByPathname, areItemsLoading } from 'utils/collections';
-import { cancelRequest, sendRequest } from 'providers/ReduxStore/slices/collections/actions';
+import { sendRequest } from 'providers/ReduxStore/slices/collections/actions';
 import { updateGqlDocsOpen } from 'providers/ReduxStore/slices/tabs';
 import RequestNotFound from './RequestNotFound';
 import QueryUrl from 'components/RequestPane/QueryUrl/index';

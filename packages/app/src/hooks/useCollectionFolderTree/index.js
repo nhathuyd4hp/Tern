@@ -1,9 +1,8 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { isItemAFolder } from 'utils/collections';
+import { isItemAFolder, findCollectionByUid } from 'utils/collections';
 import { sortByNameThenSequence } from 'utils/common/index';
 import filter from 'lodash/filter';
 import { useSelector } from 'react-redux';
-import { findCollectionByUid } from 'utils/collections';
 
 const buildTree = (items) => {
   const tree = {};
