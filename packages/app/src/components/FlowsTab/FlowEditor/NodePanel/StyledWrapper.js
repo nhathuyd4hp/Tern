@@ -132,6 +132,7 @@ const StyledWrapper = styled.div`
   }
 
   .input-row,
+  .timeout-row,
   .extraction-row {
     display: flex;
     align-items: center;

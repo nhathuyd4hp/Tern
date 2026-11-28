@@ -22,6 +22,7 @@ const {
 const { interpolateString } = require('./interpolate-string');
 const path = require('node:path');
 const { setAuthHeaders } = require('./prepare-request');
+const { addCookiesToWsRequest } = require('./ws-cookies');
 
 const prepareWsRequest = async (item, collection, environment, runtimeVariables, certsAndProxyConfig = {}) => {
   const request = item.draft ? item.draft.request : item.request;
@@ -280,7 +281,8 @@ const prepareWsRequest = async (item, collection, environment, runtimeVariables,
 
   interpolateVars(wsRequest, envVars, runtimeVariables, processEnvVars);
 
-  return wsRequest;
+  // after the url is final, as the cookies are those of its host
+  return addCookiesToWsRequest(wsRequest);
 };
 
 // Creating wsClient at module level so it can be accessed from window-all-closed event

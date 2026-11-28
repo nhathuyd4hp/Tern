@@ -1,28 +1,32 @@
-import { useState } from 'react';
-import { IconPlus, IconX } from '@tabler/icons';
+import { IconX } from '@tabler/icons';
+import Select from 'ui/Select';
 import statusCodePhraseMap from 'components/ResponsePane/StatusCode/get-status-code-phrase';
-import { OTHER_STATUS, getRequestStatuses, getStatusKind } from 'utils/flows';
+import { GRPC_STATUSES, OTHER_STATUS, WS_STATUSES, getRequestStatuses, getStatusKind, isStatusKey } from 'utils/flows';
 import StyledWrapper from './StyledWrapper';
 
-// Statuses most often branched on, offered as one-click additions.
-const QUICK_STATUSES = ['201', '204', '400', '401', '403', '404', '409', '422', '429', '500'];
-
-const isStatusCode = (value) => /^[1-5]\d{2}$/.test(value);
+// The statuses a request of this kind can end with: HTTP codes, gRPC statuses or WebSocket outcomes.
+const statusChoicesOf = (request) => {
+  if (request?.type === 'grpc-request') return GRPC_STATUSES.map((status) => ({ value: status, label: status }));
+  if (request?.type === 'ws-request') return WS_STATUSES.map((status) => ({ value: status, label: status }));
+  return Object.keys(statusCodePhraseMap).filter(isStatusKey).map((status) => ({ value: status, label: `${status} ${statusCodePhraseMap[status]}` }));
+};
 
 // Every status listed here is an exit of the request on the canvas. Those of the spec are there from the start;
-// the others are added by a click or by typing a code. Any of them can be taken away while nothing is connected to it.
+// the others are picked from the list of status codes. Any of them can be taken away while nothing is connected to it.
 const StatusSection = ({ node, request, connected, disabled, onChange }) => {
-  const [typed, setTyped] = useState('');
   const documented = getRequestStatuses(request).filter((status) => status !== OTHER_STATUS);
   const shown = new Set([...documented, ...node.statuses].filter((status) => !node.hidden.includes(status)));
   const otherShown = !node.hidden.includes(OTHER_STATUS);
-  const quick = [...new Set([...node.hidden.filter((status) => status !== OTHER_STATUS), ...QUICK_STATUSES])].filter((status) => !shown.has(status));
+  // what can still be added: Other once it was taken away, and every status code not listed yet
+  const options = [
+    ...(otherShown ? [] : [{ value: OTHER_STATUS, label: 'Other: any other status' }]),
+    ...statusChoicesOf(request).filter((choice) => !shown.has(choice.value))
+  ];
 
   const add = (status) => {
-    if (!isStatusCode(status) || shown.has(status)) return;
+    if (!isStatusKey(status) || shown.has(status)) return;
     const hidden = node.hidden.filter((existing) => existing !== status);
     onChange({ ...node, hidden, statuses: documented.includes(status) ? node.statuses : [...new Set([...node.statuses, status])].sort() });
-    setTyped('');
   };
   const remove = (status) => onChange({
     ...node,
@@ -32,7 +36,6 @@ const StatusSection = ({ node, request, connected, disabled, onChange }) => {
   const restoreOther = () => onChange({ ...node, hidden: node.hidden.filter((status) => status !== OTHER_STATUS) });
 
   const rows = [...shown].map((status) => ({ status, fromSpec: documented.includes(status) })).sort((a, b) => Number(a.status) - Number(b.status));
-  const typedIsValid = isStatusCode(typed) && !shown.has(typed);
   const removeButton = (status) => (
     <button
       type="button"
@@ -72,40 +75,16 @@ const StatusSection = ({ node, request, connected, disabled, onChange }) => {
       </ul>
 
       <div className="status-add">
-        <label className="status-add-label" htmlFor="status-code-input">Add a status</label>
-        {(quick.length > 0 || !otherShown) && (
-          <div className="status-quick">
-            {!otherShown && (
-              <button type="button" className="status-quick-item other" disabled={disabled} onClick={restoreOther}>
-                <IconPlus size={11} />
-                Other
-              </button>
-            )}
-            {quick.map((status) => (
-              <button type="button" key={status} className={`status-quick-item ${getStatusKind(status)}`} title={statusCodePhraseMap[status]} disabled={disabled} onClick={() => add(status)}>
-                <IconPlus size={11} />
-                {status}
-              </button>
-            ))}
-          </div>
-        )}
-        <div className="status-custom">
-          <input
-            id="status-code-input"
-            className="status-input"
-            aria-label="Type a status code"
-            placeholder="Another code, e.g. 418"
-            inputMode="numeric"
-            maxLength={3}
-            value={typed}
-            disabled={disabled}
-            onChange={(event) => setTyped(event.target.value.replace(/\D/g, ''))}
-            onKeyDown={(event) => event.key === 'Enter' && add(typed)}
-          />
-          <button type="button" className="status-custom-add" disabled={disabled || !typedIsValid} onClick={() => add(typed)} title="Add status">
-            Add
-          </button>
-        </div>
+        <Select
+          data={options}
+          value={null}
+          onChange={(status) => (status === OTHER_STATUS ? restoreOther() : add(status))}
+          placeholder="Add a status"
+          searchable
+          nothingFoundMessage="No status matches"
+          disabled={disabled}
+          aria-label="Add a status"
+        />
       </div>
     </StyledWrapper>
   );

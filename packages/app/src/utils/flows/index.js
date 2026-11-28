@@ -6,20 +6,37 @@ import { flattenItems, isItemARequest } from 'utils/collections/index';
 // A flow is a graph of requests of one application. A node sends a request; the status of its response picks
 // the edge to follow (an edge leaves a node from the handle of a status, or from 'other'). Values taken from a
 // response become variables ({{name}}) for the nodes after it.
-//   Flow = { id, name, nodes: [{ id, requestPath, position: { x, y }, inputs: { params, headers, body }, statuses: ['404', ...], extractions: [{ name, expression, where?: [{ field, op?, value }] }] }],
+//   Flow = { id, name, timeout, nodes: [{ id, requestPath, timeout?, position: { x, y }, inputs: { params, headers, body }, statuses: ['404', ...], extractions: [{ name, expression, where?: [{ field, op?, value }] }] }],
 //            edges: [{ id, source, sourceHandle, target }] }
+//   timeout is the length in seconds of the session the flow runs in: after it the flow is shut down. A flow saved without one gets the default.
+//   A WebSocket node may have send (the messages to send in order, instead of the one of the request) and expect (the text a message
+//   received must hold before the node leaves through RECEIVED); its timeout is how long it waits for it.
+//   A node may have a timeout of its own (seconds): its request is cancelled and the flow shut down if it takes longer.
 //   statuses are the ones the user added to a node, besides those its request documents; hidden are the documented ones
 //   (or 'other') the user took away because nothing is connected to them.
 //   where picks the item of a list: the expression holds [0] for the list, and the first item that meets every condition (its field is, differs from or contains value, by op) is used instead.
 //   inputs.params / inputs.headers map a name to the value to send instead of the saved one; inputs.body is a JSON text or null.
 // Flows are saved with their application, in its flows.json.
 
-export const FLOW_REQUEST_TYPES = ['http-request', 'graphql-request'];
+export const FLOW_REQUEST_TYPES = ['http-request', 'graphql-request', 'grpc-request', 'ws-request'];
+
+export const FLOW_REQUEST_TYPE_LABELS = { 'http-request': 'HTTP', 'graphql-request': 'GraphQL', 'grpc-request': 'gRPC', 'ws-request': 'WebSocket' };
+
+// A gRPC call ends with one of these, a WebSocket request with one of the others: they are the exits of such a node,
+// as the status code is for an HTTP one.
+export const GRPC_STATUSES = ['OK', 'CANCELLED', 'UNKNOWN', 'INVALID_ARGUMENT', 'DEADLINE_EXCEEDED', 'NOT_FOUND', 'ALREADY_EXISTS', 'PERMISSION_DENIED', 'RESOURCE_EXHAUSTED', 'FAILED_PRECONDITION', 'ABORTED', 'OUT_OF_RANGE', 'UNIMPLEMENTED', 'INTERNAL', 'UNAVAILABLE', 'DATA_LOSS', 'UNAUTHENTICATED'];
+export const WS_STATUSES = ['RECEIVED', 'CONNECTED', 'TIMEOUT', 'CLOSED', 'ERROR'];
+
+/** Whether a text is an exit a node can have: an HTTP status code, a gRPC status or a WebSocket outcome. */
+export const isStatusKey = (status) => /^[1-5]\d\d$/.test(status) || GRPC_STATUSES.includes(status) || WS_STATUSES.includes(status);
 
 // Drag and drop: a request of the palette is dropped on the canvas.
 export const FLOW_DRAG = { request: 'flow-request' };
 
 export const OTHER_STATUS = 'other';
+
+// Seconds a flow may run before it is shut down.
+export const DEFAULT_FLOW_TIMEOUT = 60;
 
 // How the field of an item of a list is compared with the value; a condition without op is 'equals'.
 export const WHERE_OPERATORS = { equals: 'equals', differs: 'differs from', contains: 'contains' };
@@ -46,6 +63,9 @@ const sanitizeConditions = (where) => (Array.isArray(where) ? where : [where])
     value: text(condition.value)
   }));
 
+// The messages a WebSocket node sends, in order; an empty one is not worth sending.
+const sanitizeMessages = (messages) => (Array.isArray(messages) ? messages.filter((message) => typeof message === 'string') : []);
+
 const sanitizeNode = (node) => ({
   id: text(node?.id) || uuid(),
   requestPath: text(node?.requestPath),
@@ -55,8 +75,11 @@ const sanitizeNode = (node) => ({
     headers: textMap(node?.inputs?.headers),
     body: typeof node?.inputs?.body === 'string' ? node.inputs.body : null
   },
-  statuses: [...new Set((Array.isArray(node?.statuses) ? node.statuses : []).map(String).filter((status) => /^[1-5]\d\d$/.test(status)))].sort(),
-  hidden: [...new Set((Array.isArray(node?.hidden) ? node.hidden : []).map(String).filter((status) => /^[1-5]\d\d$/.test(status) || status === OTHER_STATUS))].sort(),
+  ...(Number.isInteger(node?.timeout) && node.timeout > 0 ? { timeout: node.timeout } : {}),
+  ...(sanitizeMessages(node?.send).length ? { send: sanitizeMessages(node.send) } : {}),
+  ...(text(node?.expect) ? { expect: node.expect } : {}),
+  statuses: [...new Set((Array.isArray(node?.statuses) ? node.statuses : []).map(String).filter(isStatusKey))].sort(),
+  hidden: [...new Set((Array.isArray(node?.hidden) ? node.hidden : []).map(String).filter((status) => isStatusKey(status) || status === OTHER_STATUS))].sort(),
   extractions: (Array.isArray(node?.extractions) ? node.extractions : []).map((extraction) => ({
     name: text(extraction?.name),
     expression: text(extraction?.expression),
@@ -94,6 +117,7 @@ const sanitizeFlow = (flow) => {
   return {
     id: text(flow?.id) || uuid(),
     name: text(flow?.name) || 'Untitled flow',
+    timeout: Number.isInteger(flow?.timeout) && flow.timeout > 0 ? flow.timeout : DEFAULT_FLOW_TIMEOUT,
     nodes,
     edges: sanitizeEdges(edges, nodes)
   };
@@ -276,6 +300,8 @@ export const freeVariableName = (flow, base, reserved = []) => {
 
 /** How a status is coloured: 2xx 'ok' (green), 3xx 'redirect' (yellow), 4xx and 5xx 'error' (red), the rest 'other' (grey). */
 export const getStatusKind = (status) => {
+  if (status === 'OK' || status === 'RECEIVED' || status === 'CONNECTED') return 'ok';
+  if (GRPC_STATUSES.includes(status) || WS_STATUSES.includes(status)) return 'error';
   const code = Number(status);
   if (status === OTHER_STATUS || !Number.isFinite(code)) return 'other';
   if (code >= 200 && code < 300) return 'ok';
@@ -294,10 +320,40 @@ export const getRequestUrlPath = (item) => {
   return path || '/';
 };
 
-/** The statuses a request documents (from its examples, which come with the OpenAPI spec), plus 'other' for the rest. */
+/** The statuses a request documents (from its examples, which come with the OpenAPI spec), plus 'other' for the rest; a gRPC or WebSocket request has its own. */
 export const getRequestStatuses = (item) => {
+  if (item?.type === 'grpc-request') return ['OK', OTHER_STATUS];
+  if (item?.type === 'ws-request') return ['RECEIVED', 'CONNECTED', OTHER_STATUS];
   const documented = [...new Set((item?.examples || []).map((example) => Number(example?.response?.status)).filter((status) => Number.isInteger(status) && status > 0))]
     .sort((a, b) => a - b)
     .map(String);
   return [...(documented.length ? documented : ['200']), OTHER_STATUS];
+};
+
+/** The text a node can replace in a request: its JSON body, the first message of a gRPC call, the selected message of a WebSocket one; null when there is none to replace. */
+export const getBodyText = (item) => {
+  const body = item?.request?.body;
+  if (body?.mode === 'json') return body.json || '';
+  if (body?.mode === 'grpc') return body.grpc?.[0]?.content ?? '';
+  if (body?.mode === 'ws') return (body.ws?.find((message) => message.selected) || body.ws?.[0])?.content ?? '';
+  return null;
+};
+
+/** The text with each {{name}} that has a value in `variables` replaced by it; a name without one stays as written. */
+export const fillVariables = (text, variables) => String(text).replace(/\{\{\s*([\w.-]+)\s*\}\}/g, (token, name) => (name in variables ? String(variables[name]) : token));
+
+/** The url of a request with the variables that have a value filled in: those of the request first, then the environments'. */
+export const getResolvedUrl = (item, environmentValues = []) => {
+  const known = Object.fromEntries(environmentValues.filter((entry) => entry.value !== undefined).map((entry) => [entry.name, entry.value]));
+  (item?.request?.vars?.req || []).filter((variable) => variable.enabled !== false && variable.name).forEach((variable) => {
+    known[variable.name] = variable.value;
+  });
+  return fillVariables(item?.request?.url || '', known);
+};
+
+/** What a request shows as its method and its path: 'GET /users', and 'GRPC /pkg.Service/Method' or 'WS /socket' for the other kinds. */
+export const getRequestLabel = (item) => {
+  if (item?.type === 'grpc-request') return { method: 'GRPC', path: item.request?.method || getRequestUrlPath(item) };
+  if (item?.type === 'ws-request') return { method: 'WS', path: getRequestUrlPath(item) };
+  return { method: item?.request?.method || '', path: getRequestUrlPath(item) };
 };

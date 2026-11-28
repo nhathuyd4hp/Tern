@@ -1,13 +1,27 @@
 import { findCollectionByUid, flattenItems } from 'utils/collections/index';
 import isEqual from 'lodash/isEqual';
-import { sendRequest } from 'providers/ReduxStore/slices/collections/actions';
+import { cancelRequest, sendRequest } from 'providers/ReduxStore/slices/collections/actions';
 import { runtimeVariablesUpdateEvent } from 'providers/ReduxStore/slices/collections';
-import { findRequestByPath, OTHER_STATUS, WHERE_OPERATORS } from './index';
+import { closeWsConnection } from 'utils/network';
+import { fillVariables, findRequestByPath, GRPC_STATUSES, OTHER_STATUS, WHERE_OPERATORS } from './index';
 
 const RESULT_LISTS = ['assertionResults', 'testResults', 'preRequestTestResults', 'postResponseTestResults'];
 const MAX_NODE_RUNS = 50;
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const TIMED_OUT = Symbol('timed out');
+
+// The outcome of the promise, or TIMED_OUT once `ms` have passed first (Infinity waits for as long as it takes).
+const withDeadline = async (promise, ms) => {
+  if (ms === Infinity) return promise;
+  let timer;
+  try {
+    return await Promise.race([promise, new Promise((resolve) => { timer = setTimeout(() => resolve(TIMED_OUT), Math.max(0, ms)); })]);
+  } finally {
+    clearTimeout(timer);
+  }
+};
 
 const applicationOf = (getState, collectionUid) => findCollectionByUid(getState().collections.collections, collectionUid);
 
@@ -45,6 +59,15 @@ const withQueryValue = (url, name, value) => {
   return `${base}?${pairs.join('&')}`;
 };
 
+// A gRPC or WebSocket request sends messages: the text of the node replaces the content of the first (gRPC) or the selected (WebSocket) one.
+const applyBodyInput = (body, text) => {
+  if (text === null) return body;
+  const replaceAt = (messages, position) => messages.map((message, index) => (index === position ? { ...message, content: text } : message));
+  if (body?.mode === 'grpc') return { ...body, grpc: replaceAt(body.grpc || [], 0) };
+  if (body?.mode === 'ws') return { ...body, ws: replaceAt(body.ws || [], Math.max(0, (body.ws || []).findIndex((message) => message.selected))) };
+  return { ...body, mode: 'json', json: text };
+};
+
 const applyInputs = (saved, inputs) => {
   const original = saved.request || {};
   let url = original.url || '';
@@ -61,8 +84,7 @@ const applyInputs = (saved, inputs) => {
     else headers.push({ uid: `flow-header-${name}`, name, value, enabled: true });
   });
 
-  const body = inputs.body === null ? original.body : { ...original.body, mode: 'json', json: inputs.body };
-  return { ...original, url, params, headers, body };
+  return { ...original, url, params, headers, body: applyBodyInput(original.body, inputs.body) };
 };
 
 // What the panel of a request shows after a run.
@@ -122,8 +144,6 @@ const readBodyPath = (response, path) => {
   return value;
 };
 
-const fillVariables = (text, variables) => text.replace(/\{\{\s*([\w.-]+)\s*\}\}/g, (token, name) => (name in variables ? String(variables[name]) : token));
-
 // The path with its first list index replaced by the position of the item whose field equals the wanted value
 // ({{variables}} in the value are filled in); null when the path has no list or no item matches.
 const pathToItem = (response, path, where, variables) => {
@@ -150,7 +170,140 @@ const publishVariables = (dispatch, getState, collectionUid, variables) => {
   dispatch(runtimeVariablesUpdateEvent({ collectionUid, runtimeVariables: { ...current, ...variables } }));
 };
 
-const runNode = async (node, collectionUid, dispatch, getState, flowVariables) => {
+const SOCKET_TYPES = ['grpc-request', 'ws-request'];
+const WS_DEFAULT_WAIT = 10000;
+
+// Polls until check() gives something, the limit passes (null), or the flow gave this node up.
+const until = async (check, limitMs, control) => {
+  const end = Date.now() + limitMs;
+  while (!control.cancelled) {
+    const found = check();
+    if (found) return found;
+    if (Date.now() >= end) return null;
+    await wait(50);
+  }
+  return null;
+};
+
+const parseMessage = (message) => {
+  if (typeof message !== 'string') return message;
+  try {
+    return JSON.parse(message);
+  } catch {
+    return message;
+  }
+};
+
+const currentItem = (getState, collectionUid, uid) => flattenItems(applicationOf(getState, collectionUid)?.items || []).find((candidate) => candidate.uid === uid);
+
+// A WebSocket message the node sends: JSON when it is, else plain text.
+const wsMessage = (text, position) => {
+  let type = 'text';
+  try {
+    JSON.parse(text);
+    type = 'json';
+  } catch {
+    // not JSON: sent as text
+  }
+  return { name: `flow message ${position + 1}`, type, content: text, selected: true };
+};
+
+// What a gRPC or WebSocket request answered, in the shape of a response of the flow: an exit instead of a status code, the message as body.
+// `received` collects the messages that came in, as they may leave the item when the next message is sent.
+const socketOutcome = async (item, node, collectionUid, getState, startedAt, control, received, flowVariables) => {
+  const current = () => currentItem(getState, collectionUid, item.uid);
+  const fresh = () => (current()?.requestSent?.timestamp ?? 0) >= startedAt;
+
+  if (item.type === 'grpc-request') {
+    const done = await until(() => (fresh() && typeof current()?.response?.statusCode === 'number' ? current().response : null), Infinity, control);
+    if (!done) return null;
+    const messages = (done.responses || []).map(parseMessage);
+    const exit = GRPC_STATUSES.includes(done.statusText) ? done.statusText : 'UNKNOWN';
+    return { exit, response: { status: exit, statusText: done.statusDescription || '', headers: done.headers, data: messages.length > 1 ? messages : messages[0], duration: done.duration } };
+  }
+
+  // WebSocket: wait for a message that holds the text the node expects (any message when it expects none); the connection is closed after
+  const expected = fillVariables(node.expect || '', flowVariables);
+  const collect = () => collectIncoming(current()?.response, startedAt, received);
+  const match = () => (collect(), received.find((entry) => String(entry.message).includes(expected)));
+  const limit = node.timeout ? node.timeout * 1000 : WS_DEFAULT_WAIT;
+
+  // Keep open: leave as soon as the socket is open and let it listen while the flow goes on; a later node on the same request waits for the message
+  if (node.keepOpen) {
+    await until(() => ['CONNECTED', 'CLOSED'].includes(current()?.response?.status) || current()?.response?.isError, limit, control);
+    const response = current()?.response || {};
+    const exit = response.isError ? 'ERROR' : response.status === 'CLOSED' ? 'CLOSED' : response.status === 'CONNECTED' ? 'CONNECTED' : 'TIMEOUT';
+    if (exit === 'CONNECTED') control.sockets[item.uid] = { startedAt, received };
+    else await closeWsConnection(item.uid).catch(() => {});
+    return { exit, response: { status: exit, statusText: response.error || '', headers: response.headers, duration: Date.now() - startedAt } };
+  }
+
+  const found = await until(() => match() || (current()?.response?.status === 'CLOSED' || current()?.response?.isError ? { ended: true } : null), limit, control);
+  const response = current()?.response || {};
+  const matched = found && !found.ended ? found : null;
+  // CONNECTED: the socket opened but nothing the node waits for came; TIMEOUT: it did not even open in time
+  const exit = matched ? 'RECEIVED' : response.isError ? 'ERROR' : response.status === 'CLOSED' ? 'CLOSED' : response.status === 'CONNECTED' ? 'CONNECTED' : 'TIMEOUT';
+  await closeWsConnection(item.uid).catch(() => {});
+  return { exit, response: { status: exit, statusText: response.error || '', headers: response.headers, data: matched ? parseMessage(matched.message) : undefined, duration: Date.now() - startedAt } };
+};
+
+// Adds the messages received since `startedAt` that are not in `received` yet.
+const collectIncoming = (response, startedAt, received) => {
+  (response?.responses || [])
+    .filter((entry) => entry.type === 'incoming' && new Date(entry.timestamp).getTime() >= startedAt)
+    .forEach((entry) => {
+      if (!received.some((known) => known.seq === entry.seq && known.timestamp === entry.timestamp && known.message === entry.message)) received.push(entry);
+    });
+};
+
+const runSocketNode = async (item, request, node, extractions, collectionUid, dispatch, getState, flowVariables, control) => {
+  const startedAt = Date.now();
+  const received = [];
+  // a WebSocket node sends the messages written in it, one after the other, else the message of the request
+  const sends = item.type === 'ws-request' && node.send?.length
+    ? node.send.map((text, position) => ({ ...request, request: { ...request.request, body: { mode: 'ws', ws: [wsMessage(text, position)] } } }))
+    : [request];
+  try {
+    for (const toSend of sends) {
+      await dispatch(sendRequest(toSend, collectionUid));
+      collectIncoming(currentItem(getState, collectionUid, item.uid)?.response, startedAt, received);
+    }
+  } catch (error) {
+    return { status: 'failed', fatal: true, error: error?.message || 'The request failed' };
+  }
+  const outcome = await socketOutcome(item, node, collectionUid, getState, startedAt, control, received, flowVariables);
+  if (!outcome) return { status: 'failed', fatal: true, error: 'No answer' };
+
+  // the messages that come after the node left are read by the branch of RECEIVED, so a node that keeps its socket open takes nothing now
+  return socketResult(outcome.exit, outcome.response, node.keepOpen ? [] : extractions, collectionUid, dispatch, getState, flowVariables);
+};
+
+// What a node reports once its socket answered: the values taken from the answer and the exit to leave through.
+const socketResult = (exit, response, extractions, collectionUid, dispatch, getState, flowVariables) => {
+  const extracted = {};
+  extractions.forEach((extraction) => {
+    const plain = bodyPathOf(extraction.expression);
+    const path = plain && extraction.where ? pathToItem(response, plain, extraction.where, flowVariables) : plain;
+    const value = path ? readBodyPath(response, path) : undefined;
+    if (value !== undefined && value !== null) extracted[extraction.name] = value;
+  });
+  publishVariables(dispatch, getState, collectionUid, { ...flowVariables, ...extracted });
+  const missing = extractions.filter((extraction) => !(extraction.name in extracted));
+  const fatal = missing.length ? missing.map((extraction) => explainMissing(extraction, response, flowVariables)).join('\n') : null;
+  return {
+    status: fatal ? 'failed' : 'passed',
+    fatal: Boolean(fatal),
+    error: fatal,
+    exit,
+    failedExit: !['OK', 'RECEIVED', 'CONNECTED'].includes(exit),
+    statusText: response.statusText,
+    duration: response.duration,
+    extracted,
+    response
+  };
+};
+
+const runNode = async (node, collectionUid, dispatch, getState, flowVariables, control) => {
   const item = findRequestByPath(applicationOf(getState, collectionUid), node.requestPath);
   if (!item) return { status: 'failed', fatal: true, error: `Request not found: ${node.requestPath}` };
 
@@ -174,6 +327,7 @@ const runNode = async (node, collectionUid, dispatch, getState, flowVariables) =
   };
 
   publishVariables(dispatch, getState, collectionUid, flowVariables);
+  if (SOCKET_TYPES.includes(item.type)) return runSocketNode(item, request, node, extractions, collectionUid, dispatch, getState, flowVariables, control);
   const startedAt = Date.now();
   try {
     await dispatch(sendRequest(request, collectionUid));
@@ -204,6 +358,8 @@ const runNode = async (node, collectionUid, dispatch, getState, flowVariables) =
     fatal: Boolean(fatal),
     error,
     httpStatus: after?.response?.status,
+    exit: String(after?.response?.status),
+    failedExit: after?.response?.status >= 400,
     statusText: after?.response?.statusText,
     duration: after?.response?.duration ?? Date.now() - startedAt,
     extracted,
@@ -212,9 +368,9 @@ const runNode = async (node, collectionUid, dispatch, getState, flowVariables) =
 };
 
 // The edge of the status that came back, else the one of 'other'.
-const nextEdge = (flow, node, httpStatus) => {
+const nextEdge = (flow, node, exit) => {
   const leaving = flow.edges.filter((edge) => edge.source === node.id);
-  return leaving.find((edge) => edge.sourceHandle === String(httpStatus)) || leaving.find((edge) => edge.sourceHandle === OTHER_STATUS) || null;
+  return leaving.find((edge) => edge.sourceHandle === exit) || leaving.find((edge) => edge.sourceHandle === OTHER_STATUS) || null;
 };
 
 // The request nothing leads to, the leftmost first.
@@ -224,40 +380,126 @@ const startNodeOf = (flow) => flow.nodes
 
 /**
  * Runs a flow from its first request, following the edge of the status each response comes back with.
- * `onNode(nodeId, result)` reports progress; `shouldStop()` is checked between requests.
+ * `onNode(nodeId, result)` reports progress; `shouldStop()` is checked between requests. A flow with a `timeout` (seconds)
+ * is a session of that length: when it is over the request in flight is cancelled and the flow is shut down.
  * Resolves with { status: 'passed' | 'failed' | 'stopped', message, results } where results maps a node id to its last result.
  */
-export const runFlow = (flow, collectionUid, { onNode = () => {}, shouldStop = () => false } = {}) => async (dispatch, getState) => {
+export const runFlow = (flow, collectionUid, options) => async (dispatch, getState) => {
+  const control = { cancelled: false, sockets: {} };
+  try {
+    return await runFlowSteps(flow, collectionUid, options, control, dispatch, getState);
+  } finally {
+    // sockets a node kept open do not outlive the flow
+    await Promise.all(Object.keys(control.sockets).map((uid) => closeWsConnection(uid).catch(() => {})));
+  }
+};
+
+const runFlowSteps = async (flow, collectionUid, { onNode = () => {}, shouldStop = () => false } = {}, control, dispatch, getState) => {
   const results = {};
   const report = (node, result) => {
     results[node.id] = result;
     onNode(node.id, result);
   };
 
-  let node = startNodeOf(flow);
-  if (!node) return { status: 'failed', message: flow.nodes.length ? 'Every request has a connection leading to it, so there is no first one' : 'Add a request to the flow', results };
+  const first = startNodeOf(flow);
+  if (!first) return { status: 'failed', message: flow.nodes.length ? 'Every request has a connection leading to it, so there is no first one' : 'Add a request to the flow', results };
 
   const flowVariables = {};
-  let via = null;
+  const startedAt = Date.now();
+  const timeLeft = () => (flow.timeout ? flow.timeout * 1000 - (Date.now() - startedAt) : Infinity);
+  const isWsNode = (candidate) => findRequestByPath(applicationOf(getState, collectionUid), candidate.requestPath)?.type === 'ws-request';
+  const timedOut = (message) => ({ status: 'failed', message, results });
+  const flowTimedOut = () => timedOut(`Timed out after ${flow.timeout} s: the flow was shut down`);
   let failure = null;
-  for (let runs = 0; node; runs++) {
-    if (shouldStop()) return { status: 'stopped', message: 'Stopped', results };
-    if (runs >= MAX_NODE_RUNS) return { status: 'failed', message: `Stopped after ${MAX_NODE_RUNS} requests: the flow goes round in a loop`, results };
+  // branches that run beside the main one: a socket kept open listens for a message and goes on from its RECEIVED when one comes
+  const branches = [];
 
-    report(node, { status: 'running', via });
-    const result = { ...(await runNode(node, collectionUid, dispatch, getState, flowVariables)), via };
-    Object.assign(flowVariables, result.extracted);
-    const edge = result.fatal ? null : nextEdge(flow, node, result.httpStatus);
-    const endedOnError = !edge && typeof result.httpStatus === 'number' && result.httpStatus >= 400;
-    report(node, endedOnError ? { ...result, status: 'failed', error: result.error || `Ended with status ${result.httpStatus}` } : result);
+  // The node that keeps its socket open, with a RECEIVED connection: it listens in the background until the main branch is over
+  // (and then as long as the node waits), and when a message holds what the node expects, the flow goes on from RECEIVED beside the main branch.
+  const listen = async (node) => {
+    const item = findRequestByPath(applicationOf(getState, collectionUid), node.requestPath);
+    const kept = control.sockets[item.uid];
+    delete control.sockets[item.uid];
+    const expected = fillVariables(node.expect || '', flowVariables);
+    const waitMs = node.timeout ? node.timeout * 1000 : WS_DEFAULT_WAIT;
+    const current = () => currentItem(getState, collectionUid, item.uid)?.response;
+    let found = null;
+    while (!control.cancelled && !found && timeLeft() > 0) {
+      collectIncoming(current(), kept.startedAt, kept.received);
+      found = kept.received.find((entry) => String(entry.message).includes(expected)) || null;
+      if (found || current()?.status === 'CLOSED' || current()?.isError || (control.mainDoneAt && Date.now() >= control.mainDoneAt + waitMs)) break;
+      await wait(50);
+    }
+    try {
+      if (!found) return null;
+      const response = { status: 'RECEIVED', statusText: '', headers: current()?.headers, data: parseMessage(found.message), duration: Date.now() - kept.startedAt };
+      const extractions = node.extractions.filter((extraction) => extraction.name && extraction.expression);
+      const result = { ...socketResult('RECEIVED', response, extractions, collectionUid, dispatch, getState, flowVariables), via: 'CONNECTED' };
+      Object.assign(flowVariables, result.extracted);
+      report(node, result);
+      if (result.fatal) {
+        failure = failure || { node, error: result.error };
+        return { status: 'failed', message: result.error, results };
+      }
+      const edge = nextEdge(flow, node, 'RECEIVED');
+      return edge ? await walk(flow.nodes.find((candidate) => candidate.id === edge.target), 'RECEIVED') : null;
+    } finally {
+      await closeWsConnection(item.uid).catch(() => {});
+    }
+  };
 
-    if (result.status === 'failed' && !failure) failure = { node, error: result.error };
-    if (endedOnError && !failure) failure = { node, error: `Ended with status ${result.httpStatus}` };
-    if (result.fatal) return { status: 'failed', message: result.error, results };
+  // Follows the edges from `node`; resolves with the result of the flow when something ends it (a stop, a timeout, a fatal error), else null.
+  const walk = async (first, firstVia) => {
+    let node = first;
+    let via = firstVia;
+    for (let runs = 0; node; runs++) {
+      if (shouldStop()) return { status: 'stopped', message: 'Stopped', results };
+      if (timeLeft() <= 0) return flowTimedOut();
+      if (runs >= MAX_NODE_RUNS) return { status: 'failed', message: `Stopped after ${MAX_NODE_RUNS} requests: the flow goes round in a loop`, results };
 
-    via = edge ? edge.sourceHandle : null;
-    node = edge ? flow.nodes.find((candidate) => candidate.id === edge.target) || null : null;
+      report(node, { status: 'running', via });
+      // a WebSocket node with a RECEIVED connection keeps its socket open and listens, while the flow goes on
+      const keepOpen = isWsNode(node) && flow.edges.some((candidate) => candidate.source === node.id && candidate.sourceHandle === 'RECEIVED');
+      const outcome = await withDeadline(runNode({ ...node, keepOpen }, collectionUid, dispatch, getState, flowVariables, control), Math.min(timeLeft(), node.timeout && !isWsNode(node) ? node.timeout * 1000 : Infinity));
+      if (outcome === TIMED_OUT) {
+        control.cancelled = true;
+        const application = applicationOf(getState, collectionUid);
+        const item = findRequestByPath(application, node.requestPath);
+        if (item?.cancelTokenUid) await dispatch(cancelRequest(item.cancelTokenUid, item, application));
+        // the session over, or the request took longer than the timeout of its own
+        const ownLimit = timeLeft() > 0;
+        report(node, { status: 'failed', fatal: true, error: ownLimit ? `Timed out after ${node.timeout} s` : 'Timed out', via });
+        return ownLimit ? timedOut(`A request took more than ${node.timeout} s: the flow was shut down`) : flowTimedOut();
+      }
+      const result = { ...outcome, via };
+      Object.assign(flowVariables, result.extracted);
+      const edge = result.fatal ? null : nextEdge(flow, node, result.exit);
+      const endedOnError = !edge && result.failedExit === true;
+      report(node, endedOnError ? { ...result, status: 'failed', error: result.error || `Ended with status ${result.exit}` } : result);
+
+      if (result.status === 'failed' && !failure) failure = { node, error: result.error };
+      if (endedOnError && !failure) failure = { node, error: `Ended with status ${result.exit}` };
+      if (result.fatal) return { status: 'failed', message: result.error, results };
+
+      if (keepOpen && result.exit === 'CONNECTED') {
+        branches.push(listen(node));
+      }
+      via = edge ? edge.sourceHandle : null;
+      node = edge ? flow.nodes.find((candidate) => candidate.id === edge.target) || null : null;
+    }
+    return null;
+  };
+
+  let ended = await walk(first, null);
+  control.mainDoneAt = Date.now();
+  if (ended) control.cancelled = true;
+  // the listeners may start more of them, so the list is taken again until none is left
+  while (branches.length) {
+    const outcomes = await Promise.all(branches.splice(0));
+    ended = ended || outcomes.find(Boolean) || null;
+    if (ended) control.cancelled = true;
   }
+  if (ended) return ended;
 
   return failure
     ? { status: 'failed', message: failure.error, results }

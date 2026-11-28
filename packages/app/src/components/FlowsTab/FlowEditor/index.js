@@ -2,11 +2,13 @@ import { useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { v4 as uuid } from 'uuid';
 import { ReactFlowProvider } from '@xyflow/react';
-import { IconPlayerPlay, IconPlayerStop, IconTrash } from '@tabler/icons';
+import { IconClock, IconPlayerPlay, IconPlayerStop, IconTrash } from '@tabler/icons';
 import Button from 'ui/Button';
-import { deleteFlow, getFlowNameProblem, getFlowRequests, getUpstreamNodes, saveFlow } from 'utils/flows';
+import { DEFAULT_FLOW_TIMEOUT, deleteFlow, getFlowNameProblem, getFlowRequests, getUpstreamNodes, saveFlow } from 'utils/flows';
 import { getEnvironmentSuggestions } from 'utils/flows/environmentVariables';
 import { runFlow } from 'utils/flows/runFlow';
+import CollapsedRail from '../CollapsedRail';
+import TimeoutField from '../TimeoutField';
 import FlowCanvas from './FlowCanvas';
 import NodePanel from './NodePanel';
 import RequestPalette from './RequestPalette';
@@ -22,6 +24,7 @@ const FlowEditor = ({ application, flow, onDeleted }) => {
   const [running, setRunning] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
   const [paletteWidth, setPaletteWidth] = useState(220);
+  const [paletteCollapsed, setPaletteCollapsed] = useState(false);
   const [panelWidth, setPanelWidth] = useState(340);
   const stopRequested = useRef(false);
 
@@ -117,18 +120,24 @@ const FlowEditor = ({ application, flow, onDeleted }) => {
           value={flow.name}
           onChange={(event) => change({ name: event.target.value })}
         />
-        {running ? (
-          <Button color="secondary" variant="outline" icon={<IconPlayerStop size={14} />} onClick={() => { stopRequested.current = true; }} data-testid="flow-stop">
-            Stop
-          </Button>
-        ) : (
-          <Button icon={<IconPlayerPlay size={14} />} disabled={flow.nodes.length === 0 || Boolean(nameProblem)} title={nameProblem || undefined} onClick={run} data-testid="flow-run">
-            Run
-          </Button>
-        )}
-        <Button color="danger" variant="ghost" icon={<IconTrash size={14} />} disabled={running} onClick={remove} data-testid="flow-delete">
-          Delete
-        </Button>
+        <div className="flow-actions">
+          <div className="flow-timeout" title="The flow is shut down after this many seconds">
+            <IconClock size={14} />
+            <TimeoutField label="Timeout of the flow in seconds" value={flow.timeout} placeholder={String(DEFAULT_FLOW_TIMEOUT)} disabled={running} onChange={(timeout) => change({ timeout })} />
+            <span>s</span>
+          </div>
+          <span className="flow-divider" aria-hidden="true" />
+          <Button size="sm" color="danger" variant="ghost" icon={<IconTrash size={16} />} disabled={running} onClick={remove} title="Delete this flow" aria-label="Delete flow" data-testid="flow-delete" />
+          {running ? (
+            <Button color="secondary" variant="outline" icon={<IconPlayerStop size={14} />} onClick={() => { stopRequested.current = true; }} data-testid="flow-stop">
+              Stop
+            </Button>
+          ) : (
+            <Button icon={<IconPlayerPlay size={14} />} disabled={flow.nodes.length === 0 || Boolean(nameProblem)} title={nameProblem || undefined} onClick={run} data-testid="flow-run">
+              Run
+            </Button>
+          )}
+        </div>
       </div>
 
       <p className="flow-hint">
@@ -147,8 +156,14 @@ const FlowEditor = ({ application, flow, onDeleted }) => {
       )}
 
       <div className="flow-body">
-        <RequestPalette requests={requests} width={paletteWidth} disabled={running} onAdd={(requestPath) => addNode(requestPath)} />
-        <ResizeHandle label="Resize the list of requests" onResize={(delta) => setPaletteWidth((width) => Math.min(480, Math.max(140, width + delta)))} />
+        {paletteCollapsed ? (
+          <CollapsedRail label="Requests" onExpand={() => setPaletteCollapsed(false)} />
+        ) : (
+          <>
+            <RequestPalette requests={requests} width={paletteWidth} disabled={running} onAdd={(requestPath) => addNode(requestPath)} onCollapse={() => setPaletteCollapsed(true)} />
+            <ResizeHandle label="Resize the list of requests" onResize={(delta) => setPaletteWidth((width) => Math.min(480, Math.max(140, width + delta)))} />
+          </>
+        )}
         <ReactFlowProvider>
           <FlowCanvas
             flow={flow}

@@ -10,7 +10,33 @@ const StyledWrapper = styled.div`
     display: flex;
     flex-wrap: wrap;
     align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid ${(props) => props.theme.input.border};
+  }
+
+  /* the name on the left; on the right what is done with the flow: its time limit, delete, and run */
+  .flow-actions {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
     gap: 0.5rem;
+  }
+
+  .flow-timeout {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: ${(props) => props.theme.font.size.sm};
+    color: ${(props) => props.theme.colors.text.muted};
+  }
+
+  .flow-divider {
+    align-self: stretch;
+    width: 1px;
+    margin: 0.125rem 0.25rem;
+    background: ${(props) => props.theme.input.border};
   }
 
   .flow-name {

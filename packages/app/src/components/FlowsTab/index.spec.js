@@ -11,6 +11,8 @@ jest.mock('react-hot-toast', () => ({ __esModule: true, default: { error: jest.f
 
 // the canvas measures its container and its nodes
 beforeAll(() => {
+  // the list of a select scrolls its focused option into view
+  window.HTMLElement.prototype.scrollIntoView = jest.fn();
   global.ResizeObserver = class {
     observe() {}
     unobserve() {}
@@ -44,6 +46,9 @@ const applicationAt = (name) => ({
   pathname: `/apps/${name}`,
   items: application.items.map((item) => ({ ...item, pathname: item.pathname.replace('/apps/FlowsSpec/', `/apps/${name}/`) }))
 });
+
+// a request is added to the flow with the + of its row; a click on the row only shows its details
+const addRequest = (getByText, label) => fireEvent.click(getByText(label, { selector: '.palette-path' }).closest('.palette-row').querySelector('button[aria-label="Add to flow"]'));
 
 // the flows come from the application file, which is read after the first render
 const renderTab = async (collection) => {
@@ -82,12 +87,107 @@ describe('FlowsTab', () => {
     expect(getByText('No flows yet')).toBeInTheDocument();
   });
 
+  it('lists gRPC and WebSocket requests too, and filters the list by type, method and name', async () => {
+    const path = '/apps/FlowsSpecKinds';
+    const items = [
+      ...application.items.map((item) => ({ ...item, pathname: item.pathname.replace('/apps/FlowsSpec/', path + '/') })),
+      { uid: 'g1', type: 'grpc-request', name: 'Get user', request: { method: '/users.Users/GetUser', url: 'grpc://host', params: [], headers: [] }, pathname: path + '/getUser.yml' },
+      { uid: 'w1', type: 'ws-request', name: 'Live feed', request: { method: 'GET', url: 'wss://host/live', params: [], headers: [] }, pathname: path + '/live.yml' }
+    ];
+    const { getByText, getByLabelText, getByRole, queryByText } = await renderTab({ ...application, pathname: path, items });
+    fireEvent.click(getByText('Create a flow'));
+
+    expect(getByText('/users.Users/GetUser', { selector: '.palette-path' })).toBeInTheDocument();
+    expect(getByText('/live', { selector: '.palette-path' })).toBeInTheDocument();
+
+    fireEvent.click(getByLabelText('Type'));
+    fireEvent.click(getByRole('option', { name: 'gRPC' }));
+    expect(getByText('/users.Users/GetUser', { selector: '.palette-path' })).toBeInTheDocument();
+    expect(queryByText('/live', { selector: '.palette-path' })).not.toBeInTheDocument();
+    expect(queryByText('/me', { selector: '.palette-path' })).not.toBeInTheDocument();
+
+    fireEvent.click(getByLabelText('Type'));
+    fireEvent.click(getByRole('option', { name: 'All types' }));
+    fireEvent.click(getByLabelText('Method'));
+    fireEvent.click(getByRole('option', { name: 'WS' }));
+    expect(getByText('/live', { selector: '.palette-path' })).toBeInTheDocument();
+    expect(queryByText('/me', { selector: '.palette-path' })).not.toBeInTheDocument();
+
+    fireEvent.click(getByLabelText('Method'));
+    fireEvent.click(getByRole('option', { name: 'All methods' }));
+    fireEvent.change(getByLabelText('Search requests'), { target: { value: 'get user' } });
+    expect(getByText('/users.Users/GetUser', { selector: '.palette-path' })).toBeInTheDocument();
+    expect(queryByText('/live', { selector: '.palette-path' })).not.toBeInTheDocument();
+  });
+
+  it('lets a WebSocket node hold the messages it sends and the text it waits for', async () => {
+    const path = '/apps/FlowsSpecSocket';
+    const socket = { uid: 'w2', type: 'ws-request', name: 'Feed', request: { method: 'GET', url: 'wss://host/feed', params: [], headers: [], body: { mode: 'ws', ws: [{ name: 'm', content: '', selected: true }] } }, pathname: path + '/feed.yml' };
+    const { getByText, getByLabelText, getByTitle, queryByLabelText } = await renderTab({ ...application, pathname: path, items: [socket] });
+    fireEvent.click(getByText('Create a flow'));
+    addRequest(getByText, '/feed');
+
+    expect(queryByLabelText('Message 1 to send')).not.toBeInTheDocument();
+    fireEvent.click(getByText('Add a message'));
+    fireEvent.change(getByLabelText('Message 1 to send'), { target: { value: '{"type":"subscribe"}' } });
+    fireEvent.change(getByLabelText('Text a received message must hold'), { target: { value: 'ready' } });
+
+    expect(getByLabelText('Message 1 to send')).toHaveValue('{"type":"subscribe"}');
+    expect(getByLabelText('Text a received message must hold')).toHaveValue('ready');
+    expect(getByLabelText('Seconds to wait for a message')).toBeInTheDocument();
+
+    fireEvent.click(getByTitle('Remove message'));
+    expect(queryByLabelText('Message 1 to send')).not.toBeInTheDocument();
+  });
+
+  it('shows the details of a request when its row is clicked, and adds it only from the + or Add to flow', async () => {
+    const { getByText, getAllByTestId, queryAllByTestId, getByTestId } = await renderTab(applicationAt('FlowsSpecDetails'));
+    fireEvent.click(getByText('Create a flow'));
+
+    fireEvent.click(getByText('/sign-in', { selector: '.palette-path' }));
+    expect(queryAllByTestId('flow-node')).toHaveLength(0);
+    expect(getByTestId('request-details')).toHaveTextContent('/sign-in');
+    expect(getByTestId('request-details')).toHaveTextContent('login.yml');
+
+    fireEvent.click(getByText('Add to flow'));
+    expect(getAllByTestId('flow-node')).toHaveLength(1);
+  });
+
+  it('shows the whole url of the request at the top of the details of a node, the variables that have a value filled in', async () => {
+    const path = '/apps/FlowsSpecIdentity';
+    const known = { ...application.items[0], name: 'Sign in', pathname: path + '/login.yml', request: { ...application.items[0].request, vars: { req: [{ name: 'baseUrl', value: 'https://api.test', enabled: true }] } } };
+    const unknown = { ...application.items[1], name: 'Me', pathname: path + '/info.yml' };
+    const { getByText, getByTestId } = await renderTab({ ...application, pathname: path, items: [known, unknown] });
+    fireEvent.click(getByText('Create a flow'));
+
+    addRequest(getByText, '/sign-in');
+    expect(getByTestId('node-panel')).toHaveTextContent('https://api.test/sign-in');
+
+    addRequest(getByText, '/me');
+    expect(getByTestId('node-panel')).toHaveTextContent('{{baseUrl}}/me');
+  });
+
+  it('hides the list of flows and the list of requests, and shows them again from the bar left behind', async () => {
+    const { getByText, getByLabelText, queryByTestId, getByTestId } = await renderTab(applicationAt('FlowsSpecCollapse'));
+    fireEvent.click(getByText('Create a flow'));
+
+    fireEvent.click(getByLabelText('Hide the list of requests'));
+    expect(queryByTestId('flow-palette')).not.toBeInTheDocument();
+    fireEvent.click(getByLabelText('Show Requests'));
+    expect(getByTestId('flow-palette')).toBeInTheDocument();
+
+    fireEvent.click(getByLabelText('Hide the list of flows'));
+    expect(queryByTestId('flow-new')).not.toBeInTheDocument();
+    fireEvent.click(getByLabelText('Show Flows'));
+    expect(getByTestId('flow-new')).toBeInTheDocument();
+  });
+
   it('adds requests of the palette to the canvas with a handle per documented status, and removes one', async () => {
     const { getByText, getAllByTestId, queryAllByTestId, queryByTestId, getByTestId, getByTitle } = await renderTab(applicationAt('FlowsSpecThree'));
 
     fireEvent.click(getByText('Create a flow'));
-    fireEvent.click(getByText('/sign-in', { selector: '.palette-path' }));
-    fireEvent.click(getByText('/me', { selector: '.palette-path' }));
+    addRequest(getByText, '/sign-in');
+    addRequest(getByText, '/me');
 
     expect(getAllByTestId('flow-node')).toHaveLength(2);
     expect(getByTestId('flow-run')).toBeEnabled();
@@ -110,7 +210,7 @@ describe('FlowsTab', () => {
     const { getByText, getByLabelText } = await renderTab(applicationAt('FlowsSpecFive'));
 
     fireEvent.click(getByText('Create a flow'));
-    fireEvent.click(getByText('/sign-in', { selector: '.palette-path' }));
+    addRequest(getByText, '/sign-in');
 
     expect(getByLabelText('Headers Accept')).toHaveValue('application/json');
     expect(getByLabelText('Body')).toHaveValue('{"user":""}');
@@ -148,16 +248,16 @@ describe('FlowsTab', () => {
     expect(single.queryByLabelText('Collection')).not.toBeInTheDocument();
   });
 
-  it('lets the user add a status to a node by typing its code, and take it away again', async () => {
-    const { getByText, getByLabelText, getByTestId, getByTitle, queryByLabelText, queryByTestId } = await renderTab(applicationAt('FlowsSpecNine'));
+  it('lets the user add a status to a node by picking it from the list, and take it away again', async () => {
+    const { getByText, getByLabelText, getByRole, getByTestId, queryByLabelText, queryByTestId } = await renderTab(applicationAt('FlowsSpecNine'));
 
     fireEvent.click(getByText('Create a flow'));
-    fireEvent.click(getByText('/me', { selector: '.palette-path' }));
+    addRequest(getByText, '/me');
 
     expect(queryByTestId('flow-status-418')).not.toBeInTheDocument();
 
-    fireEvent.change(getByLabelText('Type a status code'), { target: { value: '418' } });
-    fireEvent.click(getByTitle('Add status'));
+    fireEvent.click(getByLabelText('Add a status'));
+    fireEvent.click(getByRole('option', { name: /^418/ }));
 
     expect(getByTestId('flow-status-418')).toBeInTheDocument();
     expect(getByLabelText('Remove status 418')).toBeInTheDocument();
@@ -167,16 +267,24 @@ describe('FlowsTab', () => {
     expect(queryByLabelText('Remove status 418')).not.toBeInTheDocument();
   });
 
-  it('adds a common status with one click and then no longer offers it', async () => {
-    const { getByText, getByTestId, getByRole, queryByRole } = await renderTab(applicationAt('FlowsSpecTen'));
+  it('no longer offers a status once it is added, and offers Other again after it was taken away', async () => {
+    const { getByText, getByLabelText, getByRole, getByTestId, queryByRole } = await renderTab(applicationAt('FlowsSpecTen'));
 
     fireEvent.click(getByText('Create a flow'));
-    fireEvent.click(getByText('/me', { selector: '.palette-path' }));
+    addRequest(getByText, '/me');
 
-    fireEvent.click(getByRole('button', { name: '404' }));
-
+    fireEvent.click(getByLabelText('Add a status'));
+    expect(queryByRole('option', { name: /^Other/ })).not.toBeInTheDocument();
+    fireEvent.click(getByRole('option', { name: /^404/ }));
     expect(getByTestId('flow-status-404')).toBeInTheDocument();
-    expect(queryByRole('button', { name: '404' })).not.toBeInTheDocument();
+
+    fireEvent.click(getByLabelText('Add a status'));
+    expect(queryByRole('option', { name: /^404/ })).not.toBeInTheDocument();
+    fireEvent.keyDown(getByLabelText('Add a status'), { key: 'Escape' });
+
+    fireEvent.click(getByLabelText('Remove status other'));
+    fireEvent.click(getByLabelText('Add a status'));
+    expect(getByRole('option', { name: /^Other/ })).toBeInTheDocument();
   });
 
   it('uses a value of an earlier request: the header gets the variable and the earlier request takes the field', async () => {

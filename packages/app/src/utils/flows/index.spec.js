@@ -209,6 +209,7 @@ describe('request paths', () => {
   const items = [
     { uid: '1', type: 'folder', pathname: 'C:\\Apps\\Shop\\Auth', items: [{ uid: '2', type: 'http-request', request: {}, pathname: 'C:\\Apps\\Shop\\Auth\\login.yml' }] },
     { uid: '3', type: 'grpc-request', request: {}, pathname: 'C:\\Apps\\Shop\\Stream.yml' },
+    { uid: '5', type: 'ws-request', request: {}, pathname: 'C:\\Apps\\Shop\\Socket.yml' },
     { uid: '4', type: 'graphql-request', request: {}, pathname: 'C:\\Apps\\Shop\\Query.yml' }
   ];
   const app = { ...application, items };
@@ -218,10 +219,11 @@ describe('request paths', () => {
     expect(getRequestPath(app, { pathname: 'D:\\Elsewhere\\x.yml' })).toBe('');
   });
 
-  it('lists http and graphql requests only and finds one by its path', () => {
-    expect(getFlowRequests(app).map((entry) => entry.requestPath)).toEqual(['Auth/login.yml', 'Query.yml']);
+  it('lists http, graphql, grpc and websocket requests and finds one by its path', () => {
+    expect(getFlowRequests(app).map((entry) => entry.requestPath)).toEqual(['Auth/login.yml', 'Stream.yml', 'Socket.yml', 'Query.yml']);
     expect(findRequestByPath(app, 'auth/LOGIN.yml').uid).toBe('2');
-    expect(findRequestByPath(app, 'Stream.yml')).toBeNull();
+    expect(findRequestByPath(app, 'Stream.yml').uid).toBe('3');
+    expect(findRequestByPath(app, 'Other.yml')).toBeNull();
   });
 });
 

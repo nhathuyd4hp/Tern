@@ -3,9 +3,11 @@ import { IconLock, IconPlus, IconTrash, IconX } from '@tabler/icons';
 import Button from 'ui/Button';
 import MethodBadge from 'ui/MethodBadge';
 import Select from 'ui/Select';
-import { freeVariableName, getRequestUrlPath, getVariableNameProblem } from 'utils/flows';
+import { freeVariableName, getBodyText, getRequestLabel, getResolvedUrl, getVariableNameProblem } from 'utils/flows';
 import { getDefaultItemConditions, getItemKeys, getListOf, getResponseFields } from 'utils/flows/responseFields';
+import TimeoutField from '../../TimeoutField';
 import Conditions from './Conditions';
+import WebSocketSection from './WebSocketSection';
 import ResponseView from './ResponseView';
 import StatusSection from './StatusSection';
 import StyledWrapper from './StyledWrapper';
@@ -14,6 +16,11 @@ import VariableField from './VariableField';
 
 // With a condition on the list the position in the expression is not used: the item is found by its field.
 const shownExpression = ({ expression, where }) => (where ? expression.replace('[0]', '[]') : expression);
+
+// The address a node shows: the url with the variables that have a value filled in (the method for a gRPC call, which has no url path).
+const shownAddress = (request, environmentValues) => (request.type === 'grpc-request' ? getRequestLabel(request).path : getResolvedUrl(request, environmentValues));
+
+const BODY_TITLES = { json: 'Body (JSON)', grpc: 'Message (gRPC)', ws: 'Message (WebSocket)' };
 
 const shorten = (value) => {
   const text = typeof value === 'string' ? value : JSON.stringify(value);
@@ -58,7 +65,8 @@ const NodePanel = ({ width, flow, node, request, upstream, environmentValues, re
   const params = (request?.request?.params || []).filter((param) => param.type === 'query' || param.type === 'path');
   const headers = request?.request?.headers || [];
   const body = request?.request?.body;
-  const savedBody = body?.json || '';
+  const savedBody = getBodyText(request);
+  const isWebSocket = request?.type === 'ws-request';
 
   const setInputs = (next) => onChange({ ...node, inputs: { ...inputs, ...next } });
   const setExtractions = (next) => onChange({ ...node, extractions: next });
@@ -93,7 +101,7 @@ const NodePanel = ({ width, flow, node, request, upstream, environmentValues, re
     .map((extraction) => ({
       key: `${source.id}|${extraction.name}`,
       name: extraction.name,
-      source: `${sourceRequest.request.method} ${getRequestUrlPath(sourceRequest)}`,
+      source: `${getRequestLabel(sourceRequest).method} ${getRequestLabel(sourceRequest).path}`,
       expression: shownExpression(extraction),
       value: results?.[source.id]?.extracted?.[extraction.name]
     })));
@@ -117,14 +125,19 @@ const NodePanel = ({ width, flow, node, request, upstream, environmentValues, re
   return (
     <StyledWrapper data-testid="node-panel" style={{ flex: `0 1 ${width}px` }}>
       <div className="panel-head">
-        {request ? <MethodBadge method={request.request.method} /> : null}
-        <span className="panel-request" title={node.requestPath}>{request ? getRequestUrlPath(request) : node.requestPath}</span>
+        {request ? <MethodBadge method={getRequestLabel(request).method} /> : null}
+        <span className="panel-request" title={request ? `${request.request?.url}\n${node.requestPath}` : node.requestPath}>{request ? shownAddress(request, environmentValues) : node.requestPath}</span>
         <Button size="xs" variant="ghost" color="danger" disabled={disabled} icon={<IconTrash size={14} />} onClick={onRemove} title="Remove request" />
       </div>
 
       <p className="panel-hint">
         Fill the input of this request. The braces button puts in a value taken from an earlier request; you can also type <code>{'{{name}}'}</code>.
       </p>
+
+      <div className="timeout-row">
+        <span className="input-name" title={isWebSocket ? 'How long to wait for a message before leaving through TIMEOUT' : undefined}>{isWebSocket ? 'Wait (s)' : 'Timeout (s)'}</span>
+        <TimeoutField label={isWebSocket ? 'Seconds to wait for a message' : 'Timeout of the request in seconds'} value={node.timeout} placeholder={isWebSocket ? '10' : 'the flow\'s'} disabled={disabled} onChange={(timeout) => onChange({ ...node, timeout })} />
+      </div>
 
       <InputRows
         title="Params"
@@ -144,10 +157,13 @@ const NodePanel = ({ width, flow, node, request, upstream, environmentValues, re
         renderPicker={(entry) => pickerFor((token) => setEntry('headers', entry, token))}
         suggestions={suggestions}
       />
-      {body?.mode === 'json' && (
+      {isWebSocket && (
+        <WebSocketSection node={node} suggestions={suggestions} disabled={disabled} onChange={onChange} />
+      )}
+      {savedBody !== null && !isWebSocket && (
         <div className="panel-section">
           <div className="panel-subtitle-row">
-            <div className="panel-subtitle">Body (JSON)</div>
+            <div className="panel-subtitle">{BODY_TITLES[body.mode]}</div>
             {pickerFor(insertIntoBody)}
           </div>
           <VariableField
@@ -164,11 +180,11 @@ const NodePanel = ({ width, flow, node, request, upstream, environmentValues, re
         </div>
       )}
 
-      {(result?.error || typeof result?.response?.status === 'number') && (
+      {(result?.error || result?.response) && (
         <div className="panel-section">
           <div className="panel-subtitle">Response</div>
           {result.error && <div className="panel-error">{result.error}</div>}
-          {typeof result.response?.status === 'number' && <ResponseView response={result.response} />}
+          {result.response && <ResponseView response={result.response} />}
         </div>
       )}
 

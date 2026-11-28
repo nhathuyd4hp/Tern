@@ -1,15 +1,17 @@
 import { useMemo, useState } from 'react';
 import { useDrop } from 'react-dnd';
 import { v4 as uuid } from 'uuid';
-import { Background, Controls, MarkerType, ReactFlow, useReactFlow } from '@xyflow/react';
+import { Background, ConnectionLineType, Controls, MarkerType, ReactFlow, useReactFlow } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { FLOW_DRAG, OTHER_STATUS, getRequestStatuses } from 'utils/flows';
+import { useTheme } from 'styled-components';
+import { FLOW_DRAG, OTHER_STATUS, getRequestStatuses, getStatusKind } from 'utils/flows';
 import FlowNode from '../FlowNode';
 import StyledWrapper from './StyledWrapper';
 
 const nodeTypes = { request: FlowNode };
 
-const byStatus = (a, b) => (a === OTHER_STATUS ? 1 : b === OTHER_STATUS ? -1 : Number(a) - Number(b));
+// codes by number, then the names of gRPC statuses and WebSocket outcomes, Other last
+const byStatus = (a, b) => (a === OTHER_STATUS ? 1 : b === OTHER_STATUS ? -1 : Number.isNaN(Number(a) - Number(b)) ? a.localeCompare(b) : Number(a) - Number(b));
 const without = (map, id) => Object.fromEntries(Object.entries(map).filter(([key]) => key !== id));
 
 // The nodes and connections of a flow. It must be inside a ReactFlowProvider.
@@ -18,6 +20,7 @@ const FlowCanvas = ({ flow, requestOf, results, running, selectedId, onSelect, o
   const [moving, setMoving] = useState({});
   const [measured, setMeasured] = useState({});
   const [selectedEdgeId, setSelectedEdgeId] = useState(null);
+  const theme = useTheme();
 
   const [, dropTarget] = useDrop({
     accept: FLOW_DRAG.request,
@@ -39,11 +42,26 @@ const FlowCanvas = ({ flow, requestOf, results, running, selectedId, onSelect, o
     };
   }), [flow, requestOf, results, moving, measured, selectedId]);
 
-  const edges = useMemo(() => flow.edges.map((edge) => ({
-    ...edge,
-    selected: edge.id === selectedEdgeId,
-    markerEnd: { type: MarkerType.ArrowClosed }
-  })), [flow.edges, selectedEdgeId]);
+  // After a run, the connections the flow took are green (red when it went on after a failure); the others are dashed.
+  const edges = useMemo(() => flow.edges.map((edge) => {
+    const hasRun = Object.keys(results).length > 0;
+    const taken = results[edge.source] && results[edge.target]?.via === edge.sourceHandle;
+    // a 4xx the flow handles went as planned (green); red is for a server error (5xx) or a gRPC / WebSocket error.
+    // Other has no status of its own, so it follows whether the node itself went well
+    const isServerError = (handle) => getStatusKind(handle) === 'error' && !/^4\d\d$/.test(handle);
+    const failed = edge.sourceHandle === OTHER_STATUS ? results[edge.source]?.status === 'failed' : isServerError(edge.sourceHandle);
+    const color = taken ? (failed ? theme.colors.text.danger : theme.colors.text.green) : undefined;
+    return {
+      ...edge,
+      selected: edge.id === selectedEdgeId,
+      type: 'smoothstep',
+      // the connection that leads to the request running right now moves, to show where the flow is
+      animated: taken && results[edge.target].status === 'running',
+      pathOptions: { borderRadius: 6 },
+      ...(color ? { style: { stroke: color, strokeWidth: 2 } } : hasRun && !taken ? { style: { strokeDasharray: '6 4' } } : {}),
+      markerEnd: { type: MarkerType.ArrowClosed, ...(color ? { color } : {}) }
+    };
+  }), [flow.edges, selectedEdgeId, results, theme]);
 
   // Controlled canvas: only moves, sizes and selection are kept here; the rest goes to the flow itself.
   const onNodesChange = (changes) => changes.forEach((change) => {
@@ -93,6 +111,7 @@ const FlowCanvas = ({ flow, requestOf, results, running, selectedId, onSelect, o
         nodesDraggable={!running}
         nodesConnectable={!running}
         connectionRadius={80}
+        connectionLineType={ConnectionLineType.SmoothStep}
         deleteKeyCode={running ? null : ['Backspace', 'Delete']}
         fitView
         fitViewOptions={{ padding: 0.3, maxZoom: 0.7 }}

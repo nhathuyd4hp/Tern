@@ -1,8 +1,12 @@
 import { runFlow } from './runFlow';
 
 const mockSendRequest = jest.fn();
+const mockCancelRequest = jest.fn(() => () => Promise.resolve());
+const mockCloseWs = jest.fn(() => Promise.resolve());
+jest.mock('utils/network', () => ({ closeWsConnection: (...args) => mockCloseWs(...args) }));
 jest.mock('providers/ReduxStore/slices/collections/actions', () => ({
-  sendRequest: (...args) => mockSendRequest(...args)
+  sendRequest: (...args) => mockSendRequest(...args),
+  cancelRequest: (...args) => mockCancelRequest(...args)
 }));
 
 const request = (name, extra = {}) => ({
@@ -112,6 +116,146 @@ describe('runFlow', () => {
     expect((await take({ field: 'name', op: 'differs', value: 'Alpha' })).results.robots.extracted).toEqual({ robot_id: 2 });
     expect((await take({ field: 'name', op: 'contains', value: 'Status' }, { field: 'id', value: '2' })).results.robots.extracted).toEqual({ robot_id: 2 });
     expect((await take({ field: 'name', op: 'contains', value: 'Status' }, { field: 'id', value: '1' })).results.robots.error).toContain('name contains Status and id equals 1');
+  });
+
+  it('shuts the flow down when its timeout is over, cancelling the request in flight', async () => {
+    const store = makeStore([request('slow'), request('next')]);
+    store.application.items.find((candidate) => candidate.uid === 'uid-slow').cancelTokenUid = 'token-1';
+    mockSendRequest.mockImplementation(() => () => new Promise(() => {}));
+
+    const outcome = await store.dispatch(runFlow({ ...flowOf([node('slow'), node('next')], [edge('slow', '200', 'next')]), timeout: 0.05 }, 'app-1'));
+
+    expect(outcome).toMatchObject({ status: 'failed', message: expect.stringContaining('Timed out after 0.05 s') });
+    expect(outcome.results.slow).toMatchObject({ status: 'failed', error: 'Timed out' });
+    expect(mockCancelRequest).toHaveBeenCalledWith('token-1', expect.objectContaining({ uid: 'uid-slow' }), expect.anything());
+    expect(ranOrder()).toEqual(['slow']);
+  });
+
+  it('shuts the flow down when a request takes longer than the timeout of its own, the flow still having time', async () => {
+    const store = makeStore([request('slow')]);
+    mockSendRequest.mockImplementation(() => () => new Promise(() => {}));
+
+    const outcome = await store.dispatch(runFlow({ ...flowOf([node('slow', { timeout: 0.05 })]), timeout: 60 }, 'app-1'));
+
+    expect(outcome).toMatchObject({ status: 'failed', message: expect.stringContaining('A request took more than 0.05 s') });
+    expect(outcome.results.slow.error).toBe('Timed out after 0.05 s');
+  });
+
+  it('follows the gRPC status a call ends with, and takes its message as the body', async () => {
+    const store = makeStore([request('call', { type: 'grpc-request' }), request('after'), request('refused')]);
+    mockSendRequest.mockImplementation((sent) => async () => {
+      const item = store.application.items.find((candidate) => candidate.uid === sent.uid);
+      item.requestSent = { timestamp: Date.now() };
+      item.response = sent.name === 'call'
+        ? { statusCode: 5, statusText: 'NOT_FOUND', statusDescription: 'no such user', responses: [], duration: 4 }
+        : { status: 200, data: {} };
+    });
+
+    const outcome = await store.dispatch(runFlow(flowOf(
+      [node('call'), node('after'), node('refused')],
+      [edge('call', 'OK', 'after'), edge('call', 'NOT_FOUND', 'refused')]
+    ), 'app-1'));
+
+    expect(ranOrder()).toEqual(['call', 'refused']);
+    expect(outcome.results.call).toMatchObject({ exit: 'NOT_FOUND', failedExit: true, response: { status: 'NOT_FOUND', statusText: 'no such user' } });
+
+    mockSendRequest.mockReset();
+    mockSendRequest.mockImplementation((sent) => async () => {
+      const item = store.application.items.find((candidate) => candidate.uid === sent.uid);
+      item.requestSent = { timestamp: Date.now() };
+      item.response = { statusCode: 0, statusText: 'OK', responses: ['{"token":"abc"}'], duration: 3 };
+    });
+    const ok = await store.dispatch(runFlow(flowOf([node('call', { extractions: [{ name: 'token', expression: 'res.body.token' }] })]), 'app-1'));
+    expect(ok.results.call.extracted).toEqual({ token: 'abc' });
+    expect(ok.status).toBe('passed');
+  });
+
+  it('takes the first message a WebSocket request receives, then closes the connection', async () => {
+    const store = makeStore([request('socket', { type: 'ws-request' })]);
+    mockCloseWs.mockClear();
+    mockSendRequest.mockImplementation((sent) => async () => {
+      const item = store.application.items.find((candidate) => candidate.uid === sent.uid);
+      item.requestSent = { timestamp: Date.now() };
+      item.response = { status: 'CONNECTED', responses: [{ type: 'outgoing', message: 'hi', timestamp: Date.now() }, { type: 'incoming', message: '{"id":7}', timestamp: Date.now() }] };
+    });
+
+    const outcome = await store.dispatch(runFlow(flowOf([node('socket', { extractions: [{ name: 'id', expression: 'res.body.id' }] })]), 'app-1'));
+
+    expect(outcome.results.socket).toMatchObject({ exit: 'RECEIVED', extracted: { id: 7 } });
+    expect(mockCloseWs).toHaveBeenCalledWith('uid-socket');
+  });
+
+  it('sends the messages of a WebSocket node in order and goes on when a message holds the expected text', async () => {
+    const store = makeStore([request('socket', { type: 'ws-request' })]);
+    const replies = [{ type: 'incoming', message: 'hello', seq: 1, timestamp: 0 }, { type: 'incoming', message: '{"type":"ready","id":9}', seq: 2, timestamp: 0 }];
+    let sent = 0;
+    mockSendRequest.mockImplementation((request) => async () => {
+      const item = store.application.items.find((candidate) => candidate.uid === request.uid);
+      item.requestSent = { timestamp: Date.now() };
+      item.response = { status: 'CONNECTED', responses: replies.slice(0, ++sent).map((reply) => ({ ...reply, timestamp: Date.now() })) };
+    });
+
+    const outcome = await store.dispatch(runFlow(flowOf([node('socket', { send: ['{"a":1}', 'plain text'], expect: 'ready', extractions: [{ name: 'id', expression: 'res.body.id' }] })]), 'app-1'));
+
+    expect(mockSendRequest.mock.calls.map(([request]) => request.request.body.ws[0])).toEqual([
+      expect.objectContaining({ content: '{"a":1}', type: 'json', selected: true }),
+      expect.objectContaining({ content: 'plain text', type: 'text', selected: true })
+    ]);
+    expect(outcome.results.socket).toMatchObject({ exit: 'RECEIVED', extracted: { id: 9 } });
+  });
+
+  it('leaves through CONNECTED when the socket is open but no message holds the expected text', async () => {
+    const store = makeStore([request('socket', { type: 'ws-request' })]);
+    mockSendRequest.mockImplementation((request) => async () => {
+      const item = store.application.items.find((candidate) => candidate.uid === request.uid);
+      item.requestSent = { timestamp: Date.now() };
+      item.response = { status: 'CONNECTED', responses: [{ type: 'incoming', message: 'hello', seq: 1, timestamp: Date.now() }] };
+    });
+
+    const outcome = await store.dispatch(runFlow(flowOf([node('socket', { expect: 'ready', timeout: 0.1 })]), 'app-1'));
+
+    expect(outcome.results.socket).toMatchObject({ exit: 'CONNECTED', failedExit: false });
+  });
+
+  it('goes on from RECEIVED beside the main branch when a message comes to a socket kept open, then closes the socket', async () => {
+    const store = makeStore([request('socket', { type: 'ws-request' }), request('trigger'), request('after')]);
+    mockCloseWs.mockClear();
+    const socket = () => store.application.items.find((candidate) => candidate.uid === 'uid-socket');
+    mockSendRequest.mockImplementation((sent) => async () => {
+      const item = store.application.items.find((candidate) => candidate.uid === sent.uid);
+      item.requestSent = { timestamp: Date.now() };
+      if (sent.uid === 'uid-socket') item.response = { status: 'CONNECTED', responses: [] };
+      else {
+        item.response = { status: 200, data: {}, headers: {} };
+        if (sent.uid === 'uid-trigger') socket().response = { status: 'CONNECTED', responses: [{ type: 'incoming', message: '{"id":5}', seq: 1, timestamp: Date.now() }] };
+      }
+    });
+
+    const flow = flowOf(
+      [node('socket', { extractions: [{ name: 'id', expression: 'res.body.id' }] }), node('trigger'), node('after')],
+      [edge('socket', 'CONNECTED', 'trigger'), edge('socket', 'RECEIVED', 'after')]
+    );
+    const outcome = await store.dispatch(runFlow(flow, 'app-1'));
+
+    expect(outcome.status).toBe('passed');
+    expect(outcome.results.trigger.status).toBe('passed');
+    expect(outcome.results.after.status).toBe('passed');
+    expect(outcome.results.socket).toMatchObject({ exit: 'RECEIVED', extracted: { id: 5 } });
+    expect(mockCloseWs).toHaveBeenCalledWith('uid-socket');
+  });
+
+  it('leaves a WebSocket node through TIMEOUT when the socket does not open within its timeout', async () => {
+    const store = makeStore([request('socket', { type: 'ws-request' }), request('retry')]);
+    mockSendRequest.mockImplementation((sent) => async () => {
+      const item = store.application.items.find((candidate) => candidate.uid === sent.uid);
+      item.requestSent = { timestamp: Date.now() };
+      item.response = { status: 'CONNECTING', responses: [] };
+    });
+
+    const outcome = await store.dispatch(runFlow(flowOf([node('socket', { timeout: 0.1 }), node('retry')], [edge('socket', 'TIMEOUT', 'retry')]), 'app-1'));
+
+    expect(outcome.results.socket).toMatchObject({ exit: 'TIMEOUT', failedExit: true });
+    expect(ranOrder()).toEqual(['socket', 'retry']);
   });
 
   it('fails a request when no item of the list has the wanted field', async () => {

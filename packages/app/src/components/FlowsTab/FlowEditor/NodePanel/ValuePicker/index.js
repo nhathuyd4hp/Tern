@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { IconBraces } from '@tabler/icons';
 import MenuDropdown from 'ui/MenuDropdown';
 import ActionIcon from 'ui/ActionIcon';
-import { getRequestUrlPath } from 'utils/flows';
+import { getRequestLabel } from 'utils/flows';
 import { getResponseFields } from 'utils/flows/responseFields';
 
 const MAX_FIELDS_PER_REQUEST = 40;
@@ -13,7 +13,7 @@ const ValuePicker = ({ upstream, disabled, label = 'Use a value from an earlier 
   const groups = useMemo(() => upstream
     .map(({ node, request }) => ({
       node,
-      name: `${request.request.method} ${getRequestUrlPath(request)}`,
+      name: `${getRequestLabel(request).method} ${getRequestLabel(request).path}`,
       // what is inside a list needs a condition to tell its item, which is set where the value is shared
       fields: getResponseFields(request).filter((field) => !field.expression.includes('[0]')).slice(0, MAX_FIELDS_PER_REQUEST)
     }))

@@ -1,7 +1,7 @@
 import { Handle, Position } from '@xyflow/react';
 import MethodBadge from 'ui/MethodBadge';
 import statusCodePhraseMap from 'components/ResponsePane/StatusCode/get-status-code-phrase';
-import { OTHER_STATUS, getRequestUrlPath, getStatusKind as statusKind } from 'utils/flows';
+import { OTHER_STATUS, getRequestLabel, getStatusKind as statusKind } from 'utils/flows';
 import StyledWrapper from './StyledWrapper';
 
 // A request on the canvas: it comes in on the left and leaves on the right through one handle per status of its response.
@@ -13,9 +13,9 @@ const FlowNode = ({ data, selected }) => {
     <StyledWrapper className={`${selected ? 'selected' : ''} ${result ? result.status : ''}`} data-testid="flow-node">
       <Handle type="target" position={Position.Left} />
       <div className="node-head" title={request?.name ? `${request.name}\n${requestPath}` : requestPath}>
-        {request ? <MethodBadge method={request.request.method} className="node-method" /> : null}
+        {request ? <MethodBadge method={getRequestLabel(request).method} className="node-method" /> : null}
         <span className={`node-path ${request ? '' : 'missing'}`}>
-          {request ? getRequestUrlPath(request) : `Request not found: ${requestPath}`}
+          {request ? getRequestLabel(request).path : `Request not found: ${requestPath}`}
         </span>
       </div>
       <div className="node-statuses">

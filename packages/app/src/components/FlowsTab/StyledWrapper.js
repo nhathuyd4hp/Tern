@@ -12,11 +12,12 @@ const StyledWrapper = styled.div`
   .flow-list-header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 0.25rem;
     margin-bottom: 0.5rem;
   }
 
   .flow-list-title {
+    margin-right: auto;
     font-size: ${(props) => props.theme.font.size.sm};
     font-weight: 600;
     color: ${(props) => props.theme.text};
